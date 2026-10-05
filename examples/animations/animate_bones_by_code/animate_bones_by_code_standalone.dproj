@@ -243,12 +243,12 @@
 -->
 <DeployFile LocalName="data\CastleSettings.xml" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -290,12 +290,12 @@
 </DeployFile>
 <DeployFile LocalName="data\README.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -337,12 +337,12 @@
 </DeployFile>
 <DeployFile LocalName="data\character_for_crowd.castle-transform" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>character_for_crowd.castle-transform</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>character_for_crowd.castle-transform</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -384,12 +384,12 @@
 </DeployFile>
 <DeployFile LocalName="data\gameviewmain.castle-user-interface" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewmain.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewmain.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -431,12 +431,12 @@
 </DeployFile>
 <DeployFile LocalName="data\simple_humanoid.bin" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>simple_humanoid.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>simple_humanoid.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -478,12 +478,12 @@
 </DeployFile>
 <DeployFile LocalName="data\simple_humanoid.gltf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>simple_humanoid.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>simple_humanoid.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -525,12 +525,12 @@
 </DeployFile>
 <DeployFile LocalName="data\skinned_animation\AUTHORS.md" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/skinned_animation/</RemoteDir>
+  <RemoteDir>assets\skinned_animation</RemoteDir>
   <RemoteName>AUTHORS.md</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/skinned_animation/</RemoteDir>
+  <RemoteDir>assets\skinned_animation</RemoteDir>
   <RemoteName>AUTHORS.md</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -572,12 +572,12 @@
 </DeployFile>
 <DeployFile LocalName="data\skinned_animation\Smooth_Female_Dress.bin" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/skinned_animation/</RemoteDir>
+  <RemoteDir>assets\skinned_animation</RemoteDir>
   <RemoteName>Smooth_Female_Dress.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/skinned_animation/</RemoteDir>
+  <RemoteDir>assets\skinned_animation</RemoteDir>
   <RemoteName>Smooth_Female_Dress.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -619,12 +619,12 @@
 </DeployFile>
 <DeployFile LocalName="data\skinned_animation\Smooth_Female_Dress.gltf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/skinned_animation/</RemoteDir>
+  <RemoteDir>assets\skinned_animation</RemoteDir>
   <RemoteName>Smooth_Female_Dress.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/skinned_animation/</RemoteDir>
+  <RemoteDir>assets\skinned_animation</RemoteDir>
   <RemoteName>Smooth_Female_Dress.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>

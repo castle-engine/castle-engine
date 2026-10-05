@@ -243,12 +243,12 @@
 -->
 <DeployFile LocalName="data\CastleSettings.xml" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -290,12 +290,12 @@
 </DeployFile>
 <DeployFile LocalName="data\README.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -337,12 +337,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\level-dungeon.bin" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level</RemoteDir>
   <RemoteName>level-dungeon.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level</RemoteDir>
   <RemoteName>level-dungeon.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -384,12 +384,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\level-dungeon.gltf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level</RemoteDir>
   <RemoteName>level-dungeon.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level</RemoteDir>
   <RemoteName>level-dungeon.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -431,12 +431,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\BucklerV5D.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>BucklerV5D.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>BucklerV5D.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -478,12 +478,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\concrete01_diff.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>concrete01_diff.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>concrete01_diff.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -525,12 +525,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\concrete01_norm.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>concrete01_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>concrete01_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -572,12 +572,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\decorative.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>decorative.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>decorative.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -619,12 +619,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\decorative_norm.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>decorative_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>decorative_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -666,12 +666,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\decorative_spec.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>decorative_spec.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>decorative_spec.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -713,12 +713,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\gate-2.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>gate-2.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>gate-2.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -760,12 +760,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\gate-2_norm.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>gate-2_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>gate-2_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -807,12 +807,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\gate.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>gate.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>gate.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -854,12 +854,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\gate_norm.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>gate_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>gate_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -901,12 +901,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\ground-1-darkness.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>ground-1-darkness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>ground-1-darkness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -948,12 +948,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\ground-1-darkness_norm.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>ground-1-darkness_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>ground-1-darkness_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -995,12 +995,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\ground-1-darkness_spec.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>ground-1-darkness_spec.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>ground-1-darkness_spec.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1042,12 +1042,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\ground-1.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>ground-1.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>ground-1.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1089,12 +1089,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\ground-1_norm.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>ground-1_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>ground-1_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1136,12 +1136,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\ground-1_spec.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>ground-1_spec.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>ground-1_spec.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1183,12 +1183,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\ground-2.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>ground-2.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>ground-2.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1230,12 +1230,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\ground-2_norm.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>ground-2_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>ground-2_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1277,12 +1277,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\ground-2_spec.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>ground-2_spec.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>ground-2_spec.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1324,12 +1324,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\ground-3.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>ground-3.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>ground-3.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1371,12 +1371,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\ground-3_norm.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>ground-3_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>ground-3_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1418,12 +1418,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\ground-3_spec.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>ground-3_spec.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>ground-3_spec.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1465,12 +1465,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\ground-4.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>ground-4.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>ground-4.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1512,12 +1512,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\ground-4_norm.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>ground-4_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>ground-4_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1559,12 +1559,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\ground-4_spec.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>ground-4_spec.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>ground-4_spec.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1606,12 +1606,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\mug2.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>mug2.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>mug2.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1653,12 +1653,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\mug2_ao.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>mug2_ao.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>mug2_ao.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1700,12 +1700,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\mug2_norm.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>mug2_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>mug2_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1747,12 +1747,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\mug2_spec.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>mug2_spec.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>mug2_spec.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1794,12 +1794,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\platform.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>platform.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>platform.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1841,12 +1841,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\readme.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>readme.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>readme.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1888,12 +1888,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\shortSwordD.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>shortSwordD.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>shortSwordD.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1935,12 +1935,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\switch.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>switch.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>switch.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1982,12 +1982,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\switch_norm.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>switch_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>switch_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2029,12 +2029,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\switch_spec.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>switch_spec.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>switch_spec.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2076,12 +2076,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\tile-ground2-norm.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>tile-ground2-norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>tile-ground2-norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2123,12 +2123,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\tile-ground2-spec.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>tile-ground2-spec.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>tile-ground2-spec.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2170,12 +2170,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\tile-ground2.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>tile-ground2.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>tile-ground2.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2217,12 +2217,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\tile_tantiles.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>tile_tantiles.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>tile_tantiles.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2264,12 +2264,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\tile_tantiles_norm.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>tile_tantiles_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>tile_tantiles_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2311,12 +2311,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\tile_tantiles_spec.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>tile_tantiles_spec.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>tile_tantiles_spec.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2358,12 +2358,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\torch.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>torch.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>torch.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2405,12 +2405,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\torch_norm.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>torch_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>torch_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2452,12 +2452,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\wall-tex-1.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>wall-tex-1.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>wall-tex-1.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2499,12 +2499,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\wall-tex-1_norm.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>wall-tex-1_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>wall-tex-1_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2546,12 +2546,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\wall-tex-2.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>wall-tex-2.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>wall-tex-2.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2593,12 +2593,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\wall-tex-2_norm.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>wall-tex-2_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>wall-tex-2_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2640,12 +2640,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\wall-tex-3.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>wall-tex-3.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>wall-tex-3.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2687,12 +2687,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\wall-tex-3_norm.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>wall-tex-3_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>wall-tex-3_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2734,12 +2734,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\wall-to-depth.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>wall-to-depth.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>wall-to-depth.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2781,12 +2781,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\wall-window.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>wall-window.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>wall-window.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2828,12 +2828,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\wall-window_norm.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>wall-window_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteDir>assets\dungeon_modular_level\textures</RemoteDir>
   <RemoteName>wall-window_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2875,12 +2875,12 @@
 </DeployFile>
 <DeployFile LocalName="data\gameviewgameover.castle-user-interface" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewgameover.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewgameover.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2922,12 +2922,12 @@
 </DeployFile>
 <DeployFile LocalName="data\gameviewmain.castle-user-interface" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewmain.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewmain.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2969,12 +2969,12 @@
 </DeployFile>
 <DeployFile LocalName="data\gameviewwin.castle-user-interface" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewwin.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewwin.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3016,12 +3016,12 @@
 </DeployFile>
 <DeployFile LocalName="data\skeleton\Characters_Skeleton.gltf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/skeleton/</RemoteDir>
+  <RemoteDir>assets\skeleton</RemoteDir>
   <RemoteName>Characters_Skeleton.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/skeleton/</RemoteDir>
+  <RemoteDir>assets\skeleton</RemoteDir>
   <RemoteName>Characters_Skeleton.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3063,12 +3063,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sketchfab\barrel\license.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sketchfab/barrel/</RemoteDir>
+  <RemoteDir>assets\sketchfab\barrel</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sketchfab/barrel/</RemoteDir>
+  <RemoteDir>assets\sketchfab\barrel</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3110,12 +3110,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sketchfab\barrel\scene.bin" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sketchfab/barrel/</RemoteDir>
+  <RemoteDir>assets\sketchfab\barrel</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sketchfab/barrel/</RemoteDir>
+  <RemoteDir>assets\sketchfab\barrel</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3157,12 +3157,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sketchfab\barrel\scene.gltf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sketchfab/barrel/</RemoteDir>
+  <RemoteDir>assets\sketchfab\barrel</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sketchfab/barrel/</RemoteDir>
+  <RemoteDir>assets\sketchfab\barrel</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3204,12 +3204,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sketchfab\barrel\textures\lambert2SG_baseColor.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteDir>assets\sketchfab\barrel\textures</RemoteDir>
   <RemoteName>lambert2SG_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteDir>assets\sketchfab\barrel\textures</RemoteDir>
   <RemoteName>lambert2SG_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3251,12 +3251,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sketchfab\barrel\textures\lambert2SG_metallicRoughness.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteDir>assets\sketchfab\barrel\textures</RemoteDir>
   <RemoteName>lambert2SG_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteDir>assets\sketchfab\barrel\textures</RemoteDir>
   <RemoteName>lambert2SG_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3298,12 +3298,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sketchfab\barrel\textures\lambert2SG_normal.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteDir>assets\sketchfab\barrel\textures</RemoteDir>
   <RemoteName>lambert2SG_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteDir>assets\sketchfab\barrel\textures</RemoteDir>
   <RemoteName>lambert2SG_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3345,12 +3345,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sketchfab\barrel\textures\polySurface7SG_baseColor.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteDir>assets\sketchfab\barrel\textures</RemoteDir>
   <RemoteName>polySurface7SG_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteDir>assets\sketchfab\barrel\textures</RemoteDir>
   <RemoteName>polySurface7SG_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3392,12 +3392,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sketchfab\barrel\textures\polySurface7SG_metallicRoughness.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteDir>assets\sketchfab\barrel\textures</RemoteDir>
   <RemoteName>polySurface7SG_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteDir>assets\sketchfab\barrel\textures</RemoteDir>
   <RemoteName>polySurface7SG_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3439,12 +3439,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sketchfab\barrel\textures\polySurface7SG_normal.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteDir>assets\sketchfab\barrel\textures</RemoteDir>
   <RemoteName>polySurface7SG_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteDir>assets\sketchfab\barrel\textures</RemoteDir>
   <RemoteName>polySurface7SG_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3486,12 +3486,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sketchfab\cobra-statue\license.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sketchfab/cobra-statue/</RemoteDir>
+  <RemoteDir>assets\sketchfab\cobra-statue</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sketchfab/cobra-statue/</RemoteDir>
+  <RemoteDir>assets\sketchfab\cobra-statue</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3533,12 +3533,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sketchfab\cobra-statue\scene.bin" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sketchfab/cobra-statue/</RemoteDir>
+  <RemoteDir>assets\sketchfab\cobra-statue</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sketchfab/cobra-statue/</RemoteDir>
+  <RemoteDir>assets\sketchfab\cobra-statue</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3580,12 +3580,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sketchfab\cobra-statue\scene.gltf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sketchfab/cobra-statue/</RemoteDir>
+  <RemoteDir>assets\sketchfab\cobra-statue</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sketchfab/cobra-statue/</RemoteDir>
+  <RemoteDir>assets\sketchfab\cobra-statue</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3627,12 +3627,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sketchfab\throne\license.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sketchfab/throne/</RemoteDir>
+  <RemoteDir>assets\sketchfab\throne</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sketchfab/throne/</RemoteDir>
+  <RemoteDir>assets\sketchfab\throne</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3674,12 +3674,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sketchfab\throne\scene.bin" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sketchfab/throne/</RemoteDir>
+  <RemoteDir>assets\sketchfab\throne</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sketchfab/throne/</RemoteDir>
+  <RemoteDir>assets\sketchfab\throne</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3721,12 +3721,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sketchfab\throne\scene.gltf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sketchfab/throne/</RemoteDir>
+  <RemoteDir>assets\sketchfab\throne</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sketchfab/throne/</RemoteDir>
+  <RemoteDir>assets\sketchfab\throne</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3768,12 +3768,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sketchfab\throne\textures\Material_baseColor.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sketchfab/throne/textures/</RemoteDir>
+  <RemoteDir>assets\sketchfab\throne\textures</RemoteDir>
   <RemoteName>Material_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sketchfab/throne/textures/</RemoteDir>
+  <RemoteDir>assets\sketchfab\throne\textures</RemoteDir>
   <RemoteName>Material_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3815,12 +3815,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sketchfab\throne\textures\Material_metallicRoughness.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sketchfab/throne/textures/</RemoteDir>
+  <RemoteDir>assets\sketchfab\throne\textures</RemoteDir>
   <RemoteName>Material_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sketchfab/throne/textures/</RemoteDir>
+  <RemoteDir>assets\sketchfab\throne\textures</RemoteDir>
   <RemoteName>Material_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3862,12 +3862,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sketchfab\throne\textures\Material_normal.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sketchfab/throne/textures/</RemoteDir>
+  <RemoteDir>assets\sketchfab\throne\textures</RemoteDir>
   <RemoteName>Material_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sketchfab/throne/textures/</RemoteDir>
+  <RemoteDir>assets\sketchfab\throne\textures</RemoteDir>
   <RemoteName>Material_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3909,12 +3909,12 @@
 </DeployFile>
 <DeployFile LocalName="data\trophy\trophy.bin" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/trophy/</RemoteDir>
+  <RemoteDir>assets\trophy</RemoteDir>
   <RemoteName>trophy.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/trophy/</RemoteDir>
+  <RemoteDir>assets\trophy</RemoteDir>
   <RemoteName>trophy.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3956,12 +3956,12 @@
 </DeployFile>
 <DeployFile LocalName="data\trophy\trophy.gltf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/trophy/</RemoteDir>
+  <RemoteDir>assets\trophy</RemoteDir>
   <RemoteName>trophy.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/trophy/</RemoteDir>
+  <RemoteDir>assets\trophy</RemoteDir>
   <RemoteName>trophy.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>

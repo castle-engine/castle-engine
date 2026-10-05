@@ -243,12 +243,12 @@
 -->
 <DeployFile LocalName="data\AUTHORS.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>AUTHORS.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>AUTHORS.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -290,12 +290,12 @@
 </DeployFile>
 <DeployFile LocalName="data\CastleSettings.xml" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -337,12 +337,12 @@
 </DeployFile>
 <DeployFile LocalName="data\README.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -384,12 +384,12 @@
 </DeployFile>
 <DeployFile LocalName="data\gameviewmain.castle-user-interface" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewmain.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewmain.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -431,12 +431,12 @@
 </DeployFile>
 <DeployFile LocalName="data\kenney_citykitcommercial\detail_umbrellaDetailed.glb" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/kenney_citykitcommercial/</RemoteDir>
+  <RemoteDir>assets\kenney_citykitcommercial</RemoteDir>
   <RemoteName>detail_umbrellaDetailed.glb</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/kenney_citykitcommercial/</RemoteDir>
+  <RemoteDir>assets\kenney_citykitcommercial</RemoteDir>
   <RemoteName>detail_umbrellaDetailed.glb</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -478,12 +478,12 @@
 </DeployFile>
 <DeployFile LocalName="data\kenney_citykitcommercial\large_buildingB.glb" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/kenney_citykitcommercial/</RemoteDir>
+  <RemoteDir>assets\kenney_citykitcommercial</RemoteDir>
   <RemoteName>large_buildingB.glb</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/kenney_citykitcommercial/</RemoteDir>
+  <RemoteDir>assets\kenney_citykitcommercial</RemoteDir>
   <RemoteName>large_buildingB.glb</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -525,12 +525,12 @@
 </DeployFile>
 <DeployFile LocalName="data\kenney_citykitcommercial\large_buildingF.glb" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/kenney_citykitcommercial/</RemoteDir>
+  <RemoteDir>assets\kenney_citykitcommercial</RemoteDir>
   <RemoteName>large_buildingF.glb</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/kenney_citykitcommercial/</RemoteDir>
+  <RemoteDir>assets\kenney_citykitcommercial</RemoteDir>
   <RemoteName>large_buildingF.glb</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -572,12 +572,12 @@
 </DeployFile>
 <DeployFile LocalName="data\kenney_citykitcommercial\small_buildingB.glb" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/kenney_citykitcommercial/</RemoteDir>
+  <RemoteDir>assets\kenney_citykitcommercial</RemoteDir>
   <RemoteName>small_buildingB.glb</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/kenney_citykitcommercial/</RemoteDir>
+  <RemoteDir>assets\kenney_citykitcommercial</RemoteDir>
   <RemoteName>small_buildingB.glb</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -619,12 +619,12 @@
 </DeployFile>
 <DeployFile LocalName="data\kenney_citykitcommercial\small_buildingD.glb" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/kenney_citykitcommercial/</RemoteDir>
+  <RemoteDir>assets\kenney_citykitcommercial</RemoteDir>
   <RemoteName>small_buildingD.glb</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/kenney_citykitcommercial/</RemoteDir>
+  <RemoteDir>assets\kenney_citykitcommercial</RemoteDir>
   <RemoteName>small_buildingD.glb</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -666,12 +666,12 @@
 </DeployFile>
 <DeployFile LocalName="data\kenney_citykitcommercial\small_buildingE.glb" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/kenney_citykitcommercial/</RemoteDir>
+  <RemoteDir>assets\kenney_citykitcommercial</RemoteDir>
   <RemoteName>small_buildingE.glb</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/kenney_citykitcommercial/</RemoteDir>
+  <RemoteDir>assets\kenney_citykitcommercial</RemoteDir>
   <RemoteName>small_buildingE.glb</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -713,12 +713,12 @@
 </DeployFile>
 <DeployFile LocalName="data\kenney_citykitcommercial\small_buildingF.glb" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/kenney_citykitcommercial/</RemoteDir>
+  <RemoteDir>assets\kenney_citykitcommercial</RemoteDir>
   <RemoteName>small_buildingF.glb</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/kenney_citykitcommercial/</RemoteDir>
+  <RemoteDir>assets\kenney_citykitcommercial</RemoteDir>
   <RemoteName>small_buildingF.glb</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -760,12 +760,12 @@
 </DeployFile>
 <DeployFile LocalName="data\quaternius_ultimate_monsters\Bunny.gltf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/quaternius_ultimate_monsters/</RemoteDir>
+  <RemoteDir>assets\quaternius_ultimate_monsters</RemoteDir>
   <RemoteName>Bunny.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/quaternius_ultimate_monsters/</RemoteDir>
+  <RemoteDir>assets\quaternius_ultimate_monsters</RemoteDir>
   <RemoteName>Bunny.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -807,12 +807,12 @@
 </DeployFile>
 <DeployFile LocalName="data\quaternius_ultimate_monsters\Ninja.gltf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/quaternius_ultimate_monsters/</RemoteDir>
+  <RemoteDir>assets\quaternius_ultimate_monsters</RemoteDir>
   <RemoteName>Ninja.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/quaternius_ultimate_monsters/</RemoteDir>
+  <RemoteDir>assets\quaternius_ultimate_monsters</RemoteDir>
   <RemoteName>Ninja.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -854,12 +854,12 @@
 </DeployFile>
 <DeployFile LocalName="data\quaternius_ultimate_monsters\Orc.gltf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/quaternius_ultimate_monsters/</RemoteDir>
+  <RemoteDir>assets\quaternius_ultimate_monsters</RemoteDir>
   <RemoteName>Orc.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/quaternius_ultimate_monsters/</RemoteDir>
+  <RemoteDir>assets\quaternius_ultimate_monsters</RemoteDir>
   <RemoteName>Orc.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -901,12 +901,12 @@
 </DeployFile>
 <DeployFile LocalName="data\quaternius_ultimate_monsters\Orc_Skull.gltf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/quaternius_ultimate_monsters/</RemoteDir>
+  <RemoteDir>assets\quaternius_ultimate_monsters</RemoteDir>
   <RemoteName>Orc_Skull.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/quaternius_ultimate_monsters/</RemoteDir>
+  <RemoteDir>assets\quaternius_ultimate_monsters</RemoteDir>
   <RemoteName>Orc_Skull.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -948,12 +948,12 @@
 </DeployFile>
 <DeployFile LocalName="data\quaternius_ultimate_monsters\Yeti.gltf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/quaternius_ultimate_monsters/</RemoteDir>
+  <RemoteDir>assets\quaternius_ultimate_monsters</RemoteDir>
   <RemoteName>Yeti.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/quaternius_ultimate_monsters/</RemoteDir>
+  <RemoteDir>assets\quaternius_ultimate_monsters</RemoteDir>
   <RemoteName>Yeti.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>

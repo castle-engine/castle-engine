@@ -242,12 +242,12 @@
 -->
 <DeployFile LocalName="data\de.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>de.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>de.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -289,12 +289,12 @@
 </DeployFile>
 <DeployFile LocalName="data\de.xml" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>de.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>de.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -336,12 +336,12 @@
 </DeployFile>
 <DeployFile LocalName="data\en.csv" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>en.csv</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>en.csv</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -383,12 +383,12 @@
 </DeployFile>
 <DeployFile LocalName="data\en.json" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>en.json</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>en.json</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -430,12 +430,12 @@
 </DeployFile>
 <DeployFile LocalName="data\en.jsonobj" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>en.jsonobj</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>en.jsonobj</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -477,12 +477,12 @@
 </DeployFile>
 <DeployFile LocalName="data\en.mo" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>en.mo</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>en.mo</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -524,12 +524,12 @@
 </DeployFile>
 <DeployFile LocalName="data\en.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>en.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>en.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -571,12 +571,12 @@
 </DeployFile>
 <DeployFile LocalName="data\en.xml" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>en.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>en.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>

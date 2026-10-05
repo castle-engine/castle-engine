@@ -243,12 +243,12 @@
 -->
 <DeployFile LocalName="data\CastleSettings.xml" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -290,12 +290,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\DejaVuSerif-Bold.ttf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteDir>assets\fonts</RemoteDir>
   <RemoteName>DejaVuSerif-Bold.ttf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteDir>assets\fonts</RemoteDir>
   <RemoteName>DejaVuSerif-Bold.ttf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -337,12 +337,12 @@
 </DeployFile>
 <DeployFile LocalName="data\gameviewinstructions.castle-user-interface" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewinstructions.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewinstructions.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -384,12 +384,12 @@
 </DeployFile>
 <DeployFile LocalName="data\gameviewinstructions2.castle-user-interface" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewinstructions2.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewinstructions2.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -431,12 +431,12 @@
 </DeployFile>
 <DeployFile LocalName="data\gameviewmainmenu.castle-user-interface" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewmainmenu.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewmainmenu.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -478,12 +478,12 @@
 </DeployFile>
 <DeployFile LocalName="data\gameviewplay.castle-user-interface" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewplay.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewplay.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -525,12 +525,12 @@
 </DeployFile>
 <DeployFile LocalName="data\gameviewwinaliens.castle-user-interface" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewwinaliens.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewwinaliens.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -572,12 +572,12 @@
 </DeployFile>
 <DeployFile LocalName="data\gameviewwinhumans.castle-user-interface" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewwinhumans.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewwinhumans.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -619,12 +619,12 @@
 </DeployFile>
 <DeployFile LocalName="data\images\AUTHORS.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/images/</RemoteDir>
+  <RemoteDir>assets\images</RemoteDir>
   <RemoteName>AUTHORS.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/images/</RemoteDir>
+  <RemoteDir>assets\images</RemoteDir>
   <RemoteName>AUTHORS.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -666,12 +666,12 @@
 </DeployFile>
 <DeployFile LocalName="data\images\aliens_win.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/images/</RemoteDir>
+  <RemoteDir>assets\images</RemoteDir>
   <RemoteName>aliens_win.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/images/</RemoteDir>
+  <RemoteDir>assets\images</RemoteDir>
   <RemoteName>aliens_win.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -713,12 +713,12 @@
 </DeployFile>
 <DeployFile LocalName="data\images\humans_win.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/images/</RemoteDir>
+  <RemoteDir>assets\images</RemoteDir>
   <RemoteName>humans_win.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/images/</RemoteDir>
+  <RemoteDir>assets\images</RemoteDir>
   <RemoteName>humans_win.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -760,12 +760,12 @@
 </DeployFile>
 <DeployFile LocalName="data\images\main_menu_background\README.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/images/main_menu_background/</RemoteDir>
+  <RemoteDir>assets\images\main_menu_background</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/images/main_menu_background/</RemoteDir>
+  <RemoteDir>assets\images\main_menu_background</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -807,12 +807,12 @@
 </DeployFile>
 <DeployFile LocalName="data\images\main_menu_background\siege.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/images/main_menu_background/</RemoteDir>
+  <RemoteDir>assets\images\main_menu_background</RemoteDir>
   <RemoteName>siege.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/images/main_menu_background/</RemoteDir>
+  <RemoteDir>assets\images\main_menu_background</RemoteDir>
   <RemoteName>siege.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -854,12 +854,12 @@
 </DeployFile>
 <DeployFile LocalName="data\images\parchment_alpha.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/images/</RemoteDir>
+  <RemoteDir>assets\images</RemoteDir>
   <RemoteName>parchment_alpha.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/images/</RemoteDir>
+  <RemoteDir>assets\images</RemoteDir>
   <RemoteName>parchment_alpha.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -901,12 +901,12 @@
 </DeployFile>
 <DeployFile LocalName="data\maps\map-hexagonal.tmx" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/maps/</RemoteDir>
+  <RemoteDir>assets\maps</RemoteDir>
   <RemoteName>map-hexagonal.tmx</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/maps/</RemoteDir>
+  <RemoteDir>assets\maps</RemoteDir>
   <RemoteName>map-hexagonal.tmx</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -948,12 +948,12 @@
 </DeployFile>
 <DeployFile LocalName="data\maps\map-isometric-staggered.tmx" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/maps/</RemoteDir>
+  <RemoteDir>assets\maps</RemoteDir>
   <RemoteName>map-isometric-staggered.tmx</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/maps/</RemoteDir>
+  <RemoteDir>assets\maps</RemoteDir>
   <RemoteName>map-isometric-staggered.tmx</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -995,12 +995,12 @@
 </DeployFile>
 <DeployFile LocalName="data\maps\map-isometric-test-non-square.tmx" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/maps/</RemoteDir>
+  <RemoteDir>assets\maps</RemoteDir>
   <RemoteName>map-isometric-test-non-square.tmx</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/maps/</RemoteDir>
+  <RemoteDir>assets\maps</RemoteDir>
   <RemoteName>map-isometric-test-non-square.tmx</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1042,12 +1042,12 @@
 </DeployFile>
 <DeployFile LocalName="data\maps\map-isometric.tmx" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/maps/</RemoteDir>
+  <RemoteDir>assets\maps</RemoteDir>
   <RemoteName>map-isometric.tmx</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/maps/</RemoteDir>
+  <RemoteDir>assets\maps</RemoteDir>
   <RemoteName>map-isometric.tmx</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1089,12 +1089,12 @@
 </DeployFile>
 <DeployFile LocalName="data\maps\map-orthogonal.tmx" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/maps/</RemoteDir>
+  <RemoteDir>assets\maps</RemoteDir>
   <RemoteName>map-orthogonal.tmx</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/maps/</RemoteDir>
+  <RemoteDir>assets\maps</RemoteDir>
   <RemoteName>map-orthogonal.tmx</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1136,12 +1136,12 @@
 </DeployFile>
 <DeployFile LocalName="data\maps\tileset-terrain.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/maps/</RemoteDir>
+  <RemoteDir>assets\maps</RemoteDir>
   <RemoteName>tileset-terrain.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/maps/</RemoteDir>
+  <RemoteDir>assets\maps</RemoteDir>
   <RemoteName>tileset-terrain.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1183,12 +1183,12 @@
 </DeployFile>
 <DeployFile LocalName="data\maps\tileset-terrain.tsx" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/maps/</RemoteDir>
+  <RemoteDir>assets\maps</RemoteDir>
   <RemoteName>tileset-terrain.tsx</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/maps/</RemoteDir>
+  <RemoteDir>assets\maps</RemoteDir>
   <RemoteName>tileset-terrain.tsx</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1230,12 +1230,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tile_hover\hexagonal.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tile_hover/</RemoteDir>
+  <RemoteDir>assets\tile_hover</RemoteDir>
   <RemoteName>hexagonal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tile_hover/</RemoteDir>
+  <RemoteDir>assets\tile_hover</RemoteDir>
   <RemoteName>hexagonal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1277,12 +1277,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tile_hover\isometric.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tile_hover/</RemoteDir>
+  <RemoteDir>assets\tile_hover</RemoteDir>
   <RemoteName>isometric.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tile_hover/</RemoteDir>
+  <RemoteDir>assets\tile_hover</RemoteDir>
   <RemoteName>isometric.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1324,12 +1324,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tile_hover\orthogonal.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tile_hover/</RemoteDir>
+  <RemoteDir>assets\tile_hover</RemoteDir>
   <RemoteName>orthogonal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tile_hover/</RemoteDir>
+  <RemoteDir>assets\tile_hover</RemoteDir>
   <RemoteName>orthogonal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1371,12 +1371,12 @@
 </DeployFile>
 <DeployFile LocalName="data\unit.castle-transform" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>unit.castle-transform</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>unit.castle-transform</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1418,12 +1418,12 @@
 </DeployFile>
 <DeployFile LocalName="data\unit_selected.castle-transform" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>unit_selected.castle-transform</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>unit_selected.castle-transform</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1465,12 +1465,12 @@
 </DeployFile>
 <DeployFile LocalName="data\units\AUTHORS.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/units/</RemoteDir>
+  <RemoteDir>assets\units</RemoteDir>
   <RemoteName>AUTHORS.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/units/</RemoteDir>
+  <RemoteDir>assets\units</RemoteDir>
   <RemoteName>AUTHORS.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1512,12 +1512,12 @@
 </DeployFile>
 <DeployFile LocalName="data\units\alien1.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/units/</RemoteDir>
+  <RemoteDir>assets\units</RemoteDir>
   <RemoteName>alien1.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/units/</RemoteDir>
+  <RemoteDir>assets\units</RemoteDir>
   <RemoteName>alien1.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1559,12 +1559,12 @@
 </DeployFile>
 <DeployFile LocalName="data\units\alien2.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/units/</RemoteDir>
+  <RemoteDir>assets\units</RemoteDir>
   <RemoteName>alien2.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/units/</RemoteDir>
+  <RemoteDir>assets\units</RemoteDir>
   <RemoteName>alien2.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1606,12 +1606,12 @@
 </DeployFile>
 <DeployFile LocalName="data\units\human1.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/units/</RemoteDir>
+  <RemoteDir>assets\units</RemoteDir>
   <RemoteName>human1.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/units/</RemoteDir>
+  <RemoteDir>assets\units</RemoteDir>
   <RemoteName>human1.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1653,12 +1653,12 @@
 </DeployFile>
 <DeployFile LocalName="data\units\human2.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/units/</RemoteDir>
+  <RemoteDir>assets\units</RemoteDir>
   <RemoteName>human2.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/units/</RemoteDir>
+  <RemoteDir>assets\units</RemoteDir>
   <RemoteName>human2.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1700,12 +1700,12 @@
 </DeployFile>
 <DeployFile LocalName="data\units\large_size\alien1.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/units/large_size/</RemoteDir>
+  <RemoteDir>assets\units\large_size</RemoteDir>
   <RemoteName>alien1.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/units/large_size/</RemoteDir>
+  <RemoteDir>assets\units\large_size</RemoteDir>
   <RemoteName>alien1.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1747,12 +1747,12 @@
 </DeployFile>
 <DeployFile LocalName="data\units\large_size\alien2.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/units/large_size/</RemoteDir>
+  <RemoteDir>assets\units\large_size</RemoteDir>
   <RemoteName>alien2.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/units/large_size/</RemoteDir>
+  <RemoteDir>assets\units\large_size</RemoteDir>
   <RemoteName>alien2.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1794,12 +1794,12 @@
 </DeployFile>
 <DeployFile LocalName="data\units\large_size\human1.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/units/large_size/</RemoteDir>
+  <RemoteDir>assets\units\large_size</RemoteDir>
   <RemoteName>human1.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/units/large_size/</RemoteDir>
+  <RemoteDir>assets\units\large_size</RemoteDir>
   <RemoteName>human1.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1841,12 +1841,12 @@
 </DeployFile>
 <DeployFile LocalName="data\units\large_size\human2.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/units/large_size/</RemoteDir>
+  <RemoteDir>assets\units\large_size</RemoteDir>
   <RemoteName>human2.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/units/large_size/</RemoteDir>
+  <RemoteDir>assets\units\large_size</RemoteDir>
   <RemoteName>human2.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1888,12 +1888,12 @@
 </DeployFile>
 <DeployFile LocalName="data\units\unit_background_frame.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/units/</RemoteDir>
+  <RemoteDir>assets\units</RemoteDir>
   <RemoteName>unit_background_frame.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/units/</RemoteDir>
+  <RemoteDir>assets\units</RemoteDir>
   <RemoteName>unit_background_frame.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1935,12 +1935,12 @@
 </DeployFile>
 <DeployFile LocalName="data\units\unit_selected_frame.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/units/</RemoteDir>
+  <RemoteDir>assets\units</RemoteDir>
   <RemoteName>unit_selected_frame.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/units/</RemoteDir>
+  <RemoteDir>assets\units</RemoteDir>
   <RemoteName>unit_selected_frame.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>

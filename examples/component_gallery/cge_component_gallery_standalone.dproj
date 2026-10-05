@@ -243,12 +243,12 @@
 -->
 <DeployFile LocalName="data\AUTHORS.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>AUTHORS.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>AUTHORS.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -290,12 +290,12 @@
 </DeployFile>
 <DeployFile LocalName="data\CastleSettings.xml" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -337,12 +337,12 @@
 </DeployFile>
 <DeployFile LocalName="data\README.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -384,12 +384,12 @@
 </DeployFile>
 <DeployFile LocalName="data\box.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>box.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>box.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -431,12 +431,12 @@
 </DeployFile>
 <DeployFile LocalName="data\castle_game_engine_icon.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>castle_game_engine_icon.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>castle_game_engine_icon.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -478,12 +478,12 @@
 </DeployFile>
 <DeployFile LocalName="data\castle_game_engine_icon_fit_in_square.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>castle_game_engine_icon_fit_in_square.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>castle_game_engine_icon_fit_in_square.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -525,12 +525,12 @@
 </DeployFile>
 <DeployFile LocalName="data\cge_icon_256.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>cge_icon_256.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>cge_icon_256.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -572,12 +572,12 @@
 </DeployFile>
 <DeployFile LocalName="data\cge_icon_cut_small_piece.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>cge_icon_cut_small_piece.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>cge_icon_cut_small_piece.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -619,12 +619,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dragon\AUTHORS.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dragon/</RemoteDir>
+  <RemoteDir>assets\dragon</RemoteDir>
   <RemoteName>AUTHORS.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dragon/</RemoteDir>
+  <RemoteDir>assets\dragon</RemoteDir>
   <RemoteName>AUTHORS.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -666,12 +666,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dragon\dragon.atlas" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dragon/</RemoteDir>
+  <RemoteDir>assets\dragon</RemoteDir>
   <RemoteName>dragon.atlas</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dragon/</RemoteDir>
+  <RemoteDir>assets\dragon</RemoteDir>
   <RemoteName>dragon.atlas</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -713,12 +713,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dragon\dragon.json" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dragon/</RemoteDir>
+  <RemoteDir>assets\dragon</RemoteDir>
   <RemoteName>dragon.json</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dragon/</RemoteDir>
+  <RemoteDir>assets\dragon</RemoteDir>
   <RemoteName>dragon.json</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -760,12 +760,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dragon\dragon.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dragon/</RemoteDir>
+  <RemoteDir>assets\dragon</RemoteDir>
   <RemoteName>dragon.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dragon/</RemoteDir>
+  <RemoteDir>assets\dragon</RemoteDir>
   <RemoteName>dragon.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -807,12 +807,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\AUTHORS.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteDir>assets\fonts</RemoteDir>
   <RemoteName>AUTHORS.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteDir>assets\fonts</RemoteDir>
   <RemoteName>AUTHORS.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -854,12 +854,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\DejaVuSans-Bold.ttf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteDir>assets\fonts</RemoteDir>
   <RemoteName>DejaVuSans-Bold.ttf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteDir>assets\fonts</RemoteDir>
   <RemoteName>DejaVuSans-Bold.ttf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -901,12 +901,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\DejaVuSans-BoldOblique.ttf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteDir>assets\fonts</RemoteDir>
   <RemoteName>DejaVuSans-BoldOblique.ttf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteDir>assets\fonts</RemoteDir>
   <RemoteName>DejaVuSans-BoldOblique.ttf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -948,12 +948,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\DejaVuSans-Oblique.ttf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteDir>assets\fonts</RemoteDir>
   <RemoteName>DejaVuSans-Oblique.ttf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteDir>assets\fonts</RemoteDir>
   <RemoteName>DejaVuSans-Oblique.ttf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -995,12 +995,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\DejaVuSans.ttf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteDir>assets\fonts</RemoteDir>
   <RemoteName>DejaVuSans.ttf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteDir>assets\fonts</RemoteDir>
   <RemoteName>DejaVuSans.ttf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1042,12 +1042,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\PARPG.ttf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteDir>assets\fonts</RemoteDir>
   <RemoteName>PARPG.ttf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteDir>assets\fonts</RemoteDir>
   <RemoteName>PARPG.ttf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1089,12 +1089,12 @@
 </DeployFile>
 <DeployFile LocalName="data\gameviewmain.castle-user-interface" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewmain.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewmain.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1136,12 +1136,12 @@
 </DeployFile>
 <DeployFile LocalName="data\page_button.castle-user-interface" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>page_button.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>page_button.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1183,12 +1183,12 @@
 </DeployFile>
 <DeployFile LocalName="data\page_button_2.castle-user-interface" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>page_button_2.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>page_button_2.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1230,12 +1230,12 @@
 </DeployFile>
 <DeployFile LocalName="data\page_checkbox.castle-user-interface" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>page_checkbox.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>page_checkbox.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1277,12 +1277,12 @@
 </DeployFile>
 <DeployFile LocalName="data\page_color_rectangle.castle-user-interface" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>page_color_rectangle.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>page_color_rectangle.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1324,12 +1324,12 @@
 </DeployFile>
 <DeployFile LocalName="data\page_edit.castle-user-interface" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>page_edit.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>page_edit.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1371,12 +1371,12 @@
 </DeployFile>
 <DeployFile LocalName="data\page_empty_rectangle.castle-user-interface" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>page_empty_rectangle.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>page_empty_rectangle.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1418,12 +1418,12 @@
 </DeployFile>
 <DeployFile LocalName="data\page_horizontal_vertical_group.castle-user-interface" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>page_horizontal_vertical_group.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>page_horizontal_vertical_group.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1465,12 +1465,12 @@
 </DeployFile>
 <DeployFile LocalName="data\page_image.castle-user-interface" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>page_image.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>page_image.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1512,12 +1512,12 @@
 </DeployFile>
 <DeployFile LocalName="data\page_intro.castle-user-interface" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>page_intro.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>page_intro.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1559,12 +1559,12 @@
 </DeployFile>
 <DeployFile LocalName="data\page_label.castle-user-interface" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>page_label.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>page_label.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1606,12 +1606,12 @@
 </DeployFile>
 <DeployFile LocalName="data\page_scroll_view.castle-user-interface" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>page_scroll_view.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>page_scroll_view.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1653,12 +1653,12 @@
 </DeployFile>
 <DeployFile LocalName="data\page_shape.castle-user-interface" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>page_shape.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>page_shape.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1700,12 +1700,12 @@
 </DeployFile>
 <DeployFile LocalName="data\small_castle_game_engine_icon.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>small_castle_game_engine_icon.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>small_castle_game_engine_icon.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>

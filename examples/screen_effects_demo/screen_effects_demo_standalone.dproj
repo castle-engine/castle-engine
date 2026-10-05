@@ -243,12 +243,12 @@
 -->
 <DeployFile LocalName="data\example_2d_scene\AUTHORS.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/example_2d_scene/</RemoteDir>
+  <RemoteDir>assets\example_2d_scene</RemoteDir>
   <RemoteName>AUTHORS.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/example_2d_scene/</RemoteDir>
+  <RemoteDir>assets\example_2d_scene</RemoteDir>
   <RemoteName>AUTHORS.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -290,12 +290,12 @@
 </DeployFile>
 <DeployFile LocalName="data\example_2d_scene\COPYING.GPL2.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/example_2d_scene/</RemoteDir>
+  <RemoteDir>assets\example_2d_scene</RemoteDir>
   <RemoteName>COPYING.GPL2.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/example_2d_scene/</RemoteDir>
+  <RemoteDir>assets\example_2d_scene</RemoteDir>
   <RemoteName>COPYING.GPL2.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -337,12 +337,12 @@
 </DeployFile>
 <DeployFile LocalName="data\example_2d_scene\dragon\dragon.atlas" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/example_2d_scene/dragon/</RemoteDir>
+  <RemoteDir>assets\example_2d_scene\dragon</RemoteDir>
   <RemoteName>dragon.atlas</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/example_2d_scene/dragon/</RemoteDir>
+  <RemoteDir>assets\example_2d_scene\dragon</RemoteDir>
   <RemoteName>dragon.atlas</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -384,12 +384,12 @@
 </DeployFile>
 <DeployFile LocalName="data\example_2d_scene\dragon\dragon.json" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/example_2d_scene/dragon/</RemoteDir>
+  <RemoteDir>assets\example_2d_scene\dragon</RemoteDir>
   <RemoteName>dragon.json</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/example_2d_scene/dragon/</RemoteDir>
+  <RemoteDir>assets\example_2d_scene\dragon</RemoteDir>
   <RemoteName>dragon.json</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -431,12 +431,12 @@
 </DeployFile>
 <DeployFile LocalName="data\example_2d_scene\dragon\dragon.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/example_2d_scene/dragon/</RemoteDir>
+  <RemoteDir>assets\example_2d_scene\dragon</RemoteDir>
   <RemoteName>dragon.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/example_2d_scene/dragon/</RemoteDir>
+  <RemoteDir>assets\example_2d_scene\dragon</RemoteDir>
   <RemoteName>dragon.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -478,12 +478,12 @@
 </DeployFile>
 <DeployFile LocalName="data\example_3d_scene.x3dv" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>example_3d_scene.x3dv</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>example_3d_scene.x3dv</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -525,12 +525,12 @@
 </DeployFile>
 <DeployFile LocalName="data\example_image.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>example_image.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>example_image.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -572,12 +572,12 @@
 </DeployFile>
 <DeployFile LocalName="data\screen_effects\film_grain.fs" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/screen_effects/</RemoteDir>
+  <RemoteDir>assets\screen_effects</RemoteDir>
   <RemoteName>film_grain.fs</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/screen_effects/</RemoteDir>
+  <RemoteDir>assets\screen_effects</RemoteDir>
   <RemoteName>film_grain.fs</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -619,12 +619,12 @@
 </DeployFile>
 <DeployFile LocalName="data\screen_effects\film_grain.x3dv" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/screen_effects/</RemoteDir>
+  <RemoteDir>assets\screen_effects</RemoteDir>
   <RemoteName>film_grain.x3dv</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/screen_effects/</RemoteDir>
+  <RemoteDir>assets\screen_effects</RemoteDir>
   <RemoteName>film_grain.x3dv</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -666,12 +666,12 @@
 </DeployFile>
 <DeployFile LocalName="data\screen_effects\noise1.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/screen_effects/</RemoteDir>
+  <RemoteDir>assets\screen_effects</RemoteDir>
   <RemoteName>noise1.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/screen_effects/</RemoteDir>
+  <RemoteDir>assets\screen_effects</RemoteDir>
   <RemoteName>noise1.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -713,12 +713,12 @@
 </DeployFile>
 <DeployFile LocalName="data\screen_effects\pixelate.x3dv" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/screen_effects/</RemoteDir>
+  <RemoteDir>assets\screen_effects</RemoteDir>
   <RemoteName>pixelate.x3dv</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/screen_effects/</RemoteDir>
+  <RemoteDir>assets\screen_effects</RemoteDir>
   <RemoteName>pixelate.x3dv</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -760,12 +760,12 @@
 </DeployFile>
 <DeployFile LocalName="data\screen_effects\pixelate_average_color.fs" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/screen_effects/</RemoteDir>
+  <RemoteDir>assets\screen_effects</RemoteDir>
   <RemoteName>pixelate_average_color.fs</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/screen_effects/</RemoteDir>
+  <RemoteDir>assets\screen_effects</RemoteDir>
   <RemoteName>pixelate_average_color.fs</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -807,12 +807,12 @@
 </DeployFile>
 <DeployFile LocalName="data\screen_effects\pixelate_choose_color.fs" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/screen_effects/</RemoteDir>
+  <RemoteDir>assets\screen_effects</RemoteDir>
   <RemoteName>pixelate_choose_color.fs</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/screen_effects/</RemoteDir>
+  <RemoteDir>assets\screen_effects</RemoteDir>
   <RemoteName>pixelate_choose_color.fs</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>

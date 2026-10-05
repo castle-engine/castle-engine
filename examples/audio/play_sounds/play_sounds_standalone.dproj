@@ -243,12 +243,12 @@
 -->
 <DeployFile LocalName="data\CastleSettings.xml" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -290,12 +290,12 @@
 </DeployFile>
 <DeployFile LocalName="data\gameviewmain.castle-user-interface" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewmain.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewmain.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -337,12 +337,12 @@
 </DeployFile>
 <DeployFile LocalName="data\part_playing_sound.castle-user-interface" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>part_playing_sound.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>part_playing_sound.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -384,12 +384,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sounds\AUTHORS.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sounds/</RemoteDir>
+  <RemoteDir>assets\sounds</RemoteDir>
   <RemoteName>AUTHORS.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sounds/</RemoteDir>
+  <RemoteDir>assets\sounds</RemoteDir>
   <RemoteName>AUTHORS.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -431,12 +431,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sounds\beating_that_thing-22000Hz-16bit-stereo.ogg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sounds/</RemoteDir>
+  <RemoteDir>assets\sounds</RemoteDir>
   <RemoteName>beating_that_thing-22000Hz-16bit-stereo.ogg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sounds/</RemoteDir>
+  <RemoteDir>assets\sounds</RemoteDir>
   <RemoteName>beating_that_thing-22000Hz-16bit-stereo.ogg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -478,12 +478,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sounds\beating_that_thing-44100Hz-16bit-stereo.ogg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sounds/</RemoteDir>
+  <RemoteDir>assets\sounds</RemoteDir>
   <RemoteName>beating_that_thing-44100Hz-16bit-stereo.ogg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sounds/</RemoteDir>
+  <RemoteDir>assets\sounds</RemoteDir>
   <RemoteName>beating_that_thing-44100Hz-16bit-stereo.ogg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -525,12 +525,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sounds\beating_that_thing.mp3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sounds/</RemoteDir>
+  <RemoteDir>assets\sounds</RemoteDir>
   <RemoteName>beating_that_thing.mp3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sounds/</RemoteDir>
+  <RemoteDir>assets\sounds</RemoteDir>
   <RemoteName>beating_that_thing.mp3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -572,12 +572,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sounds\interact.mp3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sounds/</RemoteDir>
+  <RemoteDir>assets\sounds</RemoteDir>
   <RemoteName>interact.mp3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sounds/</RemoteDir>
+  <RemoteDir>assets\sounds</RemoteDir>
   <RemoteName>interact.mp3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -619,12 +619,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sounds\misc_sound-22000Hz-8bit-mono.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sounds/</RemoteDir>
+  <RemoteDir>assets\sounds</RemoteDir>
   <RemoteName>misc_sound-22000Hz-8bit-mono.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sounds/</RemoteDir>
+  <RemoteDir>assets\sounds</RemoteDir>
   <RemoteName>misc_sound-22000Hz-8bit-mono.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -666,12 +666,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sounds\misc_sound-44100Hz-8bit-mono.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sounds/</RemoteDir>
+  <RemoteDir>assets\sounds</RemoteDir>
   <RemoteName>misc_sound-44100Hz-8bit-mono.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sounds/</RemoteDir>
+  <RemoteDir>assets\sounds</RemoteDir>
   <RemoteName>misc_sound-44100Hz-8bit-mono.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -713,12 +713,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sounds\negative-44100Hz-8bit-stereo.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sounds/</RemoteDir>
+  <RemoteDir>assets\sounds</RemoteDir>
   <RemoteName>negative-44100Hz-8bit-stereo.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sounds/</RemoteDir>
+  <RemoteDir>assets\sounds</RemoteDir>
   <RemoteName>negative-44100Hz-8bit-stereo.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -760,12 +760,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sounds\original_versions\misc_sound-44100Hz-16bit-stereo.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sounds/original_versions/</RemoteDir>
+  <RemoteDir>assets\sounds\original_versions</RemoteDir>
   <RemoteName>misc_sound-44100Hz-16bit-stereo.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sounds/original_versions/</RemoteDir>
+  <RemoteDir>assets\sounds\original_versions</RemoteDir>
   <RemoteName>misc_sound-44100Hz-16bit-stereo.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -807,12 +807,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sounds\original_versions\negative-44100Hz-16bit-stereo.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sounds/original_versions/</RemoteDir>
+  <RemoteDir>assets\sounds\original_versions</RemoteDir>
   <RemoteName>negative-44100Hz-16bit-stereo.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sounds/original_versions/</RemoteDir>
+  <RemoteDir>assets\sounds\original_versions</RemoteDir>
   <RemoteName>negative-44100Hz-16bit-stereo.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -854,12 +854,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sounds\original_versions\positive-44100Hz-16bit-stereo.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sounds/original_versions/</RemoteDir>
+  <RemoteDir>assets\sounds\original_versions</RemoteDir>
   <RemoteName>positive-44100Hz-16bit-stereo.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sounds/original_versions/</RemoteDir>
+  <RemoteDir>assets\sounds\original_versions</RemoteDir>
   <RemoteName>positive-44100Hz-16bit-stereo.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -901,12 +901,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sounds\original_versions\save-44100Hz-16bit-stereo.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sounds/original_versions/</RemoteDir>
+  <RemoteDir>assets\sounds\original_versions</RemoteDir>
   <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sounds/original_versions/</RemoteDir>
+  <RemoteDir>assets\sounds\original_versions</RemoteDir>
   <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -948,12 +948,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sounds\original_versions\temple_adam_goh-44000Hz-16bit-stereo.ogg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sounds/original_versions/</RemoteDir>
+  <RemoteDir>assets\sounds\original_versions</RemoteDir>
   <RemoteName>temple_adam_goh-44000Hz-16bit-stereo.ogg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sounds/original_versions/</RemoteDir>
+  <RemoteDir>assets\sounds\original_versions</RemoteDir>
   <RemoteName>temple_adam_goh-44000Hz-16bit-stereo.ogg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -995,12 +995,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sounds\positive-44100Hz-16bit-mono.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sounds/</RemoteDir>
+  <RemoteDir>assets\sounds</RemoteDir>
   <RemoteName>positive-44100Hz-16bit-mono.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sounds/</RemoteDir>
+  <RemoteDir>assets\sounds</RemoteDir>
   <RemoteName>positive-44100Hz-16bit-mono.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1042,12 +1042,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sounds\save-44100Hz-16bit-stereo.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sounds/</RemoteDir>
+  <RemoteDir>assets\sounds</RemoteDir>
   <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sounds/</RemoteDir>
+  <RemoteDir>assets\sounds</RemoteDir>
   <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1089,12 +1089,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sounds\stereo_test.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sounds/</RemoteDir>
+  <RemoteDir>assets\sounds</RemoteDir>
   <RemoteName>stereo_test.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sounds/</RemoteDir>
+  <RemoteDir>assets\sounds</RemoteDir>
   <RemoteName>stereo_test.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1136,12 +1136,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sounds\swosh-05.flac" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sounds/</RemoteDir>
+  <RemoteDir>assets\sounds</RemoteDir>
   <RemoteName>swosh-05.flac</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sounds/</RemoteDir>
+  <RemoteDir>assets\sounds</RemoteDir>
   <RemoteName>swosh-05.flac</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1183,12 +1183,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sounds\temple_adam_goh-44000Hz-16bit-mono.ogg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sounds/</RemoteDir>
+  <RemoteDir>assets\sounds</RemoteDir>
   <RemoteName>temple_adam_goh-44000Hz-16bit-mono.ogg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sounds/</RemoteDir>
+  <RemoteDir>assets\sounds</RemoteDir>
   <RemoteName>temple_adam_goh-44000Hz-16bit-mono.ogg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>

@@ -243,12 +243,12 @@
 -->
 <DeployFile LocalName="data\CastleSettings.xml" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -290,12 +290,12 @@
 </DeployFile>
 <DeployFile LocalName="data\README.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -337,12 +337,12 @@
 </DeployFile>
 <DeployFile LocalName="data\gameviewmain.castle-user-interface" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewmain.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewmain.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -384,12 +384,12 @@
 </DeployFile>
 <DeployFile LocalName="data\human_base_1.castle-transform" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>human_base_1.castle-transform</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>human_base_1.castle-transform</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -431,12 +431,12 @@
 </DeployFile>
 <DeployFile LocalName="data\human_base_2.castle-transform" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>human_base_2.castle-transform</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>human_base_2.castle-transform</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -478,12 +478,12 @@
 </DeployFile>
 <DeployFile LocalName="data\human_battlesuit.castle-transform" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>human_battlesuit.castle-transform</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>human_battlesuit.castle-transform</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -525,12 +525,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\AUTHORS.md" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/</RemoteDir>
+  <RemoteDir>assets\tremulous-data</RemoteDir>
   <RemoteName>AUTHORS.md</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/</RemoteDir>
+  <RemoteDir>assets\tremulous-data</RemoteDir>
   <RemoteName>AUTHORS.md</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -572,12 +572,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\builder\animation.cfg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/builder/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\builder</RemoteDir>
   <RemoteName>animation.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/builder/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\builder</RemoteDir>
   <RemoteName>animation.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -619,12 +619,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\builder\builder.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/builder/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\builder</RemoteDir>
   <RemoteName>builder.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/builder/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\builder</RemoteDir>
   <RemoteName>builder.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -666,12 +666,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\builder\icon_advanced.tga" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/builder/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\builder</RemoteDir>
   <RemoteName>icon_advanced.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/builder/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\builder</RemoteDir>
   <RemoteName>icon_advanced.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -713,12 +713,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\builder\icon_default.tga" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/builder/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\builder</RemoteDir>
   <RemoteName>icon_default.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/builder/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\builder</RemoteDir>
   <RemoteName>icon_default.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -760,12 +760,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\builder\locdamage.cfg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/builder/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\builder</RemoteDir>
   <RemoteName>locdamage.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/builder/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\builder</RemoteDir>
   <RemoteName>locdamage.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -807,12 +807,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\builder\nonseg.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/builder/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\builder</RemoteDir>
   <RemoteName>nonseg.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/builder/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\builder</RemoteDir>
   <RemoteName>nonseg.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -854,12 +854,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\builder\nonseg_advanced.skin" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/builder/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\builder</RemoteDir>
   <RemoteName>nonseg_advanced.skin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/builder/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\builder</RemoteDir>
   <RemoteName>nonseg_advanced.skin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -901,12 +901,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\builder\nonseg_default.skin" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/builder/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\builder</RemoteDir>
   <RemoteName>nonseg_default.skin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/builder/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\builder</RemoteDir>
   <RemoteName>nonseg_default.skin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -948,12 +948,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\human_base\animation.cfg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>animation.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>animation.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -995,12 +995,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\human_base\armour.tga" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>armour.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>armour.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1042,12 +1042,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\human_base\base.tga" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>base.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>base.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1089,12 +1089,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\human_base\battpack.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>battpack.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>battpack.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1136,12 +1136,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\human_base\battpack.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>battpack.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>battpack.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1183,12 +1183,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\human_base\h_base.tga" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>h_base.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>h_base.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1230,12 +1230,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\human_base\h_helmet.tga" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>h_helmet.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>h_helmet.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1277,12 +1277,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\human_base\head.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>head.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>head.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1324,12 +1324,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\human_base\head_default.skin" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>head_default.skin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>head_default.skin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1371,12 +1371,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\human_base\head_light.skin" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>head_light.skin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>head_light.skin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1418,12 +1418,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\human_base\icon_default.tga" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>icon_default.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>icon_default.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1465,12 +1465,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\human_base\jetpack.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>jetpack.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>jetpack.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1512,12 +1512,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\human_base\jetpack.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>jetpack.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>jetpack.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1559,12 +1559,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\human_base\jetpack_flash.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>jetpack_flash.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>jetpack_flash.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1606,12 +1606,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\human_base\jetpack_flash.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>jetpack_flash.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>jetpack_flash.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1653,12 +1653,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\human_base\light.tga" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>light.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>light.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1700,12 +1700,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\human_base\locdamage.cfg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>locdamage.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>locdamage.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1747,12 +1747,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\human_base\lower.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>lower.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>lower.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1794,12 +1794,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\human_base\lower_default.skin" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>lower_default.skin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>lower_default.skin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1841,12 +1841,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\human_base\lower_light.skin" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>lower_light.skin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>lower_light.skin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1888,12 +1888,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\human_base\shoulderpads.tga" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>shoulderpads.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>shoulderpads.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1935,12 +1935,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\human_base\upper.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>upper.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>upper.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1982,12 +1982,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\human_base\upper_default.skin" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>upper_default.skin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>upper_default.skin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2029,12 +2029,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\human_base\upper_light.skin" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>upper_light.skin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_base/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_base</RemoteDir>
   <RemoteName>upper_light.skin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2076,12 +2076,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\human_bsuit\animation.cfg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_bsuit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_bsuit</RemoteDir>
   <RemoteName>animation.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_bsuit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_bsuit</RemoteDir>
   <RemoteName>animation.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2123,12 +2123,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\human_bsuit\head.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_bsuit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_bsuit</RemoteDir>
   <RemoteName>head.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_bsuit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_bsuit</RemoteDir>
   <RemoteName>head.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2170,12 +2170,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\human_bsuit\head_default.skin" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_bsuit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_bsuit</RemoteDir>
   <RemoteName>head_default.skin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_bsuit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_bsuit</RemoteDir>
   <RemoteName>head_default.skin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2217,12 +2217,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\human_bsuit\human_bsuit.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_bsuit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_bsuit</RemoteDir>
   <RemoteName>human_bsuit.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_bsuit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_bsuit</RemoteDir>
   <RemoteName>human_bsuit.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2264,12 +2264,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\human_bsuit\locdamage.cfg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_bsuit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_bsuit</RemoteDir>
   <RemoteName>locdamage.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_bsuit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_bsuit</RemoteDir>
   <RemoteName>locdamage.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2311,12 +2311,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\human_bsuit\lower.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_bsuit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_bsuit</RemoteDir>
   <RemoteName>lower.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_bsuit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_bsuit</RemoteDir>
   <RemoteName>lower.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2358,12 +2358,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\human_bsuit\lower_default.skin" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_bsuit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_bsuit</RemoteDir>
   <RemoteName>lower_default.skin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_bsuit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_bsuit</RemoteDir>
   <RemoteName>lower_default.skin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2405,12 +2405,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\human_bsuit\upper.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_bsuit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_bsuit</RemoteDir>
   <RemoteName>upper.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_bsuit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_bsuit</RemoteDir>
   <RemoteName>upper.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2452,12 +2452,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\human_bsuit\upper_default.skin" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_bsuit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_bsuit</RemoteDir>
   <RemoteName>upper_default.skin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/human_bsuit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\human_bsuit</RemoteDir>
   <RemoteName>upper_default.skin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2499,12 +2499,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\level0\animation.cfg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level0/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level0</RemoteDir>
   <RemoteName>animation.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level0/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level0</RemoteDir>
   <RemoteName>animation.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2546,12 +2546,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\level0\icon_default.tga" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level0/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level0</RemoteDir>
   <RemoteName>icon_default.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level0/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level0</RemoteDir>
   <RemoteName>icon_default.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2593,12 +2593,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\level0\level0.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level0/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level0</RemoteDir>
   <RemoteName>level0.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level0/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level0</RemoteDir>
   <RemoteName>level0.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2640,12 +2640,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\level0\locdamage.cfg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level0/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level0</RemoteDir>
   <RemoteName>locdamage.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level0/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level0</RemoteDir>
   <RemoteName>locdamage.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2687,12 +2687,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\level0\nonseg.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level0/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level0</RemoteDir>
   <RemoteName>nonseg.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level0/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level0</RemoteDir>
   <RemoteName>nonseg.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2734,12 +2734,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\level0\nonseg_default.skin" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level0/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level0</RemoteDir>
   <RemoteName>nonseg_default.skin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level0/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level0</RemoteDir>
   <RemoteName>nonseg_default.skin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2781,12 +2781,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\level1\animation.cfg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level1/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level1</RemoteDir>
   <RemoteName>animation.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level1/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level1</RemoteDir>
   <RemoteName>animation.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2828,12 +2828,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\level1\icon_default.tga" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level1/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level1</RemoteDir>
   <RemoteName>icon_default.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level1/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level1</RemoteDir>
   <RemoteName>icon_default.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2875,12 +2875,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\level1\level1.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level1/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level1</RemoteDir>
   <RemoteName>level1.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level1/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level1</RemoteDir>
   <RemoteName>level1.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2922,12 +2922,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\level1\level1upg.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level1/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level1</RemoteDir>
   <RemoteName>level1upg.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level1/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level1</RemoteDir>
   <RemoteName>level1upg.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2969,12 +2969,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\level1\locdamage.cfg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level1/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level1</RemoteDir>
   <RemoteName>locdamage.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level1/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level1</RemoteDir>
   <RemoteName>locdamage.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3016,12 +3016,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\level1\nonseg.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level1/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level1</RemoteDir>
   <RemoteName>nonseg.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level1/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level1</RemoteDir>
   <RemoteName>nonseg.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3063,12 +3063,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\level1\nonseg_default.skin" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level1/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level1</RemoteDir>
   <RemoteName>nonseg_default.skin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level1/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level1</RemoteDir>
   <RemoteName>nonseg_default.skin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3110,12 +3110,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\level1\nonseg_upgrade.skin" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level1/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level1</RemoteDir>
   <RemoteName>nonseg_upgrade.skin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level1/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level1</RemoteDir>
   <RemoteName>nonseg_upgrade.skin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3157,12 +3157,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\level2\adv.tga" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level2/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level2</RemoteDir>
   <RemoteName>adv.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level2/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level2</RemoteDir>
   <RemoteName>adv.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3204,12 +3204,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\level2\animation.cfg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level2/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level2</RemoteDir>
   <RemoteName>animation.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level2/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level2</RemoteDir>
   <RemoteName>animation.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3251,12 +3251,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\level2\default.tga" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level2/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level2</RemoteDir>
   <RemoteName>default.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level2/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level2</RemoteDir>
   <RemoteName>default.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3298,12 +3298,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\level2\electric.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level2/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level2</RemoteDir>
   <RemoteName>electric.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level2/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level2</RemoteDir>
   <RemoteName>electric.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3345,12 +3345,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\level2\icon_default.tga" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level2/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level2</RemoteDir>
   <RemoteName>icon_default.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level2/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level2</RemoteDir>
   <RemoteName>icon_default.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3392,12 +3392,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\level2\locdamage.cfg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level2/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level2</RemoteDir>
   <RemoteName>locdamage.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level2/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level2</RemoteDir>
   <RemoteName>locdamage.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3439,12 +3439,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\level2\lvl2_fx.tga" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level2/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level2</RemoteDir>
   <RemoteName>lvl2_fx.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level2/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level2</RemoteDir>
   <RemoteName>lvl2_fx.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3486,12 +3486,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\level2\nonseg.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level2/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level2</RemoteDir>
   <RemoteName>nonseg.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level2/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level2</RemoteDir>
   <RemoteName>nonseg.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3533,12 +3533,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\level2\nonseg_adv.skin" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level2/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level2</RemoteDir>
   <RemoteName>nonseg_adv.skin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level2/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level2</RemoteDir>
   <RemoteName>nonseg_adv.skin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3580,12 +3580,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\level2\nonseg_default.skin" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level2/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level2</RemoteDir>
   <RemoteName>nonseg_default.skin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level2/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level2</RemoteDir>
   <RemoteName>nonseg_default.skin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3627,12 +3627,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\level2\null.tga" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level2/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level2</RemoteDir>
   <RemoteName>null.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level2/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level2</RemoteDir>
   <RemoteName>null.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3674,12 +3674,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\level3\animation.cfg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level3/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level3</RemoteDir>
   <RemoteName>animation.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level3/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level3</RemoteDir>
   <RemoteName>animation.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3721,12 +3721,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\level3\icon_default.tga" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level3/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level3</RemoteDir>
   <RemoteName>icon_default.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level3/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level3</RemoteDir>
   <RemoteName>icon_default.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3768,12 +3768,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\level3\level3.tga" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level3/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level3</RemoteDir>
   <RemoteName>level3.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level3/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level3</RemoteDir>
   <RemoteName>level3.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3815,12 +3815,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\level3\level3adv.tga" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level3/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level3</RemoteDir>
   <RemoteName>level3adv.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level3/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level3</RemoteDir>
   <RemoteName>level3adv.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3862,12 +3862,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\level3\locdamage.cfg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level3/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level3</RemoteDir>
   <RemoteName>locdamage.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level3/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level3</RemoteDir>
   <RemoteName>locdamage.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3909,12 +3909,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\level3\nonseg.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level3/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level3</RemoteDir>
   <RemoteName>nonseg.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level3/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level3</RemoteDir>
   <RemoteName>nonseg.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3956,12 +3956,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\level3\nonseg_adv.skin" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level3/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level3</RemoteDir>
   <RemoteName>nonseg_adv.skin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level3/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level3</RemoteDir>
   <RemoteName>nonseg_adv.skin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -4003,12 +4003,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\level3\nonseg_default.skin" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level3/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level3</RemoteDir>
   <RemoteName>nonseg_default.skin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level3/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level3</RemoteDir>
   <RemoteName>nonseg_default.skin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -4050,12 +4050,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\level4\animation.cfg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level4/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level4</RemoteDir>
   <RemoteName>animation.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level4/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level4</RemoteDir>
   <RemoteName>animation.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -4097,12 +4097,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\level4\icon_default.tga" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level4/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level4</RemoteDir>
   <RemoteName>icon_default.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level4/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level4</RemoteDir>
   <RemoteName>icon_default.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -4144,12 +4144,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\level4\level4.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level4/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level4</RemoteDir>
   <RemoteName>level4.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level4/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level4</RemoteDir>
   <RemoteName>level4.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -4191,12 +4191,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\level4\locdamage.cfg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level4/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level4</RemoteDir>
   <RemoteName>locdamage.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level4/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level4</RemoteDir>
   <RemoteName>locdamage.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -4238,12 +4238,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\level4\nonseg.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level4/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level4</RemoteDir>
   <RemoteName>nonseg.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level4/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level4</RemoteDir>
   <RemoteName>nonseg.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -4285,12 +4285,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\players\level4\nonseg_default.skin" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level4/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level4</RemoteDir>
   <RemoteName>nonseg_default.skin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/players/level4/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\players\level4</RemoteDir>
   <RemoteName>nonseg_default.skin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -4332,12 +4332,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\abuild\weapon.cfg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/abuild/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\abuild</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/abuild/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\abuild</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -4379,12 +4379,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\abuildupg\flash0.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/abuildupg/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\abuildupg</RemoteDir>
   <RemoteName>flash0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/abuildupg/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\abuildupg</RemoteDir>
   <RemoteName>flash0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -4426,12 +4426,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\abuildupg\impactflesh0.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/abuildupg/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\abuildupg</RemoteDir>
   <RemoteName>impactflesh0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/abuildupg/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\abuildupg</RemoteDir>
   <RemoteName>impactflesh0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -4473,12 +4473,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\abuildupg\weapon.cfg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/abuildupg/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\abuildupg</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/abuildupg/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\abuildupg</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -4520,12 +4520,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\ackit\ackit.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/ackit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\ackit</RemoteDir>
   <RemoteName>ackit.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/ackit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\ackit</RemoteDir>
   <RemoteName>ackit.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -4567,12 +4567,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\ackit\ackit.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/ackit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\ackit</RemoteDir>
   <RemoteName>ackit.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/ackit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\ackit</RemoteDir>
   <RemoteName>ackit.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -4614,12 +4614,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\ackit\ackit_hand.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/ackit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\ackit</RemoteDir>
   <RemoteName>ackit_hand.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/ackit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\ackit</RemoteDir>
   <RemoteName>ackit_hand.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -4661,12 +4661,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\ackit\advscreen.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/ackit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\ackit</RemoteDir>
   <RemoteName>advscreen.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/ackit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\ackit</RemoteDir>
   <RemoteName>advscreen.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -4708,12 +4708,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\ackit\lines2.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/ackit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\ackit</RemoteDir>
   <RemoteName>lines2.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/ackit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\ackit</RemoteDir>
   <RemoteName>lines2.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -4755,12 +4755,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\ackit\particle.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/ackit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\ackit</RemoteDir>
   <RemoteName>particle.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/ackit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\ackit</RemoteDir>
   <RemoteName>particle.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -4802,12 +4802,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\ackit\rep_cyl.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/ackit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\ackit</RemoteDir>
   <RemoteName>rep_cyl.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/ackit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\ackit</RemoteDir>
   <RemoteName>rep_cyl.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -4849,12 +4849,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\ackit\screen.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/ackit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\ackit</RemoteDir>
   <RemoteName>screen.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/ackit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\ackit</RemoteDir>
   <RemoteName>screen.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -4896,12 +4896,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\ackit\screen2.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/ackit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\ackit</RemoteDir>
   <RemoteName>screen2.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/ackit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\ackit</RemoteDir>
   <RemoteName>screen2.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -4943,12 +4943,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\ackit\scroll.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/ackit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\ackit</RemoteDir>
   <RemoteName>scroll.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/ackit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\ackit</RemoteDir>
   <RemoteName>scroll.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -4990,12 +4990,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\ackit\scroll2.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/ackit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\ackit</RemoteDir>
   <RemoteName>scroll2.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/ackit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\ackit</RemoteDir>
   <RemoteName>scroll2.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -5037,12 +5037,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\ackit\weapon.cfg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/ackit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\ackit</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/ackit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\ackit</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -5084,12 +5084,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\blaster\blaster.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/blaster/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\blaster</RemoteDir>
   <RemoteName>blaster.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/blaster/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\blaster</RemoteDir>
   <RemoteName>blaster.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -5131,12 +5131,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\blaster\blaster.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/blaster/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\blaster</RemoteDir>
   <RemoteName>blaster.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/blaster/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\blaster</RemoteDir>
   <RemoteName>blaster.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -5178,12 +5178,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\blaster\blaster_flash.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/blaster/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\blaster</RemoteDir>
   <RemoteName>blaster_flash.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/blaster/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\blaster</RemoteDir>
   <RemoteName>blaster_flash.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -5225,12 +5225,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\blaster\blaster_hand.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/blaster/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\blaster</RemoteDir>
   <RemoteName>blaster_hand.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/blaster/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\blaster</RemoteDir>
   <RemoteName>blaster_hand.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -5272,12 +5272,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\blaster\flash.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/blaster/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\blaster</RemoteDir>
   <RemoteName>flash.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/blaster/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\blaster</RemoteDir>
   <RemoteName>flash.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -5319,12 +5319,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\blaster\flash0.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/blaster/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\blaster</RemoteDir>
   <RemoteName>flash0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/blaster/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\blaster</RemoteDir>
   <RemoteName>flash0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -5366,12 +5366,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\blaster\weapon.cfg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/blaster/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\blaster</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/blaster/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\blaster</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -5413,12 +5413,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\chaingun\barrels.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/chaingun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\chaingun</RemoteDir>
   <RemoteName>barrels.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/chaingun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\chaingun</RemoteDir>
   <RemoteName>barrels.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -5460,12 +5460,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\chaingun\chaingun.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/chaingun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\chaingun</RemoteDir>
   <RemoteName>chaingun.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/chaingun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\chaingun</RemoteDir>
   <RemoteName>chaingun.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -5507,12 +5507,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\chaingun\chaingun.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/chaingun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\chaingun</RemoteDir>
   <RemoteName>chaingun.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/chaingun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\chaingun</RemoteDir>
   <RemoteName>chaingun.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -5554,12 +5554,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\chaingun\chaingun_barrel.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/chaingun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\chaingun</RemoteDir>
   <RemoteName>chaingun_barrel.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/chaingun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\chaingun</RemoteDir>
   <RemoteName>chaingun_barrel.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -5601,12 +5601,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\chaingun\chaingun_flash.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/chaingun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\chaingun</RemoteDir>
   <RemoteName>chaingun_flash.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/chaingun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\chaingun</RemoteDir>
   <RemoteName>chaingun_flash.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -5648,12 +5648,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\chaingun\chaingun_hand.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/chaingun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\chaingun</RemoteDir>
   <RemoteName>chaingun_hand.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/chaingun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\chaingun</RemoteDir>
   <RemoteName>chaingun_hand.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -5695,12 +5695,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\chaingun\flash.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/chaingun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\chaingun</RemoteDir>
   <RemoteName>flash.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/chaingun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\chaingun</RemoteDir>
   <RemoteName>flash.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -5742,12 +5742,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\chaingun\flash0.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/chaingun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\chaingun</RemoteDir>
   <RemoteName>flash0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/chaingun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\chaingun</RemoteDir>
   <RemoteName>flash0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -5789,12 +5789,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\chaingun\flash1.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/chaingun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\chaingun</RemoteDir>
   <RemoteName>flash1.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/chaingun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\chaingun</RemoteDir>
   <RemoteName>flash1.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -5836,12 +5836,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\chaingun\flash2.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/chaingun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\chaingun</RemoteDir>
   <RemoteName>flash2.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/chaingun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\chaingun</RemoteDir>
   <RemoteName>flash2.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -5883,12 +5883,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\chaingun\flash3.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/chaingun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\chaingun</RemoteDir>
   <RemoteName>flash3.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/chaingun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\chaingun</RemoteDir>
   <RemoteName>flash3.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -5930,12 +5930,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\chaingun\impact0.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/chaingun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\chaingun</RemoteDir>
   <RemoteName>impact0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/chaingun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\chaingun</RemoteDir>
   <RemoteName>impact0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -5977,12 +5977,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\chaingun\weapon.cfg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/chaingun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\chaingun</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/chaingun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\chaingun</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -6024,12 +6024,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\ckit\ckit.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/ckit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\ckit</RemoteDir>
   <RemoteName>ckit.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/ckit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\ckit</RemoteDir>
   <RemoteName>ckit.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -6071,12 +6071,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\ckit\ckit.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/ckit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\ckit</RemoteDir>
   <RemoteName>ckit.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/ckit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\ckit</RemoteDir>
   <RemoteName>ckit.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -6118,12 +6118,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\ckit\ckit_hand.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/ckit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\ckit</RemoteDir>
   <RemoteName>ckit_hand.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/ckit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\ckit</RemoteDir>
   <RemoteName>ckit_hand.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -6165,12 +6165,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\ckit\lines2.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/ckit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\ckit</RemoteDir>
   <RemoteName>lines2.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/ckit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\ckit</RemoteDir>
   <RemoteName>lines2.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -6212,12 +6212,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\ckit\rep_cyl.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/ckit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\ckit</RemoteDir>
   <RemoteName>rep_cyl.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/ckit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\ckit</RemoteDir>
   <RemoteName>rep_cyl.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -6259,12 +6259,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\ckit\screen.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/ckit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\ckit</RemoteDir>
   <RemoteName>screen.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/ckit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\ckit</RemoteDir>
   <RemoteName>screen.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -6306,12 +6306,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\ckit\scroll.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/ckit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\ckit</RemoteDir>
   <RemoteName>scroll.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/ckit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\ckit</RemoteDir>
   <RemoteName>scroll.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -6353,12 +6353,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\ckit\weapon.cfg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/ckit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\ckit</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/ckit/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\ckit</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -6400,12 +6400,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\flamer\fireimpc.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/flamer/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\flamer</RemoteDir>
   <RemoteName>fireimpc.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/flamer/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\flamer</RemoteDir>
   <RemoteName>fireimpc.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -6447,12 +6447,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\flamer\fireloop.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/flamer/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\flamer</RemoteDir>
   <RemoteName>fireloop.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/flamer/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\flamer</RemoteDir>
   <RemoteName>fireloop.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -6494,12 +6494,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\flamer\flamer.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/flamer/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\flamer</RemoteDir>
   <RemoteName>flamer.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/flamer/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\flamer</RemoteDir>
   <RemoteName>flamer.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -6541,12 +6541,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\flamer\flamer.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/flamer/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\flamer</RemoteDir>
   <RemoteName>flamer.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/flamer/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\flamer</RemoteDir>
   <RemoteName>flamer.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -6588,12 +6588,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\flamer\flamer.tga" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/flamer/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\flamer</RemoteDir>
   <RemoteName>flamer.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/flamer/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\flamer</RemoteDir>
   <RemoteName>flamer.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -6635,12 +6635,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\flamer\flamer_flash.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/flamer/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\flamer</RemoteDir>
   <RemoteName>flamer_flash.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/flamer/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\flamer</RemoteDir>
   <RemoteName>flamer_flash.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -6682,12 +6682,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\flamer\flamer_hand.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/flamer/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\flamer</RemoteDir>
   <RemoteName>flamer_hand.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/flamer/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\flamer</RemoteDir>
   <RemoteName>flamer_hand.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -6729,12 +6729,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\flamer\flash.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/flamer/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\flamer</RemoteDir>
   <RemoteName>flash.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/flamer/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\flamer</RemoteDir>
   <RemoteName>flash.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -6776,12 +6776,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\flamer\gas.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/flamer/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\flamer</RemoteDir>
   <RemoteName>gas.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/flamer/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\flamer</RemoteDir>
   <RemoteName>gas.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -6823,12 +6823,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\flamer\pilot.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/flamer/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\flamer</RemoteDir>
   <RemoteName>pilot.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/flamer/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\flamer</RemoteDir>
   <RemoteName>pilot.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -6870,12 +6870,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\flamer\weapon.cfg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/flamer/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\flamer</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/flamer/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\flamer</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -6917,12 +6917,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\grenade\energy.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/grenade/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\grenade</RemoteDir>
   <RemoteName>energy.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/grenade/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\grenade</RemoteDir>
   <RemoteName>energy.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -6964,12 +6964,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\grenade\grenade.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/grenade/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\grenade</RemoteDir>
   <RemoteName>grenade.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/grenade/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\grenade</RemoteDir>
   <RemoteName>grenade.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -7011,12 +7011,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\grenade\grenade.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/grenade/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\grenade</RemoteDir>
   <RemoteName>grenade.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/grenade/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\grenade</RemoteDir>
   <RemoteName>grenade.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -7058,12 +7058,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\grenade\impact0.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/grenade/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\grenade</RemoteDir>
   <RemoteName>impact0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/grenade/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\grenade</RemoteDir>
   <RemoteName>impact0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -7105,12 +7105,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\grenade\weapon.cfg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/grenade/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\grenade</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/grenade/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\grenade</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -7152,12 +7152,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\hive\missile.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/hive/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\hive</RemoteDir>
   <RemoteName>missile.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/hive/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\hive</RemoteDir>
   <RemoteName>missile.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -7199,12 +7199,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\hive\sprite1.tga" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/hive/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\hive</RemoteDir>
   <RemoteName>sprite1.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/hive/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\hive</RemoteDir>
   <RemoteName>sprite1.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -7246,12 +7246,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\hive\sprite2.tga" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/hive/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\hive</RemoteDir>
   <RemoteName>sprite2.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/hive/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\hive</RemoteDir>
   <RemoteName>sprite2.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -7293,12 +7293,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\hive\weapon.cfg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/hive/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\hive</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/hive/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\hive</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -7340,12 +7340,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\lcannon\blaster.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lcannon/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lcannon</RemoteDir>
   <RemoteName>blaster.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lcannon/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lcannon</RemoteDir>
   <RemoteName>blaster.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -7387,12 +7387,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\lcannon\flash.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lcannon/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lcannon</RemoteDir>
   <RemoteName>flash.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lcannon/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lcannon</RemoteDir>
   <RemoteName>flash.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -7434,12 +7434,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\lcannon\flash0.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lcannon/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lcannon</RemoteDir>
   <RemoteName>flash0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lcannon/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lcannon</RemoteDir>
   <RemoteName>flash0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -7481,12 +7481,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\lcannon\idle.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lcannon/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lcannon</RemoteDir>
   <RemoteName>idle.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lcannon/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lcannon</RemoteDir>
   <RemoteName>idle.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -7528,12 +7528,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\lcannon\impact0.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lcannon/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lcannon</RemoteDir>
   <RemoteName>impact0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lcannon/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lcannon</RemoteDir>
   <RemoteName>impact0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -7575,12 +7575,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\lcannon\lcannon.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lcannon/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lcannon</RemoteDir>
   <RemoteName>lcannon.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lcannon/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lcannon</RemoteDir>
   <RemoteName>lcannon.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -7622,12 +7622,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\lcannon\lcannon.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lcannon/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lcannon</RemoteDir>
   <RemoteName>lcannon.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lcannon/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lcannon</RemoteDir>
   <RemoteName>lcannon.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -7669,12 +7669,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\lcannon\lcannon_flash.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lcannon/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lcannon</RemoteDir>
   <RemoteName>lcannon_flash.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lcannon/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lcannon</RemoteDir>
   <RemoteName>lcannon_flash.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -7716,12 +7716,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\lcannon\lcannon_hand.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lcannon/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lcannon</RemoteDir>
   <RemoteName>lcannon_hand.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lcannon/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lcannon</RemoteDir>
   <RemoteName>lcannon_hand.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -7763,12 +7763,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\lcannon\missile.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lcannon/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lcannon</RemoteDir>
   <RemoteName>missile.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lcannon/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lcannon</RemoteDir>
   <RemoteName>missile.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -7810,12 +7810,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\lcannon\missle.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lcannon/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lcannon</RemoteDir>
   <RemoteName>missle.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lcannon/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lcannon</RemoteDir>
   <RemoteName>missle.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -7857,12 +7857,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\lcannon\warning.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lcannon/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lcannon</RemoteDir>
   <RemoteName>warning.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lcannon/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lcannon</RemoteDir>
   <RemoteName>warning.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -7904,12 +7904,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\lcannon\weapon.cfg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lcannon/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lcannon</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lcannon/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lcannon</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -7951,12 +7951,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\level0\flash0.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level0/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level0</RemoteDir>
   <RemoteName>flash0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level0/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level0</RemoteDir>
   <RemoteName>flash0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -7998,12 +7998,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\level0\weapon.cfg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level0/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level0</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level0/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level0</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -8045,12 +8045,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\level1\flash0.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level1/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level1</RemoteDir>
   <RemoteName>flash0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level1/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level1</RemoteDir>
   <RemoteName>flash0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -8092,12 +8092,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\level1\impactflesh0.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level1/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level1</RemoteDir>
   <RemoteName>impactflesh0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level1/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level1</RemoteDir>
   <RemoteName>impactflesh0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -8139,12 +8139,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\level1\weapon.cfg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level1/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level1</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level1/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level1</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -8186,12 +8186,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\level1upg\gas.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level1upg/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level1upg</RemoteDir>
   <RemoteName>gas.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level1upg/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level1upg</RemoteDir>
   <RemoteName>gas.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -8233,12 +8233,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\level1upg\weapon.cfg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level1upg/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level1upg</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level1upg/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level1upg</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -8280,12 +8280,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\level2\flash0.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level2/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level2</RemoteDir>
   <RemoteName>flash0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level2/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level2</RemoteDir>
   <RemoteName>flash0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -8327,12 +8327,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\level2\impactflesh0.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level2/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level2</RemoteDir>
   <RemoteName>impactflesh0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level2/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level2</RemoteDir>
   <RemoteName>impactflesh0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -8374,12 +8374,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\level2\weapon.cfg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level2/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level2</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level2/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level2</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -8421,12 +8421,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\level2upg\electric.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level2upg/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level2upg</RemoteDir>
   <RemoteName>electric.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level2upg/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level2upg</RemoteDir>
   <RemoteName>electric.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -8468,12 +8468,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\level2upg\weapon.cfg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level2upg/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level2upg</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level2upg/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level2upg</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -8515,12 +8515,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\level3\flash0.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level3/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level3</RemoteDir>
   <RemoteName>flash0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level3/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level3</RemoteDir>
   <RemoteName>flash0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -8562,12 +8562,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\level3\impactflesh0.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level3/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level3</RemoteDir>
   <RemoteName>impactflesh0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level3/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level3</RemoteDir>
   <RemoteName>impactflesh0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -8609,12 +8609,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\level3\pounce.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level3/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level3</RemoteDir>
   <RemoteName>pounce.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level3/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level3</RemoteDir>
   <RemoteName>pounce.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -8656,12 +8656,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\level3\weapon.cfg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level3/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level3</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level3/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level3</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -8703,12 +8703,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\level3upg\flash0.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level3upg/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level3upg</RemoteDir>
   <RemoteName>flash0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level3upg/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level3upg</RemoteDir>
   <RemoteName>flash0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -8750,12 +8750,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\level3upg\missile.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level3upg/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level3upg</RemoteDir>
   <RemoteName>missile.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level3upg/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level3upg</RemoteDir>
   <RemoteName>missile.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -8797,12 +8797,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\level3upg\missile.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level3upg/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level3upg</RemoteDir>
   <RemoteName>missile.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level3upg/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level3upg</RemoteDir>
   <RemoteName>missile.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -8844,12 +8844,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\level3upg\missile.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level3upg/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level3upg</RemoteDir>
   <RemoteName>missile.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level3upg/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level3upg</RemoteDir>
   <RemoteName>missile.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -8891,12 +8891,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\level3upg\weapon.cfg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level3upg/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level3upg</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level3upg/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level3upg</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -8938,12 +8938,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\level4\flash0.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level4/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level4</RemoteDir>
   <RemoteName>flash0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level4/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level4</RemoteDir>
   <RemoteName>flash0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -8985,12 +8985,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\level4\impactflesh0.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level4/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level4</RemoteDir>
   <RemoteName>impactflesh0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level4/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level4</RemoteDir>
   <RemoteName>impactflesh0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -9032,12 +9032,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\level4\weapon.cfg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level4/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level4</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/level4/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\level4</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -9079,12 +9079,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\lgun\flash.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lgun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lgun</RemoteDir>
   <RemoteName>flash.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lgun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lgun</RemoteDir>
   <RemoteName>flash.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -9126,12 +9126,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\lgun\flash0.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lgun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lgun</RemoteDir>
   <RemoteName>flash0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lgun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lgun</RemoteDir>
   <RemoteName>flash0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -9173,12 +9173,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\lgun\lgun.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lgun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lgun</RemoteDir>
   <RemoteName>lgun.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lgun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lgun</RemoteDir>
   <RemoteName>lgun.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -9220,12 +9220,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\lgun\lgun.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lgun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lgun</RemoteDir>
   <RemoteName>lgun.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lgun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lgun</RemoteDir>
   <RemoteName>lgun.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -9267,12 +9267,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\lgun\lgun_flash.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lgun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lgun</RemoteDir>
   <RemoteName>lgun_flash.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lgun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lgun</RemoteDir>
   <RemoteName>lgun_flash.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -9314,12 +9314,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\lgun\lgun_hand.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lgun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lgun</RemoteDir>
   <RemoteName>lgun_hand.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lgun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lgun</RemoteDir>
   <RemoteName>lgun_hand.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -9361,12 +9361,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\lgun\weapon.cfg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lgun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lgun</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lgun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lgun</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -9408,12 +9408,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\lockblob\missle.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lockblob/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lockblob</RemoteDir>
   <RemoteName>missle.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lockblob/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lockblob</RemoteDir>
   <RemoteName>missle.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -9455,12 +9455,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\lockblob\missle.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lockblob/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lockblob</RemoteDir>
   <RemoteName>missle.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lockblob/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lockblob</RemoteDir>
   <RemoteName>missle.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -9502,12 +9502,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\lockblob\weapon.cfg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lockblob/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lockblob</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/lockblob/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\lockblob</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -9549,12 +9549,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\mdriver\flash.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/mdriver/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\mdriver</RemoteDir>
   <RemoteName>flash.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/mdriver/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\mdriver</RemoteDir>
   <RemoteName>flash.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -9596,12 +9596,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\mdriver\flash0.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/mdriver/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\mdriver</RemoteDir>
   <RemoteName>flash0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/mdriver/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\mdriver</RemoteDir>
   <RemoteName>flash0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -9643,12 +9643,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\mdriver\glow.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/mdriver/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\mdriver</RemoteDir>
   <RemoteName>glow.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/mdriver/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\mdriver</RemoteDir>
   <RemoteName>glow.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -9690,12 +9690,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\mdriver\mdriver.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/mdriver/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\mdriver</RemoteDir>
   <RemoteName>mdriver.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/mdriver/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\mdriver</RemoteDir>
   <RemoteName>mdriver.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -9737,12 +9737,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\mdriver\mdriver.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/mdriver/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\mdriver</RemoteDir>
   <RemoteName>mdriver.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/mdriver/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\mdriver</RemoteDir>
   <RemoteName>mdriver.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -9784,12 +9784,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\mdriver\mdriver.tga" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/mdriver/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\mdriver</RemoteDir>
   <RemoteName>mdriver.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/mdriver/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\mdriver</RemoteDir>
   <RemoteName>mdriver.tga</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -9831,12 +9831,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\mdriver\mdriver_flash.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/mdriver/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\mdriver</RemoteDir>
   <RemoteName>mdriver_flash.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/mdriver/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\mdriver</RemoteDir>
   <RemoteName>mdriver_flash.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -9878,12 +9878,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\mdriver\mdriver_hand.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/mdriver/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\mdriver</RemoteDir>
   <RemoteName>mdriver_hand.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/mdriver/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\mdriver</RemoteDir>
   <RemoteName>mdriver_hand.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -9925,12 +9925,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\mdriver\weapon.cfg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/mdriver/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\mdriver</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/mdriver/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\mdriver</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -9972,12 +9972,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\mgturret\weapon.cfg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/mgturret/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\mgturret</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/mgturret/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\mgturret</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -10019,12 +10019,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\prifle\flash.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/prifle/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\prifle</RemoteDir>
   <RemoteName>flash.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/prifle/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\prifle</RemoteDir>
   <RemoteName>flash.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -10066,12 +10066,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\prifle\flash0.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/prifle/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\prifle</RemoteDir>
   <RemoteName>flash0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/prifle/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\prifle</RemoteDir>
   <RemoteName>flash0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -10113,12 +10113,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\prifle\impact0.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/prifle/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\prifle</RemoteDir>
   <RemoteName>impact0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/prifle/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\prifle</RemoteDir>
   <RemoteName>impact0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -10160,12 +10160,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\prifle\prifle.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/prifle/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\prifle</RemoteDir>
   <RemoteName>prifle.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/prifle/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\prifle</RemoteDir>
   <RemoteName>prifle.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -10207,12 +10207,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\prifle\prifle.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/prifle/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\prifle</RemoteDir>
   <RemoteName>prifle.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/prifle/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\prifle</RemoteDir>
   <RemoteName>prifle.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -10254,12 +10254,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\prifle\prifle_flash.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/prifle/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\prifle</RemoteDir>
   <RemoteName>prifle_flash.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/prifle/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\prifle</RemoteDir>
   <RemoteName>prifle_flash.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -10301,12 +10301,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\prifle\prifle_hand.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/prifle/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\prifle</RemoteDir>
   <RemoteName>prifle_hand.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/prifle/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\prifle</RemoteDir>
   <RemoteName>prifle_hand.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -10348,12 +10348,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\prifle\weapon.cfg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/prifle/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\prifle</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/prifle/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\prifle</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -10395,12 +10395,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\psaw\chain.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/psaw/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\psaw</RemoteDir>
   <RemoteName>chain.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/psaw/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\psaw</RemoteDir>
   <RemoteName>chain.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -10442,12 +10442,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\psaw\firing.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/psaw/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\psaw</RemoteDir>
   <RemoteName>firing.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/psaw/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\psaw</RemoteDir>
   <RemoteName>firing.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -10489,12 +10489,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\psaw\flash.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/psaw/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\psaw</RemoteDir>
   <RemoteName>flash.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/psaw/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\psaw</RemoteDir>
   <RemoteName>flash.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -10536,12 +10536,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\psaw\idle.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/psaw/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\psaw</RemoteDir>
   <RemoteName>idle.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/psaw/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\psaw</RemoteDir>
   <RemoteName>idle.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -10583,12 +10583,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\psaw\psaw.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/psaw/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\psaw</RemoteDir>
   <RemoteName>psaw.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/psaw/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\psaw</RemoteDir>
   <RemoteName>psaw.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -10630,12 +10630,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\psaw\psaw.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/psaw/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\psaw</RemoteDir>
   <RemoteName>psaw.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/psaw/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\psaw</RemoteDir>
   <RemoteName>psaw.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -10677,12 +10677,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\psaw\psaw_flash.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/psaw/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\psaw</RemoteDir>
   <RemoteName>psaw_flash.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/psaw/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\psaw</RemoteDir>
   <RemoteName>psaw_flash.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -10724,12 +10724,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\psaw\psaw_hand.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/psaw/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\psaw</RemoteDir>
   <RemoteName>psaw_hand.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/psaw/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\psaw</RemoteDir>
   <RemoteName>psaw_hand.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -10771,12 +10771,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\psaw\weapon.cfg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/psaw/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\psaw</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/psaw/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\psaw</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -10818,12 +10818,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\rifle\flash.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/rifle/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\rifle</RemoteDir>
   <RemoteName>flash.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/rifle/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\rifle</RemoteDir>
   <RemoteName>flash.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -10865,12 +10865,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\rifle\flash0.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/rifle/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\rifle</RemoteDir>
   <RemoteName>flash0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/rifle/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\rifle</RemoteDir>
   <RemoteName>flash0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -10912,12 +10912,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\rifle\ricochet0.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/rifle/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\rifle</RemoteDir>
   <RemoteName>ricochet0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/rifle/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\rifle</RemoteDir>
   <RemoteName>ricochet0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -10959,12 +10959,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\rifle\ricochet1.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/rifle/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\rifle</RemoteDir>
   <RemoteName>ricochet1.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/rifle/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\rifle</RemoteDir>
   <RemoteName>ricochet1.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -11006,12 +11006,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\rifle\ricochet2.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/rifle/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\rifle</RemoteDir>
   <RemoteName>ricochet2.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/rifle/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\rifle</RemoteDir>
   <RemoteName>ricochet2.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -11053,12 +11053,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\rifle\ricochet3.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/rifle/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\rifle</RemoteDir>
   <RemoteName>ricochet3.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/rifle/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\rifle</RemoteDir>
   <RemoteName>ricochet3.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -11100,12 +11100,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\rifle\rifle.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/rifle/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\rifle</RemoteDir>
   <RemoteName>rifle.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/rifle/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\rifle</RemoteDir>
   <RemoteName>rifle.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -11147,12 +11147,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\rifle\rifle.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/rifle/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\rifle</RemoteDir>
   <RemoteName>rifle.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/rifle/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\rifle</RemoteDir>
   <RemoteName>rifle.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -11194,12 +11194,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\rifle\rifle_flash.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/rifle/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\rifle</RemoteDir>
   <RemoteName>rifle_flash.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/rifle/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\rifle</RemoteDir>
   <RemoteName>rifle_flash.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -11241,12 +11241,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\rifle\rifle_hand.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/rifle/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\rifle</RemoteDir>
   <RemoteName>rifle_hand.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/rifle/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\rifle</RemoteDir>
   <RemoteName>rifle_hand.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -11288,12 +11288,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\rifle\weapon.cfg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/rifle/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\rifle</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/rifle/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\rifle</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -11335,12 +11335,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\shells\rifle-shell.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/shells/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\shells</RemoteDir>
   <RemoteName>rifle-shell.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/shells/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\shells</RemoteDir>
   <RemoteName>rifle-shell.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -11382,12 +11382,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\shells\rifle-shell.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/shells/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\shells</RemoteDir>
   <RemoteName>rifle-shell.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/shells/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\shells</RemoteDir>
   <RemoteName>rifle-shell.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -11429,12 +11429,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\shells\shotgun-shell.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/shells/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\shells</RemoteDir>
   <RemoteName>shotgun-shell.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/shells/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\shells</RemoteDir>
   <RemoteName>shotgun-shell.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -11476,12 +11476,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\shells\shotgun-shell.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/shells/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\shells</RemoteDir>
   <RemoteName>shotgun-shell.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/shells/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\shells</RemoteDir>
   <RemoteName>shotgun-shell.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -11523,12 +11523,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\shotgun\flash.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/shotgun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\shotgun</RemoteDir>
   <RemoteName>flash.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/shotgun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\shotgun</RemoteDir>
   <RemoteName>flash.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -11570,12 +11570,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\shotgun\flash0.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/shotgun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\shotgun</RemoteDir>
   <RemoteName>flash0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/shotgun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\shotgun</RemoteDir>
   <RemoteName>flash0.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -11617,12 +11617,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\shotgun\shotgun.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/shotgun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\shotgun</RemoteDir>
   <RemoteName>shotgun.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/shotgun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\shotgun</RemoteDir>
   <RemoteName>shotgun.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -11664,12 +11664,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\shotgun\shotgun.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/shotgun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\shotgun</RemoteDir>
   <RemoteName>shotgun.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/shotgun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\shotgun</RemoteDir>
   <RemoteName>shotgun.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -11711,12 +11711,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\shotgun\shotgun_flash.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/shotgun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\shotgun</RemoteDir>
   <RemoteName>shotgun_flash.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/shotgun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\shotgun</RemoteDir>
   <RemoteName>shotgun_flash.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -11758,12 +11758,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\shotgun\shotgun_hand.md3" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/shotgun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\shotgun</RemoteDir>
   <RemoteName>shotgun_hand.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/shotgun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\shotgun</RemoteDir>
   <RemoteName>shotgun_hand.md3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -11805,12 +11805,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\shotgun\weapon.cfg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/shotgun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\shotgun</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/shotgun/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\shotgun</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -11852,12 +11852,12 @@
 </DeployFile>
 <DeployFile LocalName="data\tremulous-data\data-1.1.0\models\weapons\teslagen\weapon.cfg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/teslagen/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\teslagen</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/tremulous-data/data-1.1.0/models/weapons/teslagen/</RemoteDir>
+  <RemoteDir>assets\tremulous-data\data-1.1.0\models\weapons\teslagen</RemoteDir>
   <RemoteName>weapon.cfg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>

@@ -243,12 +243,12 @@
 -->
 <DeployFile LocalName="data\CastleSettings.xml" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -290,12 +290,12 @@
 </DeployFile>
 <DeployFile LocalName="data\README.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -337,12 +337,12 @@
 </DeployFile>
 <DeployFile LocalName="data\gameviewmain.castle-user-interface" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewmain.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewmain.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -384,12 +384,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\hero_high_fps.castle-sprite-sheet" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/</RemoteDir>
+  <RemoteDir>assets\hero_animation</RemoteDir>
   <RemoteName>hero_high_fps.castle-sprite-sheet</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/</RemoteDir>
+  <RemoteDir>assets\hero_animation</RemoteDir>
   <RemoteName>hero_high_fps.castle-sprite-sheet</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -431,12 +431,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\hero_high_fps.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/</RemoteDir>
+  <RemoteDir>assets\hero_animation</RemoteDir>
   <RemoteName>hero_high_fps.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/</RemoteDir>
+  <RemoteDir>assets\hero_animation</RemoteDir>
   <RemoteName>hero_high_fps.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -478,12 +478,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\hero_low_fps.castle-sprite-sheet" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/</RemoteDir>
+  <RemoteDir>assets\hero_animation</RemoteDir>
   <RemoteName>hero_low_fps.castle-sprite-sheet</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/</RemoteDir>
+  <RemoteDir>assets\hero_animation</RemoteDir>
   <RemoteName>hero_low_fps.castle-sprite-sheet</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -525,12 +525,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\hero_low_fps.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/</RemoteDir>
+  <RemoteDir>assets\hero_animation</RemoteDir>
   <RemoteName>hero_low_fps.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/</RemoteDir>
+  <RemoteDir>assets\hero_animation</RemoteDir>
   <RemoteName>hero_low_fps.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -572,12 +572,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\old_unused_atlases\hero_sprite_sheet_24fps.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/old_unused_atlases/</RemoteDir>
+  <RemoteDir>assets\hero_animation\old_unused_atlases</RemoteDir>
   <RemoteName>hero_sprite_sheet_24fps.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/old_unused_atlases/</RemoteDir>
+  <RemoteDir>assets\hero_animation\old_unused_atlases</RemoteDir>
   <RemoteName>hero_sprite_sheet_24fps.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -619,12 +619,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\old_unused_atlases\hero_sprite_sheet_60fps.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/old_unused_atlases/</RemoteDir>
+  <RemoteDir>assets\hero_animation\old_unused_atlases</RemoteDir>
   <RemoteName>hero_sprite_sheet_60fps.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/old_unused_atlases/</RemoteDir>
+  <RemoteDir>assets\hero_animation\old_unused_atlases</RemoteDir>
   <RemoteName>hero_sprite_sheet_60fps.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -666,12 +666,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_24fps\hawaii_exo-walking_0.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_0.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_0.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -713,12 +713,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_24fps\hawaii_exo-walking_1.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_1.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_1.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -760,12 +760,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_24fps\hawaii_exo-walking_10.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_10.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_10.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -807,12 +807,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_24fps\hawaii_exo-walking_11.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_11.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_11.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -854,12 +854,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_24fps\hawaii_exo-walking_12.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_12.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_12.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -901,12 +901,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_24fps\hawaii_exo-walking_13.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_13.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_13.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -948,12 +948,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_24fps\hawaii_exo-walking_14.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_14.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_14.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -995,12 +995,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_24fps\hawaii_exo-walking_15.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_15.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_15.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1042,12 +1042,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_24fps\hawaii_exo-walking_16.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_16.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_16.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1089,12 +1089,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_24fps\hawaii_exo-walking_17.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_17.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_17.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1136,12 +1136,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_24fps\hawaii_exo-walking_18.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_18.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_18.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1183,12 +1183,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_24fps\hawaii_exo-walking_19.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_19.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_19.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1230,12 +1230,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_24fps\hawaii_exo-walking_2.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_2.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_2.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1277,12 +1277,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_24fps\hawaii_exo-walking_20.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_20.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_20.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1324,12 +1324,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_24fps\hawaii_exo-walking_21.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_21.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_21.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1371,12 +1371,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_24fps\hawaii_exo-walking_22.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_22.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_22.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1418,12 +1418,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_24fps\hawaii_exo-walking_3.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_3.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_3.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1465,12 +1465,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_24fps\hawaii_exo-walking_4.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_4.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_4.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1512,12 +1512,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_24fps\hawaii_exo-walking_5.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_5.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_5.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1559,12 +1559,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_24fps\hawaii_exo-walking_6.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_6.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_6.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1606,12 +1606,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_24fps\hawaii_exo-walking_7.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_7.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_7.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1653,12 +1653,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_24fps\hawaii_exo-walking_8.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_8.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_8.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1700,12 +1700,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_24fps\hawaii_exo-walking_9.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_9.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_24fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_24fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_9.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1747,12 +1747,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_0.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_0.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_0.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1794,12 +1794,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_1.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_1.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_1.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1841,12 +1841,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_10.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_10.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_10.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1888,12 +1888,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_11.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_11.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_11.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1935,12 +1935,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_12.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_12.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_12.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1982,12 +1982,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_13.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_13.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_13.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2029,12 +2029,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_14.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_14.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_14.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2076,12 +2076,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_15.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_15.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_15.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2123,12 +2123,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_16.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_16.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_16.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2170,12 +2170,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_17.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_17.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_17.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2217,12 +2217,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_18.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_18.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_18.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2264,12 +2264,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_19.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_19.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_19.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2311,12 +2311,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_2.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_2.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_2.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2358,12 +2358,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_20.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_20.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_20.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2405,12 +2405,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_21.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_21.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_21.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2452,12 +2452,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_22.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_22.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_22.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2499,12 +2499,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_23.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_23.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_23.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2546,12 +2546,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_24.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_24.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_24.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2593,12 +2593,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_25.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_25.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_25.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2640,12 +2640,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_26.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_26.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_26.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2687,12 +2687,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_27.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_27.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_27.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2734,12 +2734,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_28.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_28.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_28.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2781,12 +2781,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_29.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_29.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_29.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2828,12 +2828,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_3.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_3.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_3.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2875,12 +2875,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_30.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_30.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_30.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2922,12 +2922,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_31.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_31.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_31.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2969,12 +2969,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_32.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_32.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_32.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3016,12 +3016,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_33.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_33.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_33.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3063,12 +3063,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_34.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_34.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_34.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3110,12 +3110,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_35.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_35.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_35.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3157,12 +3157,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_36.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_36.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_36.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3204,12 +3204,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_37.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_37.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_37.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3251,12 +3251,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_38.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_38.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_38.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3298,12 +3298,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_39.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_39.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_39.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3345,12 +3345,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_4.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_4.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_4.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3392,12 +3392,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_40.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_40.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_40.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3439,12 +3439,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_41.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_41.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_41.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3486,12 +3486,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_42.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_42.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_42.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3533,12 +3533,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_43.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_43.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_43.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3580,12 +3580,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_44.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_44.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_44.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3627,12 +3627,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_45.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_45.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_45.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3674,12 +3674,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_46.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_46.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_46.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3721,12 +3721,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_47.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_47.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_47.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3768,12 +3768,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_48.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_48.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_48.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3815,12 +3815,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_49.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_49.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_49.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3862,12 +3862,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_5.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_5.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_5.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3909,12 +3909,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_50.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_50.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_50.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -3956,12 +3956,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_51.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_51.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_51.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -4003,12 +4003,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_52.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_52.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_52.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -4050,12 +4050,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_53.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_53.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_53.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -4097,12 +4097,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_54.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_54.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_54.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -4144,12 +4144,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_6.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_6.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_6.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -4191,12 +4191,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_7.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_7.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_7.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -4238,12 +4238,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_8.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_8.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_8.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -4285,12 +4285,12 @@
 </DeployFile>
 <DeployFile LocalName="data\hero_animation\single_frames_60fps\hawaii_exo-walking_9.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_9.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/hero_animation/single_frames_60fps/</RemoteDir>
+  <RemoteDir>assets\hero_animation\single_frames_60fps</RemoteDir>
   <RemoteName>hawaii_exo-walking_9.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>

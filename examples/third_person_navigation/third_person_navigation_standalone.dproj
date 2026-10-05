@@ -243,12 +243,12 @@
 -->
 <DeployFile LocalName="data\AUTHORS.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>AUTHORS.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>AUTHORS.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -290,12 +290,12 @@
 </DeployFile>
 <DeployFile LocalName="data\CastleSettings.xml" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -337,12 +337,12 @@
 </DeployFile>
 <DeployFile LocalName="data\README.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -384,12 +384,12 @@
 </DeployFile>
 <DeployFile LocalName="data\audio\dark_fallout.ogg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/audio/</RemoteDir>
+  <RemoteDir>assets\audio</RemoteDir>
   <RemoteName>dark_fallout.ogg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/audio/</RemoteDir>
+  <RemoteDir>assets\audio</RemoteDir>
   <RemoteName>dark_fallout.ogg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -431,12 +431,12 @@
 </DeployFile>
 <DeployFile LocalName="data\audio\flaunch.wav" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/audio/</RemoteDir>
+  <RemoteDir>assets\audio</RemoteDir>
   <RemoteName>flaunch.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/audio/</RemoteDir>
+  <RemoteDir>assets\audio</RemoteDir>
   <RemoteName>flaunch.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -478,12 +478,12 @@
 </DeployFile>
 <DeployFile LocalName="data\audio\index.xml" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/audio/</RemoteDir>
+  <RemoteDir>assets\audio</RemoteDir>
   <RemoteName>index.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/audio/</RemoteDir>
+  <RemoteDir>assets\audio</RemoteDir>
   <RemoteName>index.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -525,12 +525,12 @@
 </DeployFile>
 <DeployFile LocalName="data\avatar\avatar.bin" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/avatar/</RemoteDir>
+  <RemoteDir>assets\avatar</RemoteDir>
   <RemoteName>avatar.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/avatar/</RemoteDir>
+  <RemoteDir>assets\avatar</RemoteDir>
   <RemoteName>avatar.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -572,12 +572,12 @@
 </DeployFile>
 <DeployFile LocalName="data\avatar\avatar.gltf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/avatar/</RemoteDir>
+  <RemoteDir>assets\avatar</RemoteDir>
   <RemoteName>avatar.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/avatar/</RemoteDir>
+  <RemoteDir>assets\avatar</RemoteDir>
   <RemoteName>avatar.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -619,12 +619,12 @@
 </DeployFile>
 <DeployFile LocalName="data\enemy\soldier1.bin" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/enemy/</RemoteDir>
+  <RemoteDir>assets\enemy</RemoteDir>
   <RemoteName>soldier1.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/enemy/</RemoteDir>
+  <RemoteDir>assets\enemy</RemoteDir>
   <RemoteName>soldier1.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -666,12 +666,12 @@
 </DeployFile>
 <DeployFile LocalName="data\enemy\soldier1.gltf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/enemy/</RemoteDir>
+  <RemoteDir>assets\enemy</RemoteDir>
   <RemoteName>soldier1.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/enemy/</RemoteDir>
+  <RemoteDir>assets\enemy</RemoteDir>
   <RemoteName>soldier1.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -713,12 +713,12 @@
 </DeployFile>
 <DeployFile LocalName="data\gameviewmenu.castle-user-interface" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewmenu.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewmenu.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -760,12 +760,12 @@
 </DeployFile>
 <DeployFile LocalName="data\gameviewplay.castle-user-interface" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewplay.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewplay.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -807,12 +807,12 @@
 </DeployFile>
 <DeployFile LocalName="data\level\level-dungeon.bin" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/level/</RemoteDir>
+  <RemoteDir>assets\level</RemoteDir>
   <RemoteName>level-dungeon.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/level/</RemoteDir>
+  <RemoteDir>assets\level</RemoteDir>
   <RemoteName>level-dungeon.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -854,12 +854,12 @@
 </DeployFile>
 <DeployFile LocalName="data\level\level-dungeon.gltf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/level/</RemoteDir>
+  <RemoteDir>assets\level</RemoteDir>
   <RemoteName>level-dungeon.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/level/</RemoteDir>
+  <RemoteDir>assets\level</RemoteDir>
   <RemoteName>level-dungeon.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -901,12 +901,12 @@
 </DeployFile>
 <DeployFile LocalName="data\level\textures\concrete01_diff.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/level/textures/</RemoteDir>
+  <RemoteDir>assets\level\textures</RemoteDir>
   <RemoteName>concrete01_diff.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/level/textures/</RemoteDir>
+  <RemoteDir>assets\level\textures</RemoteDir>
   <RemoteName>concrete01_diff.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -948,12 +948,12 @@
 </DeployFile>
 <DeployFile LocalName="data\level\textures\concrete01_norm.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/level/textures/</RemoteDir>
+  <RemoteDir>assets\level\textures</RemoteDir>
   <RemoteName>concrete01_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/level/textures/</RemoteDir>
+  <RemoteDir>assets\level\textures</RemoteDir>
   <RemoteName>concrete01_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -995,12 +995,12 @@
 </DeployFile>
 <DeployFile LocalName="data\level\textures\decorative.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/level/textures/</RemoteDir>
+  <RemoteDir>assets\level\textures</RemoteDir>
   <RemoteName>decorative.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/level/textures/</RemoteDir>
+  <RemoteDir>assets\level\textures</RemoteDir>
   <RemoteName>decorative.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1042,12 +1042,12 @@
 </DeployFile>
 <DeployFile LocalName="data\level\textures\decorative_norm.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/level/textures/</RemoteDir>
+  <RemoteDir>assets\level\textures</RemoteDir>
   <RemoteName>decorative_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/level/textures/</RemoteDir>
+  <RemoteDir>assets\level\textures</RemoteDir>
   <RemoteName>decorative_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1089,12 +1089,12 @@
 </DeployFile>
 <DeployFile LocalName="data\level\textures\ground-1.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/level/textures/</RemoteDir>
+  <RemoteDir>assets\level\textures</RemoteDir>
   <RemoteName>ground-1.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/level/textures/</RemoteDir>
+  <RemoteDir>assets\level\textures</RemoteDir>
   <RemoteName>ground-1.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1136,12 +1136,12 @@
 </DeployFile>
 <DeployFile LocalName="data\level\textures\ground-1_norm.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/level/textures/</RemoteDir>
+  <RemoteDir>assets\level\textures</RemoteDir>
   <RemoteName>ground-1_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/level/textures/</RemoteDir>
+  <RemoteDir>assets\level\textures</RemoteDir>
   <RemoteName>ground-1_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1183,12 +1183,12 @@
 </DeployFile>
 <DeployFile LocalName="data\level\textures\mug2.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/level/textures/</RemoteDir>
+  <RemoteDir>assets\level\textures</RemoteDir>
   <RemoteName>mug2.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/level/textures/</RemoteDir>
+  <RemoteDir>assets\level\textures</RemoteDir>
   <RemoteName>mug2.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1230,12 +1230,12 @@
 </DeployFile>
 <DeployFile LocalName="data\level\textures\mug2_norm.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/level/textures/</RemoteDir>
+  <RemoteDir>assets\level\textures</RemoteDir>
   <RemoteName>mug2_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/level/textures/</RemoteDir>
+  <RemoteDir>assets\level\textures</RemoteDir>
   <RemoteName>mug2_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1277,12 +1277,12 @@
 </DeployFile>
 <DeployFile LocalName="data\level\textures\readme.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/level/textures/</RemoteDir>
+  <RemoteDir>assets\level\textures</RemoteDir>
   <RemoteName>readme.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/level/textures/</RemoteDir>
+  <RemoteDir>assets\level\textures</RemoteDir>
   <RemoteName>readme.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1324,12 +1324,12 @@
 </DeployFile>
 <DeployFile LocalName="data\level\textures\switch.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/level/textures/</RemoteDir>
+  <RemoteDir>assets\level\textures</RemoteDir>
   <RemoteName>switch.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/level/textures/</RemoteDir>
+  <RemoteDir>assets\level\textures</RemoteDir>
   <RemoteName>switch.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1371,12 +1371,12 @@
 </DeployFile>
 <DeployFile LocalName="data\level\textures\switch_norm.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/level/textures/</RemoteDir>
+  <RemoteDir>assets\level\textures</RemoteDir>
   <RemoteName>switch_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/level/textures/</RemoteDir>
+  <RemoteDir>assets\level\textures</RemoteDir>
   <RemoteName>switch_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1418,12 +1418,12 @@
 </DeployFile>
 <DeployFile LocalName="data\level\textures\tile-ground2-norm.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/level/textures/</RemoteDir>
+  <RemoteDir>assets\level\textures</RemoteDir>
   <RemoteName>tile-ground2-norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/level/textures/</RemoteDir>
+  <RemoteDir>assets\level\textures</RemoteDir>
   <RemoteName>tile-ground2-norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1465,12 +1465,12 @@
 </DeployFile>
 <DeployFile LocalName="data\level\textures\tile-ground2.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/level/textures/</RemoteDir>
+  <RemoteDir>assets\level\textures</RemoteDir>
   <RemoteName>tile-ground2.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/level/textures/</RemoteDir>
+  <RemoteDir>assets\level\textures</RemoteDir>
   <RemoteName>tile-ground2.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1512,12 +1512,12 @@
 </DeployFile>
 <DeployFile LocalName="data\level\textures\tile_tantiles.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/level/textures/</RemoteDir>
+  <RemoteDir>assets\level\textures</RemoteDir>
   <RemoteName>tile_tantiles.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/level/textures/</RemoteDir>
+  <RemoteDir>assets\level\textures</RemoteDir>
   <RemoteName>tile_tantiles.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1559,12 +1559,12 @@
 </DeployFile>
 <DeployFile LocalName="data\level\textures\tile_tantiles_norm.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/level/textures/</RemoteDir>
+  <RemoteDir>assets\level\textures</RemoteDir>
   <RemoteName>tile_tantiles_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/level/textures/</RemoteDir>
+  <RemoteDir>assets\level\textures</RemoteDir>
   <RemoteName>tile_tantiles_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1606,12 +1606,12 @@
 </DeployFile>
 <DeployFile LocalName="data\level\textures\torch.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/level/textures/</RemoteDir>
+  <RemoteDir>assets\level\textures</RemoteDir>
   <RemoteName>torch.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/level/textures/</RemoteDir>
+  <RemoteDir>assets\level\textures</RemoteDir>
   <RemoteName>torch.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1653,12 +1653,12 @@
 </DeployFile>
 <DeployFile LocalName="data\level\textures\torch_norm.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/level/textures/</RemoteDir>
+  <RemoteDir>assets\level\textures</RemoteDir>
   <RemoteName>torch_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/level/textures/</RemoteDir>
+  <RemoteDir>assets\level\textures</RemoteDir>
   <RemoteName>torch_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1700,12 +1700,12 @@
 </DeployFile>
 <DeployFile LocalName="data\level\textures\wall-tex-1.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/level/textures/</RemoteDir>
+  <RemoteDir>assets\level\textures</RemoteDir>
   <RemoteName>wall-tex-1.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/level/textures/</RemoteDir>
+  <RemoteDir>assets\level\textures</RemoteDir>
   <RemoteName>wall-tex-1.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1747,12 +1747,12 @@
 </DeployFile>
 <DeployFile LocalName="data\level\textures\wall-tex-1_norm.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/level/textures/</RemoteDir>
+  <RemoteDir>assets\level\textures</RemoteDir>
   <RemoteName>wall-tex-1_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/level/textures/</RemoteDir>
+  <RemoteDir>assets\level\textures</RemoteDir>
   <RemoteName>wall-tex-1_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1794,12 +1794,12 @@
 </DeployFile>
 <DeployFile LocalName="data\level\textures\wall-window.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/level/textures/</RemoteDir>
+  <RemoteDir>assets\level\textures</RemoteDir>
   <RemoteName>wall-window.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/level/textures/</RemoteDir>
+  <RemoteDir>assets\level\textures</RemoteDir>
   <RemoteName>wall-window.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1841,12 +1841,12 @@
 </DeployFile>
 <DeployFile LocalName="data\level\textures\wall-window_norm.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/level/textures/</RemoteDir>
+  <RemoteDir>assets\level\textures</RemoteDir>
   <RemoteName>wall-window_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/level/textures/</RemoteDir>
+  <RemoteDir>assets\level\textures</RemoteDir>
   <RemoteName>wall-window_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1888,12 +1888,12 @@
 </DeployFile>
 <DeployFile LocalName="data\menu-background.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>menu-background.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>menu-background.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>

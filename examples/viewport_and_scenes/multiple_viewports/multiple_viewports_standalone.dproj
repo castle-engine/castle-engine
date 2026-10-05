@@ -243,12 +243,12 @@
 -->
 <DeployFile LocalName="data\CastleSettings.xml" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -290,12 +290,12 @@
 </DeployFile>
 <DeployFile LocalName="data\README.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -337,12 +337,12 @@
 </DeployFile>
 <DeployFile LocalName="data\background.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>background.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>background.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -384,12 +384,12 @@
 </DeployFile>
 <DeployFile LocalName="data\bridge_level\AUTHORS.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/bridge_level/</RemoteDir>
+  <RemoteDir>assets\bridge_level</RemoteDir>
   <RemoteName>AUTHORS.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/bridge_level/</RemoteDir>
+  <RemoteDir>assets\bridge_level</RemoteDir>
   <RemoteName>AUTHORS.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -431,12 +431,12 @@
 </DeployFile>
 <DeployFile LocalName="data\bridge_level\bridge.bin" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/bridge_level/</RemoteDir>
+  <RemoteDir>assets\bridge_level</RemoteDir>
   <RemoteName>bridge.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/bridge_level/</RemoteDir>
+  <RemoteDir>assets\bridge_level</RemoteDir>
   <RemoteName>bridge.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -478,12 +478,12 @@
 </DeployFile>
 <DeployFile LocalName="data\bridge_level\bridge.gltf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/bridge_level/</RemoteDir>
+  <RemoteDir>assets\bridge_level</RemoteDir>
   <RemoteName>bridge.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/bridge_level/</RemoteDir>
+  <RemoteDir>assets\bridge_level</RemoteDir>
   <RemoteName>bridge.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -525,12 +525,12 @@
 </DeployFile>
 <DeployFile LocalName="data\bridge_level\textures\023bois.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/bridge_level/textures/</RemoteDir>
+  <RemoteDir>assets\bridge_level\textures</RemoteDir>
   <RemoteName>023bois.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/bridge_level/textures/</RemoteDir>
+  <RemoteDir>assets\bridge_level\textures</RemoteDir>
   <RemoteName>023bois.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -572,12 +572,12 @@
 </DeployFile>
 <DeployFile LocalName="data\bridge_level\textures\059_plombieresgbr.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/bridge_level/textures/</RemoteDir>
+  <RemoteDir>assets\bridge_level\textures</RemoteDir>
   <RemoteName>059_plombieresgbr.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/bridge_level/textures/</RemoteDir>
+  <RemoteDir>assets\bridge_level\textures</RemoteDir>
   <RemoteName>059_plombieresgbr.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -619,12 +619,12 @@
 </DeployFile>
 <DeployFile LocalName="data\bridge_level\textures\dirtfrancecornergrass.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/bridge_level/textures/</RemoteDir>
+  <RemoteDir>assets\bridge_level\textures</RemoteDir>
   <RemoteName>dirtfrancecornergrass.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/bridge_level/textures/</RemoteDir>
+  <RemoteDir>assets\bridge_level\textures</RemoteDir>
   <RemoteName>dirtfrancecornergrass.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -666,12 +666,12 @@
 </DeployFile>
 <DeployFile LocalName="data\bridge_level\textures\water2.jpg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/bridge_level/textures/</RemoteDir>
+  <RemoteDir>assets\bridge_level\textures</RemoteDir>
   <RemoteName>water2.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/bridge_level/textures/</RemoteDir>
+  <RemoteDir>assets\bridge_level\textures</RemoteDir>
   <RemoteName>water2.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -713,12 +713,12 @@
 </DeployFile>
 <DeployFile LocalName="data\castle_script_particles.x3dv" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>castle_script_particles.x3dv</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>castle_script_particles.x3dv</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -760,12 +760,12 @@
 </DeployFile>
 <DeployFile LocalName="data\gameviewmain.castle-user-interface" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewmain.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewmain.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -807,12 +807,12 @@
 </DeployFile>
 <DeployFile LocalName="data\teapot.x3dv" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>teapot.x3dv</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>teapot.x3dv</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -854,12 +854,12 @@
 </DeployFile>
 <DeployFile LocalName="data\velociraptor\AUTHORS.md" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/velociraptor/</RemoteDir>
+  <RemoteDir>assets\velociraptor</RemoteDir>
   <RemoteName>AUTHORS.md</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/velociraptor/</RemoteDir>
+  <RemoteDir>assets\velociraptor</RemoteDir>
   <RemoteName>AUTHORS.md</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -901,12 +901,12 @@
 </DeployFile>
 <DeployFile LocalName="data\velociraptor\velociraptor.bin" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/velociraptor/</RemoteDir>
+  <RemoteDir>assets\velociraptor</RemoteDir>
   <RemoteName>velociraptor.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/velociraptor/</RemoteDir>
+  <RemoteDir>assets\velociraptor</RemoteDir>
   <RemoteName>velociraptor.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -948,12 +948,12 @@
 </DeployFile>
 <DeployFile LocalName="data\velociraptor\velociraptor.gltf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/velociraptor/</RemoteDir>
+  <RemoteDir>assets\velociraptor</RemoteDir>
   <RemoteName>velociraptor.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/velociraptor/</RemoteDir>
+  <RemoteDir>assets\velociraptor</RemoteDir>
   <RemoteName>velociraptor.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>

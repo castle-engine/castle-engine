@@ -243,12 +243,12 @@
 -->
 <DeployFile LocalName="data\CastleSettings.xml" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -290,12 +290,12 @@
 </DeployFile>
 <DeployFile LocalName="data\README.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -337,12 +337,12 @@
 </DeployFile>
 <DeployFile LocalName="data\cocos2d\README.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/cocos2d/</RemoteDir>
+  <RemoteDir>assets\cocos2d</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/cocos2d/</RemoteDir>
+  <RemoteDir>assets\cocos2d</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -384,12 +384,12 @@
 </DeployFile>
 <DeployFile LocalName="data\cocos2d\wolf.plist" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/cocos2d/</RemoteDir>
+  <RemoteDir>assets\cocos2d</RemoteDir>
   <RemoteName>wolf.plist</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/cocos2d/</RemoteDir>
+  <RemoteDir>assets\cocos2d</RemoteDir>
   <RemoteName>wolf.plist</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -431,12 +431,12 @@
 </DeployFile>
 <DeployFile LocalName="data\cocos2d\wolf.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/cocos2d/</RemoteDir>
+  <RemoteDir>assets\cocos2d</RemoteDir>
   <RemoteName>wolf.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/cocos2d/</RemoteDir>
+  <RemoteDir>assets\cocos2d</RemoteDir>
   <RemoteName>wolf.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -478,12 +478,12 @@
 </DeployFile>
 <DeployFile LocalName="data\cocos2d\wolf.xml" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/cocos2d/</RemoteDir>
+  <RemoteDir>assets\cocos2d</RemoteDir>
   <RemoteName>wolf.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/cocos2d/</RemoteDir>
+  <RemoteDir>assets\cocos2d</RemoteDir>
   <RemoteName>wolf.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -525,12 +525,12 @@
 </DeployFile>
 <DeployFile LocalName="data\gameviewmain.castle-user-interface" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewmain.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewmain.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -572,12 +572,12 @@
 </DeployFile>
 <DeployFile LocalName="data\gltf_knight\AUTHORS.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/gltf_knight/</RemoteDir>
+  <RemoteDir>assets\gltf_knight</RemoteDir>
   <RemoteName>AUTHORS.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/gltf_knight/</RemoteDir>
+  <RemoteDir>assets\gltf_knight</RemoteDir>
   <RemoteName>AUTHORS.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -619,12 +619,12 @@
 </DeployFile>
 <DeployFile LocalName="data\gltf_knight\knight.bin" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/gltf_knight/</RemoteDir>
+  <RemoteDir>assets\gltf_knight</RemoteDir>
   <RemoteName>knight.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/gltf_knight/</RemoteDir>
+  <RemoteDir>assets\gltf_knight</RemoteDir>
   <RemoteName>knight.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -666,12 +666,12 @@
 </DeployFile>
 <DeployFile LocalName="data\gltf_knight\knight.gltf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/gltf_knight/</RemoteDir>
+  <RemoteDir>assets\gltf_knight</RemoteDir>
   <RemoteName>knight.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/gltf_knight/</RemoteDir>
+  <RemoteDir>assets\gltf_knight</RemoteDir>
   <RemoteName>knight.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -713,12 +713,12 @@
 </DeployFile>
 <DeployFile LocalName="data\gltf_knight\knight.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/gltf_knight/</RemoteDir>
+  <RemoteDir>assets\gltf_knight</RemoteDir>
   <RemoteName>knight.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/gltf_knight/</RemoteDir>
+  <RemoteDir>assets\gltf_knight</RemoteDir>
   <RemoteName>knight.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -760,12 +760,12 @@
 </DeployFile>
 <DeployFile LocalName="data\spine_dragon\AUTHORS.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/spine_dragon/</RemoteDir>
+  <RemoteDir>assets\spine_dragon</RemoteDir>
   <RemoteName>AUTHORS.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/spine_dragon/</RemoteDir>
+  <RemoteDir>assets\spine_dragon</RemoteDir>
   <RemoteName>AUTHORS.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -807,12 +807,12 @@
 </DeployFile>
 <DeployFile LocalName="data\spine_dragon\dragon.atlas" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/spine_dragon/</RemoteDir>
+  <RemoteDir>assets\spine_dragon</RemoteDir>
   <RemoteName>dragon.atlas</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/spine_dragon/</RemoteDir>
+  <RemoteDir>assets\spine_dragon</RemoteDir>
   <RemoteName>dragon.atlas</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -854,12 +854,12 @@
 </DeployFile>
 <DeployFile LocalName="data\spine_dragon\dragon.json" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/spine_dragon/</RemoteDir>
+  <RemoteDir>assets\spine_dragon</RemoteDir>
   <RemoteName>dragon.json</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/spine_dragon/</RemoteDir>
+  <RemoteDir>assets\spine_dragon</RemoteDir>
   <RemoteName>dragon.json</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -901,12 +901,12 @@
 </DeployFile>
 <DeployFile LocalName="data\spine_dragon\dragon.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/spine_dragon/</RemoteDir>
+  <RemoteDir>assets\spine_dragon</RemoteDir>
   <RemoteName>dragon.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/spine_dragon/</RemoteDir>
+  <RemoteDir>assets\spine_dragon</RemoteDir>
   <RemoteName>dragon.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -948,12 +948,12 @@
 </DeployFile>
 <DeployFile LocalName="data\starling\License.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/starling/</RemoteDir>
+  <RemoteDir>assets\starling</RemoteDir>
   <RemoteName>License.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/starling/</RemoteDir>
+  <RemoteDir>assets\starling</RemoteDir>
   <RemoteName>License.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -995,12 +995,12 @@
 </DeployFile>
 <DeployFile LocalName="data\starling\character_zombie_atlas.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/starling/</RemoteDir>
+  <RemoteDir>assets\starling</RemoteDir>
   <RemoteName>character_zombie_atlas.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/starling/</RemoteDir>
+  <RemoteDir>assets\starling</RemoteDir>
   <RemoteName>character_zombie_atlas.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1042,12 +1042,12 @@
 </DeployFile>
 <DeployFile LocalName="data\starling\character_zombie_atlas.starling-xml" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/starling/</RemoteDir>
+  <RemoteDir>assets\starling</RemoteDir>
   <RemoteName>character_zombie_atlas.starling-xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/starling/</RemoteDir>
+  <RemoteDir>assets\starling</RemoteDir>
   <RemoteName>character_zombie_atlas.starling-xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>

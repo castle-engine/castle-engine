@@ -243,12 +243,12 @@
 -->
 <DeployFile LocalName="data\CastleSettings.xml" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -290,12 +290,12 @@
 </DeployFile>
 <DeployFile LocalName="data\README.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -337,12 +337,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\AUTHORS.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteDir>assets\fonts</RemoteDir>
   <RemoteName>AUTHORS.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteDir>assets\fonts</RemoteDir>
   <RemoteName>AUTHORS.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -384,12 +384,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\DejaVuSans.ttf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteDir>assets\fonts</RemoteDir>
   <RemoteName>DejaVuSans.ttf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteDir>assets\fonts</RemoteDir>
   <RemoteName>DejaVuSans.ttf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -431,12 +431,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\PARPG.ttf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteDir>assets\fonts</RemoteDir>
   <RemoteName>PARPG.ttf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteDir>assets\fonts</RemoteDir>
   <RemoteName>PARPG.ttf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -478,12 +478,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\null_terminator_0.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteDir>assets\fonts</RemoteDir>
   <RemoteName>null_terminator_0.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteDir>assets\fonts</RemoteDir>
   <RemoteName>null_terminator_0.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -525,12 +525,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\sonic_asalga_0.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteDir>assets\fonts</RemoteDir>
   <RemoteName>sonic_asalga_0.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteDir>assets\fonts</RemoteDir>
   <RemoteName>sonic_asalga_0.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -572,12 +572,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\woff\AUTHORS.md" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/woff/</RemoteDir>
+  <RemoteDir>assets\fonts\woff</RemoteDir>
   <RemoteName>AUTHORS.md</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/woff/</RemoteDir>
+  <RemoteDir>assets\fonts\woff</RemoteDir>
   <RemoteName>AUTHORS.md</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -619,12 +619,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\woff\freecheese\GGBotNet.url" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/woff/freecheese/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\freecheese</RemoteDir>
   <RemoteName>GGBotNet.url</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/woff/freecheese/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\freecheese</RemoteDir>
   <RemoteName>GGBotNet.url</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -666,12 +666,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\woff\freecheese\License.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/woff/freecheese/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\freecheese</RemoteDir>
   <RemoteName>License.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/woff/freecheese/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\freecheese</RemoteDir>
   <RemoteName>License.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -713,12 +713,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\woff\freecheese\OpenType (.otf)\FreeCheese-Italic.otf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/woff/freecheese/OpenType (.otf)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\freecheese\OpenType (.otf)</RemoteDir>
   <RemoteName>FreeCheese-Italic.otf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/woff/freecheese/OpenType (.otf)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\freecheese\OpenType (.otf)</RemoteDir>
   <RemoteName>FreeCheese-Italic.otf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -760,12 +760,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\woff\freecheese\OpenType (.otf)\FreeCheese-Regular.otf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/woff/freecheese/OpenType (.otf)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\freecheese\OpenType (.otf)</RemoteDir>
   <RemoteName>FreeCheese-Regular.otf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/woff/freecheese/OpenType (.otf)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\freecheese\OpenType (.otf)</RemoteDir>
   <RemoteName>FreeCheese-Regular.otf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -807,12 +807,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\woff\freecheese\TrueType (.ttf)\FreeCheese-Italic.ttf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/woff/freecheese/TrueType (.ttf)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\freecheese\TrueType (.ttf)</RemoteDir>
   <RemoteName>FreeCheese-Italic.ttf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/woff/freecheese/TrueType (.ttf)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\freecheese\TrueType (.ttf)</RemoteDir>
   <RemoteName>FreeCheese-Italic.ttf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -854,12 +854,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\woff\freecheese\TrueType (.ttf)\FreeCheese-Regular.ttf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/woff/freecheese/TrueType (.ttf)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\freecheese\TrueType (.ttf)</RemoteDir>
   <RemoteName>FreeCheese-Regular.ttf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/woff/freecheese/TrueType (.ttf)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\freecheese\TrueType (.ttf)</RemoteDir>
   <RemoteName>FreeCheese-Regular.ttf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -901,12 +901,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\woff\freecheese\Web Open Font Format (.woff)\FreeCheese-Italic.woff" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\freecheese\Web Open Font Format (.woff)</RemoteDir>
   <RemoteName>FreeCheese-Italic.woff</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\freecheese\Web Open Font Format (.woff)</RemoteDir>
   <RemoteName>FreeCheese-Italic.woff</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -948,12 +948,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\woff\freecheese\Web Open Font Format (.woff)\FreeCheese-Italic.woff2" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\freecheese\Web Open Font Format (.woff)</RemoteDir>
   <RemoteName>FreeCheese-Italic.woff2</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\freecheese\Web Open Font Format (.woff)</RemoteDir>
   <RemoteName>FreeCheese-Italic.woff2</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -995,12 +995,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\woff\freecheese\Web Open Font Format (.woff)\FreeCheese-Regular.woff" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\freecheese\Web Open Font Format (.woff)</RemoteDir>
   <RemoteName>FreeCheese-Regular.woff</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\freecheese\Web Open Font Format (.woff)</RemoteDir>
   <RemoteName>FreeCheese-Regular.woff</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1042,12 +1042,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\woff\freecheese\Web Open Font Format (.woff)\FreeCheese-Regular.woff2" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\freecheese\Web Open Font Format (.woff)</RemoteDir>
   <RemoteName>FreeCheese-Regular.woff2</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\freecheese\Web Open Font Format (.woff)</RemoteDir>
   <RemoteName>FreeCheese-Regular.woff2</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1089,12 +1089,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\woff\jupiteroid\GGBotNet.URL" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid</RemoteDir>
   <RemoteName>GGBotNet.URL</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid</RemoteDir>
   <RemoteName>GGBotNet.URL</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1136,12 +1136,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\woff\jupiteroid\License.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid</RemoteDir>
   <RemoteName>License.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid</RemoteDir>
   <RemoteName>License.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1183,12 +1183,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\woff\jupiteroid\OpenType (.otf)\Jupiteroid-Bold.otf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\OpenType (.otf)</RemoteDir>
   <RemoteName>Jupiteroid-Bold.otf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\OpenType (.otf)</RemoteDir>
   <RemoteName>Jupiteroid-Bold.otf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1230,12 +1230,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\woff\jupiteroid\OpenType (.otf)\Jupiteroid-BoldItalic.otf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\OpenType (.otf)</RemoteDir>
   <RemoteName>Jupiteroid-BoldItalic.otf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\OpenType (.otf)</RemoteDir>
   <RemoteName>Jupiteroid-BoldItalic.otf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1277,12 +1277,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\woff\jupiteroid\OpenType (.otf)\Jupiteroid-Italic.otf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\OpenType (.otf)</RemoteDir>
   <RemoteName>Jupiteroid-Italic.otf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\OpenType (.otf)</RemoteDir>
   <RemoteName>Jupiteroid-Italic.otf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1324,12 +1324,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\woff\jupiteroid\OpenType (.otf)\Jupiteroid-Light.otf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\OpenType (.otf)</RemoteDir>
   <RemoteName>Jupiteroid-Light.otf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\OpenType (.otf)</RemoteDir>
   <RemoteName>Jupiteroid-Light.otf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1371,12 +1371,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\woff\jupiteroid\OpenType (.otf)\Jupiteroid-LightItalic.otf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\OpenType (.otf)</RemoteDir>
   <RemoteName>Jupiteroid-LightItalic.otf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\OpenType (.otf)</RemoteDir>
   <RemoteName>Jupiteroid-LightItalic.otf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1418,12 +1418,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\woff\jupiteroid\OpenType (.otf)\Jupiteroid-Regular.otf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\OpenType (.otf)</RemoteDir>
   <RemoteName>Jupiteroid-Regular.otf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\OpenType (.otf)</RemoteDir>
   <RemoteName>Jupiteroid-Regular.otf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1465,12 +1465,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\woff\jupiteroid\TrueType (.ttf)\Jupiteroid-Bold.ttf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\TrueType (.ttf)</RemoteDir>
   <RemoteName>Jupiteroid-Bold.ttf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\TrueType (.ttf)</RemoteDir>
   <RemoteName>Jupiteroid-Bold.ttf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1512,12 +1512,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\woff\jupiteroid\TrueType (.ttf)\Jupiteroid-BoldItalic.ttf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\TrueType (.ttf)</RemoteDir>
   <RemoteName>Jupiteroid-BoldItalic.ttf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\TrueType (.ttf)</RemoteDir>
   <RemoteName>Jupiteroid-BoldItalic.ttf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1559,12 +1559,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\woff\jupiteroid\TrueType (.ttf)\Jupiteroid-Italic.ttf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\TrueType (.ttf)</RemoteDir>
   <RemoteName>Jupiteroid-Italic.ttf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\TrueType (.ttf)</RemoteDir>
   <RemoteName>Jupiteroid-Italic.ttf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1606,12 +1606,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\woff\jupiteroid\TrueType (.ttf)\Jupiteroid-Light.ttf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\TrueType (.ttf)</RemoteDir>
   <RemoteName>Jupiteroid-Light.ttf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\TrueType (.ttf)</RemoteDir>
   <RemoteName>Jupiteroid-Light.ttf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1653,12 +1653,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\woff\jupiteroid\TrueType (.ttf)\Jupiteroid-LightItalic.ttf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\TrueType (.ttf)</RemoteDir>
   <RemoteName>Jupiteroid-LightItalic.ttf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\TrueType (.ttf)</RemoteDir>
   <RemoteName>Jupiteroid-LightItalic.ttf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1700,12 +1700,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\woff\jupiteroid\TrueType (.ttf)\Jupiteroid-Regular.ttf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\TrueType (.ttf)</RemoteDir>
   <RemoteName>Jupiteroid-Regular.ttf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\TrueType (.ttf)</RemoteDir>
   <RemoteName>Jupiteroid-Regular.ttf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1747,12 +1747,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\woff\jupiteroid\Web Open Font Format (.woff)\Jupiteroid-Bold.woff" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\Web Open Font Format (.woff)</RemoteDir>
   <RemoteName>Jupiteroid-Bold.woff</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\Web Open Font Format (.woff)</RemoteDir>
   <RemoteName>Jupiteroid-Bold.woff</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1794,12 +1794,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\woff\jupiteroid\Web Open Font Format (.woff)\Jupiteroid-Bold.woff2" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\Web Open Font Format (.woff)</RemoteDir>
   <RemoteName>Jupiteroid-Bold.woff2</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\Web Open Font Format (.woff)</RemoteDir>
   <RemoteName>Jupiteroid-Bold.woff2</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1841,12 +1841,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\woff\jupiteroid\Web Open Font Format (.woff)\Jupiteroid-BoldItalic.woff" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\Web Open Font Format (.woff)</RemoteDir>
   <RemoteName>Jupiteroid-BoldItalic.woff</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\Web Open Font Format (.woff)</RemoteDir>
   <RemoteName>Jupiteroid-BoldItalic.woff</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1888,12 +1888,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\woff\jupiteroid\Web Open Font Format (.woff)\Jupiteroid-BoldItalic.woff2" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\Web Open Font Format (.woff)</RemoteDir>
   <RemoteName>Jupiteroid-BoldItalic.woff2</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\Web Open Font Format (.woff)</RemoteDir>
   <RemoteName>Jupiteroid-BoldItalic.woff2</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1935,12 +1935,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\woff\jupiteroid\Web Open Font Format (.woff)\Jupiteroid-Italic.woff" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\Web Open Font Format (.woff)</RemoteDir>
   <RemoteName>Jupiteroid-Italic.woff</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\Web Open Font Format (.woff)</RemoteDir>
   <RemoteName>Jupiteroid-Italic.woff</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1982,12 +1982,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\woff\jupiteroid\Web Open Font Format (.woff)\Jupiteroid-Italic.woff2" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\Web Open Font Format (.woff)</RemoteDir>
   <RemoteName>Jupiteroid-Italic.woff2</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\Web Open Font Format (.woff)</RemoteDir>
   <RemoteName>Jupiteroid-Italic.woff2</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2029,12 +2029,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\woff\jupiteroid\Web Open Font Format (.woff)\Jupiteroid-Light.woff" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\Web Open Font Format (.woff)</RemoteDir>
   <RemoteName>Jupiteroid-Light.woff</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\Web Open Font Format (.woff)</RemoteDir>
   <RemoteName>Jupiteroid-Light.woff</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2076,12 +2076,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\woff\jupiteroid\Web Open Font Format (.woff)\Jupiteroid-Light.woff2" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\Web Open Font Format (.woff)</RemoteDir>
   <RemoteName>Jupiteroid-Light.woff2</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\Web Open Font Format (.woff)</RemoteDir>
   <RemoteName>Jupiteroid-Light.woff2</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2123,12 +2123,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\woff\jupiteroid\Web Open Font Format (.woff)\Jupiteroid-LightItalic.woff" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\Web Open Font Format (.woff)</RemoteDir>
   <RemoteName>Jupiteroid-LightItalic.woff</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\Web Open Font Format (.woff)</RemoteDir>
   <RemoteName>Jupiteroid-LightItalic.woff</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2170,12 +2170,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\woff\jupiteroid\Web Open Font Format (.woff)\Jupiteroid-LightItalic.woff2" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\Web Open Font Format (.woff)</RemoteDir>
   <RemoteName>Jupiteroid-LightItalic.woff2</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\Web Open Font Format (.woff)</RemoteDir>
   <RemoteName>Jupiteroid-LightItalic.woff2</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2217,12 +2217,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\woff\jupiteroid\Web Open Font Format (.woff)\Jupiteroid-Regular.woff" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\Web Open Font Format (.woff)</RemoteDir>
   <RemoteName>Jupiteroid-Regular.woff</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\Web Open Font Format (.woff)</RemoteDir>
   <RemoteName>Jupiteroid-Regular.woff</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2264,12 +2264,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\woff\jupiteroid\Web Open Font Format (.woff)\Jupiteroid-Regular.woff2" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\Web Open Font Format (.woff)</RemoteDir>
   <RemoteName>Jupiteroid-Regular.woff2</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteDir>assets\fonts\woff\jupiteroid\Web Open Font Format (.woff)</RemoteDir>
   <RemoteName>Jupiteroid-Regular.woff2</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2311,12 +2311,12 @@
 </DeployFile>
 <DeployFile LocalName="data\gameviewmain.castle-user-interface" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewmain.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewmain.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>

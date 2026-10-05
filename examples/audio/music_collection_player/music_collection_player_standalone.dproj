@@ -243,12 +243,12 @@
 -->
 <DeployFile LocalName="data\CastleSettings.xml" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -290,12 +290,12 @@
 </DeployFile>
 <DeployFile LocalName="data\README.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -337,12 +337,12 @@
 </DeployFile>
 <DeployFile LocalName="data\button_play_pause.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>button_play_pause.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>button_play_pause.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -384,12 +384,12 @@
 </DeployFile>
 <DeployFile LocalName="data\choose_song_row.castle-user-interface" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>choose_song_row.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>choose_song_row.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -431,12 +431,12 @@
 </DeployFile>
 <DeployFile LocalName="data\circle_32.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>circle_32.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>circle_32.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -478,12 +478,12 @@
 </DeployFile>
 <DeployFile LocalName="data\circle_64.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>circle_64.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>circle_64.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -525,12 +525,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\AUTHORS.md" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteDir>assets\fonts</RemoteDir>
   <RemoteName>AUTHORS.md</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteDir>assets\fonts</RemoteDir>
   <RemoteName>AUTHORS.md</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -572,12 +572,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\Roboto-Italic.ttf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteDir>assets\fonts</RemoteDir>
   <RemoteName>Roboto-Italic.ttf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteDir>assets\fonts</RemoteDir>
   <RemoteName>Roboto-Italic.ttf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -619,12 +619,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\Roboto-Regular.ttf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteDir>assets\fonts</RemoteDir>
   <RemoteName>Roboto-Regular.ttf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteDir>assets\fonts</RemoteDir>
   <RemoteName>Roboto-Regular.ttf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -666,12 +666,12 @@
 </DeployFile>
 <DeployFile LocalName="data\fonts\Roboto-SemiBold.ttf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteDir>assets\fonts</RemoteDir>
   <RemoteName>Roboto-SemiBold.ttf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteDir>assets\fonts</RemoteDir>
   <RemoteName>Roboto-SemiBold.ttf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -713,12 +713,12 @@
 </DeployFile>
 <DeployFile LocalName="data\gameviewchoosesong.castle-user-interface" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewchoosesong.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewchoosesong.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -760,12 +760,12 @@
 </DeployFile>
 <DeployFile LocalName="data\gameviewplaysong.castle-user-interface" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewplaysong.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewplaysong.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -807,12 +807,12 @@
 </DeployFile>
 <DeployFile LocalName="data\icons\AUTHORS.md" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/icons/</RemoteDir>
+  <RemoteDir>assets\icons</RemoteDir>
   <RemoteName>AUTHORS.md</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/icons/</RemoteDir>
+  <RemoteDir>assets\icons</RemoteDir>
   <RemoteName>AUTHORS.md</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -854,12 +854,12 @@
 </DeployFile>
 <DeployFile LocalName="data\icons\arrow-left.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/icons/</RemoteDir>
+  <RemoteDir>assets\icons</RemoteDir>
   <RemoteName>arrow-left.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/icons/</RemoteDir>
+  <RemoteDir>assets\icons</RemoteDir>
   <RemoteName>arrow-left.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -901,12 +901,12 @@
 </DeployFile>
 <DeployFile LocalName="data\icons\pause.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/icons/</RemoteDir>
+  <RemoteDir>assets\icons</RemoteDir>
   <RemoteName>pause.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/icons/</RemoteDir>
+  <RemoteDir>assets\icons</RemoteDir>
   <RemoteName>pause.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -948,12 +948,12 @@
 </DeployFile>
 <DeployFile LocalName="data\icons\play.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/icons/</RemoteDir>
+  <RemoteDir>assets\icons</RemoteDir>
   <RemoteName>play.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/icons/</RemoteDir>
+  <RemoteDir>assets\icons</RemoteDir>
   <RemoteName>play.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -995,12 +995,12 @@
 </DeployFile>
 <DeployFile LocalName="data\icons\repeat.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/icons/</RemoteDir>
+  <RemoteDir>assets\icons</RemoteDir>
   <RemoteName>repeat.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/icons/</RemoteDir>
+  <RemoteDir>assets\icons</RemoteDir>
   <RemoteName>repeat.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1042,12 +1042,12 @@
 </DeployFile>
 <DeployFile LocalName="data\songs\AUTHORS.md" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/songs/</RemoteDir>
+  <RemoteDir>assets\songs</RemoteDir>
   <RemoteName>AUTHORS.md</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/songs/</RemoteDir>
+  <RemoteDir>assets\songs</RemoteDir>
   <RemoteName>AUTHORS.md</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1089,12 +1089,12 @@
 </DeployFile>
 <DeployFile LocalName="data\songs\battle.ogg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/songs/</RemoteDir>
+  <RemoteDir>assets\songs</RemoteDir>
   <RemoteName>battle.ogg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/songs/</RemoteDir>
+  <RemoteDir>assets\songs</RemoteDir>
   <RemoteName>battle.ogg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1136,12 +1136,12 @@
 </DeployFile>
 <DeployFile LocalName="data\songs\battle_rainy_street.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/songs/</RemoteDir>
+  <RemoteDir>assets\songs</RemoteDir>
   <RemoteName>battle_rainy_street.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/songs/</RemoteDir>
+  <RemoteDir>assets\songs</RemoteDir>
   <RemoteName>battle_rainy_street.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1183,12 +1183,12 @@
 </DeployFile>
 <DeployFile LocalName="data\songs\cave.ogg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/songs/</RemoteDir>
+  <RemoteDir>assets\songs</RemoteDir>
   <RemoteName>cave.ogg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/songs/</RemoteDir>
+  <RemoteDir>assets\songs</RemoteDir>
   <RemoteName>cave.ogg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1230,12 +1230,12 @@
 </DeployFile>
 <DeployFile LocalName="data\songs\cave_bluelarge.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/songs/</RemoteDir>
+  <RemoteDir>assets\songs</RemoteDir>
   <RemoteName>cave_bluelarge.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/songs/</RemoteDir>
+  <RemoteDir>assets\songs</RemoteDir>
   <RemoteName>cave_bluelarge.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1277,12 +1277,12 @@
 </DeployFile>
 <DeployFile LocalName="data\songs\town.ogg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/songs/</RemoteDir>
+  <RemoteDir>assets\songs</RemoteDir>
   <RemoteName>town.ogg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/songs/</RemoteDir>
+  <RemoteDir>assets\songs</RemoteDir>
   <RemoteName>town.ogg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1324,12 +1324,12 @@
 </DeployFile>
 <DeployFile LocalName="data\songs\town_house.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/songs/</RemoteDir>
+  <RemoteDir>assets\songs</RemoteDir>
   <RemoteName>town_house.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/songs/</RemoteDir>
+  <RemoteDir>assets\songs</RemoteDir>
   <RemoteName>town_house.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1371,12 +1371,12 @@
 </DeployFile>
 <DeployFile LocalName="data\theme\ButtonDisabled.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/theme/</RemoteDir>
+  <RemoteDir>assets\theme</RemoteDir>
   <RemoteName>ButtonDisabled.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/theme/</RemoteDir>
+  <RemoteDir>assets\theme</RemoteDir>
   <RemoteName>ButtonDisabled.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1418,12 +1418,12 @@
 </DeployFile>
 <DeployFile LocalName="data\theme\ButtonFocused.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/theme/</RemoteDir>
+  <RemoteDir>assets\theme</RemoteDir>
   <RemoteName>ButtonFocused.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/theme/</RemoteDir>
+  <RemoteDir>assets\theme</RemoteDir>
   <RemoteName>ButtonFocused.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1465,12 +1465,12 @@
 </DeployFile>
 <DeployFile LocalName="data\theme\ButtonNormal.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/theme/</RemoteDir>
+  <RemoteDir>assets\theme</RemoteDir>
   <RemoteName>ButtonNormal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/theme/</RemoteDir>
+  <RemoteDir>assets\theme</RemoteDir>
   <RemoteName>ButtonNormal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1512,12 +1512,12 @@
 </DeployFile>
 <DeployFile LocalName="data\theme\ButtonPressed.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/theme/</RemoteDir>
+  <RemoteDir>assets\theme</RemoteDir>
   <RemoteName>ButtonPressed.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/theme/</RemoteDir>
+  <RemoteDir>assets\theme</RemoteDir>
   <RemoteName>ButtonPressed.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>

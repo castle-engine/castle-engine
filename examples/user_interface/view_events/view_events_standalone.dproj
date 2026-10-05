@@ -243,12 +243,12 @@
 -->
 <DeployFile LocalName="data\AUTHORS.md" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>AUTHORS.md</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>AUTHORS.md</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -290,12 +290,12 @@
 </DeployFile>
 <DeployFile LocalName="data\CastleSettings.xml" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -337,12 +337,12 @@
 </DeployFile>
 <DeployFile LocalName="data\README.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -384,12 +384,12 @@
 </DeployFile>
 <DeployFile LocalName="data\biplane.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>biplane.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>biplane.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -431,12 +431,12 @@
 </DeployFile>
 <DeployFile LocalName="data\gameviewmain.castle-user-interface" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewmain.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewmain.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -478,12 +478,12 @@
 </DeployFile>
 <DeployFile LocalName="data\industrial_background.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>industrial_background.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>industrial_background.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -525,12 +525,12 @@
 </DeployFile>
 <DeployFile LocalName="data\mountains_background.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>mountains_background.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>mountains_background.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -572,12 +572,12 @@
 </DeployFile>
 <DeployFile LocalName="data\parallax-industrial-pack\layers\skill-desc_0000_foreground.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/parallax-industrial-pack/layers/</RemoteDir>
+  <RemoteDir>assets\parallax-industrial-pack\layers</RemoteDir>
   <RemoteName>skill-desc_0000_foreground.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/parallax-industrial-pack/layers/</RemoteDir>
+  <RemoteDir>assets\parallax-industrial-pack\layers</RemoteDir>
   <RemoteName>skill-desc_0000_foreground.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -619,12 +619,12 @@
 </DeployFile>
 <DeployFile LocalName="data\parallax-industrial-pack\layers\skill-desc_0001_buildings.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/parallax-industrial-pack/layers/</RemoteDir>
+  <RemoteDir>assets\parallax-industrial-pack\layers</RemoteDir>
   <RemoteName>skill-desc_0001_buildings.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/parallax-industrial-pack/layers/</RemoteDir>
+  <RemoteDir>assets\parallax-industrial-pack\layers</RemoteDir>
   <RemoteName>skill-desc_0001_buildings.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -666,12 +666,12 @@
 </DeployFile>
 <DeployFile LocalName="data\parallax-industrial-pack\layers\skill-desc_0002_far-buildings.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/parallax-industrial-pack/layers/</RemoteDir>
+  <RemoteDir>assets\parallax-industrial-pack\layers</RemoteDir>
   <RemoteName>skill-desc_0002_far-buildings.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/parallax-industrial-pack/layers/</RemoteDir>
+  <RemoteDir>assets\parallax-industrial-pack\layers</RemoteDir>
   <RemoteName>skill-desc_0002_far-buildings.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -713,12 +713,12 @@
 </DeployFile>
 <DeployFile LocalName="data\parallax-industrial-pack\layers\skill-desc_0003_bg.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/parallax-industrial-pack/layers/</RemoteDir>
+  <RemoteDir>assets\parallax-industrial-pack\layers</RemoteDir>
   <RemoteName>skill-desc_0003_bg.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/parallax-industrial-pack/layers/</RemoteDir>
+  <RemoteDir>assets\parallax-industrial-pack\layers</RemoteDir>
   <RemoteName>skill-desc_0003_bg.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -760,12 +760,12 @@
 </DeployFile>
 <DeployFile LocalName="data\parallax-industrial-pack\license.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/parallax-industrial-pack/</RemoteDir>
+  <RemoteDir>assets\parallax-industrial-pack</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/parallax-industrial-pack/</RemoteDir>
+  <RemoteDir>assets\parallax-industrial-pack</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -807,12 +807,12 @@
 </DeployFile>
 <DeployFile LocalName="data\parallax-industrial-pack\parallax-industrial.psd" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/parallax-industrial-pack/</RemoteDir>
+  <RemoteDir>assets\parallax-industrial-pack</RemoteDir>
   <RemoteName>parallax-industrial.psd</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/parallax-industrial-pack/</RemoteDir>
+  <RemoteDir>assets\parallax-industrial-pack</RemoteDir>
   <RemoteName>parallax-industrial.psd</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -854,12 +854,12 @@
 </DeployFile>
 <DeployFile LocalName="data\parallax_mountain_pack\layers\parallax-mountain-bg.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/parallax_mountain_pack/layers/</RemoteDir>
+  <RemoteDir>assets\parallax_mountain_pack\layers</RemoteDir>
   <RemoteName>parallax-mountain-bg.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/parallax_mountain_pack/layers/</RemoteDir>
+  <RemoteDir>assets\parallax_mountain_pack\layers</RemoteDir>
   <RemoteName>parallax-mountain-bg.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -901,12 +901,12 @@
 </DeployFile>
 <DeployFile LocalName="data\parallax_mountain_pack\layers\parallax-mountain-foreground-trees.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/parallax_mountain_pack/layers/</RemoteDir>
+  <RemoteDir>assets\parallax_mountain_pack\layers</RemoteDir>
   <RemoteName>parallax-mountain-foreground-trees.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/parallax_mountain_pack/layers/</RemoteDir>
+  <RemoteDir>assets\parallax_mountain_pack\layers</RemoteDir>
   <RemoteName>parallax-mountain-foreground-trees.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -948,12 +948,12 @@
 </DeployFile>
 <DeployFile LocalName="data\parallax_mountain_pack\layers\parallax-mountain-montain-far.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/parallax_mountain_pack/layers/</RemoteDir>
+  <RemoteDir>assets\parallax_mountain_pack\layers</RemoteDir>
   <RemoteName>parallax-mountain-montain-far.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/parallax_mountain_pack/layers/</RemoteDir>
+  <RemoteDir>assets\parallax_mountain_pack\layers</RemoteDir>
   <RemoteName>parallax-mountain-montain-far.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -995,12 +995,12 @@
 </DeployFile>
 <DeployFile LocalName="data\parallax_mountain_pack\layers\parallax-mountain-mountains.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/parallax_mountain_pack/layers/</RemoteDir>
+  <RemoteDir>assets\parallax_mountain_pack\layers</RemoteDir>
   <RemoteName>parallax-mountain-mountains.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/parallax_mountain_pack/layers/</RemoteDir>
+  <RemoteDir>assets\parallax_mountain_pack\layers</RemoteDir>
   <RemoteName>parallax-mountain-mountains.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1042,12 +1042,12 @@
 </DeployFile>
 <DeployFile LocalName="data\parallax_mountain_pack\layers\parallax-mountain-trees.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/parallax_mountain_pack/layers/</RemoteDir>
+  <RemoteDir>assets\parallax_mountain_pack\layers</RemoteDir>
   <RemoteName>parallax-mountain-trees.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/parallax_mountain_pack/layers/</RemoteDir>
+  <RemoteDir>assets\parallax_mountain_pack\layers</RemoteDir>
   <RemoteName>parallax-mountain-trees.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1089,12 +1089,12 @@
 </DeployFile>
 <DeployFile LocalName="data\parallax_mountain_pack\license.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/parallax_mountain_pack/</RemoteDir>
+  <RemoteDir>assets\parallax_mountain_pack</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/parallax_mountain_pack/</RemoteDir>
+  <RemoteDir>assets\parallax_mountain_pack</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1136,12 +1136,12 @@
 </DeployFile>
 <DeployFile LocalName="data\parallax_mountain_pack\parallax-mountain.psd" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/parallax_mountain_pack/</RemoteDir>
+  <RemoteDir>assets\parallax_mountain_pack</RemoteDir>
   <RemoteName>parallax-mountain.psd</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/parallax_mountain_pack/</RemoteDir>
+  <RemoteDir>assets\parallax_mountain_pack</RemoteDir>
   <RemoteName>parallax-mountain.psd</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>

@@ -243,12 +243,12 @@
 -->
 <DeployFile LocalName="data\CastleSettings.xml" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -290,12 +290,12 @@
 </DeployFile>
 <DeployFile LocalName="data\README.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -337,12 +337,12 @@
 </DeployFile>
 <DeployFile LocalName="data\gameviewmain.castle-user-interface" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewmain.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewmain.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -384,12 +384,12 @@
 </DeployFile>
 <DeployFile LocalName="data\map_objects\AUTHORS.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/map_objects/</RemoteDir>
+  <RemoteDir>assets\map_objects</RemoteDir>
   <RemoteName>AUTHORS.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/map_objects/</RemoteDir>
+  <RemoteDir>assets\map_objects</RemoteDir>
   <RemoteName>AUTHORS.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -431,12 +431,12 @@
 </DeployFile>
 <DeployFile LocalName="data\map_objects\ground\soil_1_ta.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/map_objects/ground/</RemoteDir>
+  <RemoteDir>assets\map_objects\ground</RemoteDir>
   <RemoteName>soil_1_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/map_objects/ground/</RemoteDir>
+  <RemoteDir>assets\map_objects\ground</RemoteDir>
   <RemoteName>soil_1_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -478,12 +478,12 @@
 </DeployFile>
 <DeployFile LocalName="data\map_objects\ground\soil_2_ta.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/map_objects/ground/</RemoteDir>
+  <RemoteDir>assets\map_objects\ground</RemoteDir>
   <RemoteName>soil_2_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/map_objects/ground/</RemoteDir>
+  <RemoteDir>assets\map_objects\ground</RemoteDir>
   <RemoteName>soil_2_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -525,12 +525,12 @@
 </DeployFile>
 <DeployFile LocalName="data\map_objects\ground\soil_3_ta.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/map_objects/ground/</RemoteDir>
+  <RemoteDir>assets\map_objects\ground</RemoteDir>
   <RemoteName>soil_3_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/map_objects/ground/</RemoteDir>
+  <RemoteDir>assets\map_objects\ground</RemoteDir>
   <RemoteName>soil_3_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -572,12 +572,12 @@
 </DeployFile>
 <DeployFile LocalName="data\map_objects\ground\soil_4_ta.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/map_objects/ground/</RemoteDir>
+  <RemoteDir>assets\map_objects\ground</RemoteDir>
   <RemoteName>soil_4_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/map_objects/ground/</RemoteDir>
+  <RemoteDir>assets\map_objects\ground</RemoteDir>
   <RemoteName>soil_4_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -619,12 +619,12 @@
 </DeployFile>
 <DeployFile LocalName="data\map_objects\ground\soil_5_ta.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/map_objects/ground/</RemoteDir>
+  <RemoteDir>assets\map_objects\ground</RemoteDir>
   <RemoteName>soil_5_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/map_objects/ground/</RemoteDir>
+  <RemoteDir>assets\map_objects\ground</RemoteDir>
   <RemoteName>soil_5_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -666,12 +666,12 @@
 </DeployFile>
 <DeployFile LocalName="data\map_objects\ground\soil_6_ta.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/map_objects/ground/</RemoteDir>
+  <RemoteDir>assets\map_objects\ground</RemoteDir>
   <RemoteName>soil_6_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/map_objects/ground/</RemoteDir>
+  <RemoteDir>assets\map_objects\ground</RemoteDir>
   <RemoteName>soil_6_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -713,12 +713,12 @@
 </DeployFile>
 <DeployFile LocalName="data\map_objects\ground\soil_7_ta.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/map_objects/ground/</RemoteDir>
+  <RemoteDir>assets\map_objects\ground</RemoteDir>
   <RemoteName>soil_7_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/map_objects/ground/</RemoteDir>
+  <RemoteDir>assets\map_objects\ground</RemoteDir>
   <RemoteName>soil_7_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -760,12 +760,12 @@
 </DeployFile>
 <DeployFile LocalName="data\map_objects\observer\observer.castle-sprite-sheet" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/map_objects/observer/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer</RemoteDir>
   <RemoteName>observer.castle-sprite-sheet</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/map_objects/observer/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer</RemoteDir>
   <RemoteName>observer.castle-sprite-sheet</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -807,12 +807,12 @@
 </DeployFile>
 <DeployFile LocalName="data\map_objects\observer\observer.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/map_objects/observer/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer</RemoteDir>
   <RemoteName>observer.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/map_objects/observer/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer</RemoteDir>
   <RemoteName>observer.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -854,12 +854,12 @@
 </DeployFile>
 <DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_dying_N_1_hh.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_dying_N_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_dying_N_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -901,12 +901,12 @@
 </DeployFile>
 <DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_dying_N_2_hh.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_dying_N_2_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_dying_N_2_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -948,12 +948,12 @@
 </DeployFile>
 <DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_dying_N_3_hh.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_dying_N_3_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_dying_N_3_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -995,12 +995,12 @@
 </DeployFile>
 <DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_dying_N_4_hh.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_dying_N_4_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_dying_N_4_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1042,12 +1042,12 @@
 </DeployFile>
 <DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_dying_N_5_hh.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_dying_N_5_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_dying_N_5_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1089,12 +1089,12 @@
 </DeployFile>
 <DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_dying_N_6_hh.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_dying_N_6_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_dying_N_6_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1136,12 +1136,12 @@
 </DeployFile>
 <DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_float_E_1_hh.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_float_E_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_float_E_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1183,12 +1183,12 @@
 </DeployFile>
 <DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_float_NE_1_hh.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_float_NE_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_float_NE_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1230,12 +1230,12 @@
 </DeployFile>
 <DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_float_NW_1_hh.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_float_NW_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_float_NW_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1277,12 +1277,12 @@
 </DeployFile>
 <DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_float_N_1_hh.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_float_N_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_float_N_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1324,12 +1324,12 @@
 </DeployFile>
 <DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_float_SE_1_hh.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_float_SE_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_float_SE_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1371,12 +1371,12 @@
 </DeployFile>
 <DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_float_SW_1_hh.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_float_SW_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_float_SW_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1418,12 +1418,12 @@
 </DeployFile>
 <DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_float_S_1_hh.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_float_S_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_float_S_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1465,12 +1465,12 @@
 </DeployFile>
 <DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_float_W_1_hh.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_float_W_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_float_W_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1512,12 +1512,12 @@
 </DeployFile>
 <DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_growing_1_hh.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_growing_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_growing_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1559,12 +1559,12 @@
 </DeployFile>
 <DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_growing_2_hh.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_growing_2_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_growing_2_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1606,12 +1606,12 @@
 </DeployFile>
 <DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_growing_3_hh.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_growing_3_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_growing_3_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1653,12 +1653,12 @@
 </DeployFile>
 <DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_growing_4_hh.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_growing_4_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_growing_4_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1700,12 +1700,12 @@
 </DeployFile>
 <DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_growing_5_hh.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_growing_5_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_growing_5_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1747,12 +1747,12 @@
 </DeployFile>
 <DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_growing_6_hh.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_growing_6_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_growing_6_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1794,12 +1794,12 @@
 </DeployFile>
 <DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_growing_7_hh.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_growing_7_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_growing_7_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1841,12 +1841,12 @@
 </DeployFile>
 <DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_spawn_N_1_hh.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_spawn_N_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_spawn_N_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1888,12 +1888,12 @@
 </DeployFile>
 <DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_spawn_N_2_hh.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_spawn_N_2_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_spawn_N_2_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1935,12 +1935,12 @@
 </DeployFile>
 <DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_spawn_N_3_hh.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_spawn_N_3_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteDir>assets\map_objects\observer\sprite_sheet_frames</RemoteDir>
   <RemoteName>observer_spawn_N_3_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1982,12 +1982,12 @@
 </DeployFile>
 <DeployFile LocalName="data\map_objects\penguin\penguin1.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/map_objects/penguin/</RemoteDir>
+  <RemoteDir>assets\map_objects\penguin</RemoteDir>
   <RemoteName>penguin1.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/map_objects/penguin/</RemoteDir>
+  <RemoteDir>assets\map_objects\penguin</RemoteDir>
   <RemoteName>penguin1.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2029,12 +2029,12 @@
 </DeployFile>
 <DeployFile LocalName="data\map_objects\trees\kambi_birch_01_mature_autumn_thc.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/map_objects/trees/</RemoteDir>
+  <RemoteDir>assets\map_objects\trees</RemoteDir>
   <RemoteName>kambi_birch_01_mature_autumn_thc.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/map_objects/trees/</RemoteDir>
+  <RemoteDir>assets\map_objects\trees</RemoteDir>
   <RemoteName>kambi_birch_01_mature_autumn_thc.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2076,12 +2076,12 @@
 </DeployFile>
 <DeployFile LocalName="data\map_objects\trees\kambi_birch_01_mature_winter_thc.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/map_objects/trees/</RemoteDir>
+  <RemoteDir>assets\map_objects\trees</RemoteDir>
   <RemoteName>kambi_birch_01_mature_winter_thc.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/map_objects/trees/</RemoteDir>
+  <RemoteDir>assets\map_objects\trees</RemoteDir>
   <RemoteName>kambi_birch_01_mature_winter_thc.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>

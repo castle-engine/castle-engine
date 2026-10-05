@@ -243,12 +243,12 @@
 -->
 <DeployFile LocalName="data\AUTHORS.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>AUTHORS.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>AUTHORS.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -290,12 +290,12 @@
 </DeployFile>
 <DeployFile LocalName="data\CastleSettings.xml" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -337,12 +337,12 @@
 </DeployFile>
 <DeployFile LocalName="data\README.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -384,12 +384,12 @@
 </DeployFile>
 <DeployFile LocalName="data\background\background_smaller.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/background/</RemoteDir>
+  <RemoteDir>assets\background</RemoteDir>
   <RemoteName>background_smaller.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/background/</RemoteDir>
+  <RemoteDir>assets\background</RemoteDir>
   <RemoteName>background_smaller.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -431,12 +431,12 @@
 </DeployFile>
 <DeployFile LocalName="data\background\trees_smaller.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/background/</RemoteDir>
+  <RemoteDir>assets\background</RemoteDir>
   <RemoteName>trees_smaller.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/background/</RemoteDir>
+  <RemoteDir>assets\background</RemoteDir>
   <RemoteName>trees_smaller.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -478,12 +478,12 @@
 </DeployFile>
 <DeployFile LocalName="data\clouds\clouds.atlas" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/clouds/</RemoteDir>
+  <RemoteDir>assets\clouds</RemoteDir>
   <RemoteName>clouds.atlas</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/clouds/</RemoteDir>
+  <RemoteDir>assets\clouds</RemoteDir>
   <RemoteName>clouds.atlas</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -525,12 +525,12 @@
 </DeployFile>
 <DeployFile LocalName="data\clouds\clouds.json" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/clouds/</RemoteDir>
+  <RemoteDir>assets\clouds</RemoteDir>
   <RemoteName>clouds.json</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/clouds/</RemoteDir>
+  <RemoteDir>assets\clouds</RemoteDir>
   <RemoteName>clouds.json</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -572,12 +572,12 @@
 </DeployFile>
 <DeployFile LocalName="data\clouds\clouds.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/clouds/</RemoteDir>
+  <RemoteDir>assets\clouds</RemoteDir>
   <RemoteName>clouds.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/clouds/</RemoteDir>
+  <RemoteDir>assets\clouds</RemoteDir>
   <RemoteName>clouds.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -619,12 +619,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dragon\dragon.atlas" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dragon/</RemoteDir>
+  <RemoteDir>assets\dragon</RemoteDir>
   <RemoteName>dragon.atlas</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dragon/</RemoteDir>
+  <RemoteDir>assets\dragon</RemoteDir>
   <RemoteName>dragon.atlas</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -666,12 +666,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dragon\dragon.json" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dragon/</RemoteDir>
+  <RemoteDir>assets\dragon</RemoteDir>
   <RemoteName>dragon.json</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dragon/</RemoteDir>
+  <RemoteDir>assets\dragon</RemoteDir>
   <RemoteName>dragon.json</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -713,12 +713,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dragon\dragon.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dragon/</RemoteDir>
+  <RemoteDir>assets\dragon</RemoteDir>
   <RemoteName>dragon.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dragon/</RemoteDir>
+  <RemoteDir>assets\dragon</RemoteDir>
   <RemoteName>dragon.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -760,12 +760,12 @@
 </DeployFile>
 <DeployFile LocalName="data\dragon\dragon2.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/dragon/</RemoteDir>
+  <RemoteDir>assets\dragon</RemoteDir>
   <RemoteName>dragon2.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/dragon/</RemoteDir>
+  <RemoteDir>assets\dragon</RemoteDir>
   <RemoteName>dragon2.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -807,12 +807,12 @@
 </DeployFile>
 <DeployFile LocalName="data\gameviewmenu.castle-user-interface" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewmenu.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewmenu.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -854,12 +854,12 @@
 </DeployFile>
 <DeployFile LocalName="data\gameviewplay.castle-user-interface" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewplay.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewplay.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -901,12 +901,12 @@
 </DeployFile>
 <DeployFile LocalName="data\menu-background.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>menu-background.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>menu-background.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -948,12 +948,12 @@
 </DeployFile>
 <DeployFile LocalName="data\trees\tree1.atlas" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/trees/</RemoteDir>
+  <RemoteDir>assets\trees</RemoteDir>
   <RemoteName>tree1.atlas</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/trees/</RemoteDir>
+  <RemoteDir>assets\trees</RemoteDir>
   <RemoteName>tree1.atlas</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -995,12 +995,12 @@
 </DeployFile>
 <DeployFile LocalName="data\trees\tree1.json" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/trees/</RemoteDir>
+  <RemoteDir>assets\trees</RemoteDir>
   <RemoteName>tree1.json</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/trees/</RemoteDir>
+  <RemoteDir>assets\trees</RemoteDir>
   <RemoteName>tree1.json</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1042,12 +1042,12 @@
 </DeployFile>
 <DeployFile LocalName="data\trees\tree1.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/trees/</RemoteDir>
+  <RemoteDir>assets\trees</RemoteDir>
   <RemoteName>tree1.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/trees/</RemoteDir>
+  <RemoteDir>assets\trees</RemoteDir>
   <RemoteName>tree1.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1089,12 +1089,12 @@
 </DeployFile>
 <DeployFile LocalName="data\trees\tree2.atlas" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/trees/</RemoteDir>
+  <RemoteDir>assets\trees</RemoteDir>
   <RemoteName>tree2.atlas</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/trees/</RemoteDir>
+  <RemoteDir>assets\trees</RemoteDir>
   <RemoteName>tree2.atlas</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1136,12 +1136,12 @@
 </DeployFile>
 <DeployFile LocalName="data\trees\tree2.json" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/trees/</RemoteDir>
+  <RemoteDir>assets\trees</RemoteDir>
   <RemoteName>tree2.json</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/trees/</RemoteDir>
+  <RemoteDir>assets\trees</RemoteDir>
   <RemoteName>tree2.json</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1183,12 +1183,12 @@
 </DeployFile>
 <DeployFile LocalName="data\trees\tree2.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/trees/</RemoteDir>
+  <RemoteDir>assets\trees</RemoteDir>
   <RemoteName>tree2.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/trees/</RemoteDir>
+  <RemoteDir>assets\trees</RemoteDir>
   <RemoteName>tree2.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>

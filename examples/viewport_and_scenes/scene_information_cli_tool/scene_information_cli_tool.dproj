@@ -243,12 +243,12 @@
 -->
 <DeployFile LocalName="data\teapot.x3dv" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>teapot.x3dv</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>teapot.x3dv</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>

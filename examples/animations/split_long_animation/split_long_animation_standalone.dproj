@@ -243,12 +243,12 @@
 -->
 <DeployFile LocalName="data\CastleSettings.xml" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -290,12 +290,12 @@
 </DeployFile>
 <DeployFile LocalName="data\README.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -337,12 +337,12 @@
 </DeployFile>
 <DeployFile LocalName="data\gameviewmain.castle-user-interface" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewmain.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewmain.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -384,12 +384,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sketchfab\halloween-pumpkin\license.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sketchfab/halloween-pumpkin/</RemoteDir>
+  <RemoteDir>assets\sketchfab\halloween-pumpkin</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sketchfab/halloween-pumpkin/</RemoteDir>
+  <RemoteDir>assets\sketchfab\halloween-pumpkin</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -431,12 +431,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sketchfab\halloween-pumpkin\scene.bin" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sketchfab/halloween-pumpkin/</RemoteDir>
+  <RemoteDir>assets\sketchfab\halloween-pumpkin</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sketchfab/halloween-pumpkin/</RemoteDir>
+  <RemoteDir>assets\sketchfab\halloween-pumpkin</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -478,12 +478,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sketchfab\halloween-pumpkin\scene.gltf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sketchfab/halloween-pumpkin/</RemoteDir>
+  <RemoteDir>assets\sketchfab\halloween-pumpkin</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sketchfab/halloween-pumpkin/</RemoteDir>
+  <RemoteDir>assets\sketchfab\halloween-pumpkin</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -525,12 +525,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sketchfab\halloween-pumpkin\textures\09_-_Default_baseColor.jpeg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteDir>assets\sketchfab\halloween-pumpkin\textures</RemoteDir>
   <RemoteName>09_-_Default_baseColor.jpeg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteDir>assets\sketchfab\halloween-pumpkin\textures</RemoteDir>
   <RemoteName>09_-_Default_baseColor.jpeg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -572,12 +572,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sketchfab\halloween-pumpkin\textures\09_-_Default_emissive.jpeg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteDir>assets\sketchfab\halloween-pumpkin\textures</RemoteDir>
   <RemoteName>09_-_Default_emissive.jpeg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteDir>assets\sketchfab\halloween-pumpkin\textures</RemoteDir>
   <RemoteName>09_-_Default_emissive.jpeg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -619,12 +619,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sketchfab\halloween-pumpkin\textures\09_-_Default_metallicRoughness.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteDir>assets\sketchfab\halloween-pumpkin\textures</RemoteDir>
   <RemoteName>09_-_Default_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteDir>assets\sketchfab\halloween-pumpkin\textures</RemoteDir>
   <RemoteName>09_-_Default_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -666,12 +666,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sketchfab\halloween-pumpkin\textures\09_-_Default_normal.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteDir>assets\sketchfab\halloween-pumpkin\textures</RemoteDir>
   <RemoteName>09_-_Default_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteDir>assets\sketchfab\halloween-pumpkin\textures</RemoteDir>
   <RemoteName>09_-_Default_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -713,12 +713,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sketchfab\halloween-pumpkin\textures\material_1_baseColor.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteDir>assets\sketchfab\halloween-pumpkin\textures</RemoteDir>
   <RemoteName>material_1_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteDir>assets\sketchfab\halloween-pumpkin\textures</RemoteDir>
   <RemoteName>material_1_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -760,12 +760,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sketchfab\halloween-pumpkin\textures\material_1_metallicRoughness.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteDir>assets\sketchfab\halloween-pumpkin\textures</RemoteDir>
   <RemoteName>material_1_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteDir>assets\sketchfab\halloween-pumpkin\textures</RemoteDir>
   <RemoteName>material_1_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -807,12 +807,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sketchfab\halloween-pumpkin\textures\material_1_normal.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteDir>assets\sketchfab\halloween-pumpkin\textures</RemoteDir>
   <RemoteName>material_1_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteDir>assets\sketchfab\halloween-pumpkin\textures</RemoteDir>
   <RemoteName>material_1_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -854,12 +854,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sketchfab\halloween-pumpkin\textures\material_2_baseColor.jpeg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteDir>assets\sketchfab\halloween-pumpkin\textures</RemoteDir>
   <RemoteName>material_2_baseColor.jpeg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteDir>assets\sketchfab\halloween-pumpkin\textures</RemoteDir>
   <RemoteName>material_2_baseColor.jpeg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -901,12 +901,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sketchfab\halloween-pumpkin\textures\material_3_emissive.jpeg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteDir>assets\sketchfab\halloween-pumpkin\textures</RemoteDir>
   <RemoteName>material_3_emissive.jpeg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteDir>assets\sketchfab\halloween-pumpkin\textures</RemoteDir>
   <RemoteName>material_3_emissive.jpeg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -948,12 +948,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sketchfab\halloween-pumpkin\textures\material_baseColor.jpeg" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteDir>assets\sketchfab\halloween-pumpkin\textures</RemoteDir>
   <RemoteName>material_baseColor.jpeg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteDir>assets\sketchfab\halloween-pumpkin\textures</RemoteDir>
   <RemoteName>material_baseColor.jpeg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -995,12 +995,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sketchfab\halloween-pumpkin\textures\material_metallicRoughness.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteDir>assets\sketchfab\halloween-pumpkin\textures</RemoteDir>
   <RemoteName>material_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteDir>assets\sketchfab\halloween-pumpkin\textures</RemoteDir>
   <RemoteName>material_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -1042,12 +1042,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sketchfab\halloween-pumpkin\textures\material_normal.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteDir>assets\sketchfab\halloween-pumpkin\textures</RemoteDir>
   <RemoteName>material_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteDir>assets\sketchfab\halloween-pumpkin\textures</RemoteDir>
   <RemoteName>material_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>

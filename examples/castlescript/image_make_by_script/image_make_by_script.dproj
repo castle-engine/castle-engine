@@ -242,12 +242,12 @@
 -->
 <DeployFile LocalName="data\mkimage_gradient.castlescript" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>mkimage_gradient.castlescript</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>mkimage_gradient.castlescript</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -289,12 +289,12 @@
 </DeployFile>
 <DeployFile LocalName="data\mkimage_sobel_edge.castlescript" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>mkimage_sobel_edge.castlescript</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>mkimage_sobel_edge.castlescript</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -336,12 +336,12 @@
 </DeployFile>
 <DeployFile LocalName="data\test_texture.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>test_texture.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>test_texture.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>

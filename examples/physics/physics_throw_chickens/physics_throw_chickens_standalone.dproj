@@ -243,12 +243,12 @@
 -->
 <DeployFile LocalName="data\CastleSettings.xml" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -290,12 +290,12 @@
 </DeployFile>
 <DeployFile LocalName="data\README.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -337,12 +337,12 @@
 </DeployFile>
 <DeployFile LocalName="data\gameviewmain.castle-user-interface" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewmain.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewmain.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -384,12 +384,12 @@
 </DeployFile>
 <DeployFile LocalName="data\quaternius\AUTHORS.md" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/quaternius/</RemoteDir>
+  <RemoteDir>assets\quaternius</RemoteDir>
   <RemoteName>AUTHORS.md</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/quaternius/</RemoteDir>
+  <RemoteDir>assets\quaternius</RemoteDir>
   <RemoteName>AUTHORS.md</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -431,12 +431,12 @@
 </DeployFile>
 <DeployFile LocalName="data\quaternius\Bull.gltf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/quaternius/</RemoteDir>
+  <RemoteDir>assets\quaternius</RemoteDir>
   <RemoteName>Bull.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/quaternius/</RemoteDir>
+  <RemoteDir>assets\quaternius</RemoteDir>
   <RemoteName>Bull.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -478,12 +478,12 @@
 </DeployFile>
 <DeployFile LocalName="data\quaternius\T_UnevenBrick_BaseColor.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/quaternius/</RemoteDir>
+  <RemoteDir>assets\quaternius</RemoteDir>
   <RemoteName>T_UnevenBrick_BaseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/quaternius/</RemoteDir>
+  <RemoteDir>assets\quaternius</RemoteDir>
   <RemoteName>T_UnevenBrick_BaseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -525,12 +525,12 @@
 </DeployFile>
 <DeployFile LocalName="data\quaternius\T_UnevenBrick_Normal.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/quaternius/</RemoteDir>
+  <RemoteDir>assets\quaternius</RemoteDir>
   <RemoteName>T_UnevenBrick_Normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/quaternius/</RemoteDir>
+  <RemoteDir>assets\quaternius</RemoteDir>
   <RemoteName>T_UnevenBrick_Normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -572,12 +572,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sketchfab\chicken-rig\chicken_fixed_alpha.bin" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sketchfab/chicken-rig/</RemoteDir>
+  <RemoteDir>assets\sketchfab\chicken-rig</RemoteDir>
   <RemoteName>chicken_fixed_alpha.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sketchfab/chicken-rig/</RemoteDir>
+  <RemoteDir>assets\sketchfab\chicken-rig</RemoteDir>
   <RemoteName>chicken_fixed_alpha.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -619,12 +619,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sketchfab\chicken-rig\chicken_fixed_alpha.gltf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sketchfab/chicken-rig/</RemoteDir>
+  <RemoteDir>assets\sketchfab\chicken-rig</RemoteDir>
   <RemoteName>chicken_fixed_alpha.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sketchfab/chicken-rig/</RemoteDir>
+  <RemoteDir>assets\sketchfab\chicken-rig</RemoteDir>
   <RemoteName>chicken_fixed_alpha.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -666,12 +666,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sketchfab\chicken-rig\license.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sketchfab/chicken-rig/</RemoteDir>
+  <RemoteDir>assets\sketchfab\chicken-rig</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sketchfab/chicken-rig/</RemoteDir>
+  <RemoteDir>assets\sketchfab\chicken-rig</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -713,12 +713,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sketchfab\chicken-rig\scene.bin" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sketchfab/chicken-rig/</RemoteDir>
+  <RemoteDir>assets\sketchfab\chicken-rig</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sketchfab/chicken-rig/</RemoteDir>
+  <RemoteDir>assets\sketchfab\chicken-rig</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -760,12 +760,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sketchfab\chicken-rig\scene.gltf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sketchfab/chicken-rig/</RemoteDir>
+  <RemoteDir>assets\sketchfab\chicken-rig</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sketchfab/chicken-rig/</RemoteDir>
+  <RemoteDir>assets\sketchfab\chicken-rig</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -807,12 +807,12 @@
 </DeployFile>
 <DeployFile LocalName="data\sketchfab\chicken-rig\textures\Main_baseColor.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/sketchfab/chicken-rig/textures/</RemoteDir>
+  <RemoteDir>assets\sketchfab\chicken-rig\textures</RemoteDir>
   <RemoteName>Main_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/sketchfab/chicken-rig/textures/</RemoteDir>
+  <RemoteDir>assets\sketchfab\chicken-rig\textures</RemoteDir>
   <RemoteName>Main_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>

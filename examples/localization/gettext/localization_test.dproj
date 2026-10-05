@@ -243,12 +243,12 @@
 -->
 <DeployFile LocalName="data\CastleSettings.xml" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -290,12 +290,12 @@
 </DeployFile>
 <DeployFile LocalName="data\gameviewmain.castle-user-interface" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewmain.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewmain.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -337,12 +337,12 @@
 </DeployFile>
 <DeployFile LocalName="data\locale\game.de.mo" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/locale/</RemoteDir>
+  <RemoteDir>assets\locale</RemoteDir>
   <RemoteName>game.de.mo</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/locale/</RemoteDir>
+  <RemoteDir>assets\locale</RemoteDir>
   <RemoteName>game.de.mo</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -384,12 +384,12 @@
 </DeployFile>
 <DeployFile LocalName="data\locale\game.en.mo" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/locale/</RemoteDir>
+  <RemoteDir>assets\locale</RemoteDir>
   <RemoteName>game.en.mo</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/locale/</RemoteDir>
+  <RemoteDir>assets\locale</RemoteDir>
   <RemoteName>game.en.mo</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -431,12 +431,12 @@
 </DeployFile>
 <DeployFile LocalName="data\locale\game.pl.mo" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/locale/</RemoteDir>
+  <RemoteDir>assets\locale</RemoteDir>
   <RemoteName>game.pl.mo</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/locale/</RemoteDir>
+  <RemoteDir>assets\locale</RemoteDir>
   <RemoteName>game.pl.mo</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -478,12 +478,12 @@
 </DeployFile>
 <DeployFile LocalName="data\locale\game.ru.mo" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/locale/</RemoteDir>
+  <RemoteDir>assets\locale</RemoteDir>
   <RemoteName>game.ru.mo</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/locale/</RemoteDir>
+  <RemoteDir>assets\locale</RemoteDir>
   <RemoteName>game.ru.mo</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -525,12 +525,12 @@
 </DeployFile>
 <DeployFile LocalName="data\locale\game.ua.mo" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/locale/</RemoteDir>
+  <RemoteDir>assets\locale</RemoteDir>
   <RemoteName>game.ua.mo</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/locale/</RemoteDir>
+  <RemoteDir>assets\locale</RemoteDir>
   <RemoteName>game.ua.mo</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -572,12 +572,12 @@
 </DeployFile>
 <DeployFile LocalName="data\locale\user_interface.de.mo" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/locale/</RemoteDir>
+  <RemoteDir>assets\locale</RemoteDir>
   <RemoteName>user_interface.de.mo</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/locale/</RemoteDir>
+  <RemoteDir>assets\locale</RemoteDir>
   <RemoteName>user_interface.de.mo</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -619,12 +619,12 @@
 </DeployFile>
 <DeployFile LocalName="data\locale\user_interface.en.mo" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/locale/</RemoteDir>
+  <RemoteDir>assets\locale</RemoteDir>
   <RemoteName>user_interface.en.mo</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/locale/</RemoteDir>
+  <RemoteDir>assets\locale</RemoteDir>
   <RemoteName>user_interface.en.mo</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -666,12 +666,12 @@
 </DeployFile>
 <DeployFile LocalName="data\locale\user_interface.pl.mo" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/locale/</RemoteDir>
+  <RemoteDir>assets\locale</RemoteDir>
   <RemoteName>user_interface.pl.mo</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/locale/</RemoteDir>
+  <RemoteDir>assets\locale</RemoteDir>
   <RemoteName>user_interface.pl.mo</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -713,12 +713,12 @@
 </DeployFile>
 <DeployFile LocalName="data\locale\user_interface.ru.mo" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/locale/</RemoteDir>
+  <RemoteDir>assets\locale</RemoteDir>
   <RemoteName>user_interface.ru.mo</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/locale/</RemoteDir>
+  <RemoteDir>assets\locale</RemoteDir>
   <RemoteName>user_interface.ru.mo</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -760,12 +760,12 @@
 </DeployFile>
 <DeployFile LocalName="data\locale\user_interface.ua.mo" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/locale/</RemoteDir>
+  <RemoteDir>assets\locale</RemoteDir>
   <RemoteName>user_interface.ua.mo</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/locale/</RemoteDir>
+  <RemoteDir>assets\locale</RemoteDir>
   <RemoteName>user_interface.ua.mo</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>

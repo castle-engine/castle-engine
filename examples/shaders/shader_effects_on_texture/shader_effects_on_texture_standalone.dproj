@@ -243,12 +243,12 @@
 -->
 <DeployFile LocalName="data\CastleSettings.xml" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -290,12 +290,12 @@
 </DeployFile>
 <DeployFile LocalName="data\README.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -337,12 +337,12 @@
 </DeployFile>
 <DeployFile LocalName="data\gameviewmain.castle-user-interface" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewmain.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>gameviewmain.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -384,12 +384,12 @@
 </DeployFile>
 <DeployFile LocalName="data\shaders\texture_effect_invert.fs" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/shaders/</RemoteDir>
+  <RemoteDir>assets\shaders</RemoteDir>
   <RemoteName>texture_effect_invert.fs</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/shaders/</RemoteDir>
+  <RemoteDir>assets\shaders</RemoteDir>
   <RemoteName>texture_effect_invert.fs</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -431,12 +431,12 @@
 </DeployFile>
 <DeployFile LocalName="data\shaders\texture_effect_sepia.fs" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/shaders/</RemoteDir>
+  <RemoteDir>assets\shaders</RemoteDir>
   <RemoteName>texture_effect_sepia.fs</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/shaders/</RemoteDir>
+  <RemoteDir>assets\shaders</RemoteDir>
   <RemoteName>texture_effect_sepia.fs</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -478,12 +478,12 @@
 </DeployFile>
 <DeployFile LocalName="data\textured_model\test_texture.png" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/textured_model/</RemoteDir>
+  <RemoteDir>assets\textured_model</RemoteDir>
   <RemoteName>test_texture.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/textured_model/</RemoteDir>
+  <RemoteDir>assets\textured_model</RemoteDir>
   <RemoteName>test_texture.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -525,12 +525,12 @@
 </DeployFile>
 <DeployFile LocalName="data\textured_model\textured_sample_thing.bin" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/textured_model/</RemoteDir>
+  <RemoteDir>assets\textured_model</RemoteDir>
   <RemoteName>textured_sample_thing.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/textured_model/</RemoteDir>
+  <RemoteDir>assets\textured_model</RemoteDir>
   <RemoteName>textured_sample_thing.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -572,12 +572,12 @@
 </DeployFile>
 <DeployFile LocalName="data\textured_model\textured_sample_thing.gltf" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/textured_model/</RemoteDir>
+  <RemoteDir>assets\textured_model</RemoteDir>
   <RemoteName>textured_sample_thing.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/textured_model/</RemoteDir>
+  <RemoteDir>assets\textured_model</RemoteDir>
   <RemoteName>textured_sample_thing.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>

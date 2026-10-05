@@ -243,12 +243,12 @@
 -->
 <DeployFile LocalName="data\packed_game_data.zip" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>packed_game_data.zip</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
+  <RemoteDir>assets</RemoteDir>
   <RemoteName>packed_game_data.zip</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
