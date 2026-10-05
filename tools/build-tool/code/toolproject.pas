@@ -2409,15 +2409,44 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
           begin
             { calculate RemoteDir and RemoteDirBase }
             if ArrayContainsString(PlatformName, ['Android', 'Android64']) then
-              { We need assets/ prefix, since Delphi puts this in any
+            begin
+              { We need assets prefix, since Delphi puts this in any
                 chosen subdirectory of Android project, and we specifically
-                want to later access it using CastleAndroidInternalAssetStream . }
-              RemoteDirBase := './assets'
-            else
+                want to later access it using CastleAndroidInternalAssetStream .
+
+                On Android, RemoteDir must be like "assets\subdir":
+                using \ as path delimiter, without the leading "./"
+                and without the trailing path delimiter.
+
+                Reason: Delphi generates assets/deployinfo/deployedassets.txt
+                in the APK, with lines ".\" + RemoteDir + "\" + RemoteName.
+                Delphi's System.StartUpCopy (used by default in Delphi FMX
+                applications) reads this file at application start,
+                and (after replacing "\" with "/" and removing "./")
+                opens each listed asset. So RemoteDir like
+                "./assets/subdir/" results in line
+                ".\./assets/subdir/\file.txt", and System.StartUpCopy tries to
+                open asset "subdir//file.txt", which fails
+                with EStartUpCopyException ("Cannot deploy, ... file not
+                found in assets") raised from unit initialization,
+                and the application hangs at start.
+
+                Note that we don't need, and actually don't want these copies.
+                What System.StartUpCopy is doing is wasteful and CGE doesn't need it.
+                But we cooperate with it, since Delphi uses it by default in
+                FMX applications. }
+              RemoteDirBase := 'assets';
+              RemoteDir := RemoteDirBase + '\' +
+                SReplaceChars(ExtractFilePath(FileRelativeName), '/', '\');
+              RemoteDir := SuffixRemoveChars(RemoteDir, ['\', '/']);
+            end else
+            begin
               RemoteDirBase := './' + TCastleManifest.DataName;
-            { FileRelativeName uses / as path delimiter (see above),
-              which is also what we want in RemoteDir. }
-            RemoteDir := RemoteDirBase + '/' + ExtractFilePath(FileRelativeName);
+              { FileRelativeName uses / as path delimiter (see above),
+                which is also what we want in RemoteDir. }
+              RemoteDir := RemoteDirBase + '/' +
+                ExtractFilePath(FileRelativeName);
+            end;
 
             RemoteName := ExtractFileName(FileRelativeName);
 
