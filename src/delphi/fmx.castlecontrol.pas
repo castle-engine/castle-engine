@@ -489,7 +489,18 @@ end;
 
 class procedure TCastleControl.ApplicationRun;
 begin
-  {$ifdef USE_TIMER}
+  { We only use Application.Run if the result can reliably execute our
+    "update" messages.
+
+    - This is the case when USE_TIMER (right now with Delphi/Linux).
+      See src/window/castlewindow_form.inc comments.
+
+    - On Delphi/Android and Delphi/iOS we also use Application.Run,
+      even though they have no USE_TIMER.
+      See TCastleWindow.OpenAndRun in src/window/castlewindow_form.inc
+      for details what Application.Run does.
+  }
+  {$if defined(USE_TIMER) or defined(ANDROID) or defined(IOS)}
   Application.Run;
   {$else}
   Application.RealCreateForms;
