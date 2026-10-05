@@ -101,7 +101,7 @@ type
 implementation
 
 uses FMX.Presentation.Factory, Types, FMX.Graphics,
-  CastleLog, CastleUtils, CastleInternalDelphiUtils;
+  CastleLog, CastleUtils, CastleInternalDelphiUtils, CastleRenderContext;
 
 {$ifdef MSWINDOWS}
 

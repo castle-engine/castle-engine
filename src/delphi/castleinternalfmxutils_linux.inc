@@ -26,14 +26,14 @@ strict private
   DrawingAreaParent: Pointer;
 {$endif read_TFmxOpenGLUtility_interface}
 
-{$ifdef read_implementation}
-
-uses
-  SysUtils,
+{$ifdef read_implementation_uses}
   { Needed for TCustomForm used by XWindowHandle }
   FMX.Forms,
   CTypes,
-  CastleInternalContextEgl, CastleLog, CastleUtils;
+  CastleInternalContextEgl, CastleLog, CastleUtils,
+{$endif read_implementation_uses}
+
+{$ifdef read_implementation}
 
 {$I castleinternalfmxutils_gtk3.inc}
 

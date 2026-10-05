@@ -65,17 +65,9 @@ type
     a separate class that is just created and used by both
     FMX TOpenGLControl and FMX TCastleControl. }
   TFmxOpenGLUtility = class
-
   {$define read_TFmxOpenGLUtility_interface}
-    {$if defined(MSWINDOWS)}
-      {$I castleinternalfmxutils_windows.inc}
-    {$elseif defined(LINUX)}
-      {$I castleinternalfmxutils_linux.inc}
-    {$else}
-      {$I castleinternalfmxutils_other_os.inc}
-    {$endif}
+  {$I castleinternalfmxutils_utility.inc}
   {$undef read_TFmxOpenGLUtility_interface}
-
   public
     { Set before calling HandleNeeded.
       Cannot change during lifetime of this instance, for now. }
@@ -187,8 +179,10 @@ const
 type
   { Utility to help with rendering OpenGL in FMX controls. }
   TFmxOpenGLRenderingUtility = record
+  {$ifdef CASTLE_MOBILE_FMX}
   strict private
     SavedViewport: array [0..3] of TGLint;
+  {$endif CASTLE_MOBILE_FMX}
   public
     { Perform necessary preparations before direct OpenGL(ES) rendering
       that must cooperate with FMX's rendering state. }
@@ -207,18 +201,16 @@ uses SysUtils,
   {$ifdef CASTLE_MOBILE_FMX}
   FMX.Canvas.GPU, FMX.Types3D,
   {$endif CASTLE_MOBILE_FMX}
+  {$define read_implementation_uses}
+    {$I castleinternalfmxutils_utility.inc}
+  {$undef read_implementation_uses}
   CastleInternalGLUtils;
 
 { TFmxOpenGLUtility ---------------------------------------------------------- }
 
 {$define read_implementation}
-{$if defined(MSWINDOWS)}
-  {$I castleinternalfmxutils_windows.inc}
-{$elseif defined(LINUX)}
-  {$I castleinternalfmxutils_linux.inc}
-{$else}
-  {$I castleinternalfmxutils_other_os.inc}
-{$endif}
+  {$I castleinternalfmxutils_utility.inc}
+{$undef read_implementation}
 
 { TFmxOpenGLRenderingUtility ------------------------------------------------- }
 

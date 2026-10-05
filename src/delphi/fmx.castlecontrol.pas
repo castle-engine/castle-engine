@@ -403,6 +403,7 @@ end;
 procedure TCastleControl.Paint;
 var
   R: TRectF;
+  RenderingUtility: TFmxOpenGLRenderingUtility;
 begin
   { See our constructor comments:
     looks like native drawing at design-time in FMX is just not possible reliably. }
