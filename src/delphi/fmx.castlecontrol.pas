@@ -441,7 +441,13 @@ begin
     FGLUtility.Update;
 
     // inherited not needed, and possibly causes something unnecessary
-    FContainer.DoRender;
+
+    RenderingUtility.BeforeDirectRendering(Canvas, RenderContext);
+    try
+      FContainer.DoRender;
+    finally
+      RenderingUtility.AfterDirectRendering(Canvas, RenderContext);
+    end;
   end;
 end;
 

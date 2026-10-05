@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2025 Michalis Kamburelis.
+  Copyright 2022-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -19,12 +19,21 @@ unit CastleInternalFmxUtils;
 
 {$I castleconf.inc}
 
+{ Platforms using TGLContextExisting with FMX (FireMonkey) for
+  the rendering context.
+  In other words, just relying that FMX will create context for us. }
+{$if defined(DELPHI) and (defined(ANDROID) or defined(IOS))}
+  {$define CASTLE_MOBILE_FMX}
+{$endif}
+
 interface
 
-uses FMX.Controls, FMX.Controls.Presentation, FMX.Types, UITypes,
+uses FMX.Controls, FMX.Controls.Presentation, FMX.Types, FMX.Graphics,
+  UITypes,
   {$ifdef MSWINDOWS} FMX.Presentation.Win, {$endif}
   {$ifdef LINUX} FMX.Platform.Linux, {$endif}
-  CastleInternalContextBase, CastleVectors;
+  {$ifdef CASTLE_MOBILE_FMX} CastleGLES, {$endif}
+  CastleInternalContextBase, CastleVectors, CastleRenderContext;
 
 type
   THandleEvent = procedure of object;
@@ -45,7 +54,7 @@ type
       And insert it into FMX form, keeping the existing FMX drawing area too.
       And then use TGLContextEgl to connect to our own Gtk widget.
 
-    - On other controls: just rely on FMX to create / release the OpenGL context.
+    - On other platforms: just rely on FMX to create / release the OpenGL context.
       This makes sense on Delphi/Android and Delphi/iOS.
 
     Note: We could not make TCastleControl descend from TOpenGLControl on FMX
@@ -175,7 +184,32 @@ const
       TControlType.Styled
     {$endif};
 
+type
+  { Utility to help with rendering OpenGL in FMX controls. }
+  TFmxOpenGLRenderingUtility = record
+  strict private
+    SavedViewport: array [0..3] of TGLint;
+  public
+    { Perform necessary preparations before direct OpenGL(ES) rendering
+      that must cooperate with FMX's rendering state. }
+    procedure BeforeDirectRendering(const Canvas: TCanvas;
+      const RenderContext: TRenderContext);
+
+    { Perform necessary cleanup after direct OpenGL(ES) rendering
+      that must cooperate with FMX's rendering state. }
+    procedure AfterDirectRendering(const Canvas: TCanvas;
+      const RenderContext: TRenderContext);
+  end;
+
 implementation
+
+uses SysUtils,
+  {$ifdef CASTLE_MOBILE_FMX}
+  FMX.Canvas.GPU, FMX.Types3D,
+  {$endif CASTLE_MOBILE_FMX}
+  CastleInternalGLUtils;
+
+{ TFmxOpenGLUtility ---------------------------------------------------------- }
 
 {$define read_implementation}
 {$if defined(MSWINDOWS)}
@@ -185,5 +219,118 @@ implementation
 {$else}
   {$I castleinternalfmxutils_other_os.inc}
 {$endif}
+
+{ TFmxOpenGLRenderingUtility ------------------------------------------------- }
+
+procedure TFmxOpenGLRenderingUtility.BeforeDirectRendering(const Canvas: TCanvas;
+  const RenderContext: TRenderContext);
+begin
+  {$ifdef CASTLE_MOBILE_FMX}
+  { We need TCustomCanvasGpu. Raise (early) if this is not the case.
+    TODO: Confirm: This will likely happen if you try to use CGE with Skia
+    on mobile. }
+  if not (Canvas is TCustomCanvasGpu) then
+    raise Exception.CreateFmt('Canvas class unsupported: %s, we cannot render using Castle Game Engine',
+      [Canvas.ClassName]);
+  {$endif}
+
+  { Flush the FMX canvas BEFORE calling any raw GL.
+    FMX batches draw calls; if we call glDrawArrays while FMX still has
+    pending batched commands the interleaving causes visual corruption.
+    Testcase: run on Android, using Delphi, e.g. platformer (or any other demo)
+    -- without this, it looks like our rendering is ignored. }
+  Canvas.Flush;
+
+  {$ifdef CASTLE_MOBILE_FMX}
+  { Clear scissor, matching RenderContext.
+    TODO: Instead, read current scissor, and make RenderContext aware of it.
+    Note that at end, PopContextStates will restore the previous
+    scissor state, so FMX scissor state is already restored OK. }
+  glDisable(GL_SCISSOR_TEST);
+
+  { Save + restore FMX viewport.
+    FMX sets this once at frame start (TContextAndroid.DoBeginScene,
+    TContextIOS.DoBeginScene) and controls rendering expect it. }
+  glGetIntegerv(GL_VIEWPORT, @SavedViewport[0]);
+
+  RenderContext.SynchronizeState;
+  {$endif}
+end;
+
+procedure TFmxOpenGLRenderingUtility.AfterDirectRendering(const Canvas: TCanvas;
+  const RenderContext: TRenderContext);
+{$ifdef CASTLE_MOBILE_FMX}
+var
+  Ctx: TContext3D;
+{$endif}
+begin
+  {$ifdef CASTLE_MOBILE_FMX}
+  // Restore FMX viewport
+  glViewport(SavedViewport[0], SavedViewport[1], SavedViewport[2], SavedViewport[3]);
+
+  { Clean state, that FMX never touches, just assumes it is clean. }
+
+  { FMX doesn't draw using VBOs, make sure it doesn't access our
+    by accident. }
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+  RenderContext.CurrentVao := nil; // paranoid; this does nothing on OpenGLES
+  RenderContext.CurrentProgram := nil;
+
+  { FMX never sets glStencilMask, but it can do
+    glEnable(GL_STENCIL_TEST), and glClear -> assuming glStencilMask.
+    Hm, although CGE doesn't call glStencilMask now, so it doesn't matter. }
+  glStencilMask($FFFFFFFF);
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, 0); // make sure our texture does not leak
+
+  { Check GL errors after all CGE rendering.
+    Don't limit this to debug-only, as FMX does glGetError always,
+    see TGlesDiagnostic.RaiseIfHasError .
+    So it's better to catch GL errors at the end of CGE rendering,
+    and report them as CGE rendering issues,
+    not let FMX worry about them (and warn/abort depending on
+    OpenGlErrorReporting).
+
+    TODO: CheckGLErrorsAll.
+    Like CheckGLErrors, but calls glGetError repeatedly until all errors are
+    collected, and glGetError reports GL_NO_ERROR.
+    Then we make exception or log, about all collected errors,
+    just like CheckGLErrors.
+  }
+  try
+    CheckGLErrors('after Castle Game Engine rendering (in the middle of FMX rendering)');
+  finally
+    { Make OpenGLES context state correspond to what FMX thinks
+      it should be (TContext3D.CurrentStates).
+
+      We do this by TContext3D.ResetStates + Ctx.PopContextStates.
+      - TContext3D.ResetStates sets TContext3D.CurrentStates
+        "unknown state now"
+      - Ctx.PopContextStates will execute necessary
+        TCustomContextOpenGL.DoSetContextState that make
+        all OpenGLES calls.
+        It also sets proper scissor.
+
+      This way rest of FMX rendering (even if FMX renders more controls
+      right after Castle Game Engine FMX control) will use correct
+      state.
+
+      Note that placement of Ctx.PushContextStates doesn't matter much.
+      We could do it before "try", before all CGE rendering.
+      But actually nothing changes FMX cached state (CurrentStates),
+      so we may as well just do PushContextStates here.
+      We really call PushContextStates only to pair it with PopContextStates.
+    }
+    Ctx := TCustomCanvasGpu(Canvas).Context;
+    Ctx.PushContextStates;
+    TContext3D.ResetStates;
+    Ctx.PopContextStates;
+  end;
+
+  {$endif CASTLE_MOBILE_FMX}
+end;
 
 end.
