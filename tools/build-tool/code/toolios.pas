@@ -412,6 +412,8 @@ var
         PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('GameKit.framework'));
       if Project.IOSServices.HasService('in_app_purchases') then
         PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('StoreKit.framework'));
+      if Project.IOSServices.HasService('local_notifications') then
+        PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('UserNotifications.framework'));
       if Project.IOSServices.HasService('fmod') then
       begin
         PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('libfmod_iphoneos.a'));
