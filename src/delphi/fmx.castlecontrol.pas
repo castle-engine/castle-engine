@@ -48,6 +48,13 @@ unit Fmx.CastleControl;
   {$define USE_TIMER}
 {$endif}
 
+{ On systems where we use existing OpenGL(ES) context provided by FMX,
+  we need to use scissor to limit our rendering (and in particular glClear
+  calls) to our control's area. }
+{$if defined(ANDROID) or defined(IOS)}
+  {$define RENDERING_NEEDS_SCISSOR}
+{$endif}
+
 interface
 
 uses // standard units
@@ -57,7 +64,8 @@ uses // standard units
   FMX.Controls, FMX.Controls.Presentation, FMX.Types, UITypes,
   // cge
   CastleGLVersion, CastleGLUtils, CastleVectors, CastleKeysMouse,
-  CastleInternalContextBase, CastleControlContainer, CastleInternalFmxUtils;
+  CastleInternalContextBase, CastleControlContainer, CastleInternalFmxUtils,
+  CastleRenderContext;
 
 type
   { Control rendering "Castle Game Engine" on FMX form. }
@@ -90,6 +98,9 @@ type
     var
       FContainer: TContainer;
       FGLUtility: TFmxOpenGLUtility;
+      {$ifdef RENDERING_NEEDS_SCISSOR}
+      FScissor: TScissor;
+      {$endif RENDERING_NEEDS_SCISSOR}
 
     function GetCurrentShift: TShiftState;
     procedure SetCurrentShift(const Value: TShiftState);
@@ -190,7 +201,7 @@ procedure Register;
 implementation
 
 uses FMX.Presentation.Factory, Types, FMX.Graphics, FMX.Forms,
-  CastleRenderOptions, CastleApplicationProperties, CastleRenderContext,
+  CastleRenderOptions, CastleApplicationProperties,
   CastleRectangles, CastleUtils, CastleUIControls, CastleInternalDelphiUtils,
   CastleLog;
 
@@ -365,11 +376,18 @@ begin
   }
   if not (csDesigning in ComponentState) then
     ControlType := DefaultControlType;
+
+  {$ifdef RENDERING_NEEDS_SCISSOR}
+  FScissor := TScissor.Create;
+  {$endif}
 end;
 
 destructor TCastleControl.Destroy;
 begin
   FreeAndNil(FGLUtility);
+  {$ifdef RENDERING_NEEDS_SCISSOR}
+  FreeAndNil(FScissor);
+  {$endif}
   inherited;
 end;
 
@@ -445,8 +463,21 @@ begin
 
     RenderingUtility.BeforeDirectRendering(Canvas, RenderContext);
     try
+      {$ifdef RENDERING_NEEDS_SCISSOR}
+      R := BoundsRect;
+      FScissor.Rect := Rectangle(
+        Round(R.Left * FGLUtility.Scale),
+        // FMX Y coordinate system is top-down, CGE is bottom-up.
+        Round((Screen.DesktopRect.Height - R.Bottom) * FGLUtility.Scale),
+        Round(R.Width * FGLUtility.Scale),
+        Round(R.Height * FGLUtility.Scale));
+      FScissor.Enabled := true;
+      {$endif}
       FContainer.DoRender;
     finally
+      {$ifdef RENDERING_NEEDS_SCISSOR}
+      FScissor.Enabled := false;
+      {$endif}
       RenderingUtility.AfterDirectRendering(Canvas, RenderContext);
     end;
   end;
