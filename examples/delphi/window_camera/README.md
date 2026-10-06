@@ -19,7 +19,9 @@ This is only useful with Delphi, it relies on FMX and Delphi-specific components
 
 Using [Castle Game Engine](https://castle-engine.io/).
 
-The user interface is designed for the portrait orientation. It is best to lock the orientation: in Delphi _"Project -> Options -> Application -> Orientation"_ enable _"Custom orientation"_ and select only _"Portrait"_.
+The user interface is designed for the portrait orientation, and the application locks the screen orientation to portrait by code (see `FormFactor.Orientations` in `code/gameinitialize.pas`).
+
+Note: Do not use Delphi _"Project -> Options -> Application -> Orientation"_ for this. Delphi IDE implements that option by adding a line to the main program file (DPR), and it fails (with an error that `Application.CreateForm` was not found) because the main program file of an application using `TCastleWindow` doesn't look like a standard FMX program.
 
 ## Screenshots
 

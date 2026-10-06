@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+Specify runtime settings of this project, like UI scaling and default font.
+See https://castle-engine.io/manual_castle_settings.php for documentation of this file.
+-->
+
+<castle_settings>
+  <!-- Reference size is portrait, as this example is designed for mobile devices in portrait orientation. -->
+  <ui_scaling
+    mode="EncloseReferenceSize"
+    reference_width="720"
+    reference_height="1280"
+  />
+</castle_settings>
