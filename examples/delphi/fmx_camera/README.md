@@ -23,7 +23,9 @@ Using [Castle Game Engine](https://castle-engine.io/).
 
 ## Screenshots
 
-![Screenshot](screenshot.png)
+![Screenshot (Windows)](screenshot_windows.png)
+![Screenshot (Android, asking for permissions)](screenshot_android1.png)
+![Screenshot (Android, camera active)](screenshot_android2.png)
 
 ## Permissions
 
