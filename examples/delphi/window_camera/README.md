@@ -21,6 +21,12 @@ Using [Castle Game Engine](https://castle-engine.io/).
 
 The user interface is designed for the portrait orientation. It is best to lock the orientation: in Delphi _"Project -> Options -> Application -> Orientation"_ enable _"Custom orientation"_ and select only _"Portrait"_.
 
+## Screenshots
+
+![Screenshot (Windows)](screenshot_windows.png)
+![Screenshot (Android)](screenshot_android.png)
+![Screenshot (iOS)](screenshot_ios.png)
+
 ## Permissions
 
 On mobile devices, the application needs a permission to use the camera:
