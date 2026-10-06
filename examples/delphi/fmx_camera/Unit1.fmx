@@ -1,0 +1,173 @@
+object Form1: TForm1
+  Left = 0
+  Top = 0
+  Caption = 'Camera in FMX + Castle Game Engine'
+  ClientHeight = 640
+  ClientWidth = 360
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  DesignerMasterStyle = 0
+  object ImageCamera: TImage
+    MultiResBitmap = <
+      item
+      end>
+    Align = Top
+    Size.Width = 360.000000000000000000
+    Size.Height = 200.000000000000000000
+    Size.PlatformDefault = False
+  end
+  object LayoutKind: TLayout
+    Align = Top
+    Position.Y = 200.000000000000000000
+    Size.Width = 360.000000000000000000
+    Size.Height = 36.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    object ButtonKind: TButton
+      Align = Left
+      Margins.Left = 4.000000000000000000
+      Margins.Top = 2.000000000000000000
+      Margins.Right = 4.000000000000000000
+      Margins.Bottom = 2.000000000000000000
+      Position.X = 4.000000000000000000
+      Position.Y = 2.000000000000000000
+      Size.Width = 140.000000000000000000
+      Size.Height = 32.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      Text = 'Kind'
+      OnClick = ButtonKindClick
+    end
+    object LabelKind: TLabel
+      Align = Client
+      Margins.Left = 4.000000000000000000
+      Margins.Right = 4.000000000000000000
+      Size.Width = 204.000000000000000000
+      Size.Height = 36.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'BackCamera'
+      TabOrder = 1
+    end
+  end
+  object LayoutFlashMode: TLayout
+    Align = Top
+    Position.Y = 236.000000000000000000
+    Size.Width = 360.000000000000000000
+    Size.Height = 36.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    object ButtonFlashMode: TButton
+      Align = Left
+      Enabled = False
+      Margins.Left = 4.000000000000000000
+      Margins.Top = 2.000000000000000000
+      Margins.Right = 4.000000000000000000
+      Margins.Bottom = 2.000000000000000000
+      Position.X = 4.000000000000000000
+      Position.Y = 2.000000000000000000
+      Size.Width = 140.000000000000000000
+      Size.Height = 32.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      Text = 'Flash Mode'
+      OnClick = ButtonFlashModeClick
+    end
+    object LabelFlashMode: TLabel
+      Align = Client
+      Enabled = False
+      Margins.Left = 4.000000000000000000
+      Margins.Right = 4.000000000000000000
+      Size.Width = 204.000000000000000000
+      Size.Height = 36.000000000000000000
+      Size.PlatformDefault = False
+      Text = '-'
+      TabOrder = 1
+    end
+  end
+  object LayoutFocusMode: TLayout
+    Align = Top
+    Position.Y = 272.000000000000000000
+    Size.Width = 360.000000000000000000
+    Size.Height = 36.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 2
+    object ButtonFocusMode: TButton
+      Align = Left
+      Enabled = False
+      Margins.Left = 4.000000000000000000
+      Margins.Top = 2.000000000000000000
+      Margins.Right = 4.000000000000000000
+      Margins.Bottom = 2.000000000000000000
+      Position.X = 4.000000000000000000
+      Position.Y = 2.000000000000000000
+      Size.Width = 140.000000000000000000
+      Size.Height = 32.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      Text = 'Focus Mode'
+      OnClick = ButtonFocusModeClick
+    end
+    object LabelFocusMode: TLabel
+      Align = Client
+      Enabled = False
+      Margins.Left = 4.000000000000000000
+      Margins.Right = 4.000000000000000000
+      Size.Width = 204.000000000000000000
+      Size.Height = 36.000000000000000000
+      Size.PlatformDefault = False
+      Text = '-'
+      TabOrder = 1
+    end
+  end
+  object LayoutTorchMode: TLayout
+    Align = Top
+    Position.Y = 308.000000000000000000
+    Size.Width = 360.000000000000000000
+    Size.Height = 36.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 3
+    object ButtonTorchMode: TButton
+      Align = Left
+      Enabled = False
+      Margins.Left = 4.000000000000000000
+      Margins.Top = 2.000000000000000000
+      Margins.Right = 4.000000000000000000
+      Margins.Bottom = 2.000000000000000000
+      Position.X = 4.000000000000000000
+      Position.Y = 2.000000000000000000
+      Size.Width = 140.000000000000000000
+      Size.Height = 32.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      Text = 'Torch Mode'
+      OnClick = ButtonTorchModeClick
+    end
+    object LabelTorchMode: TLabel
+      Align = Client
+      Enabled = False
+      Margins.Left = 4.000000000000000000
+      Margins.Right = 4.000000000000000000
+      Size.Width = 204.000000000000000000
+      Size.Height = 36.000000000000000000
+      Size.PlatformDefault = False
+      Text = '-'
+      TabOrder = 1
+    end
+  end
+  object CastleControl1: TCastleControl
+    Container.DesignUrl = 'castle-data:/main.castle-user-interface'
+    Align = Client
+    Size.Width = 360.000000000000000000
+    Size.Height = 296.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 4
+  end
+  object CameraComponent1: TCameraComponent
+    OnSampleBufferReady = CameraComponent1SampleBufferReady
+    Left = 24
+    Top = 24
+  end
+end

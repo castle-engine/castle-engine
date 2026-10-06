@@ -21,12 +21,12 @@ unit CastleFmxUtils;
 interface
 
 uses Types, Generics.Collections, System.Messaging,
-  FMX.Dialogs, FMX.Forms, FMX.Types, FMX.Controls,
+  FMX.Dialogs, FMX.Forms, FMX.Types, FMX.Controls, FMX.Graphics,
   {$ifdef ANDROID}
   // used by TFmxTouchDispatcher
   Androidapi.JNIBridge, Androidapi.JNI.GraphicsContentViewText,
   {$endif}
-  CastleFileFilters, CastleVectors, CastleKeysMouse;
+  CastleFileFilters, CastleVectors, CastleKeysMouse, CastleImages;
 
 { Convert file filters into FMX Dialog.Filter, Dialog.FilterIndex.
   Suitable for both open and save dialogs (in FMX, TSaveDialog
@@ -47,6 +47,20 @@ procedure FileFiltersToDialog(const FileFilters: string;
 procedure FileFiltersToDialog(FFList: TFileFilterList;
   const Dialog: TOpenDialog; const AllFields: boolean = true); overload;
 { @groupEnd }
+
+{ Convert FMX bitmap to a new Castle Game Engine image.
+  The caller is responsible for freeing the returned image
+  (or passing it to something that takes the ownership,
+  like @link(TImageTextureNode.LoadFromImage) with TakeImageOwnership = @true).
+
+  This is useful e.g. to use FMX camera frames
+  (from FMX TCameraComponent.SampleBufferToBitmap) as a texture in a viewport.
+  See examples/delphi/fmx_camera and examples/delphi/window_camera.
+
+  Any pixel format of the FMX bitmap is handled.
+  Note that we don't do anything special about the alpha premultiplication,
+  so this is most suitable for opaque bitmaps. }
+function BitmapToCastleImage(const Bitmap: TBitmap): TRGBAlphaImage;
 
 {$ifdef LINUX}
 { Set mouse position, in screen coordinates.
@@ -206,6 +220,41 @@ begin
   FFList.LclFmxFilters(OutFilter, OutFilterIndex, AllFields);
   Dialog.Filter := OutFilter;
   Dialog.FilterIndex := OutFilterIndex;
+end;
+
+function BitmapToCastleImage(const Bitmap: TBitmap): TRGBAlphaImage;
+var
+  Data: TBitmapData;
+  Y: Integer;
+  Source, Dest: Pointer;
+begin
+  if (Bitmap.Width = 0) or (Bitmap.Height = 0) then
+    Exit(TRGBAlphaImage.Create(0, 0));
+
+  if not Bitmap.Map(TMapAccess.Read, Data) then
+    raise Exception.Create('Cannot access the pixels of FMX bitmap');
+  try
+    Result := TRGBAlphaImage.Create(Data.Width, Data.Height);
+    try
+      for Y := 0 to Data.Height - 1 do
+      begin
+        Source := Data.GetScanline(Y);
+        // FMX bitmap rows go from the top, our image rows go from the bottom
+        Dest := Result.RowPtr(Data.Height - 1 - Y);
+        if Data.PixelFormat = TPixelFormat.RGBA then
+          // formats of TBitmapData and TRGBAlphaImage are equal, copy fast
+          Move(Source^, Dest^, Data.Width * 4)
+        else
+          ChangePixelFormat(Source, Dest, Data.Width,
+            Data.PixelFormat, TPixelFormat.RGBA);
+      end;
+    except
+      FreeAndNil(Result);
+      raise;
+    end;
+  finally
+    Bitmap.Unmap(Data);
+  end;
 end;
 
 {$ifdef LINUX}
