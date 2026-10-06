@@ -320,8 +320,35 @@ examples: prepare-examples
 #
 # TODO: We don't automatically build examples/delphi/cpp_builder,
 # our build tool doesn't support C++ Builder compilation now.
+#
+# Some examples in examples/delphi/ require newer Delphi versions
+# (see their README.md for details), so we exclude them when compiling
+# with older Delphi. DELPHI_VERSION is the Delphi compiler version
+# (same as CompilerVersion in Pascal), e.g.
+# - 32.0 for Delphi 10.2 (oldest Delphi version we support),
+# - 35.0 for Delphi 11,
+# - 37.0 for Delphi 13.
 .PHONY: examples-delphi
 examples-delphi: prepare-examples
+	set -e; \
+	DELPHI_VERSION=$$(dcc32 --version 2>&1 | head -n1 | awk '{print $$NF}'); \
+	echo "Delphi compiler version: $${DELPHI_VERSION}"; \
+	DELPHI_VERSION_MAJOR=$${DELPHI_VERSION%%.*}; \
+	case "$${DELPHI_VERSION_MAJOR}" in \
+	  ''|*[!0-9]*) echo 'Cannot determine Delphi compiler version using dcc32' >&2; exit 1;; \
+	esac; \
+	EXCLUDE_BY_DELPHI_VERSION=''; \
+	if [ "$${DELPHI_VERSION_MAJOR}" -lt 35 ]; then \
+	  echo 'Delphi < 11: not compiling fmx_camera, window_camera'; \
+	  EXCLUDE_BY_DELPHI_VERSION="$${EXCLUDE_BY_DELPHI_VERSION} \
+	    ( -path ./examples/delphi/fmx_camera -prune ) -o \
+	    ( -path ./examples/delphi/window_camera -prune ) -o"; \
+	fi; \
+	if [ "$${DELPHI_VERSION_MAJOR}" -lt 37 ]; then \
+	  echo 'Delphi < 13: not compiling fmx_location'; \
+	  EXCLUDE_BY_DELPHI_VERSION="$${EXCLUDE_BY_DELPHI_VERSION} \
+	    ( -path ./examples/delphi/fmx_location -prune ) -o"; \
+	fi; \
 	"$(FIND)" ./examples/ \
 	  '(' -path ./examples/castlescript/image_make_by_script -prune ')' -o \
 	  '(' -path ./examples/localization -prune ')' -o \
@@ -331,6 +358,7 @@ examples-delphi: prepare-examples
 	  '(' -path ./examples/deprecated_library -prune ')' -o \
 	  '(' -path ./examples/lazarus -prune ')' -o \
 	  '(' -path ./examples/delphi/cpp_builder -prune ')' -o \
+	  $${EXCLUDE_BY_DELPHI_VERSION} \
 	  '(' -iname CastleEngineManifest.xml -print ')' > \
 	  /tmp/cge-delphi-projects.txt
 	echo 'Found projects: '`wc -l < /tmp/cge-delphi-projects.txt`
