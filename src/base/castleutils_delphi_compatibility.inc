@@ -124,8 +124,8 @@ function StrToQWord(const S: String): QWord;
   Autotested in TTestCastleStringUtils.TestIsWild . }
 //function IsWild(InputStr, Wilds: string; IgnoreCase: Boolean): Boolean;
 
-procedure FillByte(var X; Count: SizeInt; Value: Byte);
-procedure FillDWord(var X; const Count: SizeInt; const Value: DWord);
+procedure FillByte(var X; Count: SizeUInt; Value: Byte);
+procedure FillDWord(var X; const Count: SizeUInt; const Value: DWord);
 function StrToDWord(const S: String): DWord;
 
 { Silence warnings, we know it is platform specific and most code shouldn't use Extended,
@@ -473,11 +473,15 @@ begin
 end;
 *)
 
-procedure FillDWord(var X; const Count: SizeInt; const Value: DWord);
+procedure FillDWord(var X; const Count: SizeUInt; const Value: DWord);
 var
   PX, PEnd: PDWord;
 begin
   PX := @X;
+  { Note: It's important that Count is unsigned, otherwise (if it was SizeInt)
+    Delphi could decide to implement the + by casting both sides
+    to signed Int64 and make range check errors when pointers happen
+    to be > High(Int64) (quite possible on Android/Aarch64). }
   PEnd := Pointer(PtrUInt(PX) + SizeOf(DWord) * Count);
   while PX <> PEnd do
   begin
@@ -486,7 +490,7 @@ begin
   end;
 end;
 
-procedure FillByte(var X; Count: SizeInt; Value: Byte);
+procedure FillByte(var X; Count: SizeUInt; Value: Byte);
 begin
   FillChar(X, Count, Value);
 end;
