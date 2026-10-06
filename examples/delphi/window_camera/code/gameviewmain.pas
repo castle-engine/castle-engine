@@ -305,7 +305,7 @@ begin
 
   { Swing the box a little, to show that it is really a 3D object. }
   LifeTime := LifeTime + SecondsPassed;
-  SceneBox.Rotation := Vector4(0, 1, 0, 0.4 * Sin(LifeTime));
+  SceneBox.Rotation := Vector4(0, 1, 0, 0.8 * Sin(LifeTime));
 end;
 
 end.
