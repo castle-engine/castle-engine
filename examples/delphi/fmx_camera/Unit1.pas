@@ -16,9 +16,6 @@ type
     LayoutKind: TLayout;
     ButtonKind: TButton;
     LabelKind: TLabel;
-    LayoutFlashMode: TLayout;
-    ButtonFlashMode: TButton;
-    LabelFlashMode: TLabel;
     LayoutFocusMode: TLayout;
     ButtonFocusMode: TButton;
     LabelFocusMode: TLabel;
@@ -30,7 +27,6 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure ButtonKindClick(Sender: TObject);
-    procedure ButtonFlashModeClick(Sender: TObject);
     procedure ButtonFocusModeClick(Sender: TObject);
     procedure ButtonTorchModeClick(Sender: TObject);
     procedure CameraComponent1SampleBufferReady(Sender: TObject;
@@ -196,7 +192,7 @@ end;
 
 procedure TForm1.UpdateCameraUi;
 var
-  HasFlash, HasTorch, HasFocusMode: Boolean;
+  HasTorch, HasFocusMode: Boolean;
 begin
   LabelKind.Text := GetEnumName(TypeInfo(TCameraKind),
     Ord(CameraComponent1.Kind));
@@ -204,7 +200,6 @@ begin
   { Query the camera only once it works (CameraReady).
     Before that, the user possibly didn't give us the permission to use
     the camera yet (and then querying it raises an exception on Android). }
-  HasFlash := CameraReady and CameraComponent1.HasFlash;
   HasTorch := CameraReady and CameraComponent1.HasTorch;
   { FMX implements FocusMode only on Android and iOS.
     On other platforms, setting it is ignored and it's always AutoFocus.
@@ -212,8 +207,6 @@ begin
   HasFocusMode := CameraReady
     {$if not (defined(ANDROID) or defined(IOS))} and false {$endif};
 
-  ButtonFlashMode.Enabled := HasFlash;
-  LabelFlashMode.Enabled := HasFlash;
   ButtonFocusMode.Enabled := HasFocusMode;
   LabelFocusMode.Enabled := HasFocusMode;
   ButtonTorchMode.Enabled := HasTorch;
@@ -221,8 +214,6 @@ begin
 
   if CameraReady then
   begin
-    LabelFlashMode.Text := GetEnumName(TypeInfo(TFlashMode),
-      Ord(CameraComponent1.FlashMode));
     LabelFocusMode.Text := GetEnumName(TypeInfo(TFocusMode),
       Ord(CameraComponent1.FocusMode));
     LabelTorchMode.Text := GetEnumName(TypeInfo(TTorchMode),
@@ -240,15 +231,6 @@ begin
     CameraComponent1.Kind := Low(TCameraKind)
   else
     CameraComponent1.Kind := Succ(CameraComponent1.Kind);
-  UpdateCameraUi;
-end;
-
-procedure TForm1.ButtonFlashModeClick(Sender: TObject);
-begin
-  if CameraComponent1.FlashMode = High(TFlashMode) then
-    CameraComponent1.FlashMode := Low(TFlashMode)
-  else
-    CameraComponent1.FlashMode := Succ(CameraComponent1.FlashMode);
   UpdateCameraUi;
 end;
 

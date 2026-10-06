@@ -8,11 +8,10 @@ Demo of using the device camera in an FMX application, with _Castle Game Engine_
 
 - We show UI to investigate / change basic camera properties:
     - [Kind (Default, Front, Back)](https://docwiki.embarcadero.com/Libraries/Florence/en/FMX.Media.TCameraComponent.Kind)
-    - [Flash Mode (AutoF, Off, On)](https://docwiki.embarcadero.com/Libraries/Florence/en/FMX.Media.TCameraComponent.FlashMode)
     - [Focus Mode (AutoFocus, ContinuousAutoFocus, Locked)](https://docwiki.embarcadero.com/Libraries/Florence/en/FMX.Media.TCameraComponent.FocusMode)
     - [Torch Mode (ModeOff, ModeOn, ModeAuto)](https://docwiki.embarcadero.com/Libraries/Florence/en/FMX.Media.TCameraComponent.TorchMode)
 
-    Not all properties can be changed on all platforms and cameras. The _Flash Mode_ and _Torch Mode_ are disabled when the current camera doesn't have a flash / torch. The _Focus Mode_ is disabled on platforms other than Android and iOS, because FMX doesn't implement it there (e.g. on Windows it is always `AutoFocus`).
+    Not all properties can be changed on all platforms and cameras. The _Torch Mode_ is disabled when the current camera doesn't have a torch. The _Focus Mode_ is disabled on platforms other than Android and iOS, because FMX doesn't implement it there (e.g. on Windows it is always `AutoFocus`).
 
 - The bottom of the form shows `TCastleControl` with a rotating 3D box. The current camera image is the texture of the box. You can drag to rotate the view (using `TCastleExamineNavigation`).
 

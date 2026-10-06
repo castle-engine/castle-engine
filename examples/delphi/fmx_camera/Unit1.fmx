@@ -52,48 +52,13 @@ object Form1: TForm1
       TabOrder = 1
     end
   end
-  object LayoutFlashMode: TLayout
+  object LayoutFocusMode: TLayout
     Align = Top
     Position.Y = 236.000000000000000000
     Size.Width = 360.000000000000000000
     Size.Height = 36.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 1
-    object ButtonFlashMode: TButton
-      Align = Left
-      Enabled = False
-      Margins.Left = 4.000000000000000000
-      Margins.Top = 2.000000000000000000
-      Margins.Right = 4.000000000000000000
-      Margins.Bottom = 2.000000000000000000
-      Position.X = 4.000000000000000000
-      Position.Y = 2.000000000000000000
-      Size.Width = 140.000000000000000000
-      Size.Height = 32.000000000000000000
-      Size.PlatformDefault = False
-      TabOrder = 0
-      Text = 'Flash Mode'
-      OnClick = ButtonFlashModeClick
-    end
-    object LabelFlashMode: TLabel
-      Align = Client
-      Enabled = False
-      Margins.Left = 4.000000000000000000
-      Margins.Right = 4.000000000000000000
-      Size.Width = 204.000000000000000000
-      Size.Height = 36.000000000000000000
-      Size.PlatformDefault = False
-      Text = '-'
-      TabOrder = 1
-    end
-  end
-  object LayoutFocusMode: TLayout
-    Align = Top
-    Position.Y = 272.000000000000000000
-    Size.Width = 360.000000000000000000
-    Size.Height = 36.000000000000000000
-    Size.PlatformDefault = False
-    TabOrder = 2
     object ButtonFocusMode: TButton
       Align = Left
       Enabled = False
@@ -124,11 +89,11 @@ object Form1: TForm1
   end
   object LayoutTorchMode: TLayout
     Align = Top
-    Position.Y = 308.000000000000000000
+    Position.Y = 272.000000000000000000
     Size.Width = 360.000000000000000000
     Size.Height = 36.000000000000000000
     Size.PlatformDefault = False
-    TabOrder = 3
+    TabOrder = 2
     object ButtonTorchMode: TButton
       Align = Left
       Enabled = False
@@ -161,9 +126,9 @@ object Form1: TForm1
     Container.DesignUrl = 'castle-data:/main.castle-user-interface'
     Align = Client
     Size.Width = 360.000000000000000000
-    Size.Height = 296.000000000000000000
+    Size.Height = 332.000000000000000000
     Size.PlatformDefault = False
-    TabOrder = 4
+    TabOrder = 3
   end
   object CameraComponent1: TCameraComponent
     OnSampleBufferReady = CameraComponent1SampleBufferReady
