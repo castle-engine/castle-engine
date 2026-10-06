@@ -27,10 +27,10 @@ strict private
 {$endif read_TFmxOpenGLUtility_interface}
 
 {$ifdef read_implementation_uses}
-  { Needed for TCustomForm used by XWindowHandle }
-  FMX.Forms,
-  CTypes,
-  CastleInternalContextEgl, CastleLog, CastleUtils,
+{ Needed for TCustomForm used by XWindowHandle }
+FMX.Forms,
+CTypes,
+CastleInternalContextEgl, CastleLog, CastleUtils,
 {$endif read_implementation_uses}
 
 {$ifdef read_implementation}

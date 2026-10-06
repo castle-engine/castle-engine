@@ -21,12 +21,13 @@
 {$ifdef read_TFmxOpenGLUtility_interface}
 {$endif read_TFmxOpenGLUtility_interface}
 
-{$ifdef read_implementation}
+{$ifdef read_implementation_uses}
+Windows,
+CastleInternalContextWgl,
+CastleLog, CastleUtils,
+{$endif read_implementation_uses}
 
-uses
-  Windows, SysUtils,
-  CastleInternalContextWgl,
-  CastleLog, CastleUtils;
+{$ifdef read_implementation}
 
 { TFmxOpenGLUtility --------------------------------------------------------- }
 
