@@ -88,13 +88,7 @@ begin
 
   { Ask user for the permission to use the camera.
     The result (also when the permission is already granted)
-    is passed to CameraPermissionsResult.
-
-    This is necessary on Android: without the permission, most operations
-    on TCameraComponent (even setting Quality) raise EPermissionException.
-    On other platforms, PermissionsService just reports that the permission
-    is granted (and on iOS, FMX asks for the camera permission
-    automatically when we activate the camera). }
+    is passed to CameraPermissionsResult. }
   PermissionsService.RequestPermissions([PermissionCamera],
     CameraPermissionsResult);
 

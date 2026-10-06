@@ -37,7 +37,7 @@ On mobile devices, the application needs a permission to use the camera:
 
 - iOS: The key `NSCameraUsageDescription` must be present in Delphi _"Project -> Options -> Application -> Version Info"_. Delphi adds it by default, you may want to adjust the text.
 
-At runtime, we ask the user for the permission using `PermissionsService.RequestPermissions` (unit `System.Permissions`) and use the camera only once the permission is granted. This is necessary on Android, where using `TCameraComponent` without the permission raises `EPermissionException`. On iOS, FMX asks for the permission automatically when the camera is activated.
+At runtime, we ask the user for the permission using `PermissionsService.RequestPermissions` (unit `System.Permissions`) and use the camera only once the permission is granted. This is necessary on Android, where using `TCameraComponent` without the permission raises `EPermissionException`. It also makes proper flow on all other platforms -- on Windows permissions are automatically granted, on iOS the permissions are asked for correctly.
 
 ## Building
 
