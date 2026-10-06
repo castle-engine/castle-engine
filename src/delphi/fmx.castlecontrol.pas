@@ -422,6 +422,10 @@ procedure TCastleControl.Paint;
 var
   R: TRectF;
   RenderingUtility: TFmxOpenGLRenderingUtility;
+  {$ifdef RENDERING_NEEDS_SCISSOR}
+  ScissorScale: Single;
+  ScissorEdges: TRect;
+  {$endif}
 begin
   { See our constructor comments:
     looks like native drawing at design-time in FMX is just not possible reliably. }
@@ -464,13 +468,37 @@ begin
     RenderingUtility.BeforeDirectRendering(Canvas, RenderContext);
     try
       {$ifdef RENDERING_NEEDS_SCISSOR}
-      R := BoundsRect;
+      { Calculate scissor rectangle following what FMX does for own clipping,
+        see TCanvasGpu.DoIntersectClipRect and
+        TContextAndroid.DoSetScissorRect, TContextIOS.DoSetScissorRect.
+        This means:
+
+        - Use AbsoluteRect, which is in the form coordinates.
+          (Not BoundsRect, which is relative to the parent control,
+          so it's wrong when we're inside e.g. TPanel or TLayout.)
+
+        - Scale by FGLUtility.Scale, which is the form's Handle.Scale,
+          same as TContext3D.Scale used by FMX.
+
+        - Round each edge, and calculate size from the rounded edges,
+          to match FMX clipping exactly.
+
+        - Flip Y using Canvas.Height, which is the size of the rendering
+          context. (Not Screen.DesktopRect.Height, which is larger
+          than the form when Android status bar is visible.) }
+      R := AbsoluteRect;
+      ScissorScale := FGLUtility.Scale;
+      ScissorEdges := Rect(
+        Round(R.Left * ScissorScale),
+        Round(R.Top * ScissorScale),
+        Round(R.Right * ScissorScale),
+        Round(R.Bottom * ScissorScale));
       FScissor.Rect := Rectangle(
-        Round(R.Left * FGLUtility.Scale),
+        ScissorEdges.Left,
         // FMX Y coordinate system is top-down, CGE is bottom-up.
-        Round((Screen.DesktopRect.Height - R.Bottom) * FGLUtility.Scale),
-        Round(R.Width * FGLUtility.Scale),
-        Round(R.Height * FGLUtility.Scale));
+        Round(Canvas.Height * ScissorScale) - ScissorEdges.Bottom,
+        ScissorEdges.Width,
+        ScissorEdges.Height);
       FScissor.Enabled := true;
       {$endif}
       FContainer.DoRender;
