@@ -4,6 +4,7 @@ interface
 
 uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
+  System.Permissions,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Layouts,
   FMX.StdCtrls, FMX.Objects, FMX.Media, FMX.Controls.Presentation,
   Fmx.CastleControl,
@@ -46,6 +47,9 @@ type
       Only then we query the camera capabilities and modes. }
     CameraReady: Boolean;
     procedure CreateBox;
+    procedure CameraPermissionsResult(Sender: TObject;
+      const APermissions: TClassicStringDynArray;
+      const AGrantResults: TClassicPermissionStatusDynArray);
     { Update labels to show current camera properties,
       disable UI for features not supported by the current camera. }
     procedure UpdateCameraUi;
@@ -65,6 +69,10 @@ uses System.TypInfo,
 
 {$R *.fmx}
 
+const
+  { Android permission name. }
+  PermissionCamera = 'android.permission.CAMERA';
+
 procedure TForm1.FormCreate(Sender: TObject);
 begin
   CastleControl1.Container.LoadSettings('castle-data:/CastleSettings.xml');
@@ -79,15 +87,40 @@ begin
   { Assign event to some OnUpdate, to rotate the box and update FPS display. }
   LabelFps.OnUpdate := DoUpdate;
 
-  { Start the camera.
-    FMX asks user for the permission to use the camera (when necessary)
-    automatically. Camera frames are then passed to
-    CameraComponent1SampleBufferReady. }
-  CameraComponent1.Quality := TVideoCaptureQuality.MediumQuality;
   CameraComponent1.Kind := TCameraKind.BackCamera;
-  CameraComponent1.Active := true;
-
   UpdateCameraUi;
+
+  { Ask user for the permission to use the camera.
+    The result (also when the permission is already granted)
+    is passed to CameraPermissionsResult.
+
+    This is necessary on Android: without the permission, most operations
+    on TCameraComponent (even setting Quality) raise EPermissionException.
+    On other platforms, PermissionsService just reports that the permission
+    is granted (and on iOS, FMX asks for the camera permission
+    automatically when we activate the camera). }
+  PermissionsService.RequestPermissions([PermissionCamera],
+    CameraPermissionsResult);
+
+  { To hacky pretent that we have permissions, test this.
+    It will work on Windows (where permissions are just granted)
+    but not Android. }
+  //   CameraPermissionsResult(Self, [PermissionCamera], [TPermissionStatus.Granted]);
+end;
+
+procedure TForm1.CameraPermissionsResult(Sender: TObject;
+  const APermissions: TClassicStringDynArray;
+  const AGrantResults: TClassicPermissionStatusDynArray);
+begin
+  if (Length(AGrantResults) = 1) and
+     (AGrantResults[0] = TPermissionStatus.Granted) then
+  begin
+    { Start the camera. Camera frames are then passed to
+      CameraComponent1SampleBufferReady. }
+    CameraComponent1.Quality := TVideoCaptureQuality.MediumQuality;
+    CameraComponent1.Active := true;
+  end else
+    ShowMessage('No permission to use the camera');
 end;
 
 procedure TForm1.FormDestroy(Sender: TObject);
@@ -158,7 +191,7 @@ begin
 
   { Query the camera only once it works (CameraReady).
     Before that, the user possibly didn't give us the permission to use
-    the camera yet. }
+    the camera yet (and then querying it raises an exception on Android). }
   HasFlash := CameraReady and CameraComponent1.HasFlash;
   HasTorch := CameraReady and CameraComponent1.HasTorch;
   { FMX implements FocusMode only on Android and iOS.
