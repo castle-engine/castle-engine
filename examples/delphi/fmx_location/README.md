@@ -33,3 +33,9 @@ Remember that the device needs some time to determine the location, especially i
 2. Open this project in Delphi and compile + run it from Delphi, as usual Delphi application.
 
     To run on Android or iOS, add the platform first: in Delphi IDE, right-click on _"Target Platforms"_ and choose _"Add Platform..."_.
+
+## Delphi >= 13 required
+
+This example requires Delphi 13 or newer.
+
+Older Delphi versions miss the form event `OnSafeAreaChanged`.

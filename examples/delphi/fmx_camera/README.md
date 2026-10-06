@@ -46,3 +46,9 @@ At runtime, we ask the user for the permission using `PermissionsService.Request
 2. Open this project in Delphi and compile + run it from Delphi, as usual Delphi application.
 
     To run on Android or iOS, add the platform first: in Delphi IDE, right-click on _"Target Platforms"_ and choose _"Add Platform..."_.
+
+## Delphi >= 11 required
+
+This example requires Delphi 11 or newer.
+
+Older versions don't have `System.Permissions` unit or have an incompatible version of it.
