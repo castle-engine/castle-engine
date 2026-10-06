@@ -163,13 +163,9 @@
   {$define HANDLE_FMX_SAFE_AREA}
 {$endif}
 
-{ Handle FMX touch (TCustomForm.OnTouch) to detect touches with finger indexes
-  on mobile platforms. }
-{$if defined(DELPHI) and (defined(ANDROID) or defined(IOS))}
-  {$define HANDLE_FMX_TOUCH}
-
+{$ifdef CASTLE_HANDLE_FMX_TOUCH}
   { Don't handle mouse events, if we handle FMX OnTouch.
-    This is a necessity now (HANDLE_FMX_TOUCH must imply this),
+    This is a necessity now (CASTLE_HANDLE_FMX_TOUCH must imply this),
     although we wish it wouldn't be.
 
     Defining this avoids receiving duplicate mouse/touch events when user connects a
@@ -201,7 +197,8 @@
     FMX.StdCtrls, FMX.Menus, FMX.Platform,
     {$ifdef SUBSCRIBE_FormsCreatedMessage} System.Messaging, {$endif}
     // CGE
-    Fmx.CastleInternalGLControl, CastleInternalDelphiUtils, CastleFmxUtils,
+    Fmx.CastleInternalGLControl, CastleInternalDelphiUtils,
+    CastleFmxUtils, CastleInternalFmxUtils,
   {$endif}
 {$endif}
 
@@ -326,14 +323,14 @@ private
   function MousePosToCastle(
     const X, Y: {$ifdef FPC} Integer {$else} Single {$endif}): TVector2;
 
-  {$ifdef HANDLE_FMX_TOUCH}
+  {$ifdef CASTLE_HANDLE_FMX_TOUCH}
   strict private
     FTouchDispatcher: TFmxTouchDispatcher;
     procedure TouchDown(const FingerIndex: TFingerIndex; const Position: TVector2);
     procedure TouchUp(const FingerIndex: TFingerIndex; const Position: TVector2);
     procedure TouchMotion(const FingerIndex: TFingerIndex;
       const OldPosition, NewPosition: TVector2);
-  {$endif HANDLE_FMX_TOUCH}
+  {$endif CASTLE_HANDLE_FMX_TOUCH}
 
   {$ifdef SUBSCRIBE_FormsCreatedMessage}
   strict private
@@ -923,7 +920,7 @@ begin
   Form.OnSafeAreaChanged := FormSafeAreaChanged;
   {$endif}
 
-  {$ifdef HANDLE_FMX_TOUCH}
+  {$ifdef CASTLE_HANDLE_FMX_TOUCH}
   FTouchDispatcher := TFmxTouchDispatcher.Create;
   FTouchDispatcher.PositionsInControl := OpenGLControl;
   FTouchDispatcher.AttachToForm(Form);
@@ -931,7 +928,7 @@ begin
   FTouchDispatcher.OnUp := {$ifdef FPC}@{$endif} TouchUp;
   FTouchDispatcher.OnMotion := {$ifdef FPC}@{$endif} TouchMotion;
   Form.OnTouch := FTouchDispatcher.FormTouch;
-  {$endif HANDLE_FMX_TOUCH}
+  {$endif CASTLE_HANDLE_FMX_TOUCH}
 
   {$ifdef FPC}
     OpenGLControl.DoubleBuffered := DoubleBuffer;
@@ -1076,7 +1073,7 @@ begin
   if OpenGLControl <> nil then
     OpenGLControl.Parent := nil;
 
-  {$ifdef HANDLE_FMX_TOUCH}
+  {$ifdef CASTLE_HANDLE_FMX_TOUCH}
   FreeAndNil(FTouchDispatcher);
   {$endif}
 
@@ -1393,7 +1390,7 @@ procedure TCastleWindow.OpenGLControlMouseDown(Sender: TObject;
 var
   CastleButton: TCastleMouseButton;
 begin
-  {$ifdef HANDLE_FMX_TOUCH}
+  {$ifdef CASTLE_HANDLE_FMX_TOUCH}
   if ssTouch in Shift then
     Exit; // Ignore events that will be processed by OnTouch; unused now
   {$endif}
@@ -1408,7 +1405,7 @@ procedure TCastleWindow.OpenGLControlMouseUp(Sender: TObject;
 var
   CastleButton: TCastleMouseButton;
 begin
-  {$ifdef HANDLE_FMX_TOUCH}
+  {$ifdef CASTLE_HANDLE_FMX_TOUCH}
   if ssTouch in Shift then
     Exit; // Ignore events that will be processed by OnTouch; unused now
   {$endif}
@@ -1421,7 +1418,7 @@ procedure TCastleWindow.OpenGLControlMouseMove(Sender: TObject;
   Shift: TShiftState;
   X, Y: {$ifdef FPC} Integer {$else} Single {$endif});
 begin
-  {$ifdef HANDLE_FMX_TOUCH}
+  {$ifdef CASTLE_HANDLE_FMX_TOUCH}
   if ssTouch in Shift then
     Exit; // Ignore events that will be processed by OnTouch; unused now
   {$endif}
@@ -1515,7 +1512,7 @@ begin
     OpenGLControl.Invalidate;
 end;
 
-{$ifdef HANDLE_FMX_TOUCH}
+{$ifdef CASTLE_HANDLE_FMX_TOUCH}
 
 procedure TCastleWindow.TouchDown(const FingerIndex: TFingerIndex; const Position: TVector2);
 begin
@@ -1546,7 +1543,7 @@ begin
     , FingerIndex));
 end;
 
-{$endif HANDLE_FMX_TOUCH}
+{$endif CASTLE_HANDLE_FMX_TOUCH}
 
 { TCastleWindow dialogs ---------------------------------------------------------- }
 

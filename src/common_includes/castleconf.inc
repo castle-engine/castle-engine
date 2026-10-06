@@ -788,6 +788,20 @@
   {$define CASTLE_FREETYPE_PASCAL}
 {$endif}
 
+{ FMX ------------------------------------------------------------------------ }
+
+{ Handle FMX touch (TCustomForm.OnTouch) to detect touches with finger indexes
+  on mobile platforms. This requires Delphi 12.0 Athens (CompilerVersion = 36)
+  as it added TTouch.Id and TTouch.Action, on which we rely.
+
+  We limit the condition to Android and iOS, even though on Windows
+  FMX can also make multi-touch events.
+  But our TFmxTouchDispatcher is not ready for this (right now,
+  it can deal with various bugginess of FMX multi-touch on Android and iOS only). }
+{$if defined(DELPHI) and (defined(ANDROID) or defined(IOS)) and (CompilerVersion >= 36)}
+  {$define CASTLE_HANDLE_FMX_TOUCH}
+{$endif}
+
 // -----------------------------------------------------------------------------
 // keep this line at the end of the file
 {$endif not CASTLE_CONF_INCLUDED}

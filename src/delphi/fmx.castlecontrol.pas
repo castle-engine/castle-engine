@@ -99,10 +99,12 @@ type
     var
       FContainer: TContainer;
       FGLUtility: TFmxOpenGLUtility;
-      { Did we call MultiTouchOnForm. }
+      { Did we call MultiTouchOnForm and FTouchDispatcher was created. }
       FMultiTouch: Boolean;
+      {$ifdef CASTLE_HANDLE_FMX_TOUCH}
       { Non-nil only when FMultiTouch. }
       FTouchDispatcher: TFmxTouchDispatcher;
+      {$endif CASTLE_HANDLE_FMX_TOUCH}
 
     { Is this finger currently pressed, according to Container.Touches. }
     function TouchPressed(const FingerIndex: TFingerIndex): Boolean;
@@ -406,7 +408,9 @@ end;
 
 destructor TCastleControl.Destroy;
 begin
+  {$ifdef CASTLE_HANDLE_FMX_TOUCH}
   FreeAndNil(FTouchDispatcher);
+  {$endif CASTLE_HANDLE_FMX_TOUCH}
   FreeAndNil(FGLUtility);
   inherited;
 end;
@@ -660,6 +664,7 @@ end;
 
 procedure TCastleControl.MultiTouchOnForm(const Form: TForm);
 begin
+  {$ifdef CASTLE_HANDLE_FMX_TOUCH}
   if FTouchDispatcher = nil then
   begin
     FTouchDispatcher := TFmxTouchDispatcher.Create;
@@ -671,6 +676,7 @@ begin
   FTouchDispatcher.AttachToForm(Form);
   Form.OnTouch := FTouchDispatcher.FormTouch;
   FMultiTouch := true;
+  {$endif CASTLE_HANDLE_FMX_TOUCH}
 end;
 
 function TCastleControl.TouchPressed(const FingerIndex: TFingerIndex): Boolean;

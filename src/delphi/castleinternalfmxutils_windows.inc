@@ -23,8 +23,7 @@
 
 {$ifdef read_implementation_uses}
 Windows,
-CastleInternalContextWgl,
-CastleLog, CastleUtils,
+CastleInternalContextWgl, CastleUtils,
 {$endif read_implementation_uses}
 
 {$ifdef read_implementation}
