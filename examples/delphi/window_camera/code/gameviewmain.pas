@@ -42,6 +42,7 @@ type
     ButtonFocusMode: TCastleButton;
     ButtonTorchMode: TCastleButton;
     SceneBox: TCastleScene;
+    RootGroup: TCastleUserInterface;
   private
     { FMX component to access the device camera. }
     DeviceCamera: TCameraComponent;
@@ -306,6 +307,10 @@ begin
   { Swing the box a little, to show that it is really a 3D object. }
   LifeTime := LifeTime + SecondsPassed;
   SceneBox.Rotation := Vector4(0, 1, 0, 0.8 * Sin(LifeTime));
+
+  { Apply the Container.SafeBorder, to not draw UI over mobile status bars,
+    notches, etc. }
+  RootGroup.Border.Assign(Container.SafeBorder);
 end;
 
 end.

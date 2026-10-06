@@ -148,6 +148,21 @@
   {$define SUBSCRIBE_FormsCreatedMessage}
 {$endif}
 
+{ Handle FMX safe area (TCustomForm.OnSafeAreaChanged) to set
+  Container.SafeBorder on mobile platforms.
+  FMX reports the safe area only on Android and iOS.
+  We could use this for other platforms too (they report nothing)...
+  but it would break compatibility with older Delphi versions,
+  as for Windows we allow even Delphi 10.2.1
+  (see https://castle-engine.io/delphi#_delphi_versions_supported )
+  and it doesn't have FMX API for safe area detection.
+
+  TODO: This should really be a version-check, not platform check.
+  We need to find Delphi version that added OnSafeAreaChanged. }
+{$if defined(DELPHI) and (defined(ANDROID) or defined(IOS))}
+  {$define HANDLE_FMX_SAFE_AREA}
+{$endif}
+
 { Handle FMX touch (TCustomForm.OnTouch) to detect touches with finger indexes
   on mobile platforms. }
 {$if defined(DELPHI) and (defined(ANDROID) or defined(IOS))}
@@ -278,6 +293,9 @@ private
   procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
   procedure FormDeactivate(Sender: TObject);
   procedure FormDropFiles(Sender: TObject; const FileNames: array of string);
+  {$ifdef HANDLE_FMX_SAFE_AREA}
+  procedure FormSafeAreaChanged(Sender: TObject; const AInsets: TRectF);
+  {$endif}
 
   procedure OpenGLControlPaint(Sender: TObject);
   procedure OpenGLControlResize(Sender: TObject);
@@ -897,6 +915,14 @@ begin
   {$endif FPC}
   OpenGLControl.TabStop := true;
 
+  {$ifdef HANDLE_FMX_SAFE_AREA}
+  { FMX calls this when the form is shown (so, soon from this method,
+    when we set Form.Visible below) and then each time safe area changes
+    (e.g. when device orientation changes).
+    Assign it after OpenGLControl is created, as FormSafeAreaChanged uses it. }
+  Form.OnSafeAreaChanged := FormSafeAreaChanged;
+  {$endif}
+
   {$ifdef HANDLE_FMX_TOUCH}
   FTouchDispatcher := TFmxTouchDispatcher.Create;
   FTouchDispatcher.PositionsInControl := OpenGLControl;
@@ -1235,6 +1261,23 @@ procedure TCastleWindow.FormDeactivate(Sender: TObject);
 begin
   ReleaseAllKeysAndMouse;
 end;
+
+{$ifdef HANDLE_FMX_SAFE_AREA}
+procedure TCastleWindow.FormSafeAreaChanged(Sender: TObject; const AInsets: TRectF);
+var
+  Scale: Single;
+begin
+  { Note that AInsets is not a real rectangle,
+    its Left / Top / Right / Bottom are sizes of the insets from each side. }
+  Scale := OpenGLControl.MousePosScale;
+  Container.InternalSetSafeBorderScaled(Vector4(
+    AInsets.Top * Scale,
+    AInsets.Right * Scale,
+    AInsets.Bottom * Scale,
+    AInsets.Left * Scale
+  ));
+end;
+{$endif}
 
 procedure TCastleWindow.OpenGLControlPaint(Sender: TObject);
 begin

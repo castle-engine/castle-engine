@@ -1,5 +1,12 @@
 {
   "$$ClassName" : "TCastleUserInterface",
+  "BorderColorPersistent" : {
+    "$$ClassName" : "TCastleColorPersistent",
+    "Alpha" : 1.0000000000000000E+000,
+    "Blue" : 1.4901961386203766E-001,
+    "Green" : 1.0196078568696976E-001,
+    "Red" : 1.0196078568696976E-001
+  },
   "FullSize" : true,
   "Name" : "RootGroup",
   "$Children" : [
