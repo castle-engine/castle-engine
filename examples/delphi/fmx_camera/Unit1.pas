@@ -65,7 +65,7 @@ var
 implementation
 
 uses System.TypInfo,
-  CastleVectors, CastleFmxUtils;
+  CastleRenderOptions, CastleVectors, CastleFmxUtils;
 
 {$R *.fmx}
 
@@ -135,13 +135,25 @@ var
   Material: TUnlitMaterialNode;
   Appearance: TAppearanceNode;
   RootNode: TX3DRootNode;
+  TexProperties: TTexturePropertiesNode;
 begin
   { Build a box using X3D nodes, this way we have access to
     the texture node (BoxTexture) and we can change the texture contents
     at any time. See https://castle-engine.io/viewport_and_scenes_from_code
     about building scenes by code. }
 
+  TexProperties := TTexturePropertiesNode.Create;
+  TexProperties.MagnificationFilter := magDefault;
+  TexProperties.MinificationFilter := minDefault;
+  TexProperties.BoundaryModeS := bmClampToEdge;
+  TexProperties.BoundaryModeT := bmClampToEdge;
+  { Do not force "power of 2" size of the image.
+    Disables mipmaps, but avoids distortion of non-power-of-2 images
+    (and wasting time scaling them). }
+  TexProperties.GuiTexture := true;
+
   BoxTexture := TImageTextureNode.Create;
+  BoxTexture.TextureProperties := TexProperties;
 
   { Unlit material means that the box doesn't need any lights,
     it will just display the texture colors. }
