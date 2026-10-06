@@ -19,8 +19,6 @@ The camera is accessed using the cross-platform FMX component `TCameraComponent`
 
 This is only useful with Delphi, it relies on FMX and Delphi-specific components.
 
-WARNING: Updating _Castle Game Engine_ texture contents from FMX `TBitmap` may be slow. Unfortunately, there doesn't seem to be an efficient and cross-platform alternative.
-
 Using [Castle Game Engine](https://castle-engine.io/).
 
 ## Screenshots
