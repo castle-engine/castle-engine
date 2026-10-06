@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2024 Michalis Kamburelis.
+  Copyright 2022-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -50,9 +50,10 @@ unit Fmx.CastleControl;
 
 { On systems where we use existing OpenGL(ES) context provided by FMX,
   we need to use scissor to limit our rendering (and in particular glClear
-  calls) to our control's area. }
+  calls) to our control's area and shift our viewport.
+  This is done by using RenderContext.InternalControlRect. }
 {$if defined(ANDROID) or defined(IOS)}
-  {$define RENDERING_NEEDS_SCISSOR}
+  {$define RENDERING_CONTEXT_SUBRECT}
 {$endif}
 
 interface
@@ -98,9 +99,6 @@ type
     var
       FContainer: TContainer;
       FGLUtility: TFmxOpenGLUtility;
-      {$ifdef RENDERING_NEEDS_SCISSOR}
-      FScissor: TScissor;
-      {$endif RENDERING_NEEDS_SCISSOR}
 
     function GetCurrentShift: TShiftState;
     procedure SetCurrentShift(const Value: TShiftState);
@@ -376,18 +374,11 @@ begin
   }
   if not (csDesigning in ComponentState) then
     ControlType := DefaultControlType;
-
-  {$ifdef RENDERING_NEEDS_SCISSOR}
-  FScissor := TScissor.Create;
-  {$endif}
 end;
 
 destructor TCastleControl.Destroy;
 begin
   FreeAndNil(FGLUtility);
-  {$ifdef RENDERING_NEEDS_SCISSOR}
-  FreeAndNil(FScissor);
-  {$endif}
   inherited;
 end;
 
@@ -422,9 +413,10 @@ procedure TCastleControl.Paint;
 var
   R: TRectF;
   RenderingUtility: TFmxOpenGLRenderingUtility;
-  {$ifdef RENDERING_NEEDS_SCISSOR}
-  ScissorScale: Single;
-  ScissorEdges: TRect;
+  {$ifdef RENDERING_CONTEXT_SUBRECT}
+  ControlScale: Single;
+  ControlEdges: TRect;
+  ControlRect: TRectangle;
   {$endif}
 begin
   { See our constructor comments:
@@ -465,47 +457,47 @@ begin
 
     // inherited not needed, and possibly causes something unnecessary
 
+    {$ifdef RENDERING_CONTEXT_SUBRECT}
+    { Calculate control rectangle following what FMX does for own clipping,
+      see TCanvasGpu.DoIntersectClipRect and
+      TContextAndroid.DoSetScissorRect, TContextIOS.DoSetScissorRect.
+      This means:
+
+      - Use AbsoluteRect, which is in the form coordinates.
+        (Not BoundsRect, which is relative to the parent control,
+        so it's wrong when we're inside e.g. TPanel or TLayout.)
+
+      - Scale by FGLUtility.Scale, which is the form's Handle.Scale,
+        same as TContext3D.Scale used by FMX.
+
+      - Round each edge, and calculate size from the rounded edges,
+        to match FMX clipping exactly.
+
+      - Flip Y using Canvas.Height, which is the size of the rendering
+        context. (Not Screen.DesktopRect.Height, which is larger
+        than the form when Android status bar is visible.) }
+    R := AbsoluteRect;
+    ControlScale := FGLUtility.Scale;
+    ControlEdges := Rect(
+      Round(R.Left * ControlScale),
+      Round(R.Top * ControlScale),
+      Round(R.Right * ControlScale),
+      Round(R.Bottom * ControlScale));
+    ControlRect := Rectangle(
+      ControlEdges.Left,
+      // FMX Y coordinate system is top-down, CGE is bottom-up.
+      Round(Canvas.Height * ControlScale) - ControlEdges.Bottom,
+      ControlEdges.Width,
+      ControlEdges.Height);
+    { We set this before BeforeDirectRendering, so before
+      RenderContext.SynchronizeState. This ensures this value will be applied OK. }
+    RenderContext.InternalControlRect := ControlRect;
+    {$endif RENDERING_CONTEXT_SUBRECT}
+
     RenderingUtility.BeforeDirectRendering(Canvas, RenderContext);
     try
-      {$ifdef RENDERING_NEEDS_SCISSOR}
-      { Calculate scissor rectangle following what FMX does for own clipping,
-        see TCanvasGpu.DoIntersectClipRect and
-        TContextAndroid.DoSetScissorRect, TContextIOS.DoSetScissorRect.
-        This means:
-
-        - Use AbsoluteRect, which is in the form coordinates.
-          (Not BoundsRect, which is relative to the parent control,
-          so it's wrong when we're inside e.g. TPanel or TLayout.)
-
-        - Scale by FGLUtility.Scale, which is the form's Handle.Scale,
-          same as TContext3D.Scale used by FMX.
-
-        - Round each edge, and calculate size from the rounded edges,
-          to match FMX clipping exactly.
-
-        - Flip Y using Canvas.Height, which is the size of the rendering
-          context. (Not Screen.DesktopRect.Height, which is larger
-          than the form when Android status bar is visible.) }
-      R := AbsoluteRect;
-      ScissorScale := FGLUtility.Scale;
-      ScissorEdges := Rect(
-        Round(R.Left * ScissorScale),
-        Round(R.Top * ScissorScale),
-        Round(R.Right * ScissorScale),
-        Round(R.Bottom * ScissorScale));
-      FScissor.Rect := Rectangle(
-        ScissorEdges.Left,
-        // FMX Y coordinate system is top-down, CGE is bottom-up.
-        Round(Canvas.Height * ScissorScale) - ScissorEdges.Bottom,
-        ScissorEdges.Width,
-        ScissorEdges.Height);
-      FScissor.Enabled := true;
-      {$endif}
       FContainer.DoRender;
     finally
-      {$ifdef RENDERING_NEEDS_SCISSOR}
-      FScissor.Enabled := false;
-      {$endif}
       RenderingUtility.AfterDirectRendering(Canvas, RenderContext);
     end;
   end;

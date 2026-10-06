@@ -98,6 +98,8 @@ procedure SaveScreen_NoFlush(const Image: TCastleImage;
   const Left, Bottom: Integer; const ReadBuffer: TColorBuffer);
 
   procedure ReadPixels(const Image: TCastleImage);
+  var
+    X, Y: Integer;
   begin
     BeforePackImage(Image);
     try
@@ -105,7 +107,14 @@ procedure SaveScreen_NoFlush(const Image: TCastleImage;
       {$ifdef CASTLE_WEBGL}
       // TODO: web: Implement getting RawPixels (using Uint8Array) from WebGL, https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/readPixels
       {$else}
-      glReadPixels(Left, Bottom, Image.Width, Image.Height, ImageGLFormat(Image),
+      X := Left;
+      Y := Bottom;
+      if RenderContext.InternalControlRectIgnore = 0 then
+      begin
+        X := X + RenderContext.InternalControlRect.Left;
+        Y := Y + RenderContext.InternalControlRect.Bottom;
+      end;
+      glReadPixels(X, Y, Image.Width, Image.Height, ImageGLFormat(Image),
         ImageGLType(Image), Image.RawPixels);
       {$endif}
     finally AfterPackImage(Image) end;
@@ -163,6 +172,8 @@ begin
 end;
 
 function SaveScreenDepth_NoFlush(const Rect: TRectangle): TGrayscaleImage;
+var
+  X, Y: Integer;
 begin
   Result := TGrayscaleImage.Create(Rect.Width, Rect.Height);
   try
@@ -171,7 +182,14 @@ begin
       {$ifdef CASTLE_WEBGL}
       // TODO: web: Implement getting RawPixels (using Uint8Array) from WebGL, https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/readPixels
       {$else}
-      glReadPixels(Rect.Left, Rect.Bottom, Rect.Width, Rect.Height, GL_DEPTH_COMPONENT,
+      X := Rect.Left;
+      Y := Rect.Bottom;
+      if RenderContext.InternalControlRectIgnore = 0 then
+      begin
+        X := X + RenderContext.InternalControlRect.Left;
+        Y := Y + RenderContext.InternalControlRect.Bottom;
+      end;
+      glReadPixels(X, Y, Rect.Width, Rect.Height, GL_DEPTH_COMPONENT,
         ImageGLType(Result), Result.RawPixels);
       {$endif}
     finally

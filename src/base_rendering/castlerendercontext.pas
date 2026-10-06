@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2025 Michalis Kamburelis.
+  Copyright 2001-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -105,6 +105,7 @@ type
       TScissorList = class({$ifdef FPC}specialize{$endif} TObjectList<TScissor>)
       public
         FFinalScissor: TRectangle; // only defined when Count <> 0
+        ParentContext: TRenderContext;
         procedure Update;
       end;
     var
@@ -133,6 +134,7 @@ type
       FLineType: TLineType;
       FPolygonOffset: TPolygonOffset;
       FBoundBuffer: array [TBufferTarget] of TGLBuffer;
+      FInternalControlRectIgnore: Cardinal;
 
     procedure SetLineWidth(const Value: Single);
     procedure SetPointSize(const Value: Single);
@@ -159,6 +161,7 @@ type
     procedure SetPolygonOffset(const Value: TPolygonOffset);
     function GetBoundBuffer(const Target: TBufferTarget): TGLBuffer;
     procedure SetBoundBuffer(const Target: TBufferTarget; const Value: TGLBuffer);
+    procedure SetInternalControlRectIgnore(const Value: Cardinal);
 
     { Update OpenGL(ES) state to match the fields of this class.
       Used by SetXxx methods and by SynchronizeState. }
@@ -190,6 +193,38 @@ type
       of OpenGL glClear call.
       This is a bit slower, but makes it honor the stencil test. }
     InternalClearColorsByDraw: Boolean;
+
+    { Used only when we render into a rectangle within the context,
+      that doesn't necessarily cover the whole context.
+      In this case InternalControlRect has some useful (not empty) value.
+
+      Practically: this is used when rendering a TCastleControl in FMX
+      on Android or iOS, in which case we have context from the FMX framework
+      (that covers whole form), but we only want to render in our area.
+
+      All viewport and scissor coordinates should take this rect into account,
+      when it is not empty and InternalControlRectIgnore = 0.
+      Scissors must be shifted and cut according to this rect.
+      Viewport must be shifted according to this rect.
+      GL commands like glReadPixels should also take this rect into account.
+
+      This is applied when calling OpenGL(ES), but remains invisible
+      otherwise, e.g. our FinalScissor returns scissor @italic(without)
+      this applied. This way returned scissor is valid in TCastleContainer
+      coordinates.
+
+      We assume you change this field only before SynchronizeState,
+      then call SynchronizeState, and never change this during normal rendering.
+      So this is just a field, with no setter, it will just affect
+      all future viewport and scissor setting (including the ones done
+      by SynchronizeState). }
+    InternalControlRect: TRectangle;
+
+    { When non-zero, we are rendering to FBO and thus InternalControlRect
+      should be ignored. }
+    property InternalControlRectIgnore: Cardinal
+      read FInternalControlRectIgnore
+      write SetInternalControlRectIgnore;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -415,6 +450,7 @@ begin
   FPointSize := 1;
   FGlobalAmbient := Vector3(0.2, 0.2, 0.2);
   FEnabledScissors := TScissorList.Create(false);
+  FEnabledScissors.ParentContext := Self;
   FProjectionMatrix := TMatrix4.Identity;
   FDepthRange := drFull;
   FCullFace := false;
@@ -431,6 +467,8 @@ begin
   { the initial glAlphaFunc state is (GL_ALWAYS, 0), see https://docs.gl/gl3/glAlphaFunc,
     so be sure to call glAlphaFunc in 1st FixedFunctionAlphaTestEnable. }
   FFixedFunctionAlphaCutoff := -1;
+  FInternalControlRectIgnore := 0;
+  InternalControlRect := TRectangle.Empty;
 end;
 
 destructor TRenderContext.Destroy;
@@ -755,10 +793,17 @@ begin
 end;
 
 procedure TRenderContext.UpdateViewport;
+var
+  Delta: TVector2Integer;
 begin
+  Delta := FViewportDelta;
+  if (InternalControlRectIgnore = 0) and
+     (not InternalControlRect.IsEmpty) then
+    Delta := Delta + InternalControlRect.LeftBottom;
+
   glViewport(
-    FViewport.Left   + FViewportDelta.X,
-    FViewport.Bottom + FViewportDelta.Y,
+    FViewport.Left   + Delta.X,
+    FViewport.Bottom + Delta.Y,
     FViewport.Width,
     FViewport.Height);
 end;
@@ -1052,6 +1097,16 @@ begin
   glBindBuffer(BufferTargetGL[Target], Value);
 end;
 
+procedure TRenderContext.SetInternalControlRectIgnore(const Value: Cardinal);
+begin
+  if FInternalControlRectIgnore <> Value then
+  begin
+    FInternalControlRectIgnore := Value;
+    FEnabledScissors.Update;
+    UpdateViewport;
+  end;
+end;
+
 procedure TRenderContext.SynchronizeState;
 var
   S: TScissor;
@@ -1094,9 +1149,15 @@ procedure TRenderContext.TScissorList.Update;
 var
   R: TRectangle;
   I: Integer;
+  UseControlRect: Boolean;
 begin
   // we need to flush batched things, before scissor change
   TDrawableImage.BatchingFlush;
+
+  UseControlRect :=
+    (ParentContext.InternalControlRectIgnore = 0) and
+    (not ParentContext.InternalControlRect.IsEmpty);
+  R := TRectangle.Empty;
 
   if Count <> 0 then
   begin
@@ -1104,6 +1165,21 @@ begin
     for I := 1 to Count - 1 do
       R := R * Items[I].Rect;
     FFinalScissor := R;
+
+    { Apply InternalControlRect after FFinalScissor is set,
+      so that FFinalScissor is not affected by the InternalControlRect value. }
+    if UseControlRect then
+    begin
+      R.Left   := R.Left   + ParentContext.InternalControlRect.Left;
+      R.Bottom := R.Bottom + ParentContext.InternalControlRect.Bottom;
+      R := R * ParentContext.InternalControlRect;
+    end;
+  end else
+  if UseControlRect then
+    R := ParentContext.InternalControlRect;
+
+  if (Count <> 0) or UseControlRect then
+  begin
     glScissor(R.Left, R.Bottom, R.Width, R.Height);
     glEnable(GL_SCISSOR_TEST);
   end else
