@@ -24,6 +24,7 @@ type
     CastleControl1: TCastleControl;
     LocationSensor1: TLocationSensor;
     procedure FormCreate(Sender: TObject);
+    procedure FormSafeAreaChanged(Sender: TObject; const AInsets: TRectF);
     procedure ButtonTestLocationClick(Sender: TObject);
     procedure LocationSensor1LocationChanged(Sender: TObject;
       const OldLocation, NewLocation: TLocationCoord2D);
@@ -72,6 +73,16 @@ begin
     Result := FormatFloat('0.00', Value) + Suffix;
 end;
 
+procedure TForm1.FormSafeAreaChanged(Sender: TObject; const AInsets: TRectF);
+begin
+  { On mobile, FMX form fills the whole screen, also the area under
+    the status bar, notch etc. FMX tells us the sizes of these areas
+    (AInsets is not a real rectangle, it contains the size of the inset
+    from each side). Use them as the form padding, to move all the form
+    contents (FMX labels and TCastleControl) to the safe area. }
+  Padding.Rect := AInsets;
+end;
+
 procedure TForm1.FormCreate(Sender: TObject);
 begin
   CastleControl1.Container.LoadSettings('castle-data:/CastleSettings.xml');
@@ -84,6 +95,10 @@ begin
 
   { Assign event to some OnUpdate, to update FPS display. }
   LabelFps.OnUpdate := DoUpdate;
+
+  { Make CastleControl1 handle touches with multiple fingers.
+    This makes the pinch gesture (to zoom) work in TCastleExamineNavigation. }
+  CastleControl1.MultiTouchOnForm(Self);
 
   { Ask user for the permission to access the location.
     The result (also when the permission is already granted)

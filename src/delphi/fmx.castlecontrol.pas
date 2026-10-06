@@ -62,11 +62,11 @@ uses // standard units
   SysUtils, Classes,
   // fmx
   {$ifdef MSWINDOWS} FMX.Presentation.Win, {$endif}
-  FMX.Controls, FMX.Controls.Presentation, FMX.Types, UITypes,
+  FMX.Controls, FMX.Controls.Presentation, FMX.Types, FMX.Forms, UITypes,
   // cge
   CastleGLVersion, CastleGLUtils, CastleVectors, CastleKeysMouse,
   CastleInternalContextBase, CastleControlContainer, CastleInternalFmxUtils,
-  CastleRenderContext;
+  CastleRenderContext, CastleFmxUtils;
 
 type
   { Control rendering "Castle Game Engine" on FMX form. }
@@ -99,6 +99,17 @@ type
     var
       FContainer: TContainer;
       FGLUtility: TFmxOpenGLUtility;
+      { Did we call MultiTouchOnForm. }
+      FMultiTouch: Boolean;
+      { Non-nil only when FMultiTouch. }
+      FTouchDispatcher: TFmxTouchDispatcher;
+
+    { Is this finger currently pressed, according to Container.Touches. }
+    function TouchPressed(const FingerIndex: TFingerIndex): Boolean;
+    procedure TouchDown(const FingerIndex: TFingerIndex; const Position: TVector2);
+    procedure TouchUp(const FingerIndex: TFingerIndex; const Position: TVector2);
+    procedure TouchMotion(const FingerIndex: TFingerIndex;
+      const OldPosition, NewPosition: TVector2);
 
     function GetCurrentShift: TShiftState;
     procedure SetCurrentShift(const Value: TShiftState);
@@ -141,6 +152,23 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Paint; override;
+
+    { Handle touches with multiple fingers (on platforms that support it,
+      like Android and iOS).
+
+      Without calling this, we only handle mouse events, and FMX reports
+      only the first finger as a mouse.
+
+      Pass the form on which this control is placed. We need to listen
+      on the form OnTouch event, as this is the only way to get information
+      about all the touches from FMX. So calling this method assigns Form.OnTouch,
+      you should not assign it to anything else afterwards.
+      This means you can call this method for only one TCastleControl on a form.
+
+      After calling this, we ignore the mouse events that FMX generates
+      for touches (as we get the same information through Form.OnTouch).
+      We still handle the events from a real mouse. }
+    procedure MultiTouchOnForm(const Form: TForm);
 
     { If Handle not allocated yet, allocate it now.
       This makes sure we have OpenGL context created.
@@ -198,7 +226,7 @@ procedure Register;
 
 implementation
 
-uses FMX.Presentation.Factory, Types, FMX.Graphics, FMX.Forms,
+uses FMX.Presentation.Factory, Types, FMX.Graphics,
   CastleRenderOptions, CastleApplicationProperties,
   CastleRectangles, CastleUtils, CastleUIControls, CastleInternalDelphiUtils,
   CastleLog;
@@ -378,6 +406,7 @@ end;
 
 destructor TCastleControl.Destroy;
 begin
+  FreeAndNil(FTouchDispatcher);
   FreeAndNil(FGLUtility);
   inherited;
 end;
@@ -629,6 +658,73 @@ begin
   Result := Vector2(X, Height - 1 - Y) * FGLUtility.Scale;
 end;
 
+procedure TCastleControl.MultiTouchOnForm(const Form: TForm);
+begin
+  if FTouchDispatcher = nil then
+  begin
+    FTouchDispatcher := TFmxTouchDispatcher.Create;
+    FTouchDispatcher.PositionsInControl := Self;
+    FTouchDispatcher.OnDown := TouchDown;
+    FTouchDispatcher.OnUp := TouchUp;
+    FTouchDispatcher.OnMotion := TouchMotion;
+  end;
+  FTouchDispatcher.AttachToForm(Form);
+  Form.OnTouch := FTouchDispatcher.FormTouch;
+  FMultiTouch := true;
+end;
+
+function TCastleControl.TouchPressed(const FingerIndex: TFingerIndex): Boolean;
+var
+  I: Integer;
+begin
+  for I := 0 to Container.TouchesCount - 1 do
+    if Container.Touches[I].FingerIndex = FingerIndex then
+      Exit(true);
+  Result := false;
+end;
+
+procedure TCastleControl.TouchDown(const FingerIndex: TFingerIndex;
+  const Position: TVector2);
+begin
+  { FTouchDispatcher reports all touches on the form.
+    Ignore the touches that start outside of this control,
+    e.g. on other FMX controls on the same form. }
+  if (Position.X < 0) or (Position.X > Width) or
+     (Position.Y < 0) or (Position.Y > Height) then
+    Exit;
+
+  Container.EventPress(InputMouseButton(
+    MousePosToCastle(Position.X, Position.Y), buttonLeft, FingerIndex,
+    ModifiersDown(Container.Pressed)));
+end;
+
+procedure TCastleControl.TouchUp(const FingerIndex: TFingerIndex;
+  const Position: TVector2);
+begin
+  // Ignore fingers for which we ignored TouchDown
+  if not TouchPressed(FingerIndex) then
+    Exit;
+
+  Container.EventRelease(InputMouseButton(
+    MousePosToCastle(Position.X, Position.Y), buttonLeft, FingerIndex,
+    ModifiersDown(Container.Pressed)));
+end;
+
+procedure TCastleControl.TouchMotion(const FingerIndex: TFingerIndex;
+  const OldPosition, NewPosition: TVector2);
+begin
+  // Ignore fingers for which we ignored TouchDown
+  if not TouchPressed(FingerIndex) then
+    Exit;
+
+  Container.EventMotion(InputMotion(
+    MousePosToCastle(OldPosition.X, OldPosition.Y),
+    MousePosToCastle(NewPosition.X, NewPosition.Y),
+    { Just like TCastleWindow.TouchMotion,
+      we consider buttonLeft pressed if you press any finger. }
+    Container.MousePressed + [buttonLeft], FingerIndex));
+end;
+
 procedure TCastleControl.MouseDown(Button: TMouseButton; Shift: TShiftState; X,
   Y: Single);
 var
@@ -642,6 +738,12 @@ begin
   { This updates Container.Pressed.
     Do this before using ModifiersDown(Container.Pressed) below. }
   CurrentShift := Shift;
+
+  { When FMultiTouch, touches are handled by TouchDown / TouchUp / TouchMotion.
+    Ignore mouse events that FMX generates for touches, to not handle
+    them twice. We still handle the events from a real mouse. }
+  if FMultiTouch and (ssTouch in Shift) then
+    Exit;
 
   if MouseButtonToCastle(Button, CastleButton) then
   begin
@@ -658,6 +760,10 @@ begin
     Do this before using ModifiersDown(Container.Pressed) below. }
   CurrentShift := Shift;
 
+  // See MouseDown for explanation
+  if FMultiTouch and (ssTouch in Shift) then
+    Exit;
+
   Container.EventMotion(InputMotion(Container.MousePosition,
     MousePosToCastle(NewX, NewY), Container.MousePressed, 0));
 end;
@@ -672,6 +778,10 @@ begin
   { This updates Container.Pressed.
     Do this before using ModifiersDown(Container.Pressed) below. }
   CurrentShift := Shift;
+
+  // See MouseDown for explanation
+  if FMultiTouch and (ssTouch in Shift) then
+    Exit;
 
   if MouseButtonToCastle(Button, CastleButton) then
   begin
