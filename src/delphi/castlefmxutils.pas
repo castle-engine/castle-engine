@@ -222,6 +222,32 @@ begin
   Dialog.FilterIndex := OutFilterIndex;
 end;
 
+{ Convert a row of pixels from any FMX pixel format to RGBA (8 bits per channel).
+
+  This is like FMX.Types.ChangePixelFormat, but ChangePixelFormat is not
+  available in older Delphi versions (like 10.2), while
+  PixelToAlphaColor and AlphaColorToPixel used here are. }
+procedure ConvertScanlineToRgba(const Source, Dest: Pointer;
+  const PixelCount: Integer; const SourceFormat: TPixelFormat);
+var
+  SourcePixel, DestPixel: PByte;
+  SourcePixelSize, I: Integer;
+begin
+  SourcePixelSize := PixelFormatBytes[SourceFormat];
+  if SourcePixelSize < 1 then
+    raise Exception.Create('Cannot convert pixels of FMX bitmap, unsupported pixel format');
+
+  SourcePixel := Source;
+  DestPixel := Dest;
+  for I := 0 to PixelCount - 1 do
+  begin
+    AlphaColorToPixel(PixelToAlphaColor(SourcePixel, SourceFormat),
+      DestPixel, TPixelFormat.RGBA);
+    Inc(SourcePixel, SourcePixelSize);
+    Inc(DestPixel, 4);
+  end;
+end;
+
 function BitmapToCastleImage(const Bitmap: TBitmap): TRGBAlphaImage;
 var
   Data: TBitmapData;
@@ -245,8 +271,7 @@ begin
           // formats of TBitmapData and TRGBAlphaImage are equal, copy fast
           Move(Source^, Dest^, Data.Width * 4)
         else
-          ChangePixelFormat(Source, Dest, Data.Width,
-            Data.PixelFormat, TPixelFormat.RGBA);
+          ConvertScanlineToRgba(Source, Dest, Data.Width, Data.PixelFormat);
       end;
     except
       FreeAndNil(Result);
