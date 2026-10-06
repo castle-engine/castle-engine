@@ -45,6 +45,7 @@ implementation
     - Windows
     - Linux
     - iOS
+    - Android
 
     Doesn't require any external DLLs on Windows.
 
@@ -78,6 +79,10 @@ uses URIParser, Math, Generics.Collections,
   {$if defined(VER3_2) and defined(DARWIN) and not defined(CASTLE_IOS)}
     { for ESocketError } SSockets,
   {$endif}
+  { Unit used by TUrlCastleAndroidAssets, by both FPC and Delphi.
+    This unit is needed independently from how we handle http URLs
+    (which differs between FPC and Delphi). }
+  {$ifdef ANDROID} CastleAndroidInternalAssetStream, {$endif}
   CastleUtils, CastleLog, CastleInternalZStream,
   CastleClassUtils, CastleInternalDataUri, CastleStringUtils,
   CastleInternalDirectoryInformation, CastleApplicationProperties,

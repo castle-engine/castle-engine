@@ -384,7 +384,7 @@ begin
 
     // register default protocols handled in this unit
 
-    {$if defined(ANDROID)}
+    {$if defined(ANDROID) and defined(FPC)}
     // http(s) using Android service
     P := FRegisteredProtocols.Add('http');
     P.AsynchronousReader := THttpAndroidReader;

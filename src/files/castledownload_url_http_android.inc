@@ -14,12 +14,18 @@
   ----------------------------------------------------------------------------
 }
 
-{ Handle http, https URLs using Android service. }
+{ Handle http, https URLs using Android service.
 
-{$ifdef ANDROID}
+  Only for FPC: this communicates (using CastleMessaging) with the Java
+  service "download_urls" that is part of the Android application
+  built by our build tool. Applications built using Delphi for Android
+  don't have this service (and CastleMessaging does nothing there),
+  so they use TDelphiHttpReader instead, just like Delphi on other platforms. }
+
+{$if defined(ANDROID) and defined(FPC)}
 
 {$ifdef read_implementation_uses}
-CastleAndroidInternalAssetStream, CastleMessaging,
+CastleMessaging,
 {$endif read_implementation_uses}
 
 {$ifdef read_implementation}
@@ -220,5 +226,5 @@ end;
 
 {$endif read_implementation}
 
-{$endif ANDROID}
+{$endif defined(ANDROID) and defined(FPC)}
 
