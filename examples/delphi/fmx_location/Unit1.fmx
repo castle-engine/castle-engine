@@ -1,0 +1,117 @@
+object Form1: TForm1
+  Left = 0
+  Top = 0
+  Caption = 'Location in FMX + Castle Game Engine'
+  ClientHeight = 640
+  ClientWidth = 360
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  DesignerMasterStyle = 0
+  object LayoutInfo: TLayout
+    Align = Top
+    Padding.Left = 8.000000000000000000
+    Padding.Top = 4.000000000000000000
+    Padding.Right = 8.000000000000000000
+    Padding.Bottom = 4.000000000000000000
+    Size.Width = 360.000000000000000000
+    Size.Height = 202.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    object LabelStatus: TLabel
+      Align = Top
+      Position.X = 8.000000000000000000
+      Position.Y = 4.000000000000000000
+      Size.Width = 344.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Waiting for location...'
+      TabOrder = 0
+    end
+    object LabelLatitude: TLabel
+      Align = Top
+      Position.X = 8.000000000000000000
+      Position.Y = 26.000000000000000000
+      Size.Width = 344.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Latitude: -'
+      TabOrder = 1
+    end
+    object LabelLongitude: TLabel
+      Align = Top
+      Position.X = 8.000000000000000000
+      Position.Y = 48.000000000000000000
+      Size.Width = 344.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Longitude: -'
+      TabOrder = 2
+    end
+    object LabelAltitude: TLabel
+      Align = Top
+      Position.X = 8.000000000000000000
+      Position.Y = 70.000000000000000000
+      Size.Width = 344.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Altitude: -'
+      TabOrder = 3
+    end
+    object LabelSpeed: TLabel
+      Align = Top
+      Position.X = 8.000000000000000000
+      Position.Y = 92.000000000000000000
+      Size.Width = 344.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Speed: -'
+      TabOrder = 4
+    end
+    object LabelHeading: TLabel
+      Align = Top
+      Position.X = 8.000000000000000000
+      Position.Y = 114.000000000000000000
+      Size.Width = 344.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Heading: -'
+      TabOrder = 5
+    end
+    object LabelAccuracy: TLabel
+      Align = Top
+      Position.X = 8.000000000000000000
+      Position.Y = 136.000000000000000000
+      Size.Width = 344.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Accuracy: -'
+      TabOrder = 6
+    end
+    object ButtonTestLocation: TButton
+      Align = Top
+      Position.X = 8.000000000000000000
+      Position.Y = 158.000000000000000000
+      Size.Width = 344.000000000000000000
+      Size.Height = 40.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 7
+      Text = 'Test: Show Warsaw (without using GPS)'
+      OnClick = ButtonTestLocationClick
+    end
+  end
+  object CastleControl1: TCastleControl
+    Container.DesignUrl = 'castle-data:/main.castle-user-interface'
+    Align = Client
+    Size.Width = 360.000000000000000000
+    Size.Height = 438.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+  end
+  object LocationSensor1: TLocationSensor
+    OnLocationChanged = LocationSensor1LocationChanged
+    Left = 24
+    Top = 240
+  end
+end

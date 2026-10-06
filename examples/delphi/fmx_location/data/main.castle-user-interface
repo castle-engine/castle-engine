@@ -38,17 +38,65 @@
             },
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
-              "Z" : 6.0000000000000000E+000
+              "Z" : 3.5000000000000000E+000
             }
           },
           {
-            "$$ClassName" : "TCastleScene",
-            "ExposeTransforms" : [
-            ],
-            "Name" : "SceneBox",
+            "$$ClassName" : "TCastleSphere",
+            "Material" : "pmUnlit",
+            "Name" : "Earth",
             "RenderOptions" : {
               "$$ClassName" : "TCastleScene.TSceneRenderOptions"
-            }
+            },
+            "Slices" : 64,
+            "Stacks" : 32,
+            "Texture" : "castle-data:/earth.jpg",
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastleTransform",
+                "Exists" : false,
+                "Name" : "Pin",
+                "$Children" : [
+                  {
+                    "$$ClassName" : "TCastleCylinder",
+                    "ColorPersistent" : {
+                      "$$ClassName" : "TCastleColorPersistent",
+                      "Blue" : 1.0000000149011612E-001,
+                      "Green" : 1.5000000596046448E-001
+                    },
+                    "Height" : 4.0000000596046448E-001,
+                    "Material" : "pmUnlit",
+                    "Name" : "PinStick",
+                    "Radius" : 9.9999997764825821E-003,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "Y" : 1.2000000476837158E+000
+                    }
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphere",
+                    "ColorPersistent" : {
+                      "$$ClassName" : "TCastleColorPersistent",
+                      "Blue" : 1.0000000149011612E-001,
+                      "Green" : 1.5000000596046448E-001
+                    },
+                    "Material" : "pmUnlit",
+                    "Name" : "PinHead",
+                    "Radius" : 3.9999999105930328E-002,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "Y" : 1.3999999761581421E+000
+                    }
+                  }
+                ]
+              }
+            ]
           }
         ]
       },
@@ -58,31 +106,7 @@
           "$$ClassName" : "TCastleExamineNavigation",
           "Name" : "ExamineNavigation1"
         }
-      ],
-      "InternalDesignCamera" : {
-        "$$ClassName" : "TCastleCamera",
-        "Name" : "",
-        "Orthographic" : {
-          "$$ClassName" : "TCastleOrthographic"
-        },
-        "Perspective" : {
-          "$$ClassName" : "TCastlePerspective"
-        }
-      },
-      "InternalDesignNavigations[dnFly]" : {
-        "$$ClassName" : "TCastleWalkNavigationDesign",
-        "Name" : ""
-      },
-      "InternalDesignNavigations[dnExamine]" : {
-        "$$ClassName" : "TCastleExamineNavigationDesign",
-        "Exists" : false,
-        "Name" : ""
-      },
-      "InternalDesignNavigations[dn2D]" : {
-        "$$ClassName" : "TCastle2DNavigationDesign",
-        "Exists" : false,
-        "Name" : ""
-      }
+      ]
     },
     {
       "$$ClassName" : "TCastleLabel",
