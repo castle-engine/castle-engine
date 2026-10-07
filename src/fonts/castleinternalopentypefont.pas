@@ -1481,10 +1481,12 @@ begin
 
     if FirstOn = -1 then
     begin
-      { all points off-curve: start at the middle of the first two }
+      { All points off-curve: start at the middle of the first two.
+        Then iterate starting from the 2nd point, so that the 1st point
+        is processed last, and is the control point of the closing curve. }
       BeginX := (Points.X[Start] + Points.X[Start + (1 mod N)]) / 2;
       BeginY := (Points.Y[Start] + Points.Y[Start + (1 mod N)]) / 2;
-      Offset := 0;
+      Offset := 1;
     end else
     begin
       BeginX := Points.X[Start + FirstOn];
