@@ -333,7 +333,8 @@ contains
   castletransformmanipulate in '..\..\src\scene\castletransformmanipulate.pas',
   castleinternaltransformdata in '..\..\src\scene\castleinternaltransformdata.pas',
   castleinternalsteamapi in '..\..\src\services\steam\castleinternalsteamapi.pas',
-  castlesteam in '..\..\src\services\steam\castlesteam.pas';
+  castlesteam in '..\..\src\services\steam\castlesteam.pas',
+  castlegles in '..\..\src\base_rendering\castlegles.pas';
 
 end.
 

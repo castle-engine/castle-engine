@@ -724,9 +724,6 @@ begin
       'src/base/castlesystemlanguage.pas',
       'src/files/castlelocalizationgettext.pas',
 
-      // TODO: OpenGLES (mobile) is not yet supported with Delphi
-      'src/base_rendering/castlegles.pas',
-
       // TODO: CastleScript is not yet fully supported with Delphi
       'src/castlescript/castlescriptxml.pas',
 
