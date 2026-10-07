@@ -104,19 +104,6 @@ castle-game-engine-*.fpm
 /tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/GameAnalytics.h
 /tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/libGameAnalytics.a
 
-# deprecated_library artifacts
-/examples/deprecated_library/build-qt_library_tester-*
-/examples/deprecated_library/qt_library_tester/build
-/examples/deprecated_library/cpp_winapi_library_tester/Debug
-/examples/deprecated_library/cpp_winapi_library_tester/Release
-/examples/deprecated_library/cpp_winapi_library_tester/x64
-/examples/deprecated_library/lazarus_library_tester/*.app
-/examples/deprecated_library/lazarus_library_tester/cge_dynlib_tester
-/src/deprecated_library/build-*
-/src/deprecated_library/ios-output/
-/src/deprecated_library/libcastleengine.dylib
-/src/deprecated_library/libcastleengine.so
-
 # Lazarus packages artifacts
 /packages/lazarus/*castle_engine*.pas
 /packages/lazarus/lib/

@@ -222,11 +222,7 @@ endif
 
 EXAMPLES_BASE_NAMES :=
 
-# Note that src/deprecated_library/castleengine must be compiled before
-# cge_dynlib_tester, otherwise linking cge_dynlib_tester will fail.
-EXAMPLES_LAZARUS_BASE_NAMES := \
-  src/deprecated_library/castleengine \
-  examples/deprecated_library/lazarus_library_tester/cge_dynlib_tester
+EXAMPLES_LAZARUS_BASE_NAMES := 
 
 EXAMPLES_UNIX_EXECUTABLES := $(EXAMPLES_BASE_NAMES) \
   $(EXAMPLES_LAZARUS_BASE_NAMES)
@@ -283,9 +279,6 @@ examples: prepare-examples
 #
 # - tests/delphi_tests: because it requires Delphi, which is not available on non-Windows.
 #
-# - examples/deprecated_library: bacause it requires library first (we could build it..
-#   but it is already tested by examples-laz).
-#
 # - tools/build-tool: because
 #   - compilation is tested by "make tools" already,
 #   - we don't want to clean it, to have it available for "make test-editor-templates" after this
@@ -300,7 +293,6 @@ examples: prepare-examples
 	  '(' -path ./tools/build-tool -prune ')' -o \
 	  '(' -path ./tests/delphi_tests -prune ')' -o \
 	  '(' -path ./examples/delphi -prune ')' -o \
-	  '(' -path ./examples/deprecated_library/lazarus_library_tester -prune ')' -o \
 	  '(' -type d -iname castle-engine-output -prune ')' -o \
 	  '(' -type f -iname CastleEngineManifest.xml -print ')' > \
 	  /tmp/cge-projects.txt
@@ -366,7 +358,6 @@ examples-delphi: prepare-examples
 	  '(' -path ./examples/audio/audio_player -prune ')' -o \
 	  '(' -path ./examples/audio/test_sound_source_allocator -prune ')' -o \
 	  '(' -path ./examples/deprecated_random_generator -prune ')' -o \
-	  '(' -path ./examples/deprecated_library -prune ')' -o \
 	  '(' -path ./examples/lazarus -prune ')' -o \
 	  '(' -path ./examples/delphi/cpp_builder -prune ')' -o \
 	  $${EXCLUDE_BY_DELPHI_VERSION} \
@@ -395,7 +386,6 @@ examples-laz: prepare-examples
 	  '(' -path ./tools/castle-editor-portable/data/project_templates -prune ')' -o \
 	  '(' -path ./tools/build-tool/tests/data -prune ')' -o \
 	  '(' -path ./tools/build-tool/data -prune ')' -o \
-	  '(' -path ./examples/deprecated_library -prune ')' -o \
 	  '(' -path ./tools/castle-editor/components/mbColorLib/examples -prune ')' -o \
 	  '(' -path ./src/compatibility/web_assembly -prune ')' -o \
 	  '(' -iname '*.lpi' -print ')'  > \
@@ -414,8 +404,6 @@ examples-laz: prepare-examples
 cleanexamples:
 	rm -f $(EXAMPLES_UNIX_EXECUTABLES) $(EXAMPLES_WINDOWS_EXECUTABLES)
 	rm -Rf \
-	  examples/deprecated_library/build-qt_library_tester-* \
-	  examples/deprecated_library/lazarus_library_tester/*.app  \
 	  examples/fonts/font_draw_over_image_output.png \
 	  examples/short_api_samples/transform_save_load/aaa.castle-transform
 # lazarus produces lib/ subdirectories during compilation
@@ -480,10 +468,6 @@ clean: cleanexamples
 	$(MAKE) -C doc/man/man1/ clean
 # fpmake stuff (binary, units/ produced by fpmake compilation, configs)
 	rm -Rf fpmake fpmake.exe units/ *.fpm .fppkg .config
-	rm -Rf src/deprecated_library/ios-output/\
-	       src/deprecated_library/libcastleengine.dylib \
-	       src/deprecated_library/castleengine.dll \
-	       src/deprecated_library/libcastleengine.so
 # Clean every project with CastleEngineManifest.xml .
 #
 # Avoid a project in project_templates,

@@ -237,11 +237,6 @@
   strict private
   end;
 
-  { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPreDefinedItem.htm IfcPreDefinedItem). }
-  TIfcPreDefinedItem = class abstract(TIfcPresentationItem)
-  strict private
-  end;
-
   { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPreDefinedProperties.htm IfcPreDefinedProperties). }
   TIfcPreDefinedProperties = class abstract(TIfcPropertyAbstraction)
   strict private
@@ -599,11 +594,6 @@
 
   { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTextureCoordinateGenerator.htm IfcTextureCoordinateGenerator). }
   TIfcTextureCoordinateGenerator = class(TIfcTextureCoordinate)
-  strict private
-  end;
-
-  { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTextStyle.htm IfcTextStyle). }
-  TIfcTextStyle = class(TIfcPresentationStyle)
   strict private
   end;
 
@@ -2792,11 +2782,6 @@
   strict private
   end;
 
-  { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPreDefinedTextFont.htm IfcPreDefinedTextFont). }
-  TIfcPreDefinedTextFont = class abstract(TIfcPreDefinedItem)
-  strict private
-  end;
-
   { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcProcedureType.htm IfcProcedureType). }
   TIfcProcedureType = class(TIfcTypeProcess)
   strict private
@@ -2889,11 +2874,6 @@
 
   { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcBorehole.htm IfcBorehole). }
   TIfcBorehole = class(TIfcGeotechnicalAssembly)
-  strict private
-  end;
-
-  { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTextStyleFontModel.htm IfcTextStyleFontModel). }
-  TIfcTextStyleFontModel = class(TIfcPreDefinedTextFont)
   strict private
   end;
 
@@ -3311,7 +3291,6 @@
   FIfcClasses.Add(TIfcPropertyBoundedValue);
   FIfcClasses.Add(TIfcPropertyEnumeratedValue);
   FIfcClasses.Add(TIfcPresentationLayerWithStyle);
-  FIfcClasses.Add(TIfcPreDefinedItem);
   FIfcClasses.Add(TIfcPreDefinedProperties);
   FIfcClasses.Add(TIfcPreDefinedPropertySet);
   FIfcClasses.Add(TIfcProtectiveDeviceTrippingUnitType);
@@ -3384,7 +3363,6 @@
   FIfcClasses.Add(TIfcTextStyleForDefinedFont);
   FIfcClasses.Add(TIfcTextStyleTextModel);
   FIfcClasses.Add(TIfcTextureCoordinateGenerator);
-  FIfcClasses.Add(TIfcTextStyle);
   FIfcClasses.Add(TIfcTendonConduitType);
   FIfcClasses.Add(TIfcTendonType);
   FIfcClasses.Add(TIfcTimeSeries);
@@ -3822,7 +3800,6 @@
   FIfcClasses.Add(TIfcDamper);
   FIfcClasses.Add(TIfcDamperType);
   FIfcClasses.Add(TIfcPreDefinedCurveFont);
-  FIfcClasses.Add(TIfcPreDefinedTextFont);
   FIfcClasses.Add(TIfcProcedureType);
   FIfcClasses.Add(TIfcProcedure);
   FIfcClasses.Add(TIfcInterceptorType);
@@ -3842,7 +3819,6 @@
   FIfcClasses.Add(TIfcWorkPlan);
   FIfcClasses.Add(TIfcGeomodel);
   FIfcClasses.Add(TIfcBorehole);
-  FIfcClasses.Add(TIfcTextStyleFontModel);
   FIfcClasses.Add(TIfcBSplineSurface);
   FIfcClasses.Add(TIfcLaborResourceType);
   FIfcClasses.Add(TIfcGeoslice);

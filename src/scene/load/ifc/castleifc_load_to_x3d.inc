@@ -1836,6 +1836,8 @@ var
   Lines: TCastleStringList;
   Translation: TVector3;
   Rotation: TVector4;
+  FontStyle: TFontStyleNode;
+  FontSize: Single;
 begin
   TextNode := TTextNode.Create('', Mapping.BaseUrl);
 
@@ -1849,11 +1851,23 @@ begin
   finally FreeAndNil(Lines) end;
 
   TextNode.Solid := false;
-  TextNode.FontStyle := TextLiteralFontStyle(Mapping.BaseUrl, Path, GetBoxAlignment);
+  FontStyle := TextLiteralFontStyle(Mapping.BaseUrl, Path, GetBoxAlignment);
+  { Use font size from IfcTextStyle }
+  if TryGetFontSize(FontSize) then
+  begin
+    if FontSize > 0 then
+      FontStyle.Size := FontSize
+    else
+      WritelnWarning('IFC', 'Invalid (non-positive) font size %f of text "%s", ignoring', [
+        FontSize,
+        Literal
+      ]);
+  end;
+  TextNode.FontStyle := FontStyle;
 
   Shape := TShapeNode.Create('', Mapping.BaseUrl);
   Shape.Geometry := TextNode;
-  Shape.Appearance := LitAppearance;
+  Shape.Appearance := UnlitAppearance;
   SetMetadata(Shape, 'IFC_ClassName', ClassName);
 
   Mapping.ConnectShapeAndProduct(Shape, ParentProduct);

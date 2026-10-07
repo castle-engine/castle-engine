@@ -31,8 +31,12 @@ type
       the X3D font style of each TTextNode, by text contents.
       Each item is "text=font style description", see FontStyleDescription. }
     FoundFontStyles: TStringList;
+    { Used by TestTextStyleFontSize to gather the X3D font size of each
+      TTextNode, by text contents. Each item is "text=font size". }
+    FoundFontSizes: TStringList;
     procedure GatherTextNode(Node: TX3DNode);
     procedure GatherTextNodeFontStyle(Node: TX3DNode);
+    procedure GatherTextNodeFontSize(Node: TX3DNode);
   published
     procedure TestIfcClasses;
     procedure TestIfcClassesNoDuplicates;
@@ -41,6 +45,7 @@ type
     procedure TestTextLiteral;
     procedure TestTextLiteralAlignment;
     procedure TestUtf8Escapes;
+    procedure TestTextStyleFontSize;
   end;
 
 implementation
@@ -479,6 +484,174 @@ begin
     AssertEquals(SampleText, IfcFile.Project.Name);
     AssertEquals(SampleText, IfcFile.Project.Description);
   finally FreeAndNil(IfcFile) end;
+end;
+
+procedure TTestCastleIfc.GatherTextNodeFontSize(Node: TX3DNode);
+var
+  TextNode: TTextNode;
+begin
+  TextNode := Node as TTextNode;
+  AssertTrue(TextNode.FontStyle is TFontStyleNode);
+  FoundFontSizes.Add(
+    GlueStrings(TextNode.FdString.Items, '|') + '=' +
+    FormatDot('%.2f', [TFontStyleNode(TextNode.FontStyle).Size]));
+end;
+
+{ Test IfcTextStyle with IfcTextStyleFontModel.FontSize, assigned to
+  IfcTextLiteralWithExtent by IfcStyledItem.
+  The texts are inside IfcAnnotation, in a representation using
+  IfcGeometricRepresentationSubContext (like BonsaiBIM does).
+
+  Also tests that IfcGeometricRepresentationSubContext, referenced
+  multiple times, can be saved to IFC JSON (it must have GlobalId,
+  this was a bug in the past), and that it doesn't store the attributes
+  derived from the parent context. }
+procedure TTestCastleIfc.TestTextStyleFontSize;
+
+  { Add an IfcAnnotation with IfcTextLiteralWithExtent.
+    FontSize = 0 means to not set the font size. }
+  procedure AddText(const IfcFile: TIfcFile;
+    const Container: TIfcSpatialElement;
+    const Context: TIfcGeometricRepresentationSubContext;
+    const Literal: String; const FontSize: Single);
+  var
+    TextLiteral: TIfcTextLiteralWithExtent;
+    Placement: TIfcAxis2Placement3D;
+    Representation: TIfcShapeRepresentation;
+    Annotation: TIfcAnnotation;
+  begin
+    Placement := TIfcAxis2Placement3D.Create(IfcFile);
+    Placement.Location := TIfcCartesianPoint.CreateVector(IfcFile, TVector3.Zero);
+
+    TextLiteral := TIfcTextLiteralWithExtent.Create(IfcFile);
+    TextLiteral.Literal := Literal;
+    TextLiteral.Placement := Placement;
+    TextLiteral.Extent := TIfcPlanarExtent.Create(IfcFile);
+    TextLiteral.Extent.SizeInX := 10;
+    TextLiteral.Extent.SizeInY := 1;
+    TextLiteral.BoxAlignment := 'bottom-left';
+    if FontSize <> 0 then
+      TextLiteral.SetFontSize(FontSize);
+
+    Representation := TIfcShapeRepresentation.Create(IfcFile);
+    Representation.RepresentationIdentifier := 'Annotation';
+    Representation.RepresentationType := 'Annotation2D';
+    Representation.ContextOfItems := Context;
+    Representation.Items.Add(TextLiteral);
+    Context.RepresentationsInContext.Add(Representation);
+
+    Annotation := TIfcAnnotation.Create(IfcFile);
+    Annotation.Name := Literal;
+    Annotation.ObjectType := 'TEXT';
+    Annotation.Representation := TIfcProductDefinitionShape.Create(IfcFile);
+    Annotation.Representation.Representations.Add(Representation);
+    Representation.OfProductRepresentation.Add(Annotation.Representation);
+
+    Container.AddContainedElement(Annotation);
+  end;
+
+  function CreateIfcFile: TIfcFile;
+  var
+    Site: TIfcSite;
+    Building: TIfcBuilding;
+    Storey: TIfcBuildingStorey;
+    Context: TIfcGeometricRepresentationSubContext;
+  begin
+    Result := TIfcFile.Create(nil);
+    Result.Project := TIfcProject.Create(Result);
+    Result.Project.SetupUnits;
+    Result.Project.SetupModelContext;
+
+    Site := TIfcSite.Create(Result);
+    Result.Project.AddIsDecomposedBy(Site);
+    Building := TIfcBuilding.Create(Result);
+    Site.AddIsDecomposedBy(Building);
+    Storey := TIfcBuildingStorey.Create(Result);
+    Building.AddIsDecomposedBy(Storey);
+
+    Context := TIfcGeometricRepresentationSubContext.Create(Result);
+    Context.ContextIdentifier := 'Annotation';
+    Context.ContextType := TIfcGeometricRepresentationContext.TypeModel;
+    Context.ParentContext := Result.Project.ModelContext;
+    Context.TargetView := TIfcGeometricProjectionEnum.Model_View;
+    Result.Project.ModelContext.HasSubContexts.Add(Context);
+
+    { 2 texts, so the subcontext is referenced from 2 representations. }
+    AddText(Result, Storey, Context, 'sized', 2.5);
+    AddText(Result, Storey, Context, 'default size', 0);
+  end;
+
+  { Check the font sizes, by Pascal API and in X3D. }
+  procedure CheckFontSizes(const IfcFile: TIfcFile);
+  var
+    I, TextLiteralsCount: Integer;
+    TextLiteral: TIfcTextLiteral;
+    Size: Single;
+    RootNode: TX3DRootNode;
+  begin
+    TextLiteralsCount := 0;
+    for I := 0 to IfcFile.ComponentCount - 1 do
+      if IfcFile.Components[I] is TIfcTextLiteral then
+      begin
+        Inc(TextLiteralsCount);
+        TextLiteral := TIfcTextLiteral(IfcFile.Components[I]);
+        if TextLiteral.Literal = 'sized' then
+        begin
+          AssertTrue(TextLiteral.TryGetFontSize(Size));
+          AssertSameValue(2.5, Size);
+        end else
+        begin
+          AssertEquals('default size', TextLiteral.Literal);
+          AssertFalse(TextLiteral.TryGetFontSize(Size));
+        end;
+      end;
+    AssertEquals(2, TextLiteralsCount);
+
+    FoundFontSizes.Clear;
+    RootNode := IfcToX3D(IfcFile, '');
+    try
+      RootNode.EnumerateNodes(TTextNode,
+        {$ifdef FPC}@{$endif} GatherTextNodeFontSize, false);
+    finally FreeAndNil(RootNode) end;
+    AssertEquals(2, FoundFontSizes.Count);
+    AssertEquals('2.50', FoundFontSizes.Values['sized']);
+    AssertEquals('1.00', FoundFontSizes.Values['default size']); // X3D default
+  end;
+
+  function CountOccurrences(const SubText, Text: String): Integer;
+  begin
+    Result := (Length(Text) -
+      Length(StringReplace(Text, SubText, '', [rfReplaceAll]))) div Length(SubText);
+  end;
+
+var
+  IfcFile, IfcFileFromSaved: TIfcFile;
+  Json: TJsonObject;
+  JsonText: String;
+begin
+  FoundFontSizes := TStringList.Create;
+  try
+    IfcFile := CreateIfcFile;
+    try
+      CheckFontSizes(IfcFile);
+
+      { Save to JSON, load it back, check the same things. }
+      Json := IfcJsonSave(IfcFile);
+      try
+        JsonText := Json.AsJSON;
+        { Only the main context stores coordinateSpaceDimension,
+          in the subcontext it is derived from the parent context. }
+        AssertEquals(1, CountOccurrences('"coordinateSpaceDimension"', JsonText));
+        AssertEquals(1, CountOccurrences('"IfcTextStyle"', JsonText));
+        AssertEquals(1, CountOccurrences('"IfcPositiveLengthMeasure"', JsonText));
+
+        IfcFileFromSaved := IfcJsonLoad(Json);
+        try
+          CheckFontSizes(IfcFileFromSaved);
+        finally FreeAndNil(IfcFileFromSaved) end;
+      finally FreeAndNil(Json) end;
+    finally FreeAndNil(IfcFile) end;
+  finally FreeAndNil(FoundFontSizes) end;
 end;
 
 initialization
