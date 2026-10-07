@@ -328,9 +328,14 @@ begin
   AssertEquals('armor.tga', ExtractUriName('/armor.tga'));
   AssertEquals('armor.tga', ExtractUriName('blabla/armor.tga'));
 
-  // ExtractUriPath with relative URL
+  // ExtractUriPath with relative URLs
   AssertEquals('textures/', ExtractUriPath('textures/image.png'));
   AssertEquals('textur%20es/', ExtractUriPath('textur%20es/image.png'));
+  // ExtractUriPath tolerates also Windows filenames
+  {$ifdef MSWINDOWS}
+  AssertEquals('textures\', ExtractUriPath('textures\image.png'));
+  AssertEquals('textur%20es\', ExtractUriPath('textur%20es\image.png'));
+  {$endif}
   AssertEquals('', ExtractUriPath('image.png'));
 end;
 

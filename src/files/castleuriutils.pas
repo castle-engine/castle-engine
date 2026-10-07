@@ -1503,7 +1503,7 @@ begin
     { To preserve relative URLs, we handle them manually, using simple
       string manipulation. }
     UrlWithoutAnchor := UriDeleteAnchor(Url);
-    I := BackCharsPos(['/'], UrlWithoutAnchor);
+    I := BackCharsPos(['/' {$ifdef MSWINDOWS}, '\'{$endif}], UrlWithoutAnchor);
     if I <> 0 then
       Result := Copy(UrlWithoutAnchor, 1, I)
     else
