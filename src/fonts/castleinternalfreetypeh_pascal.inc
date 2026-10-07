@@ -158,10 +158,16 @@ begin
   try
     Font := TOpenTypeFont.Create(Stream, FaceIndex);
   except
-    { invalid font data or truncated font data }
+    { Invalid font data or truncated font data.
+      EMathError and EIntError (like EInvalidOp, ERangeError, EIntOverflow)
+      may happen when calculating on crazy numbers from invalid font data. }
     on EOpenTypeFontError do
       Exit(FtErrUnknownFileFormat);
     on EReadError do
+      Exit(FtErrUnknownFileFormat);
+    on EMathError do
+      Exit(FtErrUnknownFileFormat);
+    on EIntError do
       Exit(FtErrUnknownFileFormat);
   end;
 
@@ -312,6 +318,10 @@ begin
       Result := 0;
     on EReadError do
       Result := 0;
+    on EMathError do
+      Result := 0;
+    on EIntError do
+      Result := 0;
   end;
 end;
 
@@ -337,6 +347,10 @@ begin
     on EOpenTypeFontError do
       Exit(FtErrInvalidOutline);
     on EReadError do
+      Exit(FtErrInvalidOutline);
+    on EMathError do
+      Exit(FtErrInvalidOutline);
+    on EIntError do
       Exit(FtErrInvalidOutline);
   end;
 
@@ -503,6 +517,10 @@ begin
       render_mode = FT_RENDER_MODE_MONO, Rasterized);
   except
     on EOpenTypeFontError do
+      Exit(FtErrCannotRenderGlyph);
+    on EMathError do
+      Exit(FtErrCannotRenderGlyph);
+    on EIntError do
       Exit(FtErrCannotRenderGlyph);
   end;
 
