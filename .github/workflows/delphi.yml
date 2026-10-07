@@ -155,11 +155,12 @@ jobs:
       #
       # TODO: For now, we skip "make examples-delphi" test for delphi_10_2.
       # If we'll have better hardware, we'll resume them.
+      # Note: Testing enabling it now.
       - name: Build Examples (Win64)
-        if: ${{ matrix.host-label != 'delphi_10_2' }}
+        # if: ${{ matrix.host-label != 'delphi_10_2' }}
         run: make examples-delphi CASTLE_ENGINE_TOOL_OPTIONS="--os=win64 --cpu=x86_64" BUILD_TOOL="castle-engine"
       - name: Build Examples (Win32)
-        if: ${{ matrix.host-label != 'delphi_10_2' }}
+        # if: ${{ matrix.host-label != 'delphi_10_2' }}
         run: make examples-delphi CASTLE_ENGINE_TOOL_OPTIONS="--os=win32 --cpu=i386" BUILD_TOOL="castle-engine"
 
       - name: Build Delphi-specific Examples (Win64)
