@@ -320,6 +320,9 @@ function ExtractUriExt(const Url: String): String;
 
 { Extract path (everything before last part), including final slash, from URL.
 
+  Preserves URL being relative or absolute.
+  That is, returns relative URL if input was relative.
+
   Note that the resulting string is still percent-encoded.
   For example, for "http://example.org/foo%20bar/file.txt" it returns
   "http://example.org/foo%20bar/". }
@@ -1492,14 +1495,31 @@ end;
 function ExtractUriPath(const Url: String): String;
 var
   U: TURI;
+  UrlWithoutAnchor: String;
+  I: Integer;
 begin
-  { Use AbsoluteUri + ParseUri to deconstruct the URL.
-    Consistent with ExtractUriName. }
-  U := ParseUri(AbsoluteUri(Url));
-  U.Document := '';
-  U.Params := '';
-  U.Bookmark := '';
-  Result := EncodeURI(U);
+  if (UriProtocol(Url) = '') and not IsPathAbsolute(Url) then
+  begin
+    { To preserve relative URLs, we handle them manually, using simple
+      string manipulation. }
+    UrlWithoutAnchor := UriDeleteAnchor(Url);
+    I := BackCharsPos(['/'], UrlWithoutAnchor);
+    if I <> 0 then
+      Result := Copy(UrlWithoutAnchor, 1, I)
+    else
+      Result := '';
+  end else
+  begin
+    { For absolute URLs or absolute filenames,
+      use AbsoluteUri + ParseUri to deconstruct the URL.
+      This also will make filename -> URL, which is OK.
+      Consistent with ExtractUriName. }
+    U := ParseUri(AbsoluteUri(Url));
+    U.Document := '';
+    U.Params := '';
+    U.Bookmark := '';
+    Result := EncodeURI(U);
+  end;
 end;
 
 function UriIncludeSlash(const Url: String): String;

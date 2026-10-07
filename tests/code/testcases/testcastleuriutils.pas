@@ -327,6 +327,11 @@ begin
   AssertEquals('armor.tga', ExtractUriName('armor.tga'));
   AssertEquals('armor.tga', ExtractUriName('/armor.tga'));
   AssertEquals('armor.tga', ExtractUriName('blabla/armor.tga'));
+
+  // ExtractUriPath with relative URL
+  AssertEquals('textures/', ExtractUriPath('textures/image.png'));
+  AssertEquals('textur%20es/', ExtractUriPath('textur%20es/image.png'));
+  AssertEquals('', ExtractUriPath('image.png'));
 end;
 
 procedure TTestUriUtils.TestDotfile;
