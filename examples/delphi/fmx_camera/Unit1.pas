@@ -184,14 +184,16 @@ procedure TForm1.CameraComponent1SampleBufferReady(Sender: TObject;
 begin
   { This is called by FMX in the main thread, for each new camera frame. }
 
+  { Display camera frame in FMX TImage. }
+  CameraComponent1.SampleBufferToBitmap(ImageCamera.Bitmap, true);
+  if (ImageCamera.Bitmap.Width = 0) or (ImageCamera.Bitmap.Height = 0) then
+    Exit;
+
   if not CameraReady then
   begin
     CameraReady := true;
     UpdateCameraUi;
   end;
-
-  { Display camera frame in FMX TImage. }
-  CameraComponent1.SampleBufferToBitmap(ImageCamera.Bitmap, true);
 
   { Display camera frame as a texture on the box in TCastleControl.
     BitmapToCastleImage converts FMX TBitmap to the engine image
