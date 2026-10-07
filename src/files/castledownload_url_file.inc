@@ -84,12 +84,10 @@ end;
 class function TUrlFile.MimeType(const URI: string; out Gzipped: Boolean): String;
 var
   U: TURI;
-  Ext, URIName, UriPathDocument, PreviousExt: String;
+  Ext, UriName, PreviousExt: String;
 begin
   Result := '';
   Gzipped := false;
-
-  U := ParseURI(URI);
 
   { Deconstruct first URL properly using ParseURI.
     This allows to strip the HTTP query part "?xxx", see
@@ -97,7 +95,7 @@ begin
 
     Note that ParseURI also strips anchor, like #xxx .
     Otherwise 'xxx.json#skinname' would not be detected as Spine JSON.
-    So there's no need for URIDeleteAnchor lower, UriPathDocument is already
+    So there's no need for URIDeleteAnchor lower, U.Document is already
     without anchor.
     The anchor here is stripped, so all loaders
 
@@ -105,16 +103,15 @@ begin
     - can use anchors for extra info, like Spine, sprite sheets and images
       already do.
   }
-  UriPathDocument := U.Path + U.Document;
+  U := ParseURI(URI);
+  UriName := LowerCase(U.Document);
 
   { We're consciously using here ExtractFileExt on URIs,
     although they should be used for filenames. }
-  Ext := LowerCase(ExtractFileExt(UriPathDocument));
-
-  URIName := LowerCase(ExtractURIName(UriPathDocument));
+  Ext := ExtractFileExt(UriName);
 
   // special case detected looking at whole name
-  if URIName = '.gitignore' then
+  if UriName = '.gitignore' then
   begin
     Result := 'text/plain';
     Exit;
@@ -125,7 +122,7 @@ begin
   if Ext = '.gz' then
   begin
     { Logic to extract previous extension just like ExtractFileDoubleExt. }
-    PreviousExt := LowerCase(ExtractFileExt(ChangeFileExt(UriPathDocument, '')));
+    PreviousExt := ExtractFileExt(ChangeFileExt(UriName, ''));
     if (PreviousExt <> '') and
        UriMimeExtensions.TryGetValue(PreviousExt, Result) then
     begin
