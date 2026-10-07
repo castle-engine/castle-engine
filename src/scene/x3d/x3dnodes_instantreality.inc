@@ -66,7 +66,6 @@
     See https://castle-engine.io/x3d_extensions.php#section_ext_logger . }
   TLoggerNode = class(TAbstractChildNode)
   strict private
-    LogFileStream: TStream;
     procedure EventWriteReceive(
       const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   public
@@ -361,7 +360,6 @@ end;
 
 destructor TLoggerNode.Destroy;
 begin
-  FreeAndNil(LogFileStream);
   inherited;
 end;
 
@@ -401,24 +399,13 @@ procedure TLoggerNode.EventWriteReceive(
       end;
 
       S := S + ' Value: ' + FieldValueToString(Value);
-
-      if LogFileStream <> nil then
-        WriteLnStr(LogFileStream, S)
-      else
-        WriteLnLog(S);
+      WriteLnLog(S);
     end;
   end;
 
 begin
   if FdEnabled.Value and (Fdlevel.Value > 0) then
   begin
-    if (LogFileStream = nil) and (FdLogFile.Value <> '') then
-    begin
-      LogFileStream := TFileStream.Create(
-        FileNameAutoInc(ApplicationName + '_logger_' +
-          DeleteURIExt(ExtractURIName(FdLogFile.Value)) + '_%d.log'), fmCreate);
-    end;
-
     WritelnLogMessage;
   end;
 end;
