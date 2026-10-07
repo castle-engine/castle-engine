@@ -153,36 +153,13 @@ jobs:
       # randomly (next build of the same thing goes OK) -- not sure if it's
       # Delphi 10.2 fault or this machine's RAM or sthg.
       #
-      # TODO: For now, we skip "make examples-delphi" test for delphi_10_2.
-      # If we'll have better hardware, we'll resume them.
-      # Note: Testing enabling it now.
+      # We do quicker build with delphi_10_2, because the machine with this is
+      # very slow. So we "make examples-delphi QUICK_DELPHI_EXAMPLES=true"
+      # that only exercises a subset of the Delphi examples, most likely to fail.
       - name: Build Examples (Win64)
-        # if: ${{ matrix.host-label != 'delphi_10_2' }}
-        run: make examples-delphi CASTLE_ENGINE_TOOL_OPTIONS="--os=win64 --cpu=x86_64" BUILD_TOOL="castle-engine"
+        run: make examples-delphi CASTLE_ENGINE_TOOL_OPTIONS="--os=win64 --cpu=x86_64" BUILD_TOOL="castle-engine" QUICK_DELPHI_EXAMPLES=${{ matrix.host-label == 'delphi_10_2' }}
       - name: Build Examples (Win32)
-        # if: ${{ matrix.host-label != 'delphi_10_2' }}
-        run: make examples-delphi CASTLE_ENGINE_TOOL_OPTIONS="--os=win32 --cpu=i386" BUILD_TOOL="castle-engine"
-
-      - name: Build Delphi-specific Examples (Win64)
-        run: |
-          cd examples/delphi/vcl
-          castle-engine clean
-          castle-engine compile --compiler=delphi --os=win64 --cpu=x86_64
-          cd ../../..
-          cd examples/delphi/fmx
-          castle-engine clean
-          castle-engine compile --compiler=delphi --os=win64 --cpu=x86_64
-          cd ../../..
-      - name: Build Delphi-specific Examples (Win32)
-        run: |
-          cd examples/delphi/vcl
-          castle-engine clean
-          castle-engine compile --compiler=delphi --os=win32 --cpu=i386
-          cd ../../..
-          cd examples/delphi/fmx
-          castle-engine clean
-          castle-engine compile --compiler=delphi --os=win32 --cpu=i386
-          cd ../../..
+        run: make examples-delphi CASTLE_ENGINE_TOOL_OPTIONS="--os=win32 --cpu=i386" BUILD_TOOL="castle-engine" QUICK_DELPHI_EXAMPLES=${{ matrix.host-label == 'delphi_10_2' }}
 
   delphi_non_windows:
     name: Delphi build for Non-Windows (Job)

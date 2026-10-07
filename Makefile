@@ -45,6 +45,7 @@
 #     Compile all examples using Delphi.
 #     This uses CGE build tool, that (when invoked with --compiler=delphi)
 #     executes Delphi command-line compiler.
+#     Pass QUICK_DELPHI_EXAMPLES=true to compile only examples in examples/delphi/ .
 #
 #   build-using-fpmake:
 #     Compile all units using FpMake.
@@ -328,6 +329,16 @@ examples: prepare-examples
 # - 32.0 for Delphi 10.2 (oldest Delphi version we support),
 # - 35.0 for Delphi 11,
 # - 37.0 for Delphi 13.
+#
+# When QUICK_DELPHI_EXAMPLES is
+# - true -> we compile only examples in examples/delphi/ (much faster).
+# - anything else -> we compile all examples.
+ifeq ($(QUICK_DELPHI_EXAMPLES),true)
+EXAMPLES_DELPHI_FIND_PATH:=./examples/delphi/
+else
+EXAMPLES_DELPHI_FIND_PATH:=./examples/
+endif
+
 .PHONY: examples-delphi
 examples-delphi: prepare-examples
 	set -e; \
@@ -349,7 +360,7 @@ examples-delphi: prepare-examples
 	  EXCLUDE_BY_DELPHI_VERSION="$${EXCLUDE_BY_DELPHI_VERSION} \
 	    ( -path ./examples/delphi/fmx_location -prune ) -o"; \
 	fi; \
-	"$(FIND)" ./examples/ \
+	"$(FIND)" $(EXAMPLES_DELPHI_FIND_PATH) \
 	  '(' -path ./examples/castlescript/image_make_by_script -prune ')' -o \
 	  '(' -path ./examples/localization -prune ')' -o \
 	  '(' -path ./examples/audio/audio_player -prune ')' -o \
