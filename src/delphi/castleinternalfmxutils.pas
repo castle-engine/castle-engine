@@ -292,6 +292,11 @@ type
 
     procedure AfterCreateFormHandle(const Sender: TObject; const M: TMessage);
     procedure BeforeDestroyFormHandle(const Sender: TObject; const M: TMessage);
+
+    { Handler of TForm.OnTouch, assigned by @link(AttachToForm).
+      This will call @link(OnDown), @link(OnUp), or @link(OnMotion) as appropriate. }
+    procedure FormTouch(Sender: TObject; const Touches: TTouches;
+      const Action: TTouchAction);
   private
     { At next FormTouch, these will correspond to TTouch.Id for the finger
       that went down/up. }
@@ -312,15 +317,14 @@ type
     constructor Create;
     destructor Destroy; override;
 
+    { Start listening to touches on the given form.
+      This assigns the form's OnTouch event to our @link(FormTouch). }
     procedure AttachToForm(const AForm: TCommonCustomForm);
+
+    { Stop listening to touches on the form given to @link(AttachToForm).
+      This clears the form's OnTouch event.
+      Called automatically from the destructor. }
     procedure DetachFromForm;
-
-    { Call this when TForm.OnTouch occured.
-      (It can be attached directly, like Form.OnTouch := FTouchDispatcher.FormTouch.)
-
-      This will call @link(OnDown), @link(OnUp), or @link(OnMotion) as appropriate. }
-    procedure FormTouch(Sender: TObject; const Touches: TTouches;
-      const Action: TTouchAction);
   end;
 
 {$endif CASTLE_HANDLE_FMX_TOUCH}
@@ -524,6 +528,7 @@ procedure TFmxTouchDispatcher.AttachToForm(const AForm: TCommonCustomForm);
 begin
   DetachFromForm; // in case we were attached to some form already
   FForm := AForm;
+  FForm.OnTouch := FormTouch;
   TMessageManager.DefaultManager.SubscribeToMessage(TAfterCreateFormHandle, AfterCreateFormHandle);
   TMessageManager.DefaultManager.SubscribeToMessage(TBeforeDestroyFormHandle, BeforeDestroyFormHandle);
   { Form handle may already exist (e.g. when adding this to a form that is
@@ -539,6 +544,9 @@ begin
   TMessageManager.DefaultManager.Unsubscribe(TAfterCreateFormHandle, AfterCreateFormHandle);
   TMessageManager.DefaultManager.Unsubscribe(TBeforeDestroyFormHandle, BeforeDestroyFormHandle);
   DetachListenerFromForm;
+  { Otherwise the form would call FormTouch on a freed instance,
+    if we are destroyed before the form. }
+  FForm.OnTouch := nil;
   FForm := nil;
 end;
 

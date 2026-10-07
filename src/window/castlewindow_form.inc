@@ -927,7 +927,6 @@ begin
   FTouchDispatcher.OnDown := {$ifdef FPC}@{$endif} TouchDown;
   FTouchDispatcher.OnUp := {$ifdef FPC}@{$endif} TouchUp;
   FTouchDispatcher.OnMotion := {$ifdef FPC}@{$endif} TouchMotion;
-  Form.OnTouch := FTouchDispatcher.FormTouch;
   {$endif CASTLE_HANDLE_FMX_TOUCH}
 
   {$ifdef FPC}

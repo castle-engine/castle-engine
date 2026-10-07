@@ -172,6 +172,17 @@ type
       We still handle the events from a real mouse. }
     procedure MultiTouchOnForm(const Form: TForm);
 
+    { Stop listening to multi-touch events on the form.
+      If you called MultiTouchOnForm earlier, then this clears form's
+      OnTouch event.
+
+      Usually you don't need to call this manually.
+      We detach from form when the TCastleControl is destroyed,
+      so everything works if form is freed after the TCastleControl.
+      If you plan to free the form @italic(before) freeing this TCastleControl,
+      you should call this method first. }
+    procedure MultiTouchDetachForm;
+
     { If Handle not allocated yet, allocate it now.
       This makes sure we have OpenGL context created.
       Our OpenBackend must guarantee it, we want to initialize GLVersion
@@ -673,9 +684,16 @@ begin
     FTouchDispatcher.OnUp := TouchUp;
     FTouchDispatcher.OnMotion := TouchMotion;
   end;
-  FTouchDispatcher.AttachToForm(Form);
-  Form.OnTouch := FTouchDispatcher.FormTouch;
+  FTouchDispatcher.AttachToForm(Form); // this also assigns Form.OnTouch
   FMultiTouch := true;
+  {$endif CASTLE_HANDLE_FMX_TOUCH}
+end;
+
+procedure TCastleControl.MultiTouchDetachForm;
+begin
+  {$ifdef CASTLE_HANDLE_FMX_TOUCH}
+  FreeAndNil(FTouchDispatcher);
+  FMultiTouch := false;
   {$endif CASTLE_HANDLE_FMX_TOUCH}
 end;
 
