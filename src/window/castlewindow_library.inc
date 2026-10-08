@@ -36,6 +36,7 @@ public
   { Only the library in castle-library-model-viewer/castleengine.lpr uses this,
     to notify our window instance about various events. }
   procedure LibraryMouseWheel(const Scroll: Single; const Vertical: boolean);
+  class procedure LibrarySetMultipleWindowsPossible(const Value: boolean); static;
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
@@ -111,6 +112,7 @@ const
 
 var
   LibraryCallbackProc: TLibraryCallbackProc;
+  LibraryMultipleWindowsPossible: boolean = false;
 
 {$endif read_global_interface}
 
@@ -212,6 +214,11 @@ end;
 procedure TCastleWindow.LibraryMouseWheel(const Scroll: Single; const Vertical: boolean);
 begin
   DoMouseWheel(Scroll, Vertical);
+end;
+
+class procedure TCastleWindow.LibrarySetMultipleWindowsPossible(const Value: boolean);
+begin
+  LibraryMultipleWindowsPossible := Value;
 end;
 
 { TCastleWindow menu ----------------------------------------------------
@@ -334,7 +341,7 @@ end;
 
 function TCastleApplication.MultipleWindowsPossible: Boolean;
 begin
-  Result := false;
+  Result := LibraryMultipleWindowsPossible;
 end;
 
 procedure TCastleApplication.WarningToCallback(const Category, S: String);
