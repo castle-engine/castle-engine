@@ -77,8 +77,13 @@ function SaveScreenToGL_NoFlush(const Rect: TRectangle;
   const ReadBuffer: TColorBuffer;
   const SmoothScaling: boolean = false): TDrawableImage;
 
-{ Save depth buffer contents. }
+{$ifndef CASTLE_WEBGL}
+{ Save depth buffer contents.
+
+  Not available with WebGL, as WebGL readPixels cannot read
+  GL_DEPTH_COMPONENT. }
 function SaveScreenDepth_NoFlush(const Rect: TRectangle): TGrayscaleImage;
+{$endif}
 
 {$endif read_interface_func}
 
@@ -182,6 +187,7 @@ begin
   Result := TDrawableImage.Create(ScreenImage, SmoothScaling, true);
 end;
 
+{$ifndef CASTLE_WEBGL}
 function SaveScreenDepth_NoFlush(const Rect: TRectangle): TGrayscaleImage;
 var
   X, Y: Integer;
@@ -190,9 +196,6 @@ begin
   try
     BeforePackImage(Result);
     try
-      {$ifdef CASTLE_WEBGL}
-      // TODO: web: Implement getting RawPixels (using Uint8Array) from WebGL, https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/readPixels
-      {$else}
       X := Rect.Left;
       Y := Rect.Bottom;
       if RenderContext.InternalControlRectIgnore = 0 then
@@ -202,7 +205,6 @@ begin
       end;
       glReadPixels(X, Y, Rect.Width, Rect.Height, GL_DEPTH_COMPONENT,
         ImageGLType(Result), Result.RawPixels);
-      {$endif}
     finally
       AfterPackImage(Result);
     end;
@@ -211,5 +213,6 @@ begin
     raise;
   end;
 end;
+{$endif}
 
 {$endif read_implementation}
