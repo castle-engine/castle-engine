@@ -100,13 +100,13 @@ procedure SaveScreen_NoFlush(const Image: TCastleImage;
   procedure ReadPixels(const Image: TCastleImage);
   var
     X, Y: Integer;
+    {$ifdef CASTLE_WEBGL}
+    Data: IJSUint8Array;
+    {$endif}
   begin
     BeforePackImage(Image);
     try
       SetReadBuffer(ColorBufferGL[ReadBuffer]);
-      {$ifdef CASTLE_WEBGL}
-      // TODO: web: Implement getting RawPixels (using Uint8Array) from WebGL, https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/readPixels
-      {$else}
       X := Left;
       Y := Bottom;
       if RenderContext.InternalControlRectIgnore = 0 then
@@ -114,6 +114,17 @@ procedure SaveScreen_NoFlush(const Image: TCastleImage;
         X := X + RenderContext.InternalControlRect.Left;
         Y := Y + RenderContext.InternalControlRect.Bottom;
       end;
+      {$ifdef CASTLE_WEBGL}
+      { WebGL readPixels writes into a JS typed array
+        ( https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/readPixels ),
+        copy it to RawPixels afterwards.
+        Under OpenGLES (so also WebGL) the Image is TRGBAlphaImage here,
+        with GL_RGBA + GL_UNSIGNED_BYTE, which WebGL always supports. }
+      Data := TJSUInt8Array.Create(Image.Size);
+      glReadPixels(X, Y, Image.Width, Image.Height, ImageGLFormat(Image),
+        ImageGLType(Image), Data);
+      Data.CopyToMemory(Image.RawPixels, Image.Size);
+      {$else}
       glReadPixels(X, Y, Image.Width, Image.Height, ImageGLFormat(Image),
         ImageGLType(Image), Image.RawPixels);
       {$endif}
