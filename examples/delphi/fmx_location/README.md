@@ -24,6 +24,8 @@ The application needs a permission to access the location:
 
 - iOS: The key `NSLocationWhenInUseUsageDescription` must be present in Delphi _"Project -> Options -> Application -> Version Info"_. Delphi adds it by default, you may want to adjust the text.
 
+    Note that you must have also enabled location services on the device itself: chek _"Settings -> Privacy -> Location Services"_ on iOS. If it is disabled system-wide (for every app), the location sensor will not work, and you will not even see a prompt for the permission.
+
 Remember that the device needs some time to determine the location, especially indoors.
 
 ## Building
