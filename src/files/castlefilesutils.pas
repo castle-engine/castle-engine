@@ -181,6 +181,11 @@ var
     This must always end with a slash, if it's not empty. }
   ApplicationConfigOverride: string;
 
+  { Used as a fallback directory to open application configuration files.
+    In practice, used only with iOS and FPC, to support applications using
+    older iOS config location directory. }
+  InternalApplicationConfigFallback: string;
+
 { URL where we should read and write configuration files.
 
   Given Path specifies a name of the file (with possible subdirectories)

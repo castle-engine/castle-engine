@@ -35,7 +35,7 @@ type
 class function TUrlCastleConfig.Exists(const Url: String): TUriExists;
 begin
   { Recursively call UriExists, on URL that is no longer castle-config. }
-  Result := UriExists(ResolveCastleConfigUrl(Url));
+  Result := UriExists(ResolveCastleConfigUrl(Url, true));
 end;
 
 {$endif}

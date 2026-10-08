@@ -444,8 +444,16 @@ function RelativeToCastleDataUrl(const Url: String; out WasInsideData: Boolean):
   See @url(https://castle-engine.io/url#castle-config castle-config protocol
   documentation).
 
-  If the URL has a different protocol, it is returned unchanged. }
-function ResolveCastleConfigUrl(const Url: String): String;
+  If the URL has a different protocol, it is returned unchanged.
+
+  @param(UseFallbackIfNotExists If @true, then search for config file
+    also in the fallback location. This provides compatibility for iOS
+    applications using FPC, for which we changed config location from
+    @code(<sandbox>/Library/) to @code(<sandbox>/Library/Application Support/)
+    during 7.0-alpha.3.snapshot development, on 2026-10-07.)
+}
+function ResolveCastleConfigUrl(const Url: String;
+  const UseFallbackIfNotExists: Boolean = false): String;
 
 { Encode String using @url(https://en.wikipedia.org/wiki/Percent-encoding percent encoding),
   for example space is converted to @code(%20). }
@@ -2041,7 +2049,7 @@ end;
 var
   WebTemporaryConfig: TCastleMemoryFileSystem;
 
-function ResolveCastleConfigUrl(const Url: String): String;
+function ResolveCastleConfigUrl(const Url: String; const UseFallbackIfNotExists: Boolean): String;
 
   { TODO: Initializes a temporary filesystem now. }
   function WebGetApplicationConfigPath: String;
@@ -2085,6 +2093,20 @@ function ResolveCastleConfigUrl(const Url: String): String;
     {$endif}
   end;
 
+  { Resolves a castle-config URL using a fallback mechanism.
+    Call only when
+    - UriProtocol(Url) = 'castle-config'
+    - InternalApplicationConfigFallback <> '' }
+  function ResolveCastleConfigUrlUsingFallback(const Url: String): String;
+  var
+    U: TUri;
+    RelativeToData: String;
+  begin
+    U := ParseUri(Url);
+    RelativeToData := PrefixRemove('/', U.Path + U.Document, false);
+    Result := InternalApplicationConfigFallback + UrlEncode(RelativeToData);
+  end;
+
 var
   U: TUri;
   RelativeToData: String;
@@ -2095,6 +2117,24 @@ begin
     RelativeToData := PrefixRemove('/', U.Path + U.Document, false);
     Result := ApplicationConfigCore(RelativeToData);
     //WritelnLog('castle-config', Format('Resolved "%s" to "%s"', [Url, Result]));
+
+    { Support opening config files from old location. }
+    if UseFallbackIfNotExists and
+       (InternalApplicationConfigFallback <> '') and
+       { Right now, InternalApplicationConfigFallback only works when it
+         resolves to file:// protocol, because below we use FileExists
+         (to avoid depending on UriExists, that would then call
+         ResolveCastleConfigUrl back, creating complicated situation).
+         And this is acceptable, because this is only used
+         on iOS, where config locations (regular and fallback) are regular
+         directories. }
+       (UriProtocol(Result) = 'file') and
+       (UriProtocol(InternalApplicationConfigFallback) = 'file') and
+       { File only exists in fallback location. }
+       (not FileExists(UriToFilenameSafe(Result))) and
+       FileExists(UriToFilenameSafe(ResolveCastleConfigUrlUsingFallback(Url))) then
+      Result := ResolveCastleConfigUrlUsingFallback(Url);
+
   end else
     Result := Url;
 end;

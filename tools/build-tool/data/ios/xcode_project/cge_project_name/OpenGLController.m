@@ -210,9 +210,14 @@ typedef struct TouchInfo {
 
     // Get a directory where we can write application configuration and savegames.
 
-    #ifdef BACKWARD_COMPATIBLE_IOS_CONFIG
-    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES);
-    #else
+    // First, get the directory that was default before 2026-10-07,
+    // and provide it to CGEApp_SetFallbackConfigDirectory.
+    {
+        NSArray *pathsFallback = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES);
+        NSString *configDirectoryFallback = [pathsFallback objectAtIndex:0];
+        CGEApp_SetFallbackConfigDirectory([configDirectoryFallback fileSystemRepresentation]);
+    }
+
     /*
       We use <sandbox>/Library/Application Support/ , as recommended by Apple,
       see "Where You Should Put Your App's Files" in
@@ -230,6 +235,7 @@ typedef struct TouchInfo {
 
       - Previously we used just NSLibraryDirectory (<sandbox>/Library/),
         for this, but "Application Support" better follows recommendations.
+        See above for compatibility with older versions.
 
       This should stay in sync with
       - GetAppConfigDir for Delphi, see
@@ -241,7 +247,6 @@ typedef struct TouchInfo {
       there (our writing routines do ForceDirectories).
     */
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES);
-    #endif
     NSString *configDirectory = [paths objectAtIndex:0];
 
     CGEApp_Initialize([configDirectory fileSystemRepresentation]);

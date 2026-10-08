@@ -52,6 +52,8 @@ private
 procedure CGEApp_Initialize(ApplicationConfigDirectory: PChar); cdecl;
 procedure CGEApp_Finalize; cdecl;
 
+procedure CGEApp_SetFallbackConfigDirectory(FallbackConfigDirectory: PChar); cdecl;
+
 { Used by the external process to ask for context properties from CGE
   (whether to use alpha channel, depth buffer etc.).
   CGE answers looking at Application.MainWindow properties. }
@@ -379,6 +381,16 @@ begin
     ApplicationProperties.OnWarning.Add(@Application.WarningToCallback);
   except
     on E: TObject do WritelnWarning('CGEApp_Initialize', ExceptMessage(E));
+  end;
+end;
+
+procedure CGEApp_SetFallbackConfigDirectory(FallbackConfigDirectory: PChar); cdecl;
+begin
+  try
+    InternalApplicationConfigFallback := FilenameToUriSafe(InclPathDelim(FallbackConfigDirectory));
+    WritelnLog('Library set fallback application config directory to URL: %s', [InternalApplicationConfigFallback]);
+  except
+    on E: TObject do WritelnWarning('CGEApp_SetFallbackConfigDirectory', ExceptMessage(E));
   end;
 end;
 
