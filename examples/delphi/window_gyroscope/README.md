@@ -32,6 +32,23 @@ Note: Do not use Delphi _"Project -> Options -> Application -> Orientation"_ for
 
 ![Screenshot](screenshot.png)
 
+## Which sensor component to use to get rotation?
+
+The current example code uses the rotation rate (angular velocity) reported by the gyroscope. To do this, we look at `TMotionSensor` and we have 2 branches in code to account for:
+
+- `TMotionSensorType.Gyrometer3D` (Android)
+- and `TMotionSensorType.MotionDetector` (iOS).
+
+The gyroscope measures angular velocity, and we integrate it over time to get the current rotation. That's what the `TiltX := TiltX + DeviceRotationX * SecondsPassed` line in the code is doing.
+
+An alternative way, to achieve a similar effect by querying for the _current rotation_, would be to use the `TOrientationSensor` with `TOrientationSensorType.Inclinometer3D`. The data it reports is coming from a combination of sensors (accelerometer, gyroscope, possibly magnetometer) so it would not be strictly a _"gyroscope demo"_. But it is directly providing the current tilt angles, so in practice it would probably be a better fit to get the effect of this demo (rotating phone rotates a virtual labyrinth).
+
+Note that [Delphi sample code](https://github.com/Embarcadero/RADStudio11Demos/blob/fdbff4181fb6bf9ae0d818bd4ee4b19653bc4be4/Object%20Pascal/Mobile%20Snippets/Gyroscope/uMain.pas#L92) shows that the data obtained from `TCustomOrientationSensor` is still platform-dependent: the axes need per-platform sign flipping.
+
+Note that errors don't accumulate in case of using the `TOrientationSensor` approach. So the need for _"Reset"_ button is less critical.
+
+TODO: Show code, under `{$ifdef USE_ORIENTATION_SENSOR}`, using the `TOrientationSensor` approach.
+
 ## Building
 
 This example is designed to be compiled only using [Delphi](https://www.embarcadero.com/products/Delphi), as it uses Delphi-specific units to access the device.
