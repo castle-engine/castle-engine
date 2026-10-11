@@ -206,6 +206,14 @@ begin
     Define(ldTypePunctual);
   if Node is TEnvironmentLightNode then
     Define(ldTypeEnvironment);
+
+  { Like effects on materials and groups (see TShaderCodeHash.AddEffects),
+    shapes can share a shader program only when their lights use the same
+    Effect nodes: the effects' code is in the program, and their uniform
+    values are set when the program is linked (and when they change),
+    not before rendering each shape. }
+  if Node <> nil then
+    Hash.AddEffects(Node.FdEffects);
 end;
 
 function TLightShader.Code: TShaderSource;
