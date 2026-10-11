@@ -29,13 +29,15 @@ type
     { Shapes lit by different lights, whose Effect nodes have the same code
       but different uniform values, must not share a shader program. }
     procedure TestLightEffectsNotShared;
+    { TCastleAbstractLight.SetEffects, with effects using a shader library. }
+    procedure TestLightComponentEffects;
   end;
 
 implementation
 
 uses CastleUtils, CastleRendererInternalShader,
   CastleVectors, CastleColors, CastleImages, CastleWindow, CastleViewport, CastleScene,
-  CastleRenderOptions, X3DNodes, X3DFields;
+  CastleRenderOptions, CastleTransform, X3DNodes, X3DFields;
 
 procedure TTestCastleRendererInternalShader.TestFindPlugName;
 var
@@ -162,6 +164,104 @@ begin
       with the uniform value of the first one rendered. }
     Viewport.Items.Add(CreateLitPatch(-3, 0));
     Viewport.Items.Add(CreateLitPatch(3, 1));
+
+    Image := Window.SaveScreen;
+    try
+      Dark := ColorAt(Image, -3);
+      Lit := ColorAt(Image, 3);
+    finally FreeAndNil(Image) end;
+
+    AssertTrue(Dark.X < 0.05);
+    AssertTrue(Lit.X > 0.3);
+
+    Window.Close;
+  finally DestroyWindowForTest(Window) end;
+end;
+
+procedure TTestCastleRendererInternalShader.TestLightComponentEffects;
+const
+  { Uses a function of the EyeWorldSpace shader library:
+    without the library, the shader would not link and the light
+    would not be scaled at all. }
+  EffectCode =
+    'uniform float test_light_factor;' + LineEnding +
+    'vec3 direction_eye_to_world_space(vec3 direction_eye);' + LineEnding +
+    'void PLUG_light_scale(inout float scale, const in vec3 normal_eye, const in vec3 light_dir)' + LineEnding +
+    '{' + LineEnding +
+    '  scale *= test_light_factor * length(direction_eye_to_world_space(light_dir));' + LineEnding +
+    '}';
+var
+  Window: TCastleWindow;
+  Viewport: TCastleViewport;
+
+  { A floor patch at (X, 0, 0) lit by a TCastlePointLight above it
+    (its radius doesn't reach the other patch),
+    whose effect multiplies the light by LightFactor. }
+  procedure AddLitPatch(const X, LightFactor: Single);
+  var
+    Box: TCastleBox;
+    Light: TCastlePointLight;
+    Effect: TEffectNode;
+    Part: TEffectPartNode;
+  begin
+    Box := TCastleBox.Create(Window);
+    Box.Size := Vector3(4, 0.2, 4);
+    Box.Translation := Vector3(X, -0.1, 0);
+    Viewport.Items.Add(Box);
+
+    Effect := TEffectNode.Create;
+    Effect.Language := slGLSL;
+    Effect.SetShaderLibraries(['castle-shader:/EyeWorldSpace.glsl']);
+    Effect.AddCustomField(TSFFloat.Create(Effect, true, 'test_light_factor', LightFactor));
+    Part := TEffectPartNode.Create;
+    Part.ShaderType := stFragment;
+    Part.Contents := EffectCode;
+    Effect.SetParts([Part]);
+
+    Light := TCastlePointLight.Create(Window);
+    Light.Translation := Vector3(X, 1, 0);
+    Light.Attenuation := Vector3(1, 0, 0);
+    Light.Radius := 3.5;
+    Light.SetEffects([Effect]);
+    Viewport.Items.Add(Light);
+  end;
+
+  { Rendered color at world (X, 0, 0). }
+  function ColorAt(const Image: TCastleImage; const X: Single): TCastleColor;
+  var
+    P: TVector2;
+  begin
+    P := Viewport.PositionFromWorld(Vector3(X, 0, 0));
+    Result := Image.Colors[Round(P.X), Round(P.Y), 0];
+  end;
+
+var
+  Image: TCastleImage;
+  Dark, Lit: TCastleColor;
+begin
+  if not CanCreateWindowForTest then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
+  Window := CreateWindowForTest;
+  try
+    Window.Width := 400;
+    Window.Height := 400;
+    Window.Open;
+
+    Viewport := TCastleViewport.Create(Window);
+    Viewport.FullSize := true;
+    Viewport.BackgroundColor := Black;
+    Viewport.Camera.SetView(
+      Vector3(0, 12, 0),
+      Vector3(0, -1, 0),
+      Vector3(0, 0, -1));
+    Window.Controls.InsertFront(Viewport);
+
+    AddLitPatch(-3, 0);
+    AddLitPatch(3, 1);
 
     Image := Window.SaveScreen;
     try

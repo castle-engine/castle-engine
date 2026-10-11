@@ -1,28 +1,26 @@
 /*
   Effect on a light source: the light shines in rings around the lamp,
-  like light through a patterned shade.
+  like light through a patterned lampshade.
 
-  Every lamp in this example uses this same code, with a different
-  number of rings (the uniform "ring_count", a field of each lamp's Effect).
-
-  We need the world position of the lit point:
-  castle_vertex_eye (position in eye space, available with Phong shading)
-  times castle_CameraInverseMatrix (provided by the "EyeWorldSpace" shader library,
-  enabled by an Effect on the lit scene, see gameviewmain.pas).
+  PLUG_light_scale is called for every point lit by the light.
+  light_dir is the direction from the lit point to the light, in eye space.
 */
 
-uniform mat4 castle_CameraInverseMatrix;
-varying vec4 castle_vertex_eye;
-
-/* Lamp position in world space. */
-uniform vec3 lamp_position;
-/* Rings per unit of distance from the lamp. */
+/* Rings for each unit of "spread" (see below).
+   A field of the Effect node, set from Pascal. */
 uniform float ring_count;
+
+/* Provided by the EyeWorldSpace shader library,
+   enabled by Effect.SetShaderLibraries in Pascal. */
+vec3 direction_eye_to_world_space(vec3 direction_eye);
 
 void PLUG_light_scale(inout float scale, const in vec3 normal_eye, const in vec3 light_dir)
 {
-  vec3 world_position = (castle_CameraInverseMatrix * castle_vertex_eye).xyz;
-  float distance_xz = length(world_position.xz - lamp_position.xz);
+  vec3 to_light = direction_eye_to_world_space(light_dir);
+  /* Horizontal distance from the point right below the lamp,
+     divided by the lamp height above the lit point.
+     Points with the same spread make a circle around the lamp. */
+  float spread = length(to_light.xz) / max(to_light.y, 0.001);
   /* 1 in the middle of each ring, 0 between the rings */
-  scale *= smoothstep(0.0, 0.6, 0.5 + 0.5 * cos(distance_xz * ring_count * 6.2831853));
+  scale *= smoothstep(0.0, 0.6, 0.5 + 0.5 * cos(spread * ring_count * 6.2831853));
 }

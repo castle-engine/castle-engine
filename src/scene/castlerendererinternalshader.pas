@@ -2640,7 +2640,12 @@ begin
   LightShaders.Add(LightShader);
 
   if Light^.Node.FdEffects.Count <> 0 then
+  begin
     ShapeRequiresShaders := true;
+    { Effects on lights can use shader libraries too,
+      like effects on appearances and groups. }
+    EnableShaderLibraries(Light^.Node.FdEffects.InternalItems);
+  end;
 
   LightShader.Prepare(FCodeHash, LightShaders.Count - 1);
 end;
