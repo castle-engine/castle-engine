@@ -183,9 +183,11 @@ void calculate_lighting(out vec4 result, const in vec4 vertex_eye, const in vec3
 
   /* PLUG: material_occlusion (result) */
 
+#ifndef CASTLE_LIGHT_CONTRIBUTION_ONLY
   vec3 emissive = castle_MaterialEmissive;
   /* PLUG: material_emissive (emissive) */
   result.rgb += emissive;
+#endif
 
   // TODO: No need for this in PBR?
   // TODO: No need for this in Phong lighting with Phong shading, too?

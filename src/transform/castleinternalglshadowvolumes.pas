@@ -21,6 +21,7 @@ unit CastleInternalGLShadowVolumes;
 interface
 
 uses
+  Contnrs,
   {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleTransform, CastleVectors, CastleBoxes, CastleGLUtils, CastleFrustum,
   CastleRenderPrimitives, CastleUtils;
@@ -153,6 +154,40 @@ type
       const Params: TRenderParams;
       const RenderOnePass: TSVRenderOnePassProc;
       const RenderShadowVolumes: TSVRenderProc);
+
+    { Do actual rendering with shadow volumes from several lights.
+
+      Lights are TAbstractPunctualLightNode instances,
+      LightPositions are their positions (or directions, with W = 0) in world space,
+      in the same order. They should be at least 2 (for 1 light, @link(Render)
+      is equivalent and faster).
+
+      Algorithm (like Doom 3's renderer, see
+      https://castle-engine.io/shadow_volumes ):
+
+      @orderedList(
+        @item(Render opaque shapes that don't receive shadows, with all lights.)
+        @item(Render opaque shapes that receive shadows with the Lights turned off.
+          This also fills the depth buffer.)
+        @item(For every light:
+          clear the stencil buffer,
+          render the shadow volumes of this light to the stencil buffer,
+          then add (blending "one, one") the contribution of only this light
+          (TRenderOnePassParams.LightContributionOnly)
+          to the opaque shapes that receive shadows, where the stencil is 0
+          (not in the shadow of this light).)
+        @item(Render transparent shapes, with all lights, never in shadow.)
+      )
+
+      Before calling this, call InitFrustumAndLight (with any light position,
+      it will be replaced by each light in turn).
+      After this, CountCasters and other counters sum all lights. }
+    procedure RenderSeveralLights(
+      const Params: TRenderParams;
+      const RenderOnePass: TSVRenderOnePassProc;
+      const RenderShadowVolumes: TSVRenderProc;
+      const Lights: Contnrs.TObjectList;
+      const LightPositions: array of TVector4);
 
     { Use this to render shadow quads. }
     property Mesh: TCastleRenderUnlitMesh read FMesh;
@@ -659,6 +694,153 @@ begin
     RenderContext.BlendingEnable;
 
     RenderShadowVolumes(Params);
+
+    RenderContext.BlendingDisable;
+    RenderContext.DepthBufferUpdate := SavedDepthBufferUpdate;
+    RenderContext.DepthTest := SavedDepthTest;
+
+    Count := SavedCount;
+  end;
+
+  // render all transparent stuff, never in shadow
+  PassParams.Init;
+  PassParams.UsingBlending := true;
+  PassParams.DisableShadowVolumeCastingLights := false;
+  PassParams.FilterShadowVolumesReceivers := [false, true];
+  RenderOnePass(Params, PassParams);
+end;
+
+procedure TGLShadowVolumeRenderer.RenderSeveralLights(
+  const Params: TRenderParams;
+  const RenderOnePass: TSVRenderOnePassProc;
+  const RenderShadowVolumes: TSVRenderProc;
+  const Lights: Contnrs.TObjectList;
+  const LightPositions: array of TVector4);
+const
+  { See TGLShadowVolumeRenderer.Render. }
+  StencilShadowBits = $FF;
+var
+  SavedDepthBufferUpdate: Boolean;
+  SavedColorChannels: TColorChannels;
+  SavedDepthFunc: TDepthFunction;
+  SavedCullFace, SavedDepthTest, SavedCount: Boolean;
+  PassParams: TRenderOnePassParams;
+  I: Integer;
+  SumCasters, SumShadowsNotVisible, SumZPass, SumZFailNoLightCap, SumZFailAndLightCap: Cardinal;
+begin
+  Assert(GLFeatures.ShadowVolumesPossible);
+  Assert(Lights.Count = Length(LightPositions));
+
+  // render opaque stuff that is never in shadow, because it does not receive shadows
+  PassParams.Init;
+  PassParams.UsingBlending := false;
+  PassParams.DisableShadowVolumeCastingLights := false;
+  PassParams.FilterShadowVolumesReceivers := [false];
+  RenderOnePass(Params, PassParams);
+
+  { render opaque stuff that receives shadows, without the shadow casting lights
+    (ambient, emissive, other lights); this also fills the depth buffer }
+  PassParams.Init;
+  PassParams.UsingBlending := false;
+  PassParams.DisableShadowVolumeCastingLights := true;
+  PassParams.ShadowVolumesLights := Lights;
+  PassParams.FilterShadowVolumesReceivers := [true];
+  RenderOnePass(Params, PassParams);
+
+  { The following passes use different shaders (light contribution only),
+    so render them with another InternalPass, to keep both shader programs cached. }
+  Assert(Params.InternalPass = 0);
+  Inc(Params.InternalPass);
+
+  SumCasters := 0;
+  SumShadowsNotVisible := 0;
+  SumZPass := 0;
+  SumZFailNoLightCap := 0;
+  SumZFailAndLightCap := 0;
+
+  for I := 0 to Lights.Count - 1 do
+  begin
+    { InitFrustumAndLight resets counters, so sum them ourselves }
+    InitFrustumAndLight(FFrustum, LightPositions[I]);
+
+    { Shadow volumes of this light to the stencil buffer. }
+    glClear(GL_STENCIL_BUFFER_BIT);
+    glEnable(GL_STENCIL_TEST);
+      SavedCullFace := RenderContext.CullFace;
+      SavedDepthTest := RenderContext.DepthTest;
+      SavedDepthBufferUpdate := RenderContext.DepthBufferUpdate;
+      SavedColorChannels := RenderContext.ColorChannels;
+
+      RenderContext.DepthTest := true;
+      RenderContext.DepthBufferUpdate := false;
+      RenderContext.ColorChannels := [];
+
+        glStencilFunc(GL_ALWAYS, 0, 0);
+        RenderShadowVolumes(Params);
+
+      RenderContext.DepthBufferUpdate := SavedDepthBufferUpdate;
+      RenderContext.ColorChannels := SavedColorChannels;
+      RenderContext.CullFace := SavedCullFace;
+      RenderContext.DepthTest := SavedDepthTest;
+    glDisable(GL_STENCIL_TEST);
+
+    Inc(SumCasters, CountCasters);
+    Inc(SumShadowsNotVisible, CountShadowsNotVisible);
+    Inc(SumZPass, CountZPass);
+    Inc(SumZFailNoLightCap, CountZFailNoLightCap);
+    Inc(SumZFailAndLightCap, CountZFailAndLightCap);
+
+    { Add this light's contribution where not in its shadow.
+      Depth "less or equal" draws over the same surfaces rendered before
+      (see the long comment in TGLShadowVolumeRenderer.Render),
+      the depth buffer is already complete. }
+    SavedDepthFunc := RenderContext.DepthFunc;
+    SavedDepthBufferUpdate := RenderContext.DepthBufferUpdate;
+    RenderContext.DepthFunc := dfLessEqual;
+    RenderContext.DepthBufferUpdate := false;
+    RenderContext.BlendingEnable(bsOne, bdOne);
+
+      glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+      glStencilFunc(GL_EQUAL, 0, StencilShadowBits);
+      glEnable(GL_STENCIL_TEST);
+
+        PassParams.Init;
+        PassParams.UsingBlending := false;
+        PassParams.FilterShadowVolumesReceivers := [true];
+        PassParams.LightContributionOnly := Lights[I];
+        PassParams.InsideStencilTest := true;
+        RenderOnePass(Params, PassParams);
+
+      glDisable(GL_STENCIL_TEST);
+
+    RenderContext.BlendingDisable;
+    RenderContext.DepthBufferUpdate := SavedDepthBufferUpdate;
+    RenderContext.DepthFunc := SavedDepthFunc;
+  end;
+
+  FCountCasters := SumCasters;
+  FCountShadowsNotVisible := SumShadowsNotVisible;
+  FCountZPass := SumZPass;
+  FCountZFailNoLightCap := SumZFailNoLightCap;
+  FCountZFailAndLightCap := SumZFailAndLightCap;
+
+  if DebugRender then
+  begin
+    SavedCount := Count;
+    Count := false;
+
+    SavedDepthBufferUpdate := RenderContext.DepthBufferUpdate;
+    SavedDepthTest := RenderContext.DepthTest;
+
+    RenderContext.DepthBufferUpdate := false;
+    RenderContext.DepthTest := true;
+    RenderContext.BlendingEnable;
+
+    for I := 0 to Lights.Count - 1 do
+    begin
+      InitFrustumAndLight(FFrustum, LightPositions[I]);
+      RenderShadowVolumes(Params);
+    end;
 
     RenderContext.BlendingDisable;
     RenderContext.DepthBufferUpdate := SavedDepthBufferUpdate;

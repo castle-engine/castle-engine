@@ -25,7 +25,12 @@
 '' + LineEnding +
 '  material_base_alpha = castle_apply_color_per_vertex(castle_MaterialBaseAlpha);' + LineEnding +
 '' + LineEnding +
+'#ifdef CASTLE_LIGHT_CONTRIBUTION_ONLY' + LineEnding +
+'  /* The emissive color is added by the base pass. */' + LineEnding +
+'  result = vec4(0.0, 0.0, 0.0, material_base_alpha.a);' + LineEnding +
+'#else' + LineEnding +
 '  result = vec4(castle_EmissiveColor, material_base_alpha.a);' + LineEnding +
+'#endif' + LineEnding +
 '' + LineEnding +
 '  "This GLSL code should never be used, since PhysicalMaterial requires Phong shading.' + LineEnding +
 '  Uncommented, to break compilation in case this is accidentally used."' + LineEnding +
