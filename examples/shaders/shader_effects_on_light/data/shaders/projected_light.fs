@@ -1,11 +1,17 @@
 /*
   Effect on a light source: multiply the light by an image projected
-  from the light downwards, like a projector, or sunlight through a window.
+  from the light downwards, like a projector, or sunlight through
+  a (stained glass) window.
 
   The image is a texture in the Effect's field "projection_texture".
   The renderer binds it like a texture in an Effect on a material
   (also when the light is in another scene than the lit shapes, with
   TCastleScene.CastGlobalLights).
+
+  We use PLUG_light_color_scale, that multiplies the light's color
+  by an RGB value, so the image colors the light.
+  (PLUG_light_scale multiplies the light by a single number,
+  which is enough for grayscale images.)
 
   We need the world position of the lit point:
   castle_vertex_eye (position in eye space, available with Phong shading)
@@ -22,7 +28,7 @@ uniform vec3 light_position;
 /* Half size of the projected image at distance 1 below the light. */
 uniform float projection_size;
 
-void PLUG_light_scale(inout float scale, const in vec3 normal_eye, const in vec3 light_dir)
+void PLUG_light_color_scale(inout vec3 color_scale, const in vec3 normal_eye, const in vec3 light_dir)
 {
   vec3 world_position = (castle_CameraInverseMatrix * castle_vertex_eye).xyz;
   vec3 to_point = world_position - light_position;
@@ -30,16 +36,16 @@ void PLUG_light_scale(inout float scale, const in vec3 normal_eye, const in vec3
   /* Distance below the light. Nothing above it is lit. */
   float depth = -to_point.y;
   if (depth <= 0.0) {
-    scale = 0.0;
+    color_scale = vec3(0.0);
     return;
   }
 
   /* Perspective projection, from the light down the -Y axis. */
   vec2 uv = to_point.xz / (depth * projection_size) * 0.5 + 0.5;
   if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
-    scale = 0.0;
+    color_scale = vec3(0.0);
     return;
   }
 
-  scale *= texture2D(projection_texture, uv).r;
+  color_scale *= texture2D(projection_texture, uv).rgb;
 }

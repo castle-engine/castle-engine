@@ -16,8 +16,8 @@
 { Shader effect on a light source, using a texture.
 
   A point light, in its own scene (LightScene, with CastGlobalLights = true),
-  has an Effect that multiplies the light by an image (window panes or blinds)
-  projected downwards from the light.
+  has an Effect that multiplies the light color by an image
+  (stained glass window, window panes or blinds) projected downwards from the light.
   The image is an ImageTexture in a field of the Effect node.
   The lit objects are in another scene (LitScene). }
 unit GameViewMain;
@@ -40,7 +40,7 @@ type
     { Fields of LightEffect, passed to the shader as uniforms. }
     FieldTexture: TSFNode;
     FieldLightPosition: TSFVec3f;
-    Textures: array [0..1] of TImageTextureNode;
+    Textures: array [0..2] of TImageTextureNode;
     CurrentTexture: Integer;
     LightTime: Single;
     LightMoves: Boolean;
@@ -67,7 +67,8 @@ uses SysUtils,
 const
   LightHeight = 6.0;
   LightOrbit = 1.5;
-  TextureUrls: array [0..1] of String = (
+  TextureUrls: array [0..2] of String = (
+    'castle-data:/stained_glass.png',
     'castle-data:/window.png',
     'castle-data:/blinds.png'
   );
@@ -170,7 +171,7 @@ begin
   { Global: lights shapes in all scenes (with LightScene.CastGlobalLights). }
   Light.Global := true;
   Light.Intensity := 1.2;
-  Light.Color := Vector3(1, 0.95, 0.8);
+  Light.Color := Vector3(1, 1, 1);
   Light.Attenuation := Vector3(1, 0, 0);
   Light.Radius := 50;
   Light.SetEffects([LightEffect]);
@@ -193,7 +194,7 @@ end;
 procedure TViewMain.UpdateInfo;
 begin
   LabelInfo.Caption :=
-    'A point light with a shader effect: an image projected from the light.' + NL +
+    'A point light with a shader effect: a colored image projected from the light.' + NL +
     'The image is a texture in a field of the light''s Effect node.' + NL +
     Format('Image: %s (press T to change)', [TextureUrls[CurrentTexture]]) + NL +
     Format('Light moves: %s (press Space)', [Iff(LightMoves, 'yes', 'no')]) + NL +

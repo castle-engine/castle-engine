@@ -34,6 +34,8 @@ type
     { Texture used by a light's Effect, when the light is in another scene
       (CastGlobalLights) than the lit shapes. }
     procedure TestGlobalLightEffectTexture;
+    { Light's Effect coloring the light with PLUG_light_color_scale. }
+    procedure TestGlobalLightEffectColor;
   end;
 
 implementation
@@ -362,6 +364,176 @@ begin
     // texture is white on the right: lit (the texture was bound)
     AssertTrue(Right.X > 0.3);
     CheckGLErrors('TestGlobalLightEffectTexture');
+
+    Window.Close;
+  finally DestroyWindowForTest(Window) end;
+end;
+
+procedure TTestScene.TestGlobalLightEffectColor;
+const
+  { The light's effect multiplies the light color by the texture (RGB),
+    with PLUG_light_color_scale, projected along the world X axis
+    on the floor 10 units wide:
+    the texture is red on the left (-X) half, green on the right (+X) half. }
+  EffectCode =
+    'uniform mat4 castle_CameraInverseMatrix;' + LineEnding +
+    'varying vec4 castle_vertex_eye;' + LineEnding +
+    'uniform sampler2D test_light_texture;' + LineEnding +
+    'void PLUG_light_color_scale(inout vec3 color_scale, const in vec3 normal_eye, const in vec3 light_dir)' + LineEnding +
+    '{' + LineEnding +
+    '  vec4 world = castle_CameraInverseMatrix * castle_vertex_eye;' + LineEnding +
+    '  color_scale *= texture2D(test_light_texture, vec2(world.x / 10.0 + 0.5, 0.5)).rgb;' + LineEnding +
+    '}';
+var
+  Window: TCastleWindow;
+  Viewport: TCastleViewport;
+  LitScene, LightScene: TCastleScene;
+
+  { Floor with Phong (TMaterialNode) or physical (TPhysicalMaterialNode)
+    material: the plug is in both lighting models. }
+  function BuildLitScene(const Physical: Boolean): TX3DRootNode;
+  var
+    Library_: TEffectNode;
+    Shape: TShapeNode;
+    Material: TMaterialNode;
+    PhysicalMaterial: TPhysicalMaterialNode;
+    Box: TBoxNode;
+    Transform: TTransformNode;
+  begin
+    Result := TX3DRootNode.Create;
+
+    { Make castle_CameraInverseMatrix available to the light effect. }
+    Library_ := TEffectNode.Create;
+    Library_.Language := slGLSL;
+    Library_.FdShaderLibraries.Items.Add('castle-shader:/EyeWorldSpace.glsl');
+    Result.AddChildren(Library_);
+
+    Box := TBoxNode.CreateWithShape(Shape);
+    Box.Size := Vector3(10, 0.2, 10);
+    if Physical then
+    begin
+      PhysicalMaterial := TPhysicalMaterialNode.Create;
+      PhysicalMaterial.BaseColor := WhiteRGB;
+      PhysicalMaterial.Metallic := 0;
+      PhysicalMaterial.Roughness := 1;
+      Shape.Material := PhysicalMaterial;
+    end else
+    begin
+      Material := TMaterialNode.Create;
+      Material.DiffuseColor := WhiteRGB;
+      Shape.Material := Material;
+    end;
+    Transform := TTransformNode.Create;
+    Transform.Translation := Vector3(0, -0.1, 0);
+    Transform.AddChildren(Shape);
+    Result.AddChildren(Transform);
+  end;
+
+  function BuildLightScene: TX3DRootNode;
+  var
+    Light: TPointLightNode;
+    Effect: TEffectNode;
+    Part: TEffectPartNode;
+    Texture: TPixelTextureNode;
+    Image: TRGBImage;
+  begin
+    Image := TRGBImage.Create(2, 1);
+    Image.Colors[0, 0, 0] := Red;
+    Image.Colors[1, 0, 0] := Green;
+    Texture := TPixelTextureNode.Create;
+    Texture.FdImage.Value := Image;
+    Texture.TextureProperties := TTexturePropertiesNode.Create;
+    Texture.TextureProperties.MinificationFilter := minNearest;
+    Texture.TextureProperties.MagnificationFilter := magNearest;
+    Texture.TextureProperties.BoundaryModeS := bmClampToEdge;
+    Texture.TextureProperties.BoundaryModeT := bmClampToEdge;
+
+    Effect := TEffectNode.Create;
+    Effect.Language := slGLSL;
+    Effect.AddCustomField(TSFNode.Create(Effect, true, 'test_light_texture',
+      [TAbstractTextureNode], Texture));
+    Part := TEffectPartNode.Create;
+    Part.ShaderType := stFragment;
+    Part.Contents := EffectCode;
+    Effect.SetParts([Part]);
+
+    Light := TPointLightNode.Create;
+    Light.Global := true;
+    Light.Location := Vector3(0, 5, 0);
+    Light.Attenuation := Vector3(1, 0, 0);
+    Light.Radius := 100;
+    Light.SetEffects([Effect]);
+
+    Result := TX3DRootNode.Create;
+    Result.AddChildren(Light);
+  end;
+
+  { Floor color at world (X, 0, 0). }
+  function FloorColor(const Image: TCastleImage; const X: Single): TCastleColor;
+  var
+    P: TVector2;
+  begin
+    P := Viewport.PositionFromWorld(Vector3(X, 0, 0));
+    Result := Image.Colors[Round(P.X), Round(P.Y), 0];
+  end;
+
+var
+  Image: TCastleImage;
+  Left, Right: TCastleColor;
+  Physical: Boolean;
+begin
+  if not CanCreateWindowForTest then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
+  Window := CreateWindowForTest;
+  try
+    Window.Width := 400;
+    Window.Height := 400;
+    Window.Open;
+
+    Viewport := TCastleViewport.Create(Window);
+    Viewport.FullSize := true;
+    Viewport.BackgroundColor := Black;
+    Viewport.Camera.SetView(
+      Vector3(0, 12, 0),
+      Vector3(0, -1, 0),
+      Vector3(0, 0, -1));
+    Window.Controls.InsertFront(Viewport);
+
+    { The light is in another scene, lighting LitScene as a global light. }
+    LightScene := TCastleScene.Create(Window);
+    LightScene.Load(BuildLightScene, true);
+    LightScene.CastGlobalLights := true;
+    Viewport.Items.Add(LightScene);
+
+    for Physical := false to true do
+    begin
+      LitScene := TCastleScene.Create(Window);
+      LitScene.Load(BuildLitScene(Physical), true);
+      LitScene.RenderOptions.PhongShading := true;
+      Viewport.Items.Add(LitScene);
+
+      Image := Window.SaveScreen;
+      try
+        Left := FloorColor(Image, -2.5);
+        Right := FloorColor(Image, 2.5);
+      finally FreeAndNil(Image) end;
+
+      // texture is red on the left: only red light
+      AssertTrue(Left.X > 0.2);
+      AssertTrue(Left.Y < 0.05);
+      AssertTrue(Left.Z < 0.05);
+      // texture is green on the right: only green light
+      AssertTrue(Right.X < 0.05);
+      AssertTrue(Right.Y > 0.2);
+      AssertTrue(Right.Z < 0.05);
+      CheckGLErrors('TestGlobalLightEffectColor');
+
+      FreeAndNil(LitScene);
+    end;
 
     Window.Close;
   finally DestroyWindowForTest(Window) end;

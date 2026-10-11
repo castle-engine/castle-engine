@@ -1,6 +1,6 @@
 # Shader Effects On Light
 
-A shader effect on a light source that uses a **texture**: the light is multiplied by an image projected downwards from the light, like a projector, or sunlight through a window. Press _T_ to switch between the images (window panes, blinds).
+A shader effect on a light source that uses a **texture**: the light's color is multiplied by an image projected downwards from the light, like a projector, or sunlight through a stained glass window. Press _T_ to switch between the images (stained glass, window panes, blinds).
 
 ![Screenshot](screenshot.png)
 
@@ -8,17 +8,26 @@ The light is in a separate scene (`LightScene`, with `CastGlobalLights` = `true`
 
 Keys:
 
-- _T_: change the projected image (the texture in the light's effect, changed at runtime).
+- _T_: change the projected image (the texture in the light's effect, changed at runtime): a colored stained glass window, window panes, blinds.
 - _Space_: stop / resume moving the light.
 - Drag with the mouse to rotate the view.
 
 ## How it works
 
-X3D lights have an `effects` field (see [Compositing Shaders in X3D](https://castle-engine.io/compositing_shaders.php)). An `Effect` node there can define `PLUG_light_scale`, a GLSL function that scales the light's contribution at each lit point:
+X3D lights have an `effects` field (see [Compositing Shaders in X3D](https://castle-engine.io/compositing_shaders.php)). An `Effect` node there can define these GLSL functions (plugs), called for every point lit by the light:
 
 ```glsl
+// Multiply the light's contribution by a single number.
 void PLUG_light_scale(inout float scale, const in vec3 normal_eye, const in vec3 light_dir)
+
+// Multiply the light's color by an RGB value.
+void PLUG_light_color_scale(inout vec3 color_scale, const in vec3 normal_eye, const in vec3 light_dir)
 ```
+
+- `normal_eye`: the surface normal, in eye space.
+- `light_dir`: the direction from the lit point to the light, in eye space, normalized.
+
+Both start at 1 (`scale = 1.0`, `color_scale = vec3(1.0)`); the light's contribution (its ambient, diffuse and specular terms for Phong lighting, or the BRDF result for physical lighting) is multiplied by `scale * color_scale`, together with the built-in factors (spot light cone, attenuation, radius). Several effects on the same light combine when each one multiplies (`*=`), as in this example. Use `PLUG_light_scale` for grayscale masks (like the light shape, falloff, flicker) and `PLUG_light_color_scale` for colors (like a colored image or a colored filter in front of the light).
 
 The effect's fields become GLSL uniforms. A field holding a texture node (`SFNode` or `MFNode` with `ImageTexture`, `PixelTexture`...) becomes a `sampler2D` (or another sampler type, following the texture), bound by the renderer.
 
@@ -43,7 +52,16 @@ Light.Global := true;
 Light.SetEffects([LightEffect]);
 ```
 
-The shader ([data/shaders/projected_light.fs](data/shaders/projected_light.fs)) computes the world position of the lit point, projects it from the light into the image, and multiplies `scale` by the texture.
+The shader ([data/shaders/projected_light.fs](data/shaders/projected_light.fs)) computes the world position of the lit point, projects it from the light into the image, and multiplies `color_scale` by the texture's RGB:
+
+```glsl
+void PLUG_light_color_scale(inout vec3 color_scale, const in vec3 normal_eye, const in vec3 light_dir)
+{
+  vec3 world_position = (castle_CameraInverseMatrix * castle_vertex_eye).xyz;
+  ... // project world_position from the light to uv, set color_scale = vec3(0.0) outside
+  color_scale *= texture2D(projection_texture, uv).rgb;
+}
+```
 
 ### World position of the lit point
 
@@ -68,7 +86,6 @@ Textures must be prepared (loaded to the GPU) before they are bound. Each shape 
 
 ## Limitations
 
-- `PLUG_light_scale` scales the light's intensity by a single number, so the projected image is grayscale (this example uses the red channel). A colored projection would need a plug that changes the light's color.
 - The textures of a light are prepared when the scene containing the light is rendered (it does not need to be visible in the frustum: a scene with only lights is fine) or prepared with `TCastleViewport.PrepareResources`.
 
 ## Building
