@@ -61,7 +61,8 @@ var
 implementation
 
 uses SysUtils, DateUtils,
-  CastleLocalNotifications, CastleConfig, CastleLog, CastleUtils;
+  CastleLocalNotifications, CastleConfig, CastleLog, CastleUtils,
+  CastleTimeUtils;
 
 const
   { How long does the plant grow, in seconds. }
@@ -149,7 +150,7 @@ end;
 
 procedure TViewMain.ClickPlant(Sender: TObject);
 begin
-  PlantedTime := DateTimeToUnix(Now, false);
+  PlantedTime := DateTimeToUnix(CastleNow, false);
   SavePlantedTime;
   { The notification tells the player about something that happens
     while they are not looking. Scheduling it again (same id)
@@ -183,7 +184,7 @@ begin
     Exit;
   end;
 
-  Elapsed := DateTimeToUnix(Now, false) - PlantedTime;
+  Elapsed := DateTimeToUnix(CastleNow, false) - PlantedTime;
   if Elapsed >= GrowSeconds then
     Progress := 1
   else
