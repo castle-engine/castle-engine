@@ -12,6 +12,11 @@ The project also shows how to provide your own status bar icon: `android/notific
 
 Using [Castle Game Engine](https://castle-engine.io/).
 
+## Screenshots (Android)
+
+![Screenshot](screenshot.png)
+![Screenshot of Notification on Android](screenshot_notification.png)
+
 ## Building
 
 Compile by:
