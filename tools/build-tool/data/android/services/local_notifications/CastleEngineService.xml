@@ -5,6 +5,6 @@
          When it does not, the service's default bell is used. -->
     <copy source="${ANDROID.LOCAL_NOTIFICATIONS.SMALL_ICON}"
           target="app/src/main/res/drawable-nodpi/castle_notification_small_icon.png"
-          optional="true" />
+          if_parameter="SMALL_ICON" />
   </package>
 </service>

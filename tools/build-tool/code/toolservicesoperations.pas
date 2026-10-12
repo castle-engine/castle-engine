@@ -31,10 +31,14 @@ type
     type
       TServiceCopy = class
         Source, Target: String;
-        { Skip this copy when Source uses a macro (service parameter)
-          that the project did not define. Allows a service to accept
-          an optional file from the project. }
-        Optional: Boolean;
+        { If not empty, do this copy only when the project defines
+          (with non-empty value) the service parameter with this key.
+          Otherwise the copy is silently skipped.
+          Allows a service to accept an optional file from the project.
+
+          Lowercase, as the service parameter keys are not case-sensitive.
+          Read from if_parameter attribute of <copy>. }
+        IfParameter: String;
       end;
       TServiceCopyList = specialize TObjectList<TServiceCopy>;
     var
@@ -142,7 +146,7 @@ begin
             CopyOperation := TServiceCopy.Create;
             CopyOperation.Source := I.Current.AttributeString('source');
             CopyOperation.Target := I.Current.AttributeString('target');
-            CopyOperation.Optional := I.Current.AttributeBooleanDef('optional', false);
+            CopyOperation.IfParameter := LowerCase(I.Current.AttributeStringDef('if_parameter', ''));
             PackageOperations.Add(CopyOperation);
           end;
         finally FreeAndNil(I) end;
@@ -154,26 +158,26 @@ end;
 procedure TServiceManifest.Package(const Project: TCastleProject; const OutputPath: String);
 var
   C: TServiceCopy;
-  Source, Target: String;
+  Source, Target, ParameterValue: String;
 begin
   for C in PackageOperations do
   begin
-    (* Copy.Source may be something like '${IOS.FMOD.LIBRARY_PATH}' and the macro
-      may expand to an absolute path, or a path relative to the project. *)
-    Source := Project.ReplaceMacros(C.Source);
-
-    { An optional copy is skipped when the project did not define
-      the parameter it refers to (the macro stays unexpanded, or is empty). }
-    if C.Optional and ((Source = '') or (Pos('${', Source) <> 0)) then
+    if (C.IfParameter <> '') and not (
+         FService.Parameters.TryGetValue(C.IfParameter, ParameterValue) and
+         (ParameterValue <> '')
+       ) then
     begin
-      WritelnVerbose(Format('Packaging service %s: Skipped optional %s, not defined by the project', [
+      WritelnVerbose(Format('Packaging service %s: Skipped copying %s, as the project does not define service parameter "%s"', [
         FService.Name,
-        C.Source
+        C.Source,
+        C.IfParameter
       ]));
       Continue;
     end;
 
-    Source := CombinePaths(Project.Path, Source);
+    (* Copy.Source may be something like '${IOS.FMOD.LIBRARY_PATH}' and the macro
+      may expand to an absolute path, or a path relative to the project. *)
+    Source := CombinePaths(Project.Path, Project.ReplaceMacros(C.Source));
 
     if IsPathAbsolute(C.Target) then
       raise Exception.CreateFmt('Target to copy package file in CastleEngineService.xml is an absolute path, it should be relative to output: "%s"', [
