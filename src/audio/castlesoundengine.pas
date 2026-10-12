@@ -21,9 +21,11 @@ unit CastleSoundEngine;
 {$ifdef CASTLE_NINTENDO_SWITCH}
   // Nintendo Switch has different default backend
 {$else}
-  {$ifdef WASI}
+  {$if defined(WASI)}
     { Backend using Web Audio API for WebAssembly target. }
     {$define CASTLE_SOUND_BACKEND_DEFAULT_WEBAUDIO}
+  {$elseif defined(DELPHI) and (defined(IOS) or defined(ANDROID))}
+    {$define CASTLE_SOUND_BACKEND_DEFAULT_MEDIA_PLAYER}
   {$else}
     { Full-featured backend using OpenAL. }
     {$define CASTLE_SOUND_BACKEND_DEFAULT_OPENAL}
@@ -76,6 +78,7 @@ uses XMLRead, StrUtils, Generics.Defaults,
   {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_SOX}, CastleInternalSoxSoundBackend {$endif}
   {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_OPENAL}, CastleOpenALSoundBackend {$endif}
   {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_WEBAUDIO}, CastleInternalWebAudioBackend {$endif}
+  {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_MEDIA_PLAYER}, CastleInternalMediaPlayerSoundBackend {$endif}
   , CastleComponentSerialize;
 
 {$define read_implementation}

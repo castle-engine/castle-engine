@@ -476,7 +476,6 @@ var
 begin
   ClearPreviousDownload;
 
-
   if not UpdateInitialized then
   begin
     ApplicationProperties.OnUpdate.Add({$ifdef FPC}@{$endif}Update);
@@ -497,7 +496,7 @@ begin
   end;
   if P = 'castle-config' then
   begin
-    FFinalUrl := ResolveCastleConfigUrl(FFinalUrl);
+    FFinalUrl := ResolveCastleConfigUrl(FFinalUrl, true);
     P := URIProtocol(FFinalUrl);
   end;
 

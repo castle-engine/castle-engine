@@ -171,7 +171,7 @@ type
       serialization + deserialization underneath. Template is converted to
       the JSON classes (though not JSON string)
       and then deserialized back to a new component.
-      It is not the most efficient way to clone (since the intermeiate JSON
+      It is not the most efficient way to clone (since the intermediate JSON
       representation is created; though note that we don't save / parse
       JSON as a string). But it is absolutely general and works out-of-the-box
       on any TComponent, just like our serialization/deserialization. }

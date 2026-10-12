@@ -33,9 +33,10 @@ CastleGameControllers, CastleInternalGameControllersExplicit,
 
 {$ifdef read_window_interface}
 public
-  { Only the library in src/deprecated_library/castleengine.lpr uses this,
+  { Only the library in castle-library-model-viewer/castleengine.lpr uses this,
     to notify our window instance about various events. }
   procedure LibraryMouseWheel(const Scroll: Single; const Vertical: boolean);
+  class procedure LibrarySetMultipleWindowsPossible(const Value: boolean); static;
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
@@ -50,6 +51,8 @@ private
   Call CGEApp_Initialize / CGEApp_Finalize once and only once during the entire application. }
 procedure CGEApp_Initialize(ApplicationConfigDirectory: PChar); cdecl;
 procedure CGEApp_Finalize; cdecl;
+
+procedure CGEApp_SetFallbackConfigDirectory(FallbackConfigDirectory: PChar); cdecl;
 
 { Used by the external process to ask for context properties from CGE
   (whether to use alpha channel, depth buffer etc.).
@@ -111,6 +114,7 @@ const
 
 var
   LibraryCallbackProc: TLibraryCallbackProc;
+  LibraryMultipleWindowsPossible: boolean = false;
 
 {$endif read_global_interface}
 
@@ -212,6 +216,11 @@ end;
 procedure TCastleWindow.LibraryMouseWheel(const Scroll: Single; const Vertical: boolean);
 begin
   DoMouseWheel(Scroll, Vertical);
+end;
+
+class procedure TCastleWindow.LibrarySetMultipleWindowsPossible(const Value: boolean);
+begin
+  LibraryMultipleWindowsPossible := Value;
 end;
 
 { TCastleWindow menu ----------------------------------------------------
@@ -334,7 +343,7 @@ end;
 
 function TCastleApplication.MultipleWindowsPossible: Boolean;
 begin
-  Result := false;
+  Result := LibraryMultipleWindowsPossible;
 end;
 
 procedure TCastleApplication.WarningToCallback(const Category, S: String);
@@ -372,6 +381,16 @@ begin
     ApplicationProperties.OnWarning.Add(@Application.WarningToCallback);
   except
     on E: TObject do WritelnWarning('CGEApp_Initialize', ExceptMessage(E));
+  end;
+end;
+
+procedure CGEApp_SetFallbackConfigDirectory(FallbackConfigDirectory: PChar); cdecl;
+begin
+  try
+    InternalApplicationConfigFallback := FilenameToUriSafe(InclPathDelim(FallbackConfigDirectory));
+    WritelnLog('Library set fallback application config directory to URL: %s', [InternalApplicationConfigFallback]);
+  except
+    on E: TObject do WritelnWarning('CGEApp_SetFallbackConfigDirectory', ExceptMessage(E));
   end;
 end;
 

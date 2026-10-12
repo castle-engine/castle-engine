@@ -254,7 +254,7 @@ begin
     TempRow := GetMem(RowSize);
 
     LowerRow := PtrUInt(RawPixels);
-    UpperRow := PtrUInt(RawPixels) + RowSize * (Height div 4 - 1);
+    UpperRow := PtrUInt(RawPixels) + RowSize * PtrUInt(Height div 4 - 1);
 
     while LowerRow < UpperRow do
     begin

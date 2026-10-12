@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2023 Michalis Kamburelis.
+  Copyright 2022-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -83,11 +83,7 @@ type
     { Call this continuosly. }
     procedure Update;
 
-    { This control must always have "native style", which means
-      it has ControlType = Platform. See FMX docs about native controls:
-      https://docwiki.embarcadero.com/RADStudio/Sydney/en/FireMonkey_Native_Windows_Controls
-      Native controls are always on top of non-native controls. }
-    property ControlType default TControlType.Platform;
+    property ControlType default DefaultControlType;
 
     { Size in pixels, not scaled by anything.
       Such size can be passed e.g. to OpenGL viewport. }
@@ -105,7 +101,7 @@ type
 implementation
 
 uses FMX.Presentation.Factory, Types, FMX.Graphics,
-  CastleLog, CastleUtils, CastleInternalDelphiUtils;
+  CastleLog, CastleUtils, CastleInternalDelphiUtils, CastleRenderContext;
 
 {$ifdef MSWINDOWS}
 
@@ -185,7 +181,7 @@ begin
   TabStop := true;
   CanFocus := True;
   Assert(not (csDesigning in ComponentState)); // this is not ready for design-time
-  ControlType := TControlType.Platform;
+  ControlType := DefaultControlType;
 end;
 
 destructor TOpenGLControl.Destroy;
@@ -206,6 +202,8 @@ begin
 end;
 
 procedure TOpenGLControl.Paint;
+var
+  RenderingUtility: TFmxOpenGLRenderingUtility;
 begin
   { We must have OpenGL context at this point,
     and on Delphi/Linux there is no way to register "on native handle creation",
@@ -220,8 +218,13 @@ begin
     which always calls HandleNeeded manually after creation anyway. }
   HandleNeeded;
 
-  if Assigned(OnPaint) then
-    OnPaint(Self);
+  RenderingUtility.BeforeDirectRendering(Canvas, RenderContext);
+  try
+    if Assigned(OnPaint) then
+      OnPaint(Self);
+  finally
+    RenderingUtility.AfterDirectRendering(Canvas, RenderContext);
+  end;
 
   // inherited not needed, and possibly causes something unnecessary
 end;

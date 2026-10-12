@@ -1785,7 +1785,56 @@ type
     { OpenAndRun stuff --------------------------------------------------------- }
 
     { Do @link(Open) (initialize rendering context, show the window)
-      followed by @link(TCastleApplication.Run Application.Run) (run the event loop). }
+      followed by @link(TCastleApplication.Run Application.Run) (run
+      the event loop).
+
+      On most compilers and platforms, this is equivalent to these 2 calls:
+
+      @longCode(
+        Window.Open;
+        Application.Run;
+      )
+
+      But on some compilers and platforms it does something more complicated,
+      to achieve an equivalent effect.
+      Below we describe what happens with Delphi/Android and Delphi/iOS,
+      that use Delphi FMX underneath, and require special treatment
+      due to the specifics of FMX and how Delphi implements
+      program "begin...end." block on these platforms.
+
+      @unorderedList(
+        @link(It schedules @link(Open) for when FMX will do
+          @code(Application.RealCreateForms). We cannot create forms
+          earlier.)
+
+        @link(It calls FMX @code(Application.Run).
+
+          On Delphi/Android, this does almost nothing (see TPlatformAndroid.Run).
+          FMX is prepared that @code(Application.Run) happens inside main program
+          "begin...end.", which is done (in case of Android)
+          in onCreate of Java activity, and it should not really do much.
+
+          On Delphi/iOS, it will do UIApplicationMain and never returns,
+          that's how @url(https://developer.apple.com/documentation/uikit/uiapplicationmain%28_:_:_:_:%29-1yub7
+          UIApplicationMain) works (Apple docs say "this function never returns").
+        )
+
+        @link(On Delphi/Android:
+
+          Once the main program "begin...end." finishes,
+          then actual message loop will be performed (driven by Java activity
+          on Android). It will call at start @code(Application.RealCreateForms)
+          which will allocate our resources.
+
+          So we depend that after calling this method, your
+          main program "begin...end." soon ends.
+
+          In contrast, on Delphi/iOS, the main program "begin...end." never ends,
+          and UIApplicationMain is called inside it, and it will call
+          @code(Application.RealCreateForms).
+        )
+      )
+    }
     procedure OpenAndRun;
 
     { Parsing parameters ------------------------------------------------------- }
@@ -3569,11 +3618,13 @@ end;
 
 { OpenAndRun ----------------------------------------------------------------- }
 
+{$ifndef BACKEND_OVERRIDES_OpenAndRun}
 procedure TCastleWindow.OpenAndRun;
 begin
   Open;
   Application.Run;
 end;
+{$endif}
 
 { TCastleWindow ParseParameters -------------------------------------------------- }
 

@@ -21,6 +21,8 @@
   - Sets up Delphi IDE menu items to configure project for Castle Game Engine. }
 unit CastleInternalDelphiDesign;
 
+{$I castleconf.inc}
+
 interface
 
 //procedure Register;

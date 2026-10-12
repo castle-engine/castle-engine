@@ -332,6 +332,9 @@ function SuffixRemove(const Suffix, S: string; IgnoreCase: boolean): string;
   but @code(IsPrefixSuffix('bla', 'abc', 'blabc')) returns unmodified @code('blabc'). }
 function PrefixSuffixRemove(const Prefix, Suffix, S: String; const IgnoreCase: Boolean): String;
 
+{ Remove the characters in Chars (as many as they appear) from the end of S. }
+function SuffixRemoveChars(const S: String; const Chars: TSetOfChars): String;
+
 { Appends to a string S DataSize bytes from Data. }
 procedure SAppendData(var s: string; const Data; DataSize: integer); deprecated 'this function is not very useful';
 
@@ -1534,6 +1537,13 @@ begin
     Result := Copy(S, Length(Prefix) + 1, Length(S) - Length(Prefix) - Length(Suffix))
   else
     Result := S;
+end;
+
+function SuffixRemoveChars(const S: String; const Chars: TSetOfChars): String;
+begin
+  Result := S;
+  while (Length(Result) > 0) and CharInSet(Result[Length(Result)], Chars) do
+    SetLength(Result, Length(Result) - 1);
 end;
 
 procedure SAppendData(var s: string; const Data; DataSize: integer);

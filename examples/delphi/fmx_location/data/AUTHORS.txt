@@ -1,0 +1,20 @@
+earth.jpg:
+  "Blue Marble: Land Surface, Shallow Water, and Shaded Topography"
+  from NASA Earth Observatory / NASA Goddard Space Flight Center
+  (Reto Stöckli, Robert Simmon; MODIS groups; USGS EROS Data Center; DMSP).
+
+  The image file comes directly from the NASA server
+  (2048 x 1024, our earth.jpg is exactly this file):
+    https://eoimages.gsfc.nasa.gov/images/imagerecords/57000/57752/land_shallow_topo_2048.jpg
+
+  The same NASA image (same record number, but in a larger resolution)
+  is described, with authors and license, on Wikimedia Commons:
+    https://commons.wikimedia.org/wiki/File:Land_shallow_topo_2048.jpg
+
+  Note that the Wikimedia Commons page does not link to the exact file we use,
+  it only has higher resolution versions of the image now.
+
+  Public domain (NASA imagery is not copyrighted).
+
+  This is an equirectangular projection: longitude -180..180 maps to the image
+  left..right, latitude 90..-90 maps to the image top..bottom.

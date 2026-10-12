@@ -56,6 +56,7 @@ type
     procedure TestFloatToStrDisplay;
     procedure TestDeg;
     procedure TestFastList;
+    procedure TestSimpleIntTypes;
   end;
 
 implementation
@@ -763,6 +764,47 @@ begin
     L.ReleaseMemory;
     AssertEquals(0, L.Count);
   finally FreeAndNil(L) end;
+end;
+
+procedure TTestCastleUtils.TestSimpleIntTypes;
+var
+  U8: UInt8;
+  U16: UInt16;
+  U32: UInt32;
+  U64: UInt64;
+  I8: Int8;
+  I16: Int16;
+  I32: Int32;
+  I64: Int64;
+begin
+  AssertEquals(SizeOf(Byte), 1);
+  AssertEquals(SizeOf(SmallInt), 2);
+  AssertEquals(SizeOf(Integer), 4);
+  AssertEquals(SizeOf(Int64), 8);
+
+  AssertEquals(SizeOf(UInt8), 1);
+  AssertEquals(SizeOf(UInt16), 2);
+  AssertEquals(SizeOf(UInt32), 4);
+  AssertEquals(SizeOf(UInt64), 8);
+
+  AssertEquals(SizeOf(Int8), 1);
+  AssertEquals(SizeOf(Int16), 2);
+  AssertEquals(SizeOf(Int32), 4);
+  AssertEquals(SizeOf(Int64), 8);
+
+  { Test unsigned integer types allow their maximum values without
+    range/overflow errors.
+    The tests are checked also in -dDEBUG with range+overflow checking. }
+  U8 := 255;
+  U16 := 65535;
+  U32 := 4294967295;
+  U64 := 18446744073709551615;
+
+  { Test signed integer types allow their minimum (negative) values. }
+  I8 := -128;
+  I16 := -32768;
+  I32 := -2147483648;
+  I64 := -9223372036854775808;
 end;
 
 initialization

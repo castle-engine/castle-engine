@@ -151,6 +151,7 @@ begin
   {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_SOX} UseSOXSoundBackend; {$endif}
   {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_OPENAL} UseOpenALSoundBackend; {$endif}
   {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_WEBAUDIO} UseWebAudioSoundBackend; {$endif}
+  {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_MEDIA_PLAYER} UseMediaPlayerSoundBackend; {$endif}
 end;
 
 destructor TSoundAllocator.Destroy;

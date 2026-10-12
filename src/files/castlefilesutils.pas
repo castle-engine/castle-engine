@@ -181,6 +181,11 @@ var
     This must always end with a slash, if it's not empty. }
   ApplicationConfigOverride: string;
 
+  { Used as a fallback directory to open application configuration files.
+    In practice, used only with iOS and FPC, to support applications using
+    older iOS config location directory. }
+  InternalApplicationConfigFallback: string;
+
 { URL where we should read and write configuration files.
 
   Given Path specifies a name of the file (with possible subdirectories)
@@ -462,6 +467,10 @@ uses {$ifdef MSWINDOWS} ShlObj, {$endif}
     {$endif}
   {$endif}
   Classes,
+  // for BundlePath on macOS
+  {$if defined(DELPHI) and defined(MACOS) and (not defined(IOS))} Macapi.Foundation, {$endif}
+  // for BundlePath on iOS
+  {$if defined(DELPHI) and defined(IOS)} iOSapi.Foundation, {$endif}
   {$ifdef FPC} {$ifndef WASI} Process, {$endif} {$endif}
   CastleStringUtils,
   {$ifdef MSWINDOWS} CastleDynLib, {$endif} CastleLog,
@@ -1079,6 +1088,8 @@ end;
 {$endif}
 
 {$ifdef DARWIN}
+
+{$ifdef FPC}
 var
   BundlePathCached: Boolean;
   BundlePathCache: string;
@@ -1113,6 +1124,21 @@ begin
   end;
   Result := BundlePathCache;
 end;
+{$else}
+
+{ Delphi version of BundlePath, this follows what System.StartUpCopy is using.
+  Note: our implementation above, using CFBundle* API, should also work with
+  Delphi. But approach below looks simpler and is guaranteed to work,
+  as it follows what Delphi itself does. }
+function BundlePath: string;
+var
+  Bundle: NSBundle;
+begin
+  Bundle := TNSBundle.Wrap(TNSBundle.OCClass.mainBundle);
+  Result := UTF8ToString(Bundle.bundlePath.UTF8String) + PathDelim;
+end;
+{$endif}
+
 {$endif DARWIN}
 
 function FileToString(const Url: String;

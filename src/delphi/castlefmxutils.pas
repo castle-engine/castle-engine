@@ -1,5 +1,5 @@
 {
-  Copyright 2023-2024 Michalis Kamburelis.
+  Copyright 2023-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -20,8 +20,9 @@ unit CastleFmxUtils;
 
 interface
 
-uses Types, FMX.Dialogs,
-  CastleFileFilters;
+uses Types,
+  FMX.Dialogs, FMX.Types, FMX.Graphics,
+  CastleFileFilters, CastleImages;
 
 { Convert file filters into FMX Dialog.Filter, Dialog.FilterIndex.
   Suitable for both open and save dialogs (in FMX, TSaveDialog
@@ -43,6 +44,20 @@ procedure FileFiltersToDialog(FFList: TFileFilterList;
   const Dialog: TOpenDialog; const AllFields: boolean = true); overload;
 { @groupEnd }
 
+{ Convert FMX bitmap to a new Castle Game Engine image.
+  The caller is responsible for freeing the returned image
+  (or passing it to something that takes the ownership,
+  like @link(TImageTextureNode.LoadFromImage) with TakeImageOwnership = @true).
+
+  This is useful e.g. to use FMX camera frames
+  (from FMX TCameraComponent.SampleBufferToBitmap) as a texture in a viewport.
+  See examples/delphi/fmx_camera and examples/delphi/window_camera.
+
+  Any pixel format of the FMX bitmap is handled.
+  Note that we don't do anything special about the alpha premultiplication,
+  so this is most suitable for opaque bitmaps. }
+function BitmapToCastleImage(const Bitmap: TBitmap): TRGBAlphaImage;
+
 {$ifdef LINUX}
 { Set mouse position, in screen coordinates.
   WidgetNativeHandle is a GTK widget pointer, used to determine
@@ -53,7 +68,8 @@ procedure FmxSetMousePos(const WidgetNativeHandle: Pointer;
 
 implementation
 
-uses CTypes, CastleLog;
+uses
+  SysUtils, CTypes, CastleLog;
 
 procedure FileFiltersToDialog(const FileFilters: string;
   const Dialog: TOpenDialog; const AllFields: boolean = true);
@@ -76,6 +92,66 @@ begin
   FFList.LclFmxFilters(OutFilter, OutFilterIndex, AllFields);
   Dialog.Filter := OutFilter;
   Dialog.FilterIndex := OutFilterIndex;
+end;
+
+{ Convert a row of pixels from any FMX pixel format to RGBA (8 bits per channel).
+
+  This is like FMX.Types.ChangePixelFormat, but ChangePixelFormat is not
+  available in older Delphi versions (like 10.2), while
+  PixelToAlphaColor and AlphaColorToPixel used here are. }
+procedure ConvertScanlineToRgba(const Source, Dest: Pointer;
+  const PixelCount: Integer; const SourceFormat: TPixelFormat);
+var
+  SourcePixel, DestPixel: PByte;
+  SourcePixelSize, I: Integer;
+begin
+  SourcePixelSize := PixelFormatBytes[SourceFormat];
+  if SourcePixelSize < 1 then
+    raise Exception.Create('Cannot convert pixels of FMX bitmap, unsupported pixel format');
+
+  SourcePixel := Source;
+  DestPixel := Dest;
+  for I := 0 to PixelCount - 1 do
+  begin
+    AlphaColorToPixel(PixelToAlphaColor(SourcePixel, SourceFormat),
+      DestPixel, TPixelFormat.RGBA);
+    Inc(SourcePixel, SourcePixelSize);
+    Inc(DestPixel, 4);
+  end;
+end;
+
+function BitmapToCastleImage(const Bitmap: TBitmap): TRGBAlphaImage;
+var
+  Data: TBitmapData;
+  Y: Integer;
+  Source, Dest: Pointer;
+begin
+  if (Bitmap.Width = 0) or (Bitmap.Height = 0) then
+    Exit(TRGBAlphaImage.Create(0, 0));
+
+  if not Bitmap.Map(TMapAccess.Read, Data) then
+    raise Exception.Create('Cannot access the pixels of FMX bitmap');
+  try
+    Result := TRGBAlphaImage.Create(Data.Width, Data.Height);
+    try
+      for Y := 0 to Data.Height - 1 do
+      begin
+        Source := Data.GetScanline(Y);
+        // FMX bitmap rows go from the top, our image rows go from the bottom
+        Dest := Result.RowPtr(Data.Height - 1 - Y);
+        if Data.PixelFormat = TPixelFormat.RGBA then
+          // formats of TBitmapData and TRGBAlphaImage are equal, copy fast
+          Move(Source^, Dest^, Data.Width * 4)
+        else
+          ConvertScanlineToRgba(Source, Dest, Data.Width, Data.PixelFormat);
+      end;
+    except
+      FreeAndNil(Result);
+      raise;
+    end;
+  finally
+    Bitmap.Unmap(Data);
+  end;
 end;
 
 {$ifdef LINUX}

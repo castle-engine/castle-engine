@@ -45,6 +45,7 @@
 #     Compile all examples using Delphi.
 #     This uses CGE build tool, that (when invoked with --compiler=delphi)
 #     executes Delphi command-line compiler.
+#     Pass QUICK_DELPHI_EXAMPLES=true to compile only examples in examples/delphi/ .
 #
 #   build-using-fpmake:
 #     Compile all units using FpMake.
@@ -221,11 +222,7 @@ endif
 
 EXAMPLES_BASE_NAMES :=
 
-# Note that src/deprecated_library/castleengine must be compiled before
-# cge_dynlib_tester, otherwise linking cge_dynlib_tester will fail.
-EXAMPLES_LAZARUS_BASE_NAMES := \
-  src/deprecated_library/castleengine \
-  examples/deprecated_library/lazarus_library_tester/cge_dynlib_tester
+EXAMPLES_LAZARUS_BASE_NAMES := 
 
 EXAMPLES_UNIX_EXECUTABLES := $(EXAMPLES_BASE_NAMES) \
   $(EXAMPLES_LAZARUS_BASE_NAMES)
@@ -282,9 +279,6 @@ examples: prepare-examples
 #
 # - tests/delphi_tests: because it requires Delphi, which is not available on non-Windows.
 #
-# - examples/deprecated_library: bacause it requires library first (we could build it..
-#   but it is already tested by examples-laz).
-#
 # - tools/build-tool: because
 #   - compilation is tested by "make tools" already,
 #   - we don't want to clean it, to have it available for "make test-editor-templates" after this
@@ -299,7 +293,6 @@ examples: prepare-examples
 	  '(' -path ./tools/build-tool -prune ')' -o \
 	  '(' -path ./tests/delphi_tests -prune ')' -o \
 	  '(' -path ./examples/delphi -prune ')' -o \
-	  '(' -path ./examples/deprecated_library/lazarus_library_tester -prune ')' -o \
 	  '(' -type d -iname castle-engine-output -prune ')' -o \
 	  '(' -type f -iname CastleEngineManifest.xml -print ')' > \
 	  /tmp/cge-projects.txt
@@ -320,17 +313,54 @@ examples: prepare-examples
 #
 # TODO: We don't automatically build examples/delphi/cpp_builder,
 # our build tool doesn't support C++ Builder compilation now.
+#
+# Some examples in examples/delphi/ require newer Delphi versions
+# (see their README.md for details), so we exclude them when compiling
+# with older Delphi. DELPHI_VERSION is the Delphi compiler version
+# (same as CompilerVersion in Pascal), e.g.
+# - 32.0 for Delphi 10.2 (oldest Delphi version we support),
+# - 35.0 for Delphi 11,
+# - 37.0 for Delphi 13.
+#
+# When QUICK_DELPHI_EXAMPLES is
+# - true -> we compile only examples in examples/delphi/ (much faster).
+# - anything else -> we compile all examples.
+ifeq ($(QUICK_DELPHI_EXAMPLES),true)
+EXAMPLES_DELPHI_FIND_PATH:=./examples/delphi/
+else
+EXAMPLES_DELPHI_FIND_PATH:=./examples/
+endif
+
 .PHONY: examples-delphi
 examples-delphi: prepare-examples
-	"$(FIND)" ./examples/ \
+	set -e; \
+	DELPHI_VERSION=$$(dcc32 --version 2>&1 | head -n1 | awk '{print $$NF}'); \
+	echo "Delphi compiler version: $${DELPHI_VERSION}"; \
+	DELPHI_VERSION_MAJOR=$${DELPHI_VERSION%%.*}; \
+	case "$${DELPHI_VERSION_MAJOR}" in \
+	  ''|*[!0-9]*) echo 'Cannot determine Delphi compiler version using dcc32' >&2; exit 1;; \
+	esac; \
+	EXCLUDE_BY_DELPHI_VERSION=''; \
+	if [ "$${DELPHI_VERSION_MAJOR}" -lt 35 ]; then \
+	  echo 'Delphi < 11: not compiling fmx_camera, window_camera'; \
+	  EXCLUDE_BY_DELPHI_VERSION="$${EXCLUDE_BY_DELPHI_VERSION} \
+	    ( -path ./examples/delphi/fmx_camera -prune ) -o \
+	    ( -path ./examples/delphi/window_camera -prune ) -o"; \
+	fi; \
+	if [ "$${DELPHI_VERSION_MAJOR}" -lt 37 ]; then \
+	  echo 'Delphi < 13: not compiling fmx_location'; \
+	  EXCLUDE_BY_DELPHI_VERSION="$${EXCLUDE_BY_DELPHI_VERSION} \
+	    ( -path ./examples/delphi/fmx_location -prune ) -o"; \
+	fi; \
+	"$(FIND)" $(EXAMPLES_DELPHI_FIND_PATH) \
 	  '(' -path ./examples/castlescript/image_make_by_script -prune ')' -o \
 	  '(' -path ./examples/localization -prune ')' -o \
 	  '(' -path ./examples/audio/audio_player -prune ')' -o \
 	  '(' -path ./examples/audio/test_sound_source_allocator -prune ')' -o \
 	  '(' -path ./examples/deprecated_random_generator -prune ')' -o \
-	  '(' -path ./examples/deprecated_library -prune ')' -o \
 	  '(' -path ./examples/lazarus -prune ')' -o \
 	  '(' -path ./examples/delphi/cpp_builder -prune ')' -o \
+	  $${EXCLUDE_BY_DELPHI_VERSION} \
 	  '(' -iname CastleEngineManifest.xml -print ')' > \
 	  /tmp/cge-delphi-projects.txt
 	echo 'Found projects: '`wc -l < /tmp/cge-delphi-projects.txt`
@@ -356,7 +386,6 @@ examples-laz: prepare-examples
 	  '(' -path ./tools/castle-editor-portable/data/project_templates -prune ')' -o \
 	  '(' -path ./tools/build-tool/tests/data -prune ')' -o \
 	  '(' -path ./tools/build-tool/data -prune ')' -o \
-	  '(' -path ./examples/deprecated_library -prune ')' -o \
 	  '(' -path ./tools/castle-editor/components/mbColorLib/examples -prune ')' -o \
 	  '(' -path ./src/compatibility/web_assembly -prune ')' -o \
 	  '(' -iname '*.lpi' -print ')'  > \
@@ -375,8 +404,6 @@ examples-laz: prepare-examples
 cleanexamples:
 	rm -f $(EXAMPLES_UNIX_EXECUTABLES) $(EXAMPLES_WINDOWS_EXECUTABLES)
 	rm -Rf \
-	  examples/deprecated_library/build-qt_library_tester-* \
-	  examples/deprecated_library/lazarus_library_tester/*.app  \
 	  examples/fonts/font_draw_over_image_output.png \
 	  examples/short_api_samples/transform_save_load/aaa.castle-transform
 # lazarus produces lib/ subdirectories during compilation
@@ -441,10 +468,6 @@ clean: cleanexamples
 	$(MAKE) -C doc/man/man1/ clean
 # fpmake stuff (binary, units/ produced by fpmake compilation, configs)
 	rm -Rf fpmake fpmake.exe units/ *.fpm .fppkg .config
-	rm -Rf src/deprecated_library/ios-output/\
-	       src/deprecated_library/libcastleengine.dylib \
-	       src/deprecated_library/castleengine.dll \
-	       src/deprecated_library/libcastleengine.so
 # Clean every project with CastleEngineManifest.xml .
 #
 # Avoid a project in project_templates,
@@ -496,6 +519,10 @@ tests:
 # (useful to test image processing, e.g. TTestImages.TestLoadImage, without libpng, which matters for mobile now)
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ clean
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ --mode=debug --compiler-option=-dCASTLE_DISABLE_LIBPNG compile
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ run -- --console --no-window-create
+# Run in debug mode with CASTLE_FREETYPE_PASCAL
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ clean
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ --mode=debug --compiler-option=-dCASTLE_FREETYPE_PASCAL compile
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ run -- --console --no-window-create
 # Run in release mode, since all tests must pass the same when optimizations are enabled
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ clean

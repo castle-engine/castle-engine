@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2024 Michalis Kamburelis.
+  Copyright 2022-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -48,16 +48,25 @@ unit Fmx.CastleControl;
   {$define USE_TIMER}
 {$endif}
 
+{ On systems where we use existing OpenGL(ES) context provided by FMX,
+  we need to use scissor to limit our rendering (and in particular glClear
+  calls) to our control's area and shift our viewport.
+  This is done by using RenderContext.InternalControlRect. }
+{$if defined(ANDROID) or defined(IOS)}
+  {$define RENDERING_CONTEXT_SUBRECT}
+{$endif}
+
 interface
 
 uses // standard units
   SysUtils, Classes,
   // fmx
   {$ifdef MSWINDOWS} FMX.Presentation.Win, {$endif}
-  FMX.Controls, FMX.Controls.Presentation, FMX.Types, UITypes,
+  FMX.Controls, FMX.Controls.Presentation, FMX.Types, FMX.Forms, UITypes,
   // cge
   CastleGLVersion, CastleGLUtils, CastleVectors, CastleKeysMouse,
-  CastleInternalContextBase, CastleControlContainer, CastleInternalFmxUtils;
+  CastleInternalContextBase, CastleControlContainer, CastleInternalFmxUtils,
+  CastleRenderContext, CastleFmxUtils;
 
 type
   { Control rendering "Castle Game Engine" on FMX form. }
@@ -90,6 +99,19 @@ type
     var
       FContainer: TContainer;
       FGLUtility: TFmxOpenGLUtility;
+      { Did we call MultiTouchOnForm and FTouchDispatcher was created. }
+      FMultiTouch: Boolean;
+      {$ifdef CASTLE_HANDLE_FMX_TOUCH}
+      { Non-nil only when FMultiTouch. }
+      FTouchDispatcher: TFmxTouchDispatcher;
+      {$endif CASTLE_HANDLE_FMX_TOUCH}
+
+    { Is this finger currently pressed, according to Container.Touches. }
+    function TouchPressed(const FingerIndex: TFingerIndex): Boolean;
+    procedure TouchDown(const FingerIndex: TFingerIndex; const Position: TVector2);
+    procedure TouchUp(const FingerIndex: TFingerIndex; const Position: TVector2);
+    procedure TouchMotion(const FingerIndex: TFingerIndex;
+      const OldPosition, NewPosition: TVector2);
 
     function GetCurrentShift: TShiftState;
     procedure SetCurrentShift(const Value: TShiftState);
@@ -133,6 +155,34 @@ type
     destructor Destroy; override;
     procedure Paint; override;
 
+    { Handle touches with multiple fingers (on platforms that support it,
+      like Android and iOS).
+
+      Without calling this, we only handle mouse events, and FMX reports
+      only the first finger as a mouse.
+
+      Pass the form on which this control is placed. We need to listen
+      on the form OnTouch event, as this is the only way to get information
+      about all the touches from FMX. So calling this method assigns Form.OnTouch,
+      you should not assign it to anything else afterwards.
+      This means you can call this method for only one TCastleControl on a form.
+
+      After calling this, we ignore the mouse events that FMX generates
+      for touches (as we get the same information through Form.OnTouch).
+      We still handle the events from a real mouse. }
+    procedure MultiTouchOnForm(const Form: TForm);
+
+    { Stop listening to multi-touch events on the form.
+      If you called MultiTouchOnForm earlier, then this clears form's
+      OnTouch event.
+
+      Usually you don't need to call this manually.
+      We detach from form when the TCastleControl is destroyed,
+      so everything works if form is freed after the TCastleControl.
+      If you plan to free the form @italic(before) freeing this TCastleControl,
+      you should call this method first. }
+    procedure MultiTouchDetachForm;
+
     { If Handle not allocated yet, allocate it now.
       This makes sure we have OpenGL context created.
       Our OpenBackend must guarantee it, we want to initialize GLVersion
@@ -140,11 +190,7 @@ type
       @exclude }
     procedure InternalHandleNeeded;
 
-    { This control must always have "native style", which means
-      it has ControlType = Platform. See FMX docs about native controls:
-      https://docwiki.embarcadero.com/RADStudio/Sydney/en/FireMonkey_Native_Windows_Controls
-      Native controls are always on top of non-native controls. }
-    property ControlType default TControlType.Platform;
+    property ControlType default DefaultControlType;
 
     { On some platforms (Linux now) if you call Application.ProcessMessages,
       make sure to also call this method. E.g.
@@ -193,8 +239,8 @@ procedure Register;
 
 implementation
 
-uses FMX.Presentation.Factory, Types, FMX.Graphics, FMX.Forms,
-  CastleRenderOptions, CastleApplicationProperties, CastleRenderContext,
+uses FMX.Presentation.Factory, Types, FMX.Graphics,
+  CastleRenderOptions, CastleApplicationProperties,
   CastleRectangles, CastleUtils, CastleUIControls, CastleInternalDelphiUtils,
   CastleLog;
 
@@ -368,11 +414,14 @@ begin
       https://docwiki.embarcadero.com/RADStudio/Alexandria/en/FireMonkey_Native_Windows_Controls#Visual_Changes_to_Native_Windows_Controls
   }
   if not (csDesigning in ComponentState) then
-    ControlType := TControlType.Platform;
+    ControlType := DefaultControlType;
 end;
 
 destructor TCastleControl.Destroy;
 begin
+  {$ifdef CASTLE_HANDLE_FMX_TOUCH}
+  FreeAndNil(FTouchDispatcher);
+  {$endif CASTLE_HANDLE_FMX_TOUCH}
   FreeAndNil(FGLUtility);
   inherited;
 end;
@@ -407,6 +456,12 @@ end;
 procedure TCastleControl.Paint;
 var
   R: TRectF;
+  RenderingUtility: TFmxOpenGLRenderingUtility;
+  {$ifdef RENDERING_CONTEXT_SUBRECT}
+  ControlScale: Single;
+  ControlEdges: TRect;
+  ControlRect: TRectangle;
+  {$endif}
 begin
   { See our constructor comments:
     looks like native drawing at design-time in FMX is just not possible reliably. }
@@ -445,7 +500,50 @@ begin
     FGLUtility.Update;
 
     // inherited not needed, and possibly causes something unnecessary
-    FContainer.DoRender;
+
+    {$ifdef RENDERING_CONTEXT_SUBRECT}
+    { Calculate control rectangle following what FMX does for own clipping,
+      see TCanvasGpu.DoIntersectClipRect and
+      TContextAndroid.DoSetScissorRect, TContextIOS.DoSetScissorRect.
+      This means:
+
+      - Use AbsoluteRect, which is in the form coordinates.
+        (Not BoundsRect, which is relative to the parent control,
+        so it's wrong when we're inside e.g. TPanel or TLayout.)
+
+      - Scale by FGLUtility.Scale, which is the form's Handle.Scale,
+        same as TContext3D.Scale used by FMX.
+
+      - Round each edge, and calculate size from the rounded edges,
+        to match FMX clipping exactly.
+
+      - Flip Y using Canvas.Height, which is the size of the rendering
+        context. (Not Screen.DesktopRect.Height, which is larger
+        than the form when Android status bar is visible.) }
+    R := AbsoluteRect;
+    ControlScale := FGLUtility.Scale;
+    ControlEdges := Rect(
+      Round(R.Left * ControlScale),
+      Round(R.Top * ControlScale),
+      Round(R.Right * ControlScale),
+      Round(R.Bottom * ControlScale));
+    ControlRect := Rectangle(
+      ControlEdges.Left,
+      // FMX Y coordinate system is top-down, CGE is bottom-up.
+      Round(Canvas.Height * ControlScale) - ControlEdges.Bottom,
+      ControlEdges.Width,
+      ControlEdges.Height);
+    { We set this before BeforeDirectRendering, so before
+      RenderContext.SynchronizeState. This ensures this value will be applied OK. }
+    RenderContext.InternalControlRect := ControlRect;
+    {$endif RENDERING_CONTEXT_SUBRECT}
+
+    RenderingUtility.BeforeDirectRendering(Canvas, RenderContext);
+    try
+      FContainer.DoRender;
+    finally
+      RenderingUtility.AfterDirectRendering(Canvas, RenderContext);
+    end;
   end;
 end;
 
@@ -493,9 +591,21 @@ end;
 
 class procedure TCastleControl.ApplicationRun;
 begin
-  {$ifdef USE_TIMER}
+  { We use Application.Run only if FMX can reliably execute our "update" logic
+    (DoUpdateEverything) by timer, when USE_TIMER.
+
+    Note: With Delphi/Android and Delphi/iOS we simply have to
+    use Application.Run, even if they would not define USE_TIMER
+    (but they do). See TCastleWindow.OpenAndRun in
+    src/window/castlewindow_form.inc for details what Application.Run does
+    on these platforms.
+  }
+  {$if defined(USE_TIMER)}
   Application.Run;
   {$else}
+  { In practice, the code below is only for Delphi/Linux, as only then
+    USE_TIMER is not defined. }
+
   Application.RealCreateForms;
 
   { On Linux, it's especially important to check Terminating (not just Terminated)
@@ -521,33 +631,22 @@ begin
     ProcessTasks;
   end;
 
-  { TODO (but it seems FMXLinux issue -- we should report):
-    On FMXLinux, not using "Application.Run"
-    means that FMXLinux never frees the Application singleton.
+  { Free the forms (and other components owned by Application) at exit.
 
-    Consequently, things owned by Application are never freed,
-    TForm.OnDestroy callbacks are not run,
-    and component destructors like TCastleControl.Destroy are not run.
-    Things just leak at program exit.
+    Standard "Application.Run" does this by registering (using AddExitProc)
+    an internal FMX.Forms routine DoneApplication, on all platforms.
+    Since we don't call "Application.Run" here, this doesn't happen,
+    and without the code below things owned by Application would never be freed:
+    TForm.OnDestroy callbacks would not run,
+    component destructors like TCastleControl.Destroy would not run.
 
-    It seems FMXLinux "TPlatformLinux.Destroy"
-    should just call "FreeAndNil(Application)". This is what Delphi built-in
-    "TPlatformWin.Destroy" and "TPlatformCocoa.Destroy" are doing.
-    It also makes sense since "TPlatformLinux.Create" creates the Application
-    singleton.
-
-    In fact, I haven't found *how is Application freed when
-    we call Application.Run*. FMXLinux never seems to free Application.
-    Unlike Windows and macOS FMX platforms.
-    But logging shows that forms *are* freed at application exit
-    if we run Application.Run, but not otherwise.
-
-    This is reproducible in FMX almost-blank application, without any CGE,
-    just remove Application.Run but call Application.RealCreateForms .
-    You will notice that form OnCreate callback executes,
-    but form OnDestroy callback never happens. }
-
-  FreeAndNil(Application);
+    We cannot call DoneApplication (it's internal in FMX.Forms),
+    so we do the same thing as DoneApplication does. }
+  if Screen <> nil then
+    Screen.ActiveForm := nil;
+  Application.DestroyComponents;
+  if TThread.CurrentThread.ThreadID = MainThreadID then
+    CheckSynchronize;
   {$endif}
 end;
 
@@ -574,6 +673,82 @@ begin
   Result := Vector2(X, Height - 1 - Y) * FGLUtility.Scale;
 end;
 
+procedure TCastleControl.MultiTouchOnForm(const Form: TForm);
+begin
+  {$ifdef CASTLE_HANDLE_FMX_TOUCH}
+  if FTouchDispatcher = nil then
+  begin
+    FTouchDispatcher := TFmxTouchDispatcher.Create;
+    FTouchDispatcher.PositionsInControl := Self;
+    FTouchDispatcher.OnDown := TouchDown;
+    FTouchDispatcher.OnUp := TouchUp;
+    FTouchDispatcher.OnMotion := TouchMotion;
+  end;
+  FTouchDispatcher.AttachToForm(Form); // this also assigns Form.OnTouch
+  FMultiTouch := true;
+  {$endif CASTLE_HANDLE_FMX_TOUCH}
+end;
+
+procedure TCastleControl.MultiTouchDetachForm;
+begin
+  {$ifdef CASTLE_HANDLE_FMX_TOUCH}
+  FreeAndNil(FTouchDispatcher);
+  FMultiTouch := false;
+  {$endif CASTLE_HANDLE_FMX_TOUCH}
+end;
+
+function TCastleControl.TouchPressed(const FingerIndex: TFingerIndex): Boolean;
+var
+  I: Integer;
+begin
+  for I := 0 to Container.TouchesCount - 1 do
+    if Container.Touches[I].FingerIndex = FingerIndex then
+      Exit(true);
+  Result := false;
+end;
+
+procedure TCastleControl.TouchDown(const FingerIndex: TFingerIndex;
+  const Position: TVector2);
+begin
+  { FTouchDispatcher reports all touches on the form.
+    Ignore the touches that start outside of this control,
+    e.g. on other FMX controls on the same form. }
+  if (Position.X < 0) or (Position.X > Width) or
+     (Position.Y < 0) or (Position.Y > Height) then
+    Exit;
+
+  Container.EventPress(InputMouseButton(
+    MousePosToCastle(Position.X, Position.Y), buttonLeft, FingerIndex,
+    ModifiersDown(Container.Pressed)));
+end;
+
+procedure TCastleControl.TouchUp(const FingerIndex: TFingerIndex;
+  const Position: TVector2);
+begin
+  // Ignore fingers for which we ignored TouchDown
+  if not TouchPressed(FingerIndex) then
+    Exit;
+
+  Container.EventRelease(InputMouseButton(
+    MousePosToCastle(Position.X, Position.Y), buttonLeft, FingerIndex,
+    ModifiersDown(Container.Pressed)));
+end;
+
+procedure TCastleControl.TouchMotion(const FingerIndex: TFingerIndex;
+  const OldPosition, NewPosition: TVector2);
+begin
+  // Ignore fingers for which we ignored TouchDown
+  if not TouchPressed(FingerIndex) then
+    Exit;
+
+  Container.EventMotion(InputMotion(
+    MousePosToCastle(OldPosition.X, OldPosition.Y),
+    MousePosToCastle(NewPosition.X, NewPosition.Y),
+    { Just like TCastleWindow.TouchMotion,
+      we consider buttonLeft pressed if you press any finger. }
+    Container.MousePressed + [buttonLeft], FingerIndex));
+end;
+
 procedure TCastleControl.MouseDown(Button: TMouseButton; Shift: TShiftState; X,
   Y: Single);
 var
@@ -587,6 +762,12 @@ begin
   { This updates Container.Pressed.
     Do this before using ModifiersDown(Container.Pressed) below. }
   CurrentShift := Shift;
+
+  { When FMultiTouch, touches are handled by TouchDown / TouchUp / TouchMotion.
+    Ignore mouse events that FMX generates for touches, to not handle
+    them twice. We still handle the events from a real mouse. }
+  if FMultiTouch and (ssTouch in Shift) then
+    Exit;
 
   if MouseButtonToCastle(Button, CastleButton) then
   begin
@@ -603,6 +784,10 @@ begin
     Do this before using ModifiersDown(Container.Pressed) below. }
   CurrentShift := Shift;
 
+  // See MouseDown for explanation
+  if FMultiTouch and (ssTouch in Shift) then
+    Exit;
+
   Container.EventMotion(InputMotion(Container.MousePosition,
     MousePosToCastle(NewX, NewY), Container.MousePressed, 0));
 end;
@@ -617,6 +802,10 @@ begin
   { This updates Container.Pressed.
     Do this before using ModifiersDown(Container.Pressed) below. }
   CurrentShift := Shift;
+
+  // See MouseDown for explanation
+  if FMultiTouch and (ssTouch in Shift) then
+    Exit;
 
   if MouseButtonToCastle(Button, CastleButton) then
   begin

@@ -16,6 +16,8 @@
 
 unit TestCastleFonts;
 
+{$I ../../../src/common_includes/castleconf.inc}
+
 interface
 
 uses CastleTester;
@@ -287,6 +289,13 @@ end;
   {$define CASTLE_IGNORE_FREETYPE_MISSING}
 {$endif}
 
+const
+  { Expected height of PARPG.ttf font, at default size.
+    With CASTLE_FREETYPE_PASCAL, glyphs are not hinted (not aligned to the pixel
+    grid), so their bitmaps are a bit different, and the measured height
+    is 1 pixel smaller. }
+  ParpgHeight = {$ifdef CASTLE_FREETYPE_PASCAL} 21 {$else} 22 {$endif};
+
 procedure TTestCastleFonts.TestSizeChangeNotificationFontFamily;
 var
   F: TCastleFont;
@@ -311,8 +320,8 @@ begin
   AssertEquals(0, FF.Height);
 
   F.Url := 'castle-data:/fonts/PARPG.ttf';
-  AssertSameValue(22, F.Height);
-  AssertSameValue(22, FF.Height);
+  AssertSameValue(ParpgHeight, F.Height);
+  AssertSameValue(ParpgHeight, FF.Height);
   // writeln(F.Height:1:2);
   // writeln(FF.Height:1:2);
 
@@ -344,8 +353,8 @@ begin
   AssertEquals(0, CF.Height);
 
   F.Url := 'castle-data:/fonts/PARPG.ttf';
-  AssertSameValue(22, F.Height);
-  AssertSameValue(22, CF.Height);
+  AssertSameValue(ParpgHeight, F.Height);
+  AssertSameValue(ParpgHeight, CF.Height);
   // writeln(F.Height:1:2);
   // writeln(CF.Height:1:2);
 

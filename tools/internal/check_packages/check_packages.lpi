@@ -13,6 +13,48 @@
       <SessionStorage Value="InProjectDir"/>
       <Title Value="check_packages"/>
     </General>
+    <BuildModes Count="2">
+      <Item1 Name="Debug" Default="True"/>
+      <Item2 Name="Release">
+        <CompilerOptions>
+          <Version Value="11"/>
+          <Target>
+            <Filename Value="check_packages"/>
+          </Target>
+          <SearchPaths>
+            <IncludeFiles Value="regexpr/"/>
+            <OtherUnitFiles Value="regexpr/"/>
+            <UnitOutputDirectory Value="castle-engine-output/standalone/lazarus-lib/$(TargetCPU)-$(TargetOS)"/>
+            <Libraries Value="" />
+          </SearchPaths>
+          <CodeGeneration>
+            <SmartLinkUnit Value="True"/>
+            <Checks>
+              <IOChecks Value="True"/>
+            </Checks>
+            <Optimizations>
+              <OptimizationLevel Value="2"/>
+            </Optimizations>
+          </CodeGeneration>
+          <Linking>
+            <Debugging>
+              <GenerateDebugInfo Value="False"/>
+              <RunWithoutDebug Value="True"/>
+              <StripSymbols Value="True"/>
+            </Debugging>
+            <LinkSmart Value="True"/>
+          </Linking>
+          <Other>
+            <Verbosity>
+              <ShowHints Value="False"/>
+            </Verbosity>
+            <CustomOptions Value="-dRELEASE
+
+"/>
+          </Other>
+        </CompilerOptions>
+      </Item2>
+    </BuildModes>
     <RequiredPackages Count="2">
       <Item1>
         <PackageName Value="castle_engine_window"/>
@@ -37,18 +79,18 @@
         <UnitName Value="packageutils"/>
       </Unit2>
       <Unit3>
-        <Filename Value="regexpr/regexpr.pas"/>
+        <Filename Value="regexpr/castleregexpr.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="regexpr"/>
+        <UnitName Value="castleregexpr"/>
       </Unit3>
       <Unit4>
+        <Filename Value="regexpr/regexpr_compilers.inc"/>
+        <IsPartOfProject Value="True"/>
+      </Unit4>
+      <Unit5>
         <Filename Value="regexpr/regexpr_unicodedata.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="regexpr_unicodedata"/>
-      </Unit4>
-      <Unit5>
-        <Filename Value="regexpr/regexpr_compilers.inc"/>
-        <IsPartOfProject Value="True"/>
       </Unit5>
     </Units>
   </ProjectOptions>
@@ -73,18 +115,20 @@
         <IOChecks Value="True"/>
         <RangeChecks Value="True"/>
         <OverflowChecks Value="True"/>
+        <StackChecks Value="True"/>
       </Checks>
+      <VerifyObjMethodCallValidity Value="True"/>
     </CodeGeneration>
     <Linking>
       <Debugging>
-        <DebugInfoType Value="dsDwarf2Set"/>
       </Debugging>
     </Linking>
     <Other>
       <Verbosity>
         <ShowHints Value="False"/>
       </Verbosity>
-      <CustomOptions Value="
+      <CustomOptions Value="-dDEBUG
+
 "/>
     </Other>
   </CompilerOptions>

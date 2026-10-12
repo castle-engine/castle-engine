@@ -645,7 +645,22 @@ begin
   {$endif}
   {$endif}
 
-  InternalDocumentNonRef := XMLDoc.TXMLDocument.Create(Self);
+  { Note: This *should not* be owned by Self,
+    like "XMLDoc.TXMLDocument.Create(Self)". This was proved to cause issues
+    with Delphi/iOS. In such case, freeing TXMLDocument, e.g. at the end of
+    reading CastleSettings.xml or sprite sheets in Starling/XML formats ->
+    was causing access violations. This issue was observed only with Delphi/iOS
+    (weirdly, only on this platform).
+
+    It makes sense: using InternalDocument means we're managed by
+    ref-counting.
+    - Although TComponent ownership should properly account
+      when the instance is freed by some other means ->
+    - but we should not try to free InternalDocumentNonRef earlier,
+      which was possible, freeing TDOMDocument could do it if it owned
+      InternalDocumentNonRef. }
+
+  InternalDocumentNonRef := XMLDoc.TXMLDocument.Create(nil);
   {$ifdef CASTLE_XML_OMNI}
   InternalDocumentNonRef.DOMVendor := GetDOMVendor(sOmniXmlVendor);
   {$endif}
