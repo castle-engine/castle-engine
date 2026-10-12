@@ -225,7 +225,14 @@ public class MainActivity extends NativeActivity
     {
         switch (requestCode) {
             case MY_PERMISSIONS_REQUEST: {
-                // If request is cancelled, the result arrays are empty.
+                /* If request is cancelled, the result arrays are empty.
+                   This happens e.g. when we call requestPermissions while
+                   another permission request is still displayed.
+                   We do not know then what permission it was about. */
+                if (permissions.length == 0) {
+                    ServiceAbstract.logWarning(CATEGORY, "Permission request was cancelled before the user answered");
+                    return;
+                }
                 if (grantResults.length > 0
                     && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     messageSend(new String[]{"permission-granted", permissions[0]});
