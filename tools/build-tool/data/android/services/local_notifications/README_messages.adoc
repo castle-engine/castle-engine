@@ -1,0 +1,19 @@
+# Internal - messages passed between Pascal and Java
+
+Following our https://castle-engine.io/adding_new_android_services#_communicate_with_java[conventions to communicate between Pascal and Java], this service is using some messages through the https://castle-engine.io/apidoc/html/CastleMessaging.html[CastleMessaging] unit.
+
+As a developer merely using this service, you do not need to know about these messages. They are automatically send/received by Pascal/Java code of this service.
+
+|===
+|Message |Parameters |Comments
+
+|`local-notification-schedule`
+|id, delay in seconds, title, text
+|Send by Pascal, received on Java side
+
+|`local-notification-cancel`
+|id
+|Send by Pascal, received on Java side
+|===
+
+To ask for the `android.permission.POST_NOTIFICATIONS` permission (necessary since Android 13), the Java code of this service uses `MainActivity.requestPermission`. So the Pascal code also receives the usual answer to it, the `permission-granted` or `permission-cancelled` message with this permission name. Nothing has to handle it.
