@@ -91,7 +91,7 @@ public class LocalNotificationReceiver extends BroadcastReceiver
                 "ic_castle_notification", "drawable", context.getPackageName());
         }
         if (result == 0) {
-            // Should not happen, the bell is part of this service.
+            ServiceAbstract.logWarning(CATEGORY, "Cannot find the default icon for local notifications, using the application icon instead. This should not happen (as the default icon is part of this service).");
             result = context.getApplicationInfo().icon;
         }
         return result;
