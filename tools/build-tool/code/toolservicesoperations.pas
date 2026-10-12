@@ -189,7 +189,8 @@ begin
         Target
       ]);
     if RegularFileExists(Target) then
-      raise Exception.CreateFmt('Service file "%s" already exists, specified by multiple services: %s', [
+      raise Exception.CreateFmt('Packaging service %s: File "%s" already exists, it was already copied by another service or another <copy> of this service', [
+        FService.Name,
         Target
       ]);
 
