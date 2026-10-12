@@ -64,7 +64,16 @@ type
 
       On Android 13 and newer, the user is asked for the permission to show
       notifications when you call this for the first time. If the user
-      refuses, the notifications are not shown, without any error. }
+      refuses, the notifications are not shown, without any error.
+
+      On Android, the request is processed only while the application
+      is displayed and nothing covers it.
+      This is almost always true from the Pascal code perspective.
+      But beware of edge-cases: A request made from
+      @link(TCastleApplicationProperties.OnPause ApplicationProperties.OnPause)
+      (when the user leaves the application), or while a system dialog covers
+      the application (like a question about a permission), is processed only once
+      the application is displayed again. }
     class procedure Schedule(const Id: String; const DelaySeconds: Cardinal;
       const Title, Text: String);
 
@@ -74,10 +83,9 @@ type
       Canceling an Id that is neither scheduled nor displayed
       is not an error and does nothing.
 
-      Like @link(Schedule), call this when the application is active.
+      Like @link(Schedule):
       On Android, a request made when the application is not active
-      is processed only when the application is active again,
-      so the notification may still be shown. }
+      is processed only when the application is active again. }
     class procedure Cancel(const Id: String);
   end;
 
