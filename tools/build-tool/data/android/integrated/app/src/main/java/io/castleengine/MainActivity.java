@@ -191,6 +191,12 @@ public class MainActivity extends NativeActivity
 
     private static final int MY_PERMISSIONS_REQUEST = 1;
 
+    /* Permission passed to the last ActivityCompat.requestPermissions call
+       that was not answered yet, null if none.
+       Used only when Android cancels the request without saying
+       what permission it was about, see onRequestPermissionsResult. */
+    private String permissionRequestedUnanswered;
+
     /* Requires Android permission name.
 
        @param permission Can be one of the Manifest.permission constants,
@@ -211,9 +217,19 @@ public class MainActivity extends NativeActivity
     {
         if (ActivityCompat.checkSelfPermission(this, permission)
           != PackageManager.PERMISSION_GRANTED) {
+            String previouspermissionRequestedUnanswered = permissionRequestedUnanswered;
+            permissionRequestedUnanswered = permission;
             ActivityCompat.requestPermissions(this,
                 new String[]{permission},
                 MY_PERMISSIONS_REQUEST);
+            /* When another permission request is still displayed, Android
+               cancels this one immediately, calling onRequestPermissionsResult
+               (that sets permissionRequestedUnanswered to null) before
+               requestPermissions returns. The previous request then still
+               waits for the answer. */
+            if (permissionRequestedUnanswered == null) {
+                permissionRequestedUnanswered = previouspermissionRequestedUnanswered;
+            }
         } else {
             messageSend(new String[]{"permission-granted", permission});
         }
@@ -228,11 +244,19 @@ public class MainActivity extends NativeActivity
                 /* If request is cancelled, the result arrays are empty.
                    This happens e.g. when we call requestPermissions while
                    another permission request is still displayed.
-                   We do not know then what permission it was about. */
+                   Android does not say then what permission it was about,
+                   so we use the one we remembered, to always send an answer
+                   (as documented at requestPermission). */
                 if (permissions.length == 0) {
-                    ServiceAbstract.logWarning(CATEGORY, "Permission request was cancelled before the user answered");
+                    if (permissionRequestedUnanswered != null) {
+                        messageSend(new String[]{"permission-cancelled", permissionRequestedUnanswered});
+                    } else {
+                        ServiceAbstract.logWarning(CATEGORY, "Permission request was cancelled, and we do not know what permission it was about");
+                    }
+                    permissionRequestedUnanswered = null;
                     return;
                 }
+                permissionRequestedUnanswered = null;
                 if (grantResults.length > 0
                     && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     messageSend(new String[]{"permission-granted", permissions[0]});
