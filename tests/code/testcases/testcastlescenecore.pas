@@ -44,6 +44,9 @@ type
     procedure TestFind;
     procedure TestViewpointBillboardTricky;
     procedure TestManifold;
+    { Manifold and border edges of meshes with known edges:
+      open meshes, an edge with 3 neighbors, inconsistent ordering, -0. }
+    procedure TestManifoldAndBorderEdgesPairs;
     procedure TestMultipleScenesOneNodeIncorrect;
     procedure TestMultipleScenesOneNodeCorrect;
     procedure TestSpineUtf8Names;
@@ -81,7 +84,152 @@ implementation
 uses X3DLoad, CastleVectors, CastleShapes,
   CastleTimeUtils, CastleStringUtils, X3DFields, CastleViewport, CastleBoxes,
   CastleFilesUtils, CastleScene, CastleTransform, CastleApplicationProperties,
-  CastleUriUtils, CastleColors, CastleRenderOptions, CastleTestUtils;
+  CastleUriUtils, CastleColors, CastleRenderOptions, CastleTestUtils,
+  CastleUtils, CastleTriangles, CastleShapeInternalShadowVolumes;
+
+procedure TTestSceneCore.TestManifoldAndBorderEdgesPairs;
+
+  { Scene with one shape: the triangles (3 points each). }
+  function TrianglesScene(const Points: array of TVector3): TCastleSceneCore;
+  var
+    Coord: TCoordinateNode;
+    Geometry: TTriangleSetNode;
+    Shape: TShapeNode;
+    Root: TX3DRootNode;
+  begin
+    Coord := TCoordinateNode.Create;
+    Coord.SetPoint(Points);
+    Geometry := TTriangleSetNode.Create;
+    Geometry.Coord := Coord;
+    { the order of points matters, don't let it be changed }
+    Geometry.Ccw := true;
+    Geometry.Solid := true;
+    Shape := TShapeNode.Create;
+    Shape.Geometry := Geometry;
+    Root := TX3DRootNode.Create;
+    Root.AddChildren(Shape);
+    Result := TCastleSceneCore.Create(nil);
+    Result.Load(Root, true);
+  end;
+
+  function OnlyShape(const Scene: TCastleSceneCore): TShape;
+  begin
+    AssertEquals(1, Scene.Shapes.TraverseList(false).Count);
+    Result := Scene.Shapes.TraverseList(false)[0];
+  end;
+
+  { Check that each manifold edge is between its 2 triangles,
+    going the other way in each, and each border edge is in its triangle. }
+  procedure CheckEdgesTriangles(const Shape: TShape);
+  var
+    SV: TShapeShadowVolumes;
+    Triangles: TTriangle3List;
+    I, J: Integer;
+    E: TEdge;
+    T0, T1: TTriangle3;
+    Found: Boolean;
+  begin
+    SV := Shape.InternalShadowVolumes;
+    Triangles := SV.TrianglesListShadowCasters;
+    for I := 0 to SV.ManifoldEdges.Count - 1 do
+    begin
+      E := SV.ManifoldEdges.L[I];
+      T0 := Triangles.L[E.Triangles[0]];
+      T1 := Triangles.L[E.Triangles[1]];
+      AssertTrue(E.Triangles[0] <> E.Triangles[1]);
+      AssertTrue(TVector3.PerfectlyEquals(T0.Data[E.VertexIndex], E.V0));
+      AssertTrue(TVector3.PerfectlyEquals(T0.Data[(E.VertexIndex + 1) mod 3], E.V1));
+      { T1 has the edge V1 -> V0 }
+      Found := false;
+      for J := 0 to 2 do
+        if TVector3.PerfectlyEquals(T1.Data[J], E.V1) and
+           TVector3.PerfectlyEquals(T1.Data[(J + 1) mod 3], E.V0) then
+          Found := true;
+      AssertTrue(Found);
+    end;
+    for I := 0 to SV.BorderEdges.Count - 1 do
+    begin
+      E := SV.BorderEdges.L[I];
+      T0 := Triangles.L[E.Triangles[0]];
+      AssertTrue(TVector3.PerfectlyEquals(T0.Data[E.VertexIndex], E.V0));
+      AssertTrue(TVector3.PerfectlyEquals(T0.Data[(E.VertexIndex + 1) mod 3], E.V1));
+      { not marked as matched (CalculateDetectedWholeSceneManifold uses this) }
+      AssertTrue(E.Triangles[1] <> High(Cardinal));
+    end;
+  end;
+
+  procedure CheckCounts(const Points: array of TVector3;
+    const ExpectedManifold, ExpectedBorder: Integer);
+  var
+    Scene: TCastleSceneCore;
+    Shape: TShape;
+  begin
+    Scene := TrianglesScene(Points);
+    try
+      Shape := OnlyShape(Scene);
+      AssertEquals(ExpectedManifold, Shape.InternalShadowVolumes.ManifoldEdges.Count);
+      AssertEquals(ExpectedBorder, Shape.InternalShadowVolumes.BorderEdges.Count);
+      CheckEdgesTriangles(Shape);
+    finally FreeAndNil(Scene) end;
+  end;
+
+var
+  Points: array of TVector3;
+  I: Integer;
+begin
+  { one triangle: 3 border edges }
+  CheckCounts([
+    Vector3(0, 0, 0), Vector3(1, 0, 0), Vector3(0, 1, 0)
+  ], 0, 3);
+
+  { a quad (2 triangles): the diagonal is manifold, 4 border edges }
+  CheckCounts([
+    Vector3(0, 0, 0), Vector3(1, 0, 0), Vector3(1, 1, 0),
+    Vector3(0, 0, 0), Vector3(1, 1, 0), Vector3(0, 1, 0)
+  ], 1, 4);
+
+  { 100 separate quads (as in level geometry, nothing shared between them) }
+  SetLength(Points, 100 * 6);
+  for I := 0 to 99 do
+  begin
+    Points[I * 6    ] := Vector3(I * 2    , 0, 0);
+    Points[I * 6 + 1] := Vector3(I * 2 + 1, 0, 0);
+    Points[I * 6 + 2] := Vector3(I * 2 + 1, 1, 0);
+    Points[I * 6 + 3] := Vector3(I * 2    , 0, 0);
+    Points[I * 6 + 4] := Vector3(I * 2 + 1, 1, 0);
+    Points[I * 6 + 5] := Vector3(I * 2    , 1, 0);
+  end;
+  CheckCounts(Points, 100, 400);
+
+  { a tetrahedron (closed): 6 manifold edges, no border }
+  CheckCounts([
+    Vector3(0, 0, 0), Vector3(0, 1, 0), Vector3(1, 0, 0),
+    Vector3(0, 0, 0), Vector3(1, 0, 0), Vector3(0, 0, 1),
+    Vector3(1, 0, 0), Vector3(0, 1, 0), Vector3(0, 0, 1),
+    Vector3(0, 1, 0), Vector3(0, 0, 0), Vector3(0, 0, 1)
+  ], 6, 0);
+
+  { an edge with 3 neighbors (from (0,0,0) to (1,0,0)): 2 of them pair up,
+    the third stays a border edge; with the other edges: 1 manifold, 7 border }
+  CheckCounts([
+    Vector3(0, 0, 0), Vector3(1, 0, 0), Vector3(0, 1, 0),
+    Vector3(1, 0, 0), Vector3(0, 0, 0), Vector3(0, -1, 0),
+    Vector3(0, 0, 0), Vector3(1, 0, 0), Vector3(0, 0, 1)
+  ], 1, 7);
+
+  { 2 triangles sharing an edge in the same direction (inconsistent ordering):
+    they don't pair }
+  CheckCounts([
+    Vector3(0, 0, 0), Vector3(1, 0, 0), Vector3(0, 1, 0),
+    Vector3(0, 0, 0), Vector3(1, 0, 0), Vector3(0, -1, 0)
+  ], 0, 6);
+
+  { -0 and 0 are the same position (TVector3.PerfectlyEquals) }
+  CheckCounts([
+    Vector3(0, 0, 0), Vector3(1, 0, 0), Vector3(1, 1, 0),
+    Vector3(-0.0, -0.0, -0.0), Vector3(1, 1, 0), Vector3(0, 1, 0)
+  ], 1, 4);
+end;
 
 procedure TTestSceneCore.TestBorderManifoldEdges;
 var

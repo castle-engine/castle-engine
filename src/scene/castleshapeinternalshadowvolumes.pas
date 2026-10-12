@@ -286,82 +286,128 @@ begin
   FreeAndNil(FTrianglesListShadowCasters);
 end;
 
+{ Finding edge counterparts ---------------------------------------------------- }
+
+type
+  { An edge's vertex positions, in order: the key to find its counterpart. }
+  TEdgeKey = record
+    V0, V1: TVector3;
+  end;
+
+  { Unmatched edges with the same key, in the order they were found:
+    indexes to the unmatched edges, linked by their "next" indexes. }
+  TEdgeQueue = record
+    First, Last: Integer;
+  end;
+
+  TEdgeQueues = {$ifdef FPC}specialize{$endif} TDictionary<TEdgeKey, TEdgeQueue>;
+
+{ Key of an edge from V0 to V1. }
+function EdgeKey(const V0, V1: TVector3): TEdgeKey;
+begin
+  Result.V0 := V0;
+  Result.V1 := V1;
+  { The key is hashed and compared by its bytes,
+    while vertexes are equal when TVector3.PerfectlyEquals:
+    make -0 (equal to 0, but with different bytes) into 0. }
+  if Result.V0.X = 0 then Result.V0.X := 0;
+  if Result.V0.Y = 0 then Result.V0.Y := 0;
+  if Result.V0.Z = 0 then Result.V0.Z := 0;
+  if Result.V1.X = 0 then Result.V1.X := 0;
+  if Result.V1.Y = 0 then Result.V1.Y := 0;
+  if Result.V1.Z = 0 then Result.V1.Z := 0;
+end;
+
+{ TShapeShadowVolumes -------------------------------------------------------- }
+
 procedure TShapeShadowVolumes.CalculateIfNeededManifoldAndBorderEdges;
 
   { Sets FManifoldEdges and FBorderEdges. Assumes that FManifoldEdges and
-    FBorderEdges are @nil on enter. }
+    FBorderEdges are @nil on enter.
+
+    Each edge of each triangle is either paired with an earlier edge going
+    the other way (between the same positions), making a manifold edge,
+    or it waits for its counterpart as an unmatched edge.
+    Triangles must be consistently ordered on a manifold,
+    so the second time an edge is present, we know it must
+    be in different order: an edge V0 -> V1 pairs with an edge V1 -> V0.
+
+    Unmatched edges are found by their positions in a hash map,
+    so this takes linear time in the number of triangles
+    (comparing each new edge with all unmatched edges so far was quadratic,
+    and took seconds for big meshes that are not 2-manifold).
+
+    An edge with more than 2 neighbors pairs its neighbors in the order they
+    are found; what's left (an odd number of neighbors) stays a border edge. }
   procedure CalculateManifoldAndBorderEdges;
+  var
+    Triangles: TTriangle3List;
+    { Edges waiting for their counterpart. Matched ones are marked in
+      UnmatchedPaired, and left out of FBorderEdges at the end. }
+    Unmatched: TEdgeList;
+    UnmatchedNext: array of Integer;
+    UnmatchedPaired: array of Boolean;
+    Queues: TEdgeQueues;
 
-    { If the counterpart of this edge (edge from neighbor) exists in
-      FBorderEdges, then it adds this edge (along with it's counterpart)
-      to FManifoldEdges.
-
-      Otherwise, it just adds the edge to FBorderEdges. This can happen
-      if it's the 1st time this edge occurs, or maybe the 3d one, 5th...
-      all odd occurrences, assuming that ordering of faces is consistent,
-      so that counterpart edges are properly detected. }
-    procedure AddEdgeCheckManifold(
+    procedure AddEdge(
       const TriangleIndex: Cardinal;
       const V0: TVector3;
       const V1: TVector3;
-      const VertexIndex: Cardinal;
-      Triangles: TTriangle3List);
+      const VertexIndex: Cardinal);
     var
+      Key: TEdgeKey;
+      Queue: TEdgeQueue;
       I: Integer;
       EdgePtr: PEdge;
     begin
-      if FBorderEdges.Count <> 0 then
+      { Is there an unmatched counterpart, going from V1 to V0? }
+      Key := EdgeKey(V1, V0);
+      if Queues.TryGetValue(Key, Queue) then
       begin
-        EdgePtr := PEdge(FBorderEdges.L);
-        for I := 0 to FBorderEdges.Count - 1 do
+        { Pair with the first one found:
+          it becomes a manifold edge, with 2 neighboring triangles now. }
+        I := Queue.First;
+        EdgePtr := PEdge(FManifoldEdges.Add);
+        EdgePtr^ := Unmatched.L[I];
+        EdgePtr^.Triangles[1] := TriangleIndex;
+        UnmatchedPaired[I] := true;
+        if I = Queue.Last then
+          Queues.Remove(Key)
+        else
         begin
-          { It would also be possible to get EdgePtr^.V0/1 by code like
-
-            TrianglePtr := @Triangles.L[EdgePtr^.Triangles[0]];
-            EdgeV0 := @TrianglePtr^[EdgePtr^.VertexIndex];
-            EdgeV1 := @TrianglePtr^[(EdgePtr^.VertexIndex + 1) mod 3];
-
-            But, see TEdge.V0/1 comments --- current version is
-            a little faster.
-          }
-
-          { Triangles must be consistently ordered on a manifold,
-            so the second time an edge is present, we know it must
-            be in different order. So we compare V0 with EdgeV1
-            (and V1 with EdgeV0), no need to compare V1 with EdgeV1. }
-          if TVector3.PerfectlyEquals(V0, EdgePtr^.V1) and
-             TVector3.PerfectlyEquals(V1, EdgePtr^.V0) then
-          begin
-            EdgePtr^.Triangles[1] := TriangleIndex;
-
-            { Move edge to FManifoldEdges: it has 2 neighboring triangles now. }
-            FManifoldEdges.Add^ := EdgePtr^;
-
-            { Remove this from FBorderEdges.
-              Note that we delete from FBorderEdges fast, using assignment and
-              deleting only from the end (normal Delete would want to shift
-              FBorderEdges contents in memory, to preserve order of items;
-              but we don't care about order). }
-            EdgePtr^ := FBorderEdges.L[FBorderEdges.Count - 1];
-            FBorderEdges.Count := FBorderEdges.Count - 1;
-
-            Exit;
-          end;
-          Inc(EdgePtr);
+          Queue.First := UnmatchedNext[I];
+          Queues[Key] := Queue;
         end;
+        Exit;
       end;
 
-      { New edge: add new item to FBorderEdges }
-      EdgePtr := PEdge(FBorderEdges.Add);
+      { New edge: add it to unmatched, at the end of the queue of its key }
+      I := Unmatched.Count;
+      EdgePtr := PEdge(Unmatched.Add);
       EdgePtr^.VertexIndex := VertexIndex;
       EdgePtr^.Triangles[0] := TriangleIndex;
+      EdgePtr^.Triangles[1] := 0;
       EdgePtr^.V0 := V0;
       EdgePtr^.V1 := V1;
+      UnmatchedNext[I] := -1;
+      UnmatchedPaired[I] := false;
+
+      Key := EdgeKey(V0, V1);
+      if Queues.TryGetValue(Key, Queue) then
+      begin
+        UnmatchedNext[Queue.Last] := I;
+        Queue.Last := I;
+        Queues[Key] := Queue;
+      end else
+      begin
+        Queue.First := I;
+        Queue.Last := I;
+        Queues.Add(Key, Queue);
+      end;
     end;
 
   var
     I: Integer;
-    Triangles: TTriangle3List;
     TrianglePtr: PTriangle3;
   begin
     Assert(FManifoldEdges = nil);
@@ -377,20 +423,33 @@ procedure TShapeShadowVolumes.CalculateIfNeededManifoldAndBorderEdges;
       on a closed manifold: E = T * 3 / 2. }
     FManifoldEdges.Capacity := Triangles.Count * 3 div 2;
 
-    { FBorderEdges are edges that have no neighbor,
-      i.e. have only one adjacent triangle. At the end, what's left here
-      will be simply left as BorderEdges. }
-    FBorderEdges := TEdgeList.Create;
-    FBorderEdges.Capacity := Triangles.Count * 3 div 2;
+    Unmatched := TEdgeList.Create;
+    Queues := TEdgeQueues.Create;
+    try
+      Unmatched.Capacity := Triangles.Count * 3;
+      SetLength(UnmatchedNext, Triangles.Count * 3);
+      SetLength(UnmatchedPaired, Triangles.Count * 3);
 
-    TrianglePtr := PTriangle3(Triangles.L);
-    for I := 0 to Triangles.Count - 1 do
-    begin
-      { TrianglePtr points to Triangles[I] now }
-      AddEdgeCheckManifold(I, TrianglePtr^.Data[0], TrianglePtr^.Data[1], 0, Triangles);
-      AddEdgeCheckManifold(I, TrianglePtr^.Data[1], TrianglePtr^.Data[2], 1, Triangles);
-      AddEdgeCheckManifold(I, TrianglePtr^.Data[2], TrianglePtr^.Data[0], 2, Triangles);
-      Inc(TrianglePtr);
+      TrianglePtr := PTriangle3(Triangles.L);
+      for I := 0 to Triangles.Count - 1 do
+      begin
+        { TrianglePtr points to Triangles[I] now }
+        AddEdge(I, TrianglePtr^.Data[0], TrianglePtr^.Data[1], 0);
+        AddEdge(I, TrianglePtr^.Data[1], TrianglePtr^.Data[2], 1);
+        AddEdge(I, TrianglePtr^.Data[2], TrianglePtr^.Data[0], 2);
+        Inc(TrianglePtr);
+      end;
+
+      { FBorderEdges are edges that have no neighbor,
+        i.e. have only one adjacent triangle: the ones left unmatched. }
+      FBorderEdges := TEdgeList.Create;
+      FBorderEdges.Capacity := Unmatched.Count - FManifoldEdges.Count;
+      for I := 0 to Unmatched.Count - 1 do
+        if not UnmatchedPaired[I] then
+          FBorderEdges.Add(Unmatched.L[I]);
+    finally
+      FreeAndNil(Unmatched);
+      FreeAndNil(Queues);
     end;
 
     if LogShadowVolumes then
