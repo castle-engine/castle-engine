@@ -54,13 +54,15 @@ public class ServiceLocalNotifications extends ServiceAbstract
        something to show. */
     private boolean permissionAsked;
 
-    /* We asked for the POST_NOTIFICATIONS permission and the user possibly
-       did not answer yet. See onResume. */
-    private volatile boolean permissionAnswerPending;
+    /* When did we ask for the POST_NOTIFICATIONS permission
+       (System.currentTimeMillis() based), if the user possibly did not
+       answer yet. 0 if we are not waiting for the answer. See onResume. */
+    private volatile long permissionRequestTime;
 
-    /* Our activity was paused since permissionAnswerPending was set,
-       which means that the permission dialog was displayed. */
-    private boolean permissionDialogDisplayed;
+    /* We never show a notification later than this (in milliseconds) after
+       its time. A reminder that arrives long after the event it announces
+       is worse than no reminder. */
+    private static final long MAX_LATE = 10 * 60 * 1000;
 
     public ServiceLocalNotifications(MainActivity activity)
     {
@@ -82,66 +84,60 @@ public class ServiceLocalNotifications extends ServiceAbstract
         }
         permissionAsked = true;
         if (Build.VERSION.SDK_INT >= 33) { // Build.VERSION_CODES.TIRAMISU
-            permissionAnswerPending =
-                !LocalNotificationReceiver.notificationsEnabled(getActivity());
+            if (!LocalNotificationReceiver.notificationsEnabled(getActivity())) {
+                permissionRequestTime = System.currentTimeMillis();
+            }
             getActivity().requestPermission("android.permission.POST_NOTIFICATIONS");
         }
     }
 
-    /* The permission dialog pauses our activity, and resumes it when the user
-       answers. A notification scheduled with a short delay (like "now")
-       comes while the dialog is still open, LocalNotificationReceiver cannot
-       show it then and leaves it remembered. So show it now, if the user
-       agreed.
+    /* Schedule again the remembered notifications when the application starts.
+       Android forgets the alarms not only at a device reboot (handled by
+       LocalNotificationBootReceiver) but also e.g. when the user uses
+       "Force stop" on the application. */
+    @Override
+    public void onCreate()
+    {
+        rescheduleRemembered(getActivity(), MAX_LATE);
+    }
 
-       This is done only right after we asked for the permission.
-       In other cases we do not show overdue notifications (e.g. when the user
-       enabled the notifications in system settings a week later),
-       as a late reminder is worse than no reminder. */
+    /* A notification scheduled with a short delay (like "now") comes while
+       the user still looks at the dialog asking for the permission.
+       LocalNotificationReceiver cannot show it then, and leaves it remembered.
+       The dialog pauses our activity, and resumes it when the user answers.
+       So show such notifications now, if the user agreed.
+
+       Nothing else is done here. In particular we do not show the notifications
+       that should have been shown before we asked for the permission. */
     @Override
     public void onResume()
     {
-        if (permissionAnswerPending && !permissionDialogDisplayed) {
-            /* Resumed for another reason (e.g. the game scheduled a notification
-               at startup, before the activity was resumed for the first time),
-               the permission dialog is yet to come. */
+        long since = permissionRequestTime;
+        if (since == 0 || !LocalNotificationReceiver.notificationsEnabled(getActivity())) {
             return;
         }
+        permissionRequestTime = 0;
 
-        boolean showOverdue = permissionAnswerPending &&
-            LocalNotificationReceiver.notificationsEnabled(getActivity());
-        permissionAnswerPending = false;
-        permissionDialogDisplayed = false;
-        handleOverdue(getActivity(), showOverdue);
-    }
-
-    @Override
-    public void onPause()
-    {
-        if (permissionAnswerPending) {
-            permissionDialogDisplayed = true;
-        }
-    }
-
-    /* Forget the remembered notifications whose time has passed,
-       optionally showing them. */
-    private static void handleOverdue(Context context, boolean show)
-    {
-        SharedPreferences preferences =
-            context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE);
+        Context context = getActivity();
+        SharedPreferences preferences = preferences();
         SharedPreferences.Editor editor = preferences.edit();
         long now = System.currentTimeMillis();
 
         for (Map.Entry<String, ?> entry : preferences.getAll().entrySet()) {
+            String id = entry.getKey();
             Remembered remembered = Remembered.parse(entry.getValue());
-            if (remembered != null && remembered.when > now) {
+            if (remembered == null ||
+                remembered.when < since ||
+                remembered.when > now ||
+                remembered.when < now - MAX_LATE) {
                 continue;
             }
-            if (remembered != null && show) {
-                LocalNotificationReceiver.show(context, entry.getKey(),
-                    remembered.title, remembered.text);
-            }
-            editor.remove(entry.getKey());
+
+            /* Cancel the alarm, in case Android did not deliver it yet
+               (alarms are not exact), to not show the notification twice. */
+            alarmManager().cancel(notificationIntent(context, id, "", ""));
+            editor.remove(id);
+            LocalNotificationReceiver.show(context, id, remembered.title, remembered.text);
         }
 
         editor.apply();
@@ -326,26 +322,40 @@ public class ServiceLocalNotifications extends ServiceAbstract
        so this is static and takes a Context. */
     public static void rescheduleAfterBoot(Context context)
     {
+        /* Do not show anything whose moment passed while the device was off. */
+        rescheduleRemembered(context, 0);
+    }
+
+    /* Set again the alarms of the remembered notifications, because Android
+       possibly forgot them. Setting an alarm that already exists is harmless,
+       it just replaces it.
+
+       Notifications that should have been shown more than maxLate milliseconds
+       ago are dropped, we will never show them.
+       The ones that should have been shown more recently are left untouched:
+       Android possibly did not deliver their alarm yet (alarms are not exact),
+       or they wait for the user to answer the permission dialog (see onResume). */
+    private static void rescheduleRemembered(Context context, long maxLate)
+    {
         AlarmManager alarms = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         SharedPreferences preferences =
             context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
+        long now = System.currentTimeMillis();
 
         for (Map.Entry<String, ?> entry : preferences.getAll().entrySet()) {
             String id = entry.getKey();
             Remembered remembered = Remembered.parse(entry.getValue());
 
-            if (remembered == null || remembered.when <= System.currentTimeMillis()) {
-                /* Its moment passed while the device was off. We do not show it
-                   now: a reminder that arrives after the event it announces is
-                   worse than no reminder. */
+            if (remembered == null || remembered.when <= now - maxLate) {
+                alarms.cancel(notificationIntent(context, id, "", ""));
                 editor.remove(id);
-                continue;
+            } else
+            if (remembered.when > now) {
+                scheduleAt(context, alarms,
+                    notificationIntent(context, id, remembered.title, remembered.text),
+                    remembered.when);
             }
-
-            scheduleAt(context, alarms,
-                notificationIntent(context, id, remembered.title, remembered.text),
-                remembered.when);
         }
 
         editor.apply();

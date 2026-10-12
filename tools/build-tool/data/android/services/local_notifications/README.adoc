@@ -21,6 +21,8 @@ These are _local_ notifications: the application schedules them itself, nothing 
 
 * Pending notifications are scheduled again after a device reboot. One whose time passed while the device was off is dropped, not shown late. For this, Android starts the application briefly after a reboot (using the `RECEIVE_BOOT_COMPLETED` permission, which the user is not asked about), but only when some notification is pending.
 
+* Pending notifications are also scheduled again each time the application starts. This matters when the user chose "Force stop" on the application in the system settings: Android forgets the pending notifications then, and they arrive only if the application is started again before their time.
+
 * Since Android 13, showing a notification requires the `POST_NOTIFICATIONS` permission. This service asks for it when your application schedules its first notification. If the user refuses, notifications are silently not shown -- nothing fails and nothing crashes.
 
 * The application icon is shown in color inside the notification (as its _large icon_), so the player sees at once which game it comes from.
