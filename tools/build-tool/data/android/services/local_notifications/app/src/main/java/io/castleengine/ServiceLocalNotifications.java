@@ -343,7 +343,7 @@ public class ServiceLocalNotifications extends ServiceAbstract
        has come. Called by LocalNotificationReceiver when the alarm fires. */
     public static void showIfDue(Context context, String id)
     {
-        Remembered notification = Remembered.parse(preferences(context).getAll().get(id));
+        Remembered notification = Remembered.parse(preferences(context).getString(id, null));
         if (notification == null) {
             /* The notification was canceled, or already shown,
                when the alarm was already on its way to us. */
