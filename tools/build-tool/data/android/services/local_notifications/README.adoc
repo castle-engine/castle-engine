@@ -35,17 +35,3 @@ These are _local_ notifications: the application schedules them itself, nothing 
 ----
 
 The path is relative to the project directory. Keep the file outside of the `data` directory, it is not needed by the game itself.
-
-### Messages
-
-This service is used through the `CastleLocalNotifications` unit, you do not need to send these messages yourself. They are documented for completeness, in the format of https://castle-engine.io/apidoc/html/CastleMessaging.html[CastleMessaging]:
-
-|===
-|Message |Parameters
-
-|`local-notification-schedule`
-|id, delay in seconds, title, text
-
-|`local-notification-cancel`
-|id
-|===
