@@ -47,7 +47,8 @@ type
 
       Id names this notification, so that it can be replaced or canceled
       later. Scheduling again with the same Id replaces the notification
-      scheduled before, it does not show two of them.
+      scheduled before (also when it is already displayed),
+      it does not show two of them.
 
       The system may show the notification somewhat later than requested,
       to save battery. Do not rely on the exact moment.

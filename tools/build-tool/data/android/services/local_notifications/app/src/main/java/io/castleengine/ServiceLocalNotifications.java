@@ -291,6 +291,10 @@ public class ServiceLocalNotifications extends ServiceAbstract
             return;
         }
 
+        /* The new notification replaces the previous one with the same id,
+           also when the previous one is already displayed. */
+        LocalNotificationReceiver.hide(context, id);
+
         if (!permissionAsked &&
             Build.VERSION.SDK_INT >= 33 && // Build.VERSION_CODES.TIRAMISU
             !LocalNotificationReceiver.notificationsEnabled(context)) {
