@@ -1,0 +1,44 @@
+## local_notifications
+
+Show a notification at a chosen time, even when the application is no longer running. Use the https://castle-engine.io/apidoc/html/CastleLocalNotifications.TLocalNotifications.html[TLocalNotifications] class from the https://castle-engine.io/apidoc/html/CastleLocalNotifications.html[CastleLocalNotifications] unit, the same API works on Android and iOS.
+
+Declare the service in `CastleEngineManifest.xml`:
+
+[source,xml]
+----
+<ios>
+  <services>
+    <service name="local_notifications" />
+  </services>
+</ios>
+----
+
+This uses Apple's https://developer.apple.com/documentation/usernotifications[UserNotifications] framework (`UNUserNotificationCenter`), so it requires iOS 10 or newer. On older iOS versions the calls do nothing.
+
+### Details
+
+* Scheduling again with the same id replaces the notification scheduled before, like on Android.
+
+* The user is asked for the permission to show notifications when your application schedules its first notification. If the user refuses, notifications are silently not shown.
+
+* The notification is shown also when the application is in the foreground, to behave like on Android (by default iOS would not show it).
+
+* iOS keeps the pending notifications across a device reboot by itself.
+
+### Differences between platforms
+
+|===
+| |Android |iOS
+
+|Timing
+|May be a few minutes late (to save battery)
+|Precise
+
+|Maximum pending notifications
+|No practical limit
+|64 (the soonest ones are kept)
+
+|Icon
+|Application icon inside the notification, own status bar icon possible (`small_icon` parameter)
+|Always the application icon
+|===
