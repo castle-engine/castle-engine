@@ -205,5 +205,16 @@ public abstract class ServiceAbstract
     public void onResume() { }
     public void onPause() { }
     public void onNewIntent(Intent intent) { }
+    /* Answer to MainActivity.requestPermission.
+       Called for all the permissions, also the ones requested by other services
+       and by the Pascal code (using "permission-request" message).
+
+       Note that the answer comes immediately when Android does not have
+       to ask the user (e.g. the permission is already granted).
+       For a permission requested from a service constructor,
+       this means that the answer comes before the onCreate of the services,
+       and that the requesting service and the services created later
+       do not get it. */
+    public void onPermissionResult(String permission, boolean granted) { }
     public void onPurchase(AvailableProduct product, String originalJson, String signature) { }
 }
