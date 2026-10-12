@@ -61,7 +61,8 @@ var
 implementation
 
 uses SysUtils, DateUtils,
-  CastleLocalNotifications, CastleConfig, CastleLog, CastleUtils;
+  CastleLocalNotifications, CastleConfig, CastleLog, CastleUtils,
+  CastleTimeUtils;
 
 const
   { How long does the plant grow, in seconds. }
@@ -120,7 +121,7 @@ end;
 procedure TViewMain.ClickHello1Send(Sender: TObject);
 begin
   TLocalNotifications.Schedule('hello_1', 10, 'Hello 1', 'Sent after 10 seconds.');
-  Status('"Hello 1" will appear in 10 seconds. Close the application to see it arrive anyway.');
+  Status('"Hello 1" will appear in about 10 seconds. Close the application to see it arrive anyway.');
 end;
 
 procedure TViewMain.ClickHello1Cancel(Sender: TObject);
@@ -132,7 +133,7 @@ end;
 procedure TViewMain.ClickHello2Send(Sender: TObject);
 begin
   TLocalNotifications.Schedule('hello_2', 60, 'Hello 2', 'Sent after 60 seconds.');
-  Status('"Hello 2" will appear in 60 seconds. Close the application to see it arrive anyway.');
+  Status('"Hello 2" will appear in about 60 seconds. Close the application to see it arrive anyway.');
 end;
 
 procedure TViewMain.ClickHello2Cancel(Sender: TObject);
@@ -149,7 +150,7 @@ end;
 
 procedure TViewMain.ClickPlant(Sender: TObject);
 begin
-  PlantedTime := DateTimeToUnix(Now, false);
+  PlantedTime := DateTimeToUnix(CastleNow, false);
   SavePlantedTime;
   { The notification tells the player about something that happens
     while they are not looking. Scheduling it again (same id)
@@ -183,7 +184,7 @@ begin
     Exit;
   end;
 
-  Elapsed := DateTimeToUnix(Now, false) - PlantedTime;
+  Elapsed := DateTimeToUnix(CastleNow, false) - PlantedTime;
   if Elapsed >= GrowSeconds then
     Progress := 1
   else

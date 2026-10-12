@@ -181,7 +181,7 @@ begin
   TargetBaseFileName := UriToFilenameSafe(TargetBaseUrl);
   if TargetBaseFileName <> '' then
   begin
-    TargetSubdirTitle := DeleteUriExt(ExtractFileName(TargetBaseFileName)) + '_resources';
+    TargetSubdirTitle := DeleteFileExt(ExtractFileName(TargetBaseFileName)) + '_resources';
     TargetCopySubDirectory := ExtractFilePath(TargetBaseFileName) + TargetSubdirTitle;
     if not DirectoryExists(TargetCopySubDirectory) then
        CheckForceDirectories(TargetCopySubDirectory);

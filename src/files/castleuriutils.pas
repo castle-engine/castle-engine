@@ -291,12 +291,37 @@ function DeleteUriExt(const Url: String): String;
 
 { Extract filename (last part after slash) from URL.
 
+  Strips the anchor (#xxx) or query (?xxx) at the end of the URL.
+  So note that ExtractUriPath(Url) + ExtractUriName(Url) will not give you
+  the full URL back: they may miss the anchor or query.
+
   Note that the resulting string is still percent-encoded, it is not decoded.
   For example, for "http://example.org/foo%20bar.txt" it returns "foo%20bar.txt",
   not "foo bar.txt". Use @link(UrlDecode) to decode it if you want. }
 function ExtractUriName(const Url: String): String;
 
+{ Extract extension (including the dot) from URL, if any.
+
+  In case of multiple extensions, returns only the last one,
+  e.g. @code(https://example.org/file.tar.gz) returns @code(.gz).
+  This is consistent with standard @code(ExtractFileExt).
+
+  Note: To detect content type, it's better to use MIME type, see
+  @link(UriMimeType). Even better: rely on MIME type reported when
+  downloading given file (e.g. by the @link(TCastleDownload)), so that
+  in case of http or https URLs, you get the MIME type reported by the server.
+
+  If you use this function to detect content type based on the file extension,
+  you sidestep MIME types idea.
+
+  Just like @link(ExtractUriName), note that
+  the resulting string is still percent-encoded, it is not decoded. }
+function ExtractUriExt(const Url: String): String;
+
 { Extract path (everything before last part), including final slash, from URL.
+
+  Preserves URL being relative or absolute.
+  That is, returns relative URL if input was relative.
 
   Note that the resulting string is still percent-encoded.
   For example, for "http://example.org/foo%20bar/file.txt" it returns
@@ -306,7 +331,7 @@ function ExtractUriPath(const Url: String): String;
 { Ensure URL ends with slash.
 
   For an empty URL, returns empty string (so it does not turn "" into "/").
-  For an URL ending with bashslash (which usually means you passed Windows
+  For an URL ending with backslash (which usually means you passed Windows
   path name), it removes the backslash before adding slash.
 
   This should be used instead of InclPathDelim or IncludeTrailingPathDelimiter,
@@ -419,8 +444,16 @@ function RelativeToCastleDataUrl(const Url: String; out WasInsideData: Boolean):
   See @url(https://castle-engine.io/url#castle-config castle-config protocol
   documentation).
 
-  If the URL has a different protocol, it is returned unchanged. }
-function ResolveCastleConfigUrl(const Url: String): String;
+  If the URL has a different protocol, it is returned unchanged.
+
+  @param(UseFallbackIfNotExists If @true, then search for config file
+    also in the fallback location. This provides compatibility for iOS
+    applications using FPC, for which we changed config location from
+    @code(<sandbox>/Library/) to @code(<sandbox>/Library/Application Support/)
+    during 7.0-alpha.3.snapshot development, on 2026-10-07.)
+}
+function ResolveCastleConfigUrl(const Url: String;
+  const UseFallbackIfNotExists: Boolean = false): String;
 
 { Encode String using @url(https://en.wikipedia.org/wiki/Percent-encoding percent encoding),
   for example space is converted to @code(%20). }
@@ -1410,46 +1443,24 @@ begin
 end;
 
 function ChangeUriExt(const Url, Extension: String): String;
-
-  {$ifndef FPC}
-  { Mask default Delphi ChangeFileExt that behaves badly for filenames
-    like '.hidden'.}
-  function ChangeFileExt(const FileName, NewExtension: String): String;
-  var
-    I: Integer;
-    ExtDotPos: Integer;
-  begin
-    ExtDotPos := 0;
-    for I := Length(FileName) downto 1 do
-      if FileName[I] in AllowDirectorySeparators then
-      begin
-        // no extension, leave ExtDotPos = 0
-        Break;
-      end else
-      if (FileName[I] = '.') and
-         (I > 1) and
-         (not (FileName[I - 1] in AllowDirectorySeparators)) then
-      begin
-        // dot, but not at the beginning of the name -> valid ExtDotPos
-        ExtDotPos := I;
-        Break;
-      end;
-
-    if ExtDotPos <> 0 then
-      Result := Copy(FileName, 1, ExtDotPos - 1) + NewExtension
-    else
-      Result := FileName + NewExtension;
-  end;
-  {$endif}
-
 var
-  UrlWithoutAnchor, Anchor: String;
+  U: TURI;
 begin
-  UrlWithoutAnchor := Url;
-  UriExtractAnchor(UrlWithoutAnchor, Anchor);
-  Result := ChangeFileExt(UrlWithoutAnchor, Extension);
-  if Anchor <> '' then
-    Result := Result + '#' + Anchor;
+  { Use ParseUri to deconstruct the URL.
+    Note: We don't use AbsoluteUri, to avoid turning relative
+    URL/filename into absolute. }
+  U := ParseUri(Url);
+
+  { Delphi (but not FPC) behaves not OK for hidden Unix filenames, like ".hidden".
+    It considers the ".hidden" an extension, and replaces it.
+    So we avoid using standard ChangeFileExt, if the document starts with a dot
+    (and has no other extension). }
+  if BackPos('.', U.Document) <> 1 then
+    U.Document := ChangeFileExt(U.Document, Extension)
+  else
+    U.Document := U.Document + Extension;
+
+  Result := EncodeURI(U);
 end;
 
 function DeleteUriExt(const Url: String): String;
@@ -1457,51 +1468,66 @@ begin
   Result := ChangeUriExt(Url, '');
 end;
 
+function ExtractUriExt(const Url: String): String;
+var
+  UrlName: String;
+begin
+  { Use ExtractUriName first, that strips #xxx anchor, ?xxx query .
+    This way we use ExtractFileExt to search for . only inside the last part. }
+  UrlName := ExtractUriName(Url);
+
+  { Delphi (but not FPC) behaves not OK for hidden Unix filenames, like ".hidden".
+    It considers the ".hidden" an extension. }
+  if BackPos('.', UrlName) = 1 then
+    Exit('');
+
+  Result := ExtractFileExt(UrlName);
+end;
+
 function ExtractUriName(const Url: String): String;
 var
-  UrlWithoutAnchor: String;
-  {$ifndef FPC} I: Integer; {$endif}
+  U: TURI;
 begin
-  UrlWithoutAnchor := UriDeleteAnchor(Url);
-  {$ifdef FPC}
-  Result := ExtractFileName(UrlWithoutAnchor);
-  {$else}
-  { In Delphi, / separator in paths is not recognized, so we cannot use ExtractFilePath.
-    TODO: our own solution should be just used for both compilers.
-    Need autotests to confirm it behaves the same, on both platforms. }
+  { Deconstruct URL using ParseUri.
+    This strips (from end):
+    - HTTP query part "?xxx"
+    - Anchor part "#xxx"
+    We process with AbsoluteUri to tolerate simple filenames.
+  }
+  U := ParseUri(AbsoluteUri(Url));
 
-  I := BackCharsPos(['/'], UrlWithoutAnchor);
-  if I <> 0 then
-    Result := SEnding(UrlWithoutAnchor, I + 1)
-  else
-    Result := UrlWithoutAnchor;
-  {$endif}
+  { API promises that this is percent-encoded, so encode again. }
+  Result := UrlEncode(U.Document);
 end;
 
 function ExtractUriPath(const Url: String): String;
 var
+  U: TURI;
   UrlWithoutAnchor: String;
-  {$ifndef FPC} I: Integer; {$endif}
+  I: Integer;
 begin
-  { While on non-Windows ExtractFilePath would work on full URL as well,
-    but on Windows the ":" inside anchor (like
-    "castle-data:/starling/character_zombie_atlas.starling-xml#fps:8,anim-naming:strict-underscore")
-    would cause trouble: it would be considered a drive letter separator,
-    and change the result. }
-  UrlWithoutAnchor := UriDeleteAnchor(Url);
-  {$ifdef FPC}
-  Result := ExtractFilePath(UrlWithoutAnchor);
-  {$else}
-  { In Delphi, / separator in paths is not recognized, so we cannot use ExtractFilePath.
-    TODO: our own solution should be just used for both compilers.
-    Need autotests to confirm it behaves the same, on both platforms. }
-
-  I := BackCharsPos(['/'], UrlWithoutAnchor);
-  if I <> 0 then
-    Result := Copy(UrlWithoutAnchor, 1, I)
-  else
-    Result := UrlWithoutAnchor;
-  {$endif}
+  if (UriProtocol(Url) = '') and not IsPathAbsolute(Url) then
+  begin
+    { To preserve relative URLs, we handle them manually, using simple
+      string manipulation. }
+    UrlWithoutAnchor := UriDeleteAnchor(Url);
+    I := BackCharsPos(['/' {$ifdef MSWINDOWS}, '\'{$endif}], UrlWithoutAnchor);
+    if I <> 0 then
+      Result := Copy(UrlWithoutAnchor, 1, I)
+    else
+      Result := '';
+  end else
+  begin
+    { For absolute URLs or absolute filenames,
+      use AbsoluteUri + ParseUri to deconstruct the URL.
+      This also will make filename -> URL, which is OK.
+      Consistent with ExtractUriName. }
+    U := ParseUri(AbsoluteUri(Url));
+    U.Document := '';
+    U.Params := '';
+    U.Bookmark := '';
+    Result := EncodeURI(U);
+  end;
 end;
 
 function UriIncludeSlash(const Url: String): String;
@@ -1742,7 +1768,19 @@ function ApplicationDataCore(const Path: String): String;
       BundleDataParentPath := BundlePath + 'Contents/Resources/';
       {$endif}
 
-      // data subdirectory in the macOS application bundle or iOS data
+      { Use data/ subdirectory in the macOS application bundle or iOS data.
+
+        Delphi-specific notes:
+
+        - Relying on data/ subdirectory inside bundle
+          matches the "deployment" of files we put in DPROJ.
+
+        - Note that we look in the bundle, and do not rely on
+          Delphi System.StartUpCopy mechanism.
+          This way you don't need to use Delphi's System.StartUpCopy
+          approach (which would make application data copy at start,
+          wasting time and storage and causing bugs due to stale files not
+          being updated). }
       Result := BundleDataParentPath + 'data/';
       if DirectoryExists(Result) then Exit;
 
@@ -2011,7 +2049,7 @@ end;
 var
   WebTemporaryConfig: TCastleMemoryFileSystem;
 
-function ResolveCastleConfigUrl(const Url: String): String;
+function ResolveCastleConfigUrl(const Url: String; const UseFallbackIfNotExists: Boolean): String;
 
   { TODO: Initializes a temporary filesystem now. }
   function WebGetApplicationConfigPath: String;
@@ -2055,6 +2093,20 @@ function ResolveCastleConfigUrl(const Url: String): String;
     {$endif}
   end;
 
+  { Resolves a castle-config URL using a fallback mechanism.
+    Call only when
+    - UriProtocol(Url) = 'castle-config'
+    - InternalApplicationConfigFallback <> '' }
+  function ResolveCastleConfigUrlUsingFallback(const Url: String): String;
+  var
+    U: TUri;
+    RelativeToData: String;
+  begin
+    U := ParseUri(Url);
+    RelativeToData := PrefixRemove('/', U.Path + U.Document, false);
+    Result := InternalApplicationConfigFallback + UrlEncode(RelativeToData);
+  end;
+
 var
   U: TUri;
   RelativeToData: String;
@@ -2065,6 +2117,24 @@ begin
     RelativeToData := PrefixRemove('/', U.Path + U.Document, false);
     Result := ApplicationConfigCore(RelativeToData);
     //WritelnLog('castle-config', Format('Resolved "%s" to "%s"', [Url, Result]));
+
+    { Support opening config files from old location. }
+    if UseFallbackIfNotExists and
+       (InternalApplicationConfigFallback <> '') and
+       { Right now, InternalApplicationConfigFallback only works when it
+         resolves to file:// protocol, because below we use FileExists
+         (to avoid depending on UriExists, that would then call
+         ResolveCastleConfigUrl back, creating complicated situation).
+         And this is acceptable, because this is only used
+         on iOS, where config locations (regular and fallback) are regular
+         directories. }
+       (UriProtocol(Result) = 'file') and
+       (UriProtocol(InternalApplicationConfigFallback) = 'file') and
+       { File only exists in fallback location. }
+       (not FileExists(UriToFilenameSafe(Result))) and
+       FileExists(UriToFilenameSafe(ResolveCastleConfigUrlUsingFallback(Url))) then
+      Result := ResolveCastleConfigUrlUsingFallback(Url);
+
   end else
     Result := Url;
 end;

@@ -124,8 +124,8 @@ function StrToQWord(const S: String): QWord;
   Autotested in TTestCastleStringUtils.TestIsWild . }
 //function IsWild(InputStr, Wilds: string; IgnoreCase: Boolean): Boolean;
 
-procedure FillByte(var X; Count: SizeInt; Value: Byte);
-procedure FillDWord(var X; const Count: SizeInt; const Value: DWord);
+procedure FillByte(var X; Count: SizeUInt; Value: Byte);
+procedure FillDWord(var X; const Count: SizeUInt; const Value: DWord);
 function StrToDWord(const S: String): DWord;
 
 { Silence warnings, we know it is platform specific and most code shouldn't use Extended,
@@ -191,9 +191,12 @@ begin
 end;
 {$endif}
 
-{ Copied from FPC RTL (same license as Castle Game Engine) }
 function GetAppConfigDir(Global : Boolean) : String;
-{$ifdef MSWINDOWS}
+
+{$if defined(MSWINDOWS)}
+
+  { On Windows, use GetWindowsSpecialDir.
+    Copied from FPC RTL (same license as Castle Game Engine). }
 
   function DGetAppConfigDir(Global : Boolean) : String;
   begin
@@ -213,18 +216,81 @@ begin
     end
   else
     Result:=IncludeTrailingPathDelimiter(DGetAppConfigDir(Global));
-{$endif}
 
-{$ifdef UNIX}
+{$elseif defined(IOS)}
+
+  { On iOS, use <sandbox>/Library/Application Support/ .
+
+    See Delphi docs:
+    https://docwiki.embarcadero.com/RADStudio/Athens/en/Standard_RTL_Path_Functions_across_the_Supported_Target_Platforms
+    https://docwiki.embarcadero.com/Libraries/Alexandria/en/System.IOUtils.TPath.GetHomePath
+
+    Apple docs (File System Basics, "Where You Should Put Your App's Files"):
+    https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/FileSystemOverview/FileSystemOverview.html
+    "Put app-created support files in the Library/Application support/ directory.
+    In general, this directory includes files that the app uses to run
+    but that should remain hidden from the user. This directory can also include
+    data files, configuration files, templates (...)".
+
+    Note that other TPath methods would not be good:
+
+    - TPath.GetHomePath is the sandbox container root ($HOME), it is not writeable
+      (on new iOS?).
+
+    - TPath.GetDocumentsPath is meant for user-visible documents.
+      Apple: "this directory should only contain files that you may wish to expose
+      to the user".
+
+    - Note that TPath.GetLibraryPath on Android returns
+      ApplicationInfo.nativeLibraryDir, which is read-only.
+      So we cannot use the same code, or even GetLibraryPath itself,
+      for both Android and iOS.
+
+    We deliberately don't add ApplicationName subdirectory here
+    (unlike the Windows and Unix branches above): the iOS sandbox container
+    is already private to this application. Same as the Android branch below.
+
+    "Application Support" is a fixed filesystem name, never localized,
+    so it's safe to just concatenate it. It may not exist yet, it will be
+    created when we write the first file there (our writing routines
+    do ForceDirectories). }
+
 begin
-  // TODO: simplest implementation hardcoded now, look how FPC implements it
+  Result := IncludeTrailingPathDelimiter(
+    IncludeTrailingPathDelimiter(System.IOUtils.TPath.GetLibraryPath) +
+    'Application Support');
+
+{$elseif defined(ANDROID)}
+
+  { On Android, use <app internal storage>/files/ , i.e. Context.getFilesDir().
+    This is the app-private internal storage, and matches what our FPC Android
+    backend uses (GetInternalDataPath in castlewindow_android.inc).
+
+    Note that TPath.GetHomePath would be exactly the same thing here
+    (in Delphi RTL, both TPath.GetHomePath and TPath.GetDocumentsPath
+    are implemented as Androidapi.IOUtils.GetFilesDir on Android),
+    but we use GetDocumentsPath to be explicit. }
+
+begin
+  Result := IncludeTrailingPathDelimiter(System.IOUtils.TPath.GetDocumentsPath);
+
+{$elseif defined(UNIX)}
+
+begin
+  { On typical Unix, use /etc/ or ~/.config/ .
+    Copied from FPC RTL (same license as Castle Game Engine). }
+
   if Global then
     Result := '/etc/' + ApplicationName + PathDelim
   else
     Result := IncludeTrailingPathDelimiter(GetEnvironmentVariable('HOME')) +
       '.config' + PathDelim +
       ApplicationName + PathDelim;
+
+{$else}
+  {$message fatal 'GetAppConfigDir not implemented for this platform and Delphi'}
 {$endif}
+
 end;
 
 function StringsReplace(const S: string; OldPattern, NewPattern: array of string;  Flags: TReplaceFlags): string;
@@ -407,11 +473,15 @@ begin
 end;
 *)
 
-procedure FillDWord(var X; const Count: SizeInt; const Value: DWord);
+procedure FillDWord(var X; const Count: SizeUInt; const Value: DWord);
 var
   PX, PEnd: PDWord;
 begin
   PX := @X;
+  { Note: It's important that Count is unsigned, otherwise (if it was SizeInt)
+    Delphi could decide to implement the + by casting both sides
+    to signed Int64 and make range check errors when pointers happen
+    to be > High(Int64) (quite possible on Android/Aarch64). }
   PEnd := Pointer(PtrUInt(PX) + SizeOf(DWord) * Count);
   while PX <> PEnd do
   begin
@@ -420,7 +490,7 @@ begin
   end;
 end;
 
-procedure FillByte(var X; Count: SizeInt; Value: Byte);
+procedure FillByte(var X; Count: SizeUInt; Value: Byte);
 begin
   FillChar(X, Count, Value);
 end;

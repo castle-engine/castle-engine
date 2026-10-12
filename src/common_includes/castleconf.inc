@@ -714,7 +714,7 @@
   {$define CASTLE_PROCESS_AVAILABLE}
 {$endif}
 
-{ Encoding ------------------------------------------------------------------- }
+{ String encoding ------------------------------------------------------------ }
 
 { Check symbols
   CASTLE_ANSISTRING_FORCE_UTF8 and
@@ -746,6 +746,60 @@
      (not defined(FPC_UNICODESTRINGS)) and
      (not defined(I_UNDERSTAND_THAT_NON_ASCII_CHARACTERS_ARE_BROKEN))}
   {$message fatal 'CASTLE_ANSISTRING_UNCHANGED is only supported with Delphi (or FPC Unicode RTL).'}
+{$endif}
+
+{ CASTLE_ASSUME_READ_ERROR_MEANS_MISSING_FILE ------------------------------------------------ }
+
+{ Applications deployed (not only build) from Delphi IDE
+  don't have CastleDataInformation.xml now (because we have no moment
+  when to generate it, before
+  1. adding it to PAServer to deploy list in DPROJ and then
+  2. let PAServer actually deploy it
+  ).
+
+  This makes UriFileExists non-functional to detect missing files on Android,
+  as native Android API has no query "does this file exist",
+  we depended on CastleDataInformation.xml for FPC/Android to resolve it.
+
+  In turn, we need to gracefully handle the case when UriFileExists
+  says "yes" (because UriExists said "maybe") but opening the file actually
+  fails. }
+{$if defined(ANDROID) and defined(DELPHI)}
+  {$define CASTLE_ASSUME_READ_ERROR_MEANS_MISSING_FILE}
+{$endif}
+
+{ Stream must be seekable for Delphi XML reading,
+  and it may not be automatically seekable (e.g. when downloading
+  Android assets). }
+{$ifdef DELPHI}
+  {$define XML_READ_REQUIRES_SEEKABLE_STREAM}
+{$endif}
+
+{ fonts ---------------------------------------------------------------------- }
+
+{ Use pure Pascal implementation of a subset of FreeType API
+  (CastleInternalOpenTypeFont and CastleInternalGlyphRasterizer units).
+
+  This is by default used for Delphi on Android and iOS,
+  where we don't deploy the FreeType library.
+  You can also define CASTLE_FREETYPE_PASCAL on other platforms,
+  e.g. to test it on desktops and compare with the FreeType library. }
+{$if defined(DELPHI) and (defined(ANDROID) or defined(CASTLE_IOS))}
+  {$define CASTLE_FREETYPE_PASCAL}
+{$endif}
+
+{ FMX ------------------------------------------------------------------------ }
+
+{ Handle FMX touch (TCustomForm.OnTouch) to detect touches with finger indexes
+  on mobile platforms. This requires Delphi 12.0 Athens (CompilerVersion = 36)
+  as it added TTouch.Id and TTouch.Action, on which we rely.
+
+  We limit the condition to Android and iOS, even though on Windows
+  FMX can also make multi-touch events.
+  But our TFmxTouchDispatcher is not ready for this (right now,
+  it can deal with various bugginess of FMX multi-touch on Android and iOS only). }
+{$if defined(DELPHI) and (defined(ANDROID) or defined(IOS)) and (CompilerVersion >= 36)}
+  {$define CASTLE_HANDLE_FMX_TOUCH}
 {$endif}
 
 // -----------------------------------------------------------------------------

@@ -1,6 +1,6 @@
 {%MainUnit castlewindow.pas}
 {
-  Copyright 2013-2024 Michalis Kamburelis.
+  Copyright 2013-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,14 +25,18 @@
   there are platform-specific edge cases.
   We still try to support all LCL and FMX widgetsets here, *but*
   we focus our testing on platforms where we actually use this backend by default.
-  This means right now only:
+  This means right now:
 
-  - Delphi/Linux with FMX
+  - Delphi/Linux,
+    Delphi/Android,
+    TODO: likely we will use it too for Delphi/iOS,
+    TODO: likely we will use it too for Delphi/macOS
+
+    They all use FireMonkey (FMX).
 
   Historically, it was useful also with some LCL backends (e.g. we depended on
   this for FPC/macOS for a long time, before we implemented castlewindow_cocoa.inc).
-  And it may be useful with more platforms in the future, both LCL and FMX
-  (e.g. Delphi/macOS will likely depend on this too).
+  And it may be useful with more platforms in the future, both LCL and FMX.
 
   - LCL TODO: Mouse look still stutters awfully on both Carbon and GTK2.
     ProcessTasks helps (without it, mouse look would not work at all)
@@ -125,6 +129,60 @@
   {$define USE_TIMER}
 {$endif}
 
+{$if defined(DELPHI) and (defined(ANDROID) or defined(IOS))}
+
+  { This symbol is used by CastleWindow implementation.
+    It will then not implement TCastleWindow.OpenAndRun,
+    we have to define it in backend code. }
+  {$define BACKEND_OVERRIDES_OpenAndRun}
+
+  { Our OpenAndRun must
+
+    - do Fmx.Forms.Application.CreateForm
+      (this doesn't create form immediately, see
+      https://docwiki.embarcadero.com/Libraries/Sydney/en/FMX.Forms.TApplication.RealCreateForms )
+
+    - register on FMX TFormsCreatedMessage event,
+      to call TCastleWindow.Open later,
+      not directly from OpenAndRun. }
+  {$define SUBSCRIBE_FormsCreatedMessage}
+{$endif}
+
+{ Handle FMX safe area (TCustomForm.OnSafeAreaChanged) to set
+  Container.SafeBorder on mobile platforms.
+  FMX reports the safe area only on Android and iOS.
+  We could use this for other platforms too (they report nothing)...
+  but it would break compatibility with older Delphi versions,
+  as for Windows we allow even Delphi 10.2.1
+  (see https://castle-engine.io/delphi#_delphi_versions_supported )
+  and it doesn't have FMX API for safe area detection.
+
+  TODO: This should really be a version-check, not platform check.
+  We need to find Delphi version that added OnSafeAreaChanged. }
+{$if defined(DELPHI) and (defined(ANDROID) or defined(IOS))}
+  {$define HANDLE_FMX_SAFE_AREA}
+{$endif}
+
+{$ifdef CASTLE_HANDLE_FMX_TOUCH}
+  { Don't handle mouse events, if we handle FMX OnTouch.
+    This is a necessity now (CASTLE_HANDLE_FMX_TOUCH must imply this),
+    although we wish it wouldn't be.
+
+    Defining this avoids receiving duplicate mouse/touch events when user connects a
+    physical mouse to an Android mobile device: FMX then (this is based only on
+    source code, not tested) sends them to MouseDown/MouseUp/MouseMove events
+    (without ssTouch in Shift, which makes sense),
+    while also generating FMX OnTouch events.
+    And there's no way for us to detect that the OnTouch events are duplicates.
+
+    Note that the other direction is not a problem:
+    when user is using the touch screen, FMX generates OnTouch events
+    *and* MouseDown/MouseUp/MouseMove events,
+    but in this case we can easily ignore duplicates by rejecting
+    MouseDown/MouseUp/MouseMove events with ssTouch in Shift. }
+  {$define DISABLE_MOUSE_EVENTS}
+{$endif}
+
 {$ifdef read_interface_uses}
   {$ifdef FPC}
     // LCL
@@ -137,8 +195,10 @@
     {$ifdef LINUX} FMX.Platform.Linux, {$endif}
     FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs,
     FMX.StdCtrls, FMX.Menus, FMX.Platform,
+    {$ifdef SUBSCRIBE_FormsCreatedMessage} System.Messaging, {$endif}
     // CGE
-    Fmx.CastleInternalGLControl, CastleInternalDelphiUtils, CastleFmxUtils,
+    Fmx.CastleInternalGLControl, CastleInternalDelphiUtils,
+    CastleFmxUtils, CastleInternalFmxUtils,
   {$endif}
 {$endif}
 
@@ -230,6 +290,9 @@ private
   procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
   procedure FormDeactivate(Sender: TObject);
   procedure FormDropFiles(Sender: TObject; const FileNames: array of string);
+  {$ifdef HANDLE_FMX_SAFE_AREA}
+  procedure FormSafeAreaChanged(Sender: TObject; const AInsets: TRectF);
+  {$endif}
 
   procedure OpenGLControlPaint(Sender: TObject);
   procedure OpenGLControlResize(Sender: TObject);
@@ -242,6 +305,8 @@ private
   procedure OpenGLControlKeyUp(Sender: TObject; var Key: Word;
     {$ifndef FPC} var KeyChar: WideChar; {$endif}
     Shift: TShiftState);
+
+  {$ifndef DISABLE_MOUSE_EVENTS}
   procedure OpenGLControlMouseDown(Sender: TObject; Button: TMouseButton;
     Shift: TShiftState;
     X, Y: {$ifdef FPC} Integer {$else} Single {$endif});
@@ -250,11 +315,28 @@ private
     X, Y: {$ifdef FPC} Integer {$else} Single {$endif});
   procedure OpenGLControlMouseMove(Sender: TObject; Shift: TShiftState;
     X, Y: {$ifdef FPC} Integer {$else} Single {$endif});
+  {$endif DISABLE_MOUSE_EVENTS}
+
   procedure OpenGLControlMouseWheel(Sender: TObject; Shift: TShiftState;
     WheelDelta: Integer; {$ifdef FPC} MousePos: TPoint; {$endif}
     var Handled: Boolean);
   function MousePosToCastle(
     const X, Y: {$ifdef FPC} Integer {$else} Single {$endif}): TVector2;
+
+  {$ifdef CASTLE_HANDLE_FMX_TOUCH}
+  strict private
+    FTouchDispatcher: TFmxTouchDispatcher;
+    procedure TouchDown(const FingerIndex: TFingerIndex; const Position: TVector2);
+    procedure TouchUp(const FingerIndex: TFingerIndex; const Position: TVector2);
+    procedure TouchMotion(const FingerIndex: TFingerIndex;
+      const OldPosition, NewPosition: TVector2);
+  {$endif CASTLE_HANDLE_FMX_TOUCH}
+
+  {$ifdef SUBSCRIBE_FormsCreatedMessage}
+  strict private
+    procedure FormsCreatedHandler(const Sender: TObject;
+      const M: System.Messaging.TMessage);
+  {$endif}
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
@@ -769,16 +851,14 @@ begin
 
   FormApplication.CreateForm(TForm, Form);
   {$else}
-  { In FMX, we cannot use
-      FormApplication.CreateForm
-    as it doesn't create form immediately.
-    We'd have to follow with RealCreateForms,
-    https://docwiki.embarcadero.com/Libraries/Sydney/en/FMX.Forms.TApplication.RealCreateForms
-
-    But it is simpler to just use TForm.CreateNew.
-    We can assign MainForm later. }
-
   Form := TForm.CreateNew(FormApplication);
+
+  if not FormApplication.IsRealCreateFormsCalled then
+    WritelnWarning('FMX IsRealCreateFormsCalled is false, we cannot reliably create forms now');
+  { TODO: Turn this into assertion once confirmed we are OK on all platforms: }
+  // Assert(FormApplication.IsRealCreateFormsCalled,
+  //   'FormApplication.IsRealCreateFormsCalled must be true, we expect forms can be created now');
+
   FormApplication.MainForm := Form;
   {$endif}
 
@@ -829,8 +909,25 @@ begin
   OpenGLControl.Constraints.MinHeight := MinHeight;
   OpenGLControl.Constraints.MaxWidth := MaxWidth;
   OpenGLControl.Constraints.MaxHeight := MaxHeight;
-  {$endif}
+  {$endif FPC}
   OpenGLControl.TabStop := true;
+
+  {$ifdef HANDLE_FMX_SAFE_AREA}
+  { FMX calls this when the form is shown (so, soon from this method,
+    when we set Form.Visible below) and then each time safe area changes
+    (e.g. when device orientation changes).
+    Assign it after OpenGLControl is created, as FormSafeAreaChanged uses it. }
+  Form.OnSafeAreaChanged := FormSafeAreaChanged;
+  {$endif}
+
+  {$ifdef CASTLE_HANDLE_FMX_TOUCH}
+  FTouchDispatcher := TFmxTouchDispatcher.Create;
+  FTouchDispatcher.PositionsInControl := OpenGLControl;
+  FTouchDispatcher.AttachToForm(Form);
+  FTouchDispatcher.OnDown := {$ifdef FPC}@{$endif} TouchDown;
+  FTouchDispatcher.OnUp := {$ifdef FPC}@{$endif} TouchUp;
+  FTouchDispatcher.OnMotion := {$ifdef FPC}@{$endif} TouchMotion;
+  {$endif CASTLE_HANDLE_FMX_TOUCH}
 
   {$ifdef FPC}
     OpenGLControl.DoubleBuffered := DoubleBuffer;
@@ -895,9 +992,11 @@ begin
   OpenGLControl.OnUTF8KeyPress := {$ifdef FPC}@{$endif} OpenGLControlUTF8KeyPress;
   {$endif}
   OpenGLControl.OnKeyUp := {$ifdef FPC}@{$endif} OpenGLControlKeyUp;
+  {$ifndef DISABLE_MOUSE_EVENTS}
   OpenGLControl.OnMouseDown := {$ifdef FPC}@{$endif} OpenGLControlMouseDown;
   OpenGLControl.OnMouseUp := {$ifdef FPC}@{$endif} OpenGLControlMouseUp;
   OpenGLControl.OnMouseMove := {$ifdef FPC}@{$endif} OpenGLControlMouseMove;
+  {$endif not DISABLE_MOUSE_EVENTS}
   OpenGLControl.OnMouseWheel := {$ifdef FPC}@{$endif} OpenGLControlMouseWheel;
 
   { Make sure we have OpenGL context created now, and send initial Invalidate
@@ -972,6 +1071,10 @@ begin
     freeing Form will also free OpenGLControl - at least on FMX Linux. }
   if OpenGLControl <> nil then
     OpenGLControl.Parent := nil;
+
+  {$ifdef CASTLE_HANDLE_FMX_TOUCH}
+  FreeAndNil(FTouchDispatcher);
+  {$endif}
 
   {$if not (defined(LCLCarbon) or defined(LCLCocoa))}
   FreeAndNil(Form);
@@ -1155,6 +1258,23 @@ begin
   ReleaseAllKeysAndMouse;
 end;
 
+{$ifdef HANDLE_FMX_SAFE_AREA}
+procedure TCastleWindow.FormSafeAreaChanged(Sender: TObject; const AInsets: TRectF);
+var
+  Scale: Single;
+begin
+  { Note that AInsets is not a real rectangle,
+    its Left / Top / Right / Bottom are sizes of the insets from each side. }
+  Scale := OpenGLControl.MousePosScale;
+  Container.InternalSetSafeBorderScaled(Vector4(
+    AInsets.Top * Scale,
+    AInsets.Right * Scale,
+    AInsets.Bottom * Scale,
+    AInsets.Left * Scale
+  ));
+end;
+{$endif}
+
 procedure TCastleWindow.OpenGLControlPaint(Sender: TObject);
 begin
   DoRender;
@@ -1261,12 +1381,19 @@ begin
     DoKeyUp(CastleKey);
 end;
 
+{$ifndef DISABLE_MOUSE_EVENTS}
+
 procedure TCastleWindow.OpenGLControlMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState;
   X, Y: {$ifdef FPC} Integer {$else} Single {$endif});
 var
   CastleButton: TCastleMouseButton;
 begin
+  {$ifdef CASTLE_HANDLE_FMX_TOUCH}
+  if ssTouch in Shift then
+    Exit; // Ignore events that will be processed by OnTouch; unused now
+  {$endif}
+
   if MouseButtonToCastle(Button, CastleButton) then
     DoMouseDown(MousePosToCastle(X, Y), CastleButton, 0);
 end;
@@ -1277,8 +1404,51 @@ procedure TCastleWindow.OpenGLControlMouseUp(Sender: TObject;
 var
   CastleButton: TCastleMouseButton;
 begin
+  {$ifdef CASTLE_HANDLE_FMX_TOUCH}
+  if ssTouch in Shift then
+    Exit; // Ignore events that will be processed by OnTouch; unused now
+  {$endif}
+
   if MouseButtonToCastle(Button, CastleButton) then
     DoMouseUp(MousePosToCastle(X, Y), CastleButton, 0);
+end;
+
+procedure TCastleWindow.OpenGLControlMouseMove(Sender: TObject;
+  Shift: TShiftState;
+  X, Y: {$ifdef FPC} Integer {$else} Single {$endif});
+begin
+  {$ifdef CASTLE_HANDLE_FMX_TOUCH}
+  if ssTouch in Shift then
+    Exit; // Ignore events that will be processed by OnTouch; unused now
+  {$endif}
+
+  DoMotion(InputMotion(Container.MousePosition, MousePosToCastle(X, Y),
+    Container.MousePressed, 0));
+
+  {$ifdef FPC}
+  { On LCL, we need to call ProcessTasks often,
+    as Forms.Application.ProcessMessages in LCL may process ~100 OS events in one call.
+    This means that LCL Forms.Application.ProcessMessages is quite blocked
+    when user moves mouse a lot (e.g. doing mouse look in games).
+    We ensure processing by manually calling ProcessTasks often.
+
+    With Delphi FMX, we don't need to do this, and actually we shouldn't
+    -- it was causing perceived FPS drops when we were moving the mouse.
+    Testcase:
+    - moving with mouse Examine mode in play_animation
+    - rotating around in fps_game }
+  ProcessTasks;
+  {$endif}
+end;
+
+{$endif not DISABLE_MOUSE_EVENTS}
+
+procedure TCastleWindow.OpenGLControlMouseWheel(Sender: TObject;
+  Shift: TShiftState; WheelDelta: Integer;
+  {$ifdef FPC} MousePos: TPoint; {$endif}
+  var Handled: Boolean);
+begin
+  DoMouseWheel(WheelDelta/120, true);
 end;
 
 procedure TCastleWindow.ProcessTasks;
@@ -1341,36 +1511,38 @@ begin
     OpenGLControl.Invalidate;
 end;
 
-procedure TCastleWindow.OpenGLControlMouseMove(Sender: TObject;
-  Shift: TShiftState;
-  X, Y: {$ifdef FPC} Integer {$else} Single {$endif});
+{$ifdef CASTLE_HANDLE_FMX_TOUCH}
+
+procedure TCastleWindow.TouchDown(const FingerIndex: TFingerIndex; const Position: TVector2);
 begin
-  DoMotion(InputMotion(Container.MousePosition, MousePosToCastle(X, Y),
-    Container.MousePressed, 0));
-
-  {$ifdef FPC}
-  { On LCL, we need to call ProcessTasks often,
-    as Forms.Application.ProcessMessages in LCL may process ~100 OS events in one call.
-    This means that LCL Forms.Application.ProcessMessages is quite blocked
-    when user moves mouse a lot (e.g. doing mouse look in games).
-    We ensure processing by manually calling ProcessTasks often.
-
-    With Delphi FMX, we don't need to do this, and actually we shouldn't
-    -- it was causing perceived FPS drops when we were moving the mouse.
-    Testcase:
-    - moving with mouse Examine mode in play_animation
-    - rotating around in fps_game }
-  ProcessTasks;
-  {$endif}
+  DoMouseDown(MousePosToCastle(Position.X, Position.Y), buttonLeft, FingerIndex);
 end;
 
-procedure TCastleWindow.OpenGLControlMouseWheel(Sender: TObject;
-  Shift: TShiftState; WheelDelta: Integer;
-  {$ifdef FPC} MousePos: TPoint; {$endif}
-  var Handled: Boolean);
+procedure TCastleWindow.TouchUp(const FingerIndex: TFingerIndex; const Position: TVector2);
 begin
-  DoMouseWheel(WheelDelta/120, true);
+  DoMouseUp(MousePosToCastle(Position.X, Position.Y), buttonLeft, FingerIndex);
 end;
+
+procedure TCastleWindow.TouchMotion(const FingerIndex: TFingerIndex;
+  const OldPosition, NewPosition: TVector2);
+begin
+  DoMotion(InputMotion(
+    MousePosToCastle(OldPosition.X, OldPosition.Y),
+    MousePosToCastle(NewPosition.X, NewPosition.Y),
+
+    { Just like castlewindow_android.inc, pass here always at least [buttonLeft],
+      pretending it is pressed. Regardless of which/how many fingers
+      are pressed, we consider buttonLeft pressed if you press any finger
+      on touch device.
+
+      TODO: The above assumption ("we consider buttonLeft pressed if you press
+      any finger on touch device") should actually be reflected in
+      Container.MousePressed value, not hacked here. }
+    Container.MousePressed + [buttonLeft]
+    , FingerIndex));
+end;
+
+{$endif CASTLE_HANDLE_FMX_TOUCH}
 
 { TCastleWindow dialogs ---------------------------------------------------------- }
 
@@ -1471,6 +1643,50 @@ begin
     X * OpenGLControl.MousePosScale,
     Y * OpenGLControl.MousePosScale);
 end;
+
+{$ifdef SUBSCRIBE_FormsCreatedMessage}
+procedure TCastleWindow.OpenAndRun;
+begin
+  TMessageManager.DefaultManager.SubscribeToMessage(
+    TFormsCreatedMessage, FormsCreatedHandler);
+
+  { Perform typical FireMonkey work done in main program file.
+
+    This means we call FormApplication.CreateForm and *not*
+    TForm.CreateNew (which is done by our OpenBackend)
+    from TCastleWindow.OpenAndRun.
+    Which is important: TForm.CreateNew now would be wrong on Delphi/Android
+    and Delphi/iOS, this is too early for FMX to really create forms.
+
+    This also means we are prepared that FormApplication.Run
+
+    - does almost nothing on Android (the actual message loop
+      will be done after main program file "begin .. end." finishes).
+      On Android, the whole program "begin .. end." happens
+      in activity's onCreate, and the message loop is done by Android after that.
+
+    - never returns on iOS (it calls UIApplicationMain, which never returns). }
+
+  FormApplication.Initialize;
+  // No need to create any form here, OpenBackend will do form creation
+  //FormApplication.CreateForm(TForm, Form);
+  FormApplication.Run;
+
+  { Note: We don't call our Application.Run (TCastleApplication.Run),
+    as it expects some window to be open.
+    We also don't need to call it, other things (activity on Android,
+    UIApplicationMain on iOS) will drive message loop. }
+
+  WritelnLog('FMX Application.Run finished. This is normal on Delphi/Android, actual message loop will happen after program "end.".');
+end;
+
+procedure TCastleWindow.FormsCreatedHandler(const Sender: TObject;
+  const M: System.Messaging.TMessage);
+begin
+  { Only now is it safe to construct an FMX form on Android. }
+  Open;
+end;
+{$endif SUBSCRIBE_FormsCreatedMessage}
 
 { TFormsClipboard ----------------------------------------------------------- }
 
@@ -1652,7 +1868,7 @@ procedure TCastleApplication.Run;
 begin
   if OpenWindowsCount = 0 then Exit;
 
-  {$ifdef USE_TIMER}
+  {$if defined(USE_TIMER)}
   { LCL Cocoa really must call here FormApplication.Run.
 
     It cannot just call our ProcessMessage
@@ -1675,6 +1891,13 @@ begin
     may benefit from having FormApplication.Run call instead of loop
     over ProcessMessage.
   }
+  FormApplication.Run;
+  {$elseif defined(SUBSCRIBE_FormsCreatedMessage)}
+  WritelnWarning('TCastleApplication.Run should not be used on this platform, with Delphi and CASTLE_WINDOW_FORM. Use TCastleWindow.OpenAndRun instead.');
+  { We will try to do FormApplication.Run, but this is undefined.
+    On Android, we have to register TFormsCreatedMessage and exit from
+    "begin..end." to let event loop run, running "FormApplication.Run"
+    does (almost?) nothing on Android. }
   FormApplication.Run;
   {$else}
   while ProcessMessage(false, false) do ;

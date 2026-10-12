@@ -549,7 +549,7 @@ begin
   if IsLoading then
     exit;
 
-  if URIFileExists(AUrl) and (not FStartEmpty) then
+  if UriFileExists(AUrl) and (not FStartEmpty) then
     if BlowFishKeyPhrase <> '' then
       // TODO: Delphi support
       UrlReadXML(Doc, AUrl{$ifdef FPC}, BlowFishKeyPhrase{$endif})

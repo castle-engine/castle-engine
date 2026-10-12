@@ -356,6 +356,7 @@ begin
         [ScreenFbo]);
   end;
   BoundFboStack.Add(Fbo);
+  RenderContext.InternalControlRectIgnore := BoundFboStack.Count;
 
   if GLFeatures.Framebuffer then
     glBindFramebuffer(GL_FRAMEBUFFER, Fbo);
@@ -381,6 +382,7 @@ begin
   if (BoundFboStack <> nil) and (BoundFboStack.Count <> 0) then
   begin
     BoundFboStack.Count := BoundFboStack.Count - 1;
+    RenderContext.InternalControlRectIgnore := BoundFboStack.Count;
     if BoundFboStack.Count <> 0 then
       PreviousFbo := BoundFboStack.Last
     else

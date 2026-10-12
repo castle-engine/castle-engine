@@ -884,7 +884,7 @@ begin
   if FBuffer = nil then
   begin
     Result := 0;
-    WritelnWarning('TOpenALSoundSourceBackend.GetOffset called with FBuffer = nil, should not happpen');
+    WritelnWarning('TOpenALSoundSourceBackend.GetOffset called with FBuffer = nil, should not happen');
   end else
   if ALVersion11 and not (FBuffer is TOpenALStreamBufferBackend) then
   begin

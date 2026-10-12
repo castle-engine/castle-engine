@@ -308,5 +308,8 @@ initialization
   ModelFormat.MimeTypes.Add('model/vnd.collada+xml');
   ModelFormat.FileFilterName := 'Collada (*.dae)';
   ModelFormat.Extensions.Add('.dae');
+  {$ifdef XML_READ_REQUIRES_SEEKABLE_STREAM}
+  ModelFormat.OnLoadForceMemoryStream := true;
+  {$endif}
   RegisterModelFormat(ModelFormat);
 end.

@@ -713,6 +713,9 @@ begin
       'src/audio/castleinternalsoxsoundbackend.pas',
       'src/base/castleinternalgzio.pas',
 
+      // Internal unit only for Delphi/Android and Delphi/iOS (would have to go to FMX package, for now we just ignore it)
+      'src/audio/castleinternalmediaplayersoundbackend.pas',
+
       // TODO: FMOD is not yet supported with Delphi
       'src/audio/fmod/castlefmodsoundbackend.pas',
       'src/audio/fmod/castleinternalfmod.pas',
@@ -720,9 +723,6 @@ begin
       // TODO: CGE localization is not yet supported with Delphi, uses FPC GetText
       'src/base/castlesystemlanguage.pas',
       'src/files/castlelocalizationgettext.pas',
-
-      // TODO: OpenGLES (mobile) is not yet supported with Delphi
-      'src/base_rendering/castlegles.pas',
 
       // TODO: CastleScript is not yet fully supported with Delphi
       'src/castlescript/castlescriptxml.pas',

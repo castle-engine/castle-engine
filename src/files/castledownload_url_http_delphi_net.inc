@@ -219,7 +219,7 @@ destructor TDelphiNetReader.Destroy;
     C.OnRequestError := nil;
     C.OnRequestException := nil;
 
-    WritelnWarning('Leaking TNetHttpClient reference. Freeing it before the request has completed leads to crashes');
+    WritelnWarning('Network', 'Leaking TNetHttpClient reference. Freeing it before the request has completed leads to crashes');
 
     ContentsOwned := nil;
     C := nil;
@@ -237,7 +237,7 @@ begin
     (Response <> nil) and
     (not Response.AsyncResult.IsCompleted) then
   begin
-    WritelnLog('TNetHttpClient', 'Aborting download in progress of "%s"', [UriDisplay(Url)]);
+    WritelnLog('Network', 'Aborting download in progress of "%s"', [UriDisplay(Url)]);
 
     { We have to use SynchronizeEvents:=false, otherwise aborting
       TNetHttpClient would cause crashes as it would put in Synchronize()
@@ -272,16 +272,16 @@ begin
       if Waited <> 0 then
       begin
         if Response.AsyncResult.IsCancelled then
-          WritelnWarning('Waited to cancel for %f seconds. At least we cancelled OK, so we can cleanup TNetHttpClient OK. But cancelling this way causes delays in execution of the main loop.', [Waited / 1000])
+          WritelnWarning('Network', 'Waited to cancel for %f seconds. At least we cancelled OK, so we can cleanup TNetHttpClient OK. But cancelling this way causes delays in execution of the main loop.', [Waited / 1000])
         else
         begin
-          WritelnWarning('Waited to cancel for %f seconds. And we failed to cancel, to we will just leak TNetHttpClient now. Report a bug with reproduction.', [Waited / 1000]);
+          WritelnWarning('Network', 'Waited to cancel for %f seconds. And we failed to cancel, to we will just leak TNetHttpClient now. Report a bug with reproduction.', [Waited / 1000]);
           LeakNetHttpClient;
         end;
       end;
     end else
     begin
-      WritelnWarning('TNetHttpClient cannot be cancelled; leaking it');
+      WritelnWarning('Network', 'TNetHttpClient cannot be cancelled; leaking it');
       LeakNetHttpClient;
 
       // TODO: Calling LeakNetHttpClient, to avoid crashes.
@@ -343,7 +343,7 @@ procedure TDelphiNetReader.RequestCompleted(const Sender: TObject;
         { TODO: Preserve fragment (#xxx, it seems https://tools.ietf.org/html/rfc7231#section-7.1.2 )
           from Url to FinalUrl. It practically doesn't matter for just downloading. }
         FinalUrl := RedirectUrl;
-        WritelnLog('Redirecting to "%s"', [UriDisplay(FinalUrl)]);
+        WritelnLog('Network', 'Redirecting to "%s"', [UriDisplay(FinalUrl)]);
 
         { Some redirects should change method to GET.
           Logic matches default value of CHTTPDefRedirectsWithGET in Delphi. }
@@ -355,7 +355,7 @@ procedure TDelphiNetReader.RequestCompleted(const Sender: TObject;
         end;
         if RedirectToGet and (HttpMethod <> hmGet) then
         begin
-          WritelnLog('Redirect changes method to GET');
+          WritelnLog('Network', 'Redirect changes method to GET');
           HttpMethod := hmGet;
         end;
 
@@ -377,7 +377,7 @@ begin
     Exit;
   {$endif}
 
-  WritelnLog('Completed request for "%s" with status %d', [
+  WritelnLog('Network', 'Completed request for "%s" with status %d', [
     UriDisplay(Url),
     AResponse.StatusCode
   ]);
@@ -434,22 +434,9 @@ begin
     On both Windows and Linux.
     See https://github.com/michaliskambi/delphi-http-download test.
 
-    TODO: How are the callbacks called, from where,
-    since we don't necessarily execute the Delphi VCL / FMX event loop?
-    E.g. with TCastleWindow (WinAPI backend) we execute own loop,
-    and we don't call VCL / FMX Application.ProcessMessages.
-    But the callbacks still happen, even in console application.
-    It seems that at least for Windows, with TCastleWindow,
-    Delphi somehow hooked to the Windows event loop to make them happen?
-    I haven't found how are they done on Linux.
-
-    Note: The work of TNetHttpClient is done in a thread, so it makes sense
-    that it *does processing (downloads new bytes)* without
-    Application.ProcessMessages.
-    The above question is how does Delphi Synchronize work in
-    Linux console application
-    that doesn't call VCL / FMX Application.ProcessMessages?
-  }
+    See also TCastleApplicationProperties._Update for comments how
+    is CheckSynchronize called, so that we get information in our thread
+    about the progress of the download. }
 end;
 
 {$endif read_implementation}

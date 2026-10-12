@@ -1647,14 +1647,16 @@ var
     SourceRow, DestinRow: PtrUInt;
   begin
     SourceY := SourceRect.ClampY(DestinY * SourceHeight div DestinHeight);
-    SourceRow := PtrUInt(SourceData) + SourceWidth * SourceY * PixelSize;
-    DestinRow := PtrUInt(DestinData) + DestinWidth * DestinY * PixelSize;
+    { Cast to PtrUInt below is important on Delphi with 64-bit CPU,
+      see comments in MakeLineBilinear. }
+    SourceRow := PtrUInt(SourceData) + PtrUInt(SourceWidth * SourceY * PixelSize);
+    DestinRow := PtrUInt(DestinData) + PtrUInt(DestinWidth * DestinY * PixelSize);
 
     for DestinX := DestinRect.Left to DestinRect.Right - 1 do
     begin
       SourceX := SourceRect.ClampX(DestinX * SourceWidth div DestinWidth);
-      Move(Pointer(PtrUInt(SourceRow + SourceX * PixelSize))^,
-           Pointer(PtrUInt(DestinRow + DestinX * PixelSize))^,
+      Move(Pointer(SourceRow + PtrUInt(SourceX * PixelSize))^,
+           Pointer(DestinRow + PtrUInt(DestinX * PixelSize))^,
            PixelSize);
     end;
   end;
@@ -1677,9 +1679,13 @@ var
     SourceY1 := Max(Trunc(SourceYFrac), SourceRect.Bottom);
     SourceY2 := Min(SourceY1 + 1, SourceRect.Top - 1);
     SourceYFrac := Frac(SourceYFrac);
-    Source1Row := PtrUInt(SourceData) + SourceWidth * SourceY1 * PixelSize;
-    Source2Row := PtrUInt(SourceData) + SourceWidth * SourceY2 * PixelSize;
-    DestinRow  := PtrUInt(DestinData) + DestinWidth * DestinY  * PixelSize;
+    { Cast to PtrUInt below is important on Delphi with 64-bit CPU,
+      otherwise Delphi could decide to implement the + by casting both sides
+      to signed Int64 and make range check errors when pointers happen
+      to be > High(Int64) (possible on Android/Aarch64). }
+    Source1Row := PtrUInt(SourceData) + PtrUInt(SourceWidth * SourceY1 * PixelSize);
+    Source2Row := PtrUInt(SourceData) + PtrUInt(SourceWidth * SourceY2 * PixelSize);
+    DestinRow  := PtrUInt(DestinData) + PtrUInt(DestinWidth * DestinY  * PixelSize);
 
     for DestinX := DestinRect.Left to DestinRect.Right - 1 do
     begin
@@ -1698,14 +1704,14 @@ var
 
       SourceXFrac := Frac(SourceXFrac);
       Weights.X := SourceXFrac * SourceYFrac;
-      Colors.X := Pointer(PtrUInt(Source2Row + SourceX2));
+      Colors.X := Pointer(Source2Row + PtrUInt(SourceX2));
       Weights.Y := (1 - SourceXFrac) * SourceYFrac;
-      Colors.Y := Pointer(PtrUInt(Source2Row + SourceX1));
+      Colors.Y := Pointer(Source2Row + PtrUInt(SourceX1));
       Weights.Z := (1 - SourceXFrac) * (1 - SourceYFrac);
-      Colors.Z := Pointer(PtrUInt(Source1Row + SourceX1));
+      Colors.Z := Pointer(Source1Row + PtrUInt(SourceX1));
       Weights.W :=  SourceXFrac * (1 - SourceYFrac);
-      Colors.W := Pointer(PtrUInt(Source1Row + SourceX2));
-      MixColors(Pointer(PtrUInt(DestinRow + DestinX * PixelSize)), Weights, Colors);
+      Colors.W := Pointer(Source1Row + PtrUInt(SourceX2));
+      MixColors(Pointer(DestinRow + PtrUInt(DestinX * PixelSize)), Weights, Colors);
     end;
   end;
 

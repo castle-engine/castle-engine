@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2025 Michalis Kamburelis.
+  Copyright 2022-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -71,8 +71,9 @@ function ContextCreateBestInstance: TGLContext;
 implementation
 
 uses
-  {$ifdef MSWINDOWS} CastleInternalContextWgl, {$endif}
-  {$if defined(LINUX) or defined(ANDROID)} CastleInternalContextEgl, {$endif}
+  {$if defined(MSWINDOWS)} CastleInternalContextWgl, {$endif}
+  {$if defined(LINUX)} CastleInternalContextEgl, {$endif}
+  {$if defined(ANDROID) or defined(IOS)} CastleInternalContextExisting, {$endif}
   CastleStringUtils, CastleLog;
 
 function MouseButtonToCastle(const MouseButton: TMouseButton;
@@ -613,7 +614,8 @@ function ContextCreateBestInstance: TGLContext;
 begin
   Result :=
     {$if defined(MSWINDOWS)} TGLContextWgl.Create
-    {$elseif defined(LINUX) or defined(ANDROID)} TGLContextEgl.Create
+    {$elseif defined(LINUX)} TGLContextEgl.Create
+    {$elseif defined(ANDROID) or defined(IOS)} TGLContextExisting.Create
     {$else}
       {$message fatal 'Define how to create OpenGL context for this platform.'}
     {$endif}

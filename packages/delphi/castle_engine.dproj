@@ -428,6 +428,8 @@
         <DCCReference Include="..\..\src\fonts\castlefonts.pas"/>
         <DCCReference Include="..\..\src\fonts\castleinternalfreetype.pas"/>
         <DCCReference Include="..\..\src\fonts\castleinternalfreetypeh.pas"/>
+        <DCCReference Include="..\..\src\fonts\castleinternalglyphrasterizer.pas"/>
+        <DCCReference Include="..\..\src\fonts\castleinternalopentypefont.pas"/>
         <DCCReference Include="..\..\src\fonts\castleinternalrichtext.pas"/>
         <DCCReference Include="..\..\src\fonts\castletexturefont_defaultui.pas"/>
         <DCCReference Include="..\..\src\fonts\castletexturefont_default3d_sans.pas"/>
@@ -484,6 +486,7 @@
         <DCCReference Include="..\..\src\vampyre_imaginglib\src\Source\JpegLib\imjidctasm.pas"/>
         <DCCReference Include="..\..\src\base_rendering\castleinternalcontextbase.pas"/>
         <DCCReference Include="..\..\src\base_rendering\castleinternalcontextegl.pas"/>
+        <DCCReference Include="..\..\src\base_rendering\castleinternalcontextexisting.pas"/>
         <DCCReference Include="..\..\src\base_rendering\castleinternalcontextglx.pas"/>
         <DCCReference Include="..\..\src\base_rendering\castleinternalcontextwgl.pas"/>
         <DCCReference Include="..\..\src\base_rendering\castleinternalegl.pas"/>
@@ -493,6 +496,7 @@
         <DCCReference Include="..\..\src\scene\castleinternaltransformdata.pas"/>
         <DCCReference Include="..\..\src\services\steam\castleinternalsteamapi.pas"/>
         <DCCReference Include="..\..\src\services\steam\castlesteam.pas"/>
+        <DCCReference Include="..\..\src\base_rendering\castlegles.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

@@ -1420,6 +1420,10 @@ begin
   if Gzipped then
     Include(StreamOptions, soGzip);
 
+  {$ifdef XML_READ_REQUIRES_SEEKABLE_STREAM}
+  Include(StreamOptions, soForceMemoryStream);
+  {$endif}
+
   Stream := Download(Url, StreamOptions);
   try
     try

@@ -1,8 +1,8 @@
 # Local Notifications
 
-Show a notification at a chosen time, even when the application is no longer running, using [TLocalNotifications](https://castle-engine.io/apidoc/html/CastleLocalNotifications.TLocalNotifications.html).
+Show a mobile notification at a chosen time, even when the application is no longer running, using [TLocalNotifications](https://castle-engine.io/api?id=TLocalNotifications).
 
-- The _Test_ buttons send, and cancel, simple notifications: one right away, one after 10 seconds, one after 60 seconds. Send one, then close the application (or switch to another one): the notification still arrives.
+- The _Test_ buttons send, and cancel, simple notifications: one right away, one after 10 seconds, one after 60 seconds (Android may show them a bit later, it does not promise the exact time). Send one, then close the application (or switch to another one): the notification still arrives.
 
 - The _Garden_ is the use-case notifications are for: something happens in your game while the player is not looking. Plant a seed and the flower blooms after a minute -- and the player is notified, even if the application was closed. Reopen the application to see the flower. _Dig it up_ cancels the notification.
 
@@ -11,6 +11,11 @@ Notifications are shown on Android and iOS (using the `local_notifications` serv
 The project also shows how to provide your own status bar icon: `android/notification_icon.png`, white on a transparent background, set as the `small_icon` service parameter.
 
 Using [Castle Game Engine](https://castle-engine.io/).
+
+## Screenshots (Android)
+
+![Screenshot](screenshot.png)
+![Screenshot of Notification on Android](screenshot_notification.png)
 
 ## Building
 

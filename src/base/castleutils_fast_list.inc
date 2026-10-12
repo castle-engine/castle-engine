@@ -208,7 +208,11 @@ begin
   {$ifdef FPC}
   L[Index] := Value;
   {$else}
-  PtrT(PtrUInt(FItems) + SizeOf(T) * Index)^ := Value;
+  { Cast to PtrUInt is important on Delphi with 64-bit CPU,
+    otherwise Delphi could implement the + using signed Int64
+    and make range check errors when pointer is > High(Int64)
+    (possible on Android/Aarch64). }
+  PtrT(PtrUInt(FItems) + PtrUInt(SizeOf(T) * Index))^ := Value;
   {$endif}
 end;
 
@@ -232,7 +236,8 @@ begin
     {$ifdef FPC}
     L[Count],
     {$else}
-    PtrT(PtrUInt(FItems) + SizeOf(T) * Count)^,
+    // Cast to PtrUInt is important, see TCastleFastList.SetItems
+    PtrT(PtrUInt(FItems) + PtrUInt(SizeOf(T) * Count))^,
     {$endif}
     Source.Count * SizeOf(T));
   FCount := NewCount;

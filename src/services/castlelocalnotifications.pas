@@ -1,5 +1,5 @@
 {
-  Copyright 2026-2026 Hamid reza Kabiri.
+  Copyright 2026-2026 Hamid reza Kabiri, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -53,20 +53,45 @@ type
 
       Id names this notification, so that it can be replaced or canceled
       later. Scheduling again with the same Id replaces the notification
-      scheduled before, it does not show two of them.
+      scheduled before (also when it is already displayed),
+      it does not show two of them.
 
       The system may show the notification somewhat later than requested,
       to save battery. Do not rely on the exact moment.
 
       The notification survives closing the application, and a device reboot.
-      It does not survive uninstalling the application, and it is gone once
-      it was shown or tapped. }
+      When the device is turned off at the moment when the notification
+      should be shown, the notification is shown after the device is
+      turned on again.
+
+      It does not survive uninstalling the application (unless Android
+      restores the application data from a backup, when the application
+      is installed again), and it is gone once it was shown or tapped.
+
+      On Android 13 and newer, the user is asked for the permission to show
+      notifications when you call this for the first time. If the user
+      refuses, the notifications are not shown, without any error.
+
+      On Android, the request is processed only while the application
+      is displayed and nothing covers it.
+      This is almost always true from the Pascal code perspective.
+      But beware of edge-cases: A request made from
+      @link(TCastleApplicationProperties.OnPause ApplicationProperties.OnPause)
+      (when the user leaves the application), or while a system dialog covers
+      the application (like a question about a permission), is processed only once
+      the application is displayed again. }
     class procedure Schedule(const Id: String; const DelaySeconds: Cardinal;
       const Title, Text: String);
 
     { Cancel a notification scheduled by Schedule with the same Id.
-      Canceling an Id that is not scheduled (never was, or was already shown)
-      is not an error and does nothing. }
+      If the notification was already shown and is still displayed
+      (the user did not dismiss it), it is removed.
+      Canceling an Id that is neither scheduled nor displayed
+      is not an error and does nothing.
+
+      Like @link(Schedule):
+      On Android, a request made when the application is not active
+      is processed only when the application is active again. }
     class procedure Cancel(const Id: String);
   end;
 

@@ -2314,7 +2314,7 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
     to deploy programs with their data using PAServer.
 
     Sample:
-      <DeployFile LocalName="data\Dino.gltf" Configuration="Debug" Class="File">
+      <DeployFile LocalName="data\Dino.gltf" Class="File">
           <Platform Name="Linux64">
               <RemoteDir>./data/</RemoteDir>
               <RemoteName>Dino.gltf</RemoteName>
@@ -2322,33 +2322,39 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
           </Platform>
           ... // repeat for all platforms
       </DeployFile>
-      // repeat for release too
+
+    We don't specify Configuration="..." attribute,
+    so the DeployFile applies to all configurations (Debug, Release).
+    This makes DPROJ much smaller than listing all files for each configuration
+    ( which matters, see
+    https://forum.castle-engine.io/t/there-is-a-problem-with-generating-files-for-testing-new-features/1264/6 ).
   }
   function DelphiDprojDeployFiles: String;
   const
-    AllDelphiPlatformNames: array [0..2] of String = (
-      { For now, commented out platforms that we don't use.
-        These platforms make DPROJ extra large
+    AllDelphiPlatformNames: array [0..8] of String = (
+      { In the past: we commented out platforms that we don't use.
+        These platforms made DPROJ extra large
         ( see https://forum.castle-engine.io/t/there-is-a-problem-with-generating-files-for-testing-new-features/1264/6 )
-        so for now, at least make it smaller but commenting out platforms that we don't use. }
-      // 'Android',
-      // 'Android64',
-      // 'iOSDevice64',
-      // 'iOSSimARM64',
+        In the past, we could make it smaller but commenting out platforms
+        that we don't use.
+        TODO: Now, we need a new solution, likely we should deploy zip
+        for non-Windows platforms with Delphi? }
+      'Android',
+      'Android64',
+      'iOSDevice64',
+      'iOSSimARM64',
       'Linux64',
-      // 'OSX64',
-      // 'OSXARM64',
+      'OSX64',
+      'OSXARM64',
       'Win32',
       'Win64'
     );
-    AllDelphiConfigNames: array [0..1] of String = (
-      'Debug',
-      'Release'
-    );
   var
-    ConfigName, PlatformName, FileRelativeName: String;
+    PlatformName, FileRelativeName: String;
     Files: TStringList;
     ResultBuilder: TStringBuilder;
+    RemoteDirBase, RemoteDir, RemoteName, LocalName: String;
+    I: Integer;
   begin
     ResultBuilder := TStringBuilder.Create;
     try
@@ -2358,8 +2364,19 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
           to have the `castle-engine generate-program`
           output fully deterministic for a given project,
           and independent from source OS, undefined ordef of FindFiles etc.
-          This avoids diffs in version control if nothing changed. }
+          This avoids diffs in version control if nothing changed.
+
+          We want order the same on all OSes (to have DPROJs reproducible
+          and comparable, regardless of the operating system on which they
+          were generated). So:
+          - Use / as path delimiter (before sorting), on all OSes.
+          - Do not use locale-aware comparison (which on Windows
+            seems case-insensitive), just compare bytes. }
+        if PathDelim <> '/' then
+          for I := 0 to Files.Count - 1 do
+            Files[I] := SReplaceChars(Files[I], PathDelim, '/');
         Files.CaseSensitive := true;
+        Files.UseLocale := false;
         Files.Sort;
 
         { Note that we try to minimize output below, as it may get really
@@ -2378,31 +2395,74 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
             '-->' + NL);
         end;
 
-        for ConfigName in AllDelphiConfigNames do
+        for FileRelativeName in Files do
         begin
-          for FileRelativeName in Files do
+          { LocalName uses \ as path delimiter, on all OSes,
+            as Delphi (running on Windows) uses it. }
+          LocalName := TCastleManifest.DataName + '\' +
+            SReplaceChars(FileRelativeName, '/', '\');
+          ResultBuilder.Append(Format(
+            '<DeployFile LocalName="%s" Class="File">' + NL, [
+              LocalName
+            ]));
+          for PlatformName in AllDelphiPlatformNames do
           begin
+            { calculate RemoteDir and RemoteDirBase }
+            if ArrayContainsString(PlatformName, ['Android', 'Android64']) then
+            begin
+              { We need assets prefix, since Delphi puts this in any
+                chosen subdirectory of Android project, and we specifically
+                want to later access it using CastleAndroidInternalAssetStream .
+
+                On Android, RemoteDir must be like "assets\subdir":
+                using \ as path delimiter, without the leading "./"
+                and without the trailing path delimiter.
+
+                Reason: Delphi generates assets/deployinfo/deployedassets.txt
+                in the APK, with lines ".\" + RemoteDir + "\" + RemoteName.
+                Delphi's System.StartUpCopy (used by default in Delphi FMX
+                applications) reads this file at application start,
+                and (after replacing "\" with "/" and removing "./")
+                opens each listed asset. So RemoteDir like
+                "./assets/subdir/" results in line
+                ".\./assets/subdir/\file.txt", and System.StartUpCopy tries to
+                open asset "subdir//file.txt", which fails
+                with EStartUpCopyException ("Cannot deploy, ... file not
+                found in assets") raised from unit initialization,
+                and the application hangs at start.
+
+                Note that we don't need, and actually don't want these copies.
+                What System.StartUpCopy is doing is wasteful and CGE doesn't need it.
+                But we cooperate with it, since Delphi uses it by default in
+                FMX applications. }
+              RemoteDirBase := 'assets';
+              RemoteDir := RemoteDirBase + '\' +
+                SReplaceChars(ExtractFilePath(FileRelativeName), '/', '\');
+              RemoteDir := SuffixRemoveChars(RemoteDir, ['\', '/']);
+            end else
+            begin
+              RemoteDirBase := './' + TCastleManifest.DataName;
+              { FileRelativeName uses / as path delimiter (see above),
+                which is also what we want in RemoteDir. }
+              RemoteDir := RemoteDirBase + '/' +
+                ExtractFilePath(FileRelativeName);
+            end;
+
+            RemoteName := ExtractFileName(FileRelativeName);
+
             ResultBuilder.Append(Format(
-              '<DeployFile LocalName="%s\%s" Configuration="%s" Class="File">' + NL, [
-                TCastleManifest.DataName,
-                FileRelativeName,
-                ConfigName
+              ' <Platform Name="%s">' + NL +
+              '  <RemoteDir>%s</RemoteDir>' + NL +
+              '  <RemoteName>%s</RemoteName>' + NL +
+              '  <Overwrite>true</Overwrite>' + NL +
+              ' </Platform>' + NL, [
+                PlatformName,
+                RemoteDir,
+                RemoteName
               ]));
-            for PlatformName in AllDelphiPlatformNames do
-              ResultBuilder.Append(Format(
-                ' <Platform Name="%s">' + NL +
-                '  <RemoteDir>./%s/%s</RemoteDir>' + NL +
-                '  <RemoteName>%s</RemoteName>' + NL +
-                '  <Overwrite>true</Overwrite>' + NL +
-                ' </Platform>' + NL, [
-                  PlatformName,
-                  TCastleManifest.DataName,
-                  ExtractFilePath(FileRelativeName),
-                  ExtractFileName(FileRelativeName)
-                ]));
-            ResultBuilder.Append(
-              '</DeployFile>' + NL);
           end;
+          ResultBuilder.Append(
+            '</DeployFile>' + NL);
         end;
       finally FreeAndNil(Files) end;
       Result := ResultBuilder.ToString;
@@ -2410,8 +2470,7 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
   end;
 
   { Add macros specifically useful by Delphi project files. }
-  procedure AddMacrosDproj(const Macros: TStringStringMap;
-    const StandaloneSource: String);
+  procedure AddMacrosDproj(const Macros: TStringStringMap);
   var
     WelcomePageFile, IncludedFiles, WelcomePageXml: String;
     // PascalFiles unused -- see comment below
@@ -2466,17 +2525,17 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
       finally FreeAndNil(PascalFiles) end;
       *)
 
-      { Add lines like this to define files:
+      { Note that we deliberately do not add lines like this:
           <None Include="README.md"/>
           <None Include="play_animation_standalone.dpr"/>
-        This allows to easily open them from IDE, also it seems "welcome page"
-        (see below) has to be listed here to work. }
-      if WelcomePageFile <> '' then
-        IncludedFiles := SAppendPart(IncludedFiles, NL,
-          '        <None Include="' + WelcomePageFile + '"/>');
-      if StandaloneSource <> '' then
-        IncludedFiles := SAppendPart(IncludedFiles, NL,
-          '        <None Include="' + StandaloneSource + '"/>');
+        They allow to easily open these files from IDE.
+        But Delphi also deploys all such files on Android
+        (to assets/internal/ in APK) and iOS (to StartUp/Documents/),
+        using deployment class "ProjectFile".
+        And we cannot disable this deployment in the DPROJ we generate:
+        Delphi (tested with 13) discards DeployFile with class "ProjectFile"
+        that we would write, and adds own (enabled) DeployFile when the platform
+        is added to the project. }
       Macros.Add('DPROJ_INCLUDED_FILES', IncludedFiles);
     end;
 
@@ -2570,7 +2629,7 @@ begin
     AddMacrosAndroid(Macros);
     AddMacrosIOS(Macros);
     AddMacrosLazarusProject(Macros);
-    AddMacrosDproj(Macros, StandaloneSource);
+    AddMacrosDproj(Macros);
     AddMacrosWeb(Macros);
 
     Result := ToolMacros.ReplaceMacros(Macros, Source);
@@ -2647,10 +2706,11 @@ var
   BinaryFile: boolean;
 begin
   { Do not copy README.adoc, most services define it and would just overwrite each other.
-    It is for informational purposes in CGE sources.
-    Similarly do not copy CastleEngineService.xml, most services define it,
-    it is internal info for build tool. }
-  if SameText(DestinationRelativeFileName, 'README.adoc') or
+    It is for informational purposes in CGE sources. Same for:
+    - other docs of a service, like README_messages.adoc.
+    - CastleEngineService.xml (most services define it,
+      it is internal info for build tool). }
+  if IsWild(DestinationRelativeFileName, 'README*.adoc', true) or
      SameText(DestinationRelativeFileName, 'CastleEngineService.xml') then
     Exit;
 

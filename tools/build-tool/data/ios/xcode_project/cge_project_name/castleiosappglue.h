@@ -202,6 +202,8 @@ typedef void (*TCgeReceiveMessageFromPascalCallback)(const char *message);
 extern void CGEApp_Initialize(const char *applicationConfigDirectory);
 extern void CGEApp_Finalize(void);
 
+extern void CGEApp_SetFallbackConfigDirectory(const char *fallbackConfigDirectory);
+
 extern int CGEApp_ContextProperties(int* redBits, int* greenBits, int* blueBits, int* alphaBits, int* depthBits, int* stencilBits, int* multiSampling);
 
 extern void CGEApp_Open(unsigned initialWidth, unsigned initialHeight, unsigned uiSafeBorderTop,

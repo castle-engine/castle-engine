@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2023 Michalis Kamburelis.
+  Copyright 2010-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -87,8 +87,15 @@ type
     { Dimensions, only for Generation = tgExplicit. }
     Dimensions: TTexCoordDimensions;
 
-    { Offset, only for Generation = tgExplicit. }
-    Offset: Integer;
+    { Offset, only for Generation = tgExplicit.
+
+      Note for this and other offsets in this unit:
+      it's important that they are declared as unsigned.
+      Reason: They are used with additions to PtrUInt,
+      and otherwise (if signed) Delphi could implement the + using signed Int64
+      and make range check errors when pointer is > High(Int64)
+      (quite possible on Android/Aarch64). }
+    Offset: Cardinal;
   end;
   TGeometryTexCoordList = {$ifdef FPC}specialize{$endif} TObjectList<TGeometryTexCoord>;
 
@@ -104,7 +111,8 @@ type
       This is only used to change warnings related to this attribute. }
     Internal: boolean;
     AType: TGeometryAttribType;
-    Offset: Integer;
+    { Unsigned, for reason see TGeometryTexCoord.Offset comments. }
+    Offset: Cardinal;
   end;
   TGeometryAttribList = class({$ifdef FPC}specialize{$endif} TObjectList<TGeometryAttrib>)
   public
@@ -144,22 +152,22 @@ type
     FCoordinatePreserveGeometryOrder: Boolean;
 
     FHasTangent: Boolean;
-    FTangentOffset: Integer;
+    FTangentOffset: Cardinal; //< Unsigned, for reason see TGeometryTexCoord.Offset comments.
 
     FColorType: TColorPerVertexType;
     FColorMode: TColorMode;
-    ColorOffset: Integer;
+    ColorOffset: Cardinal;
     FForceUnlit: boolean;
     FForcedUnlitColor: TVector4;
 
     FHasFogCoord: boolean;
-    FogCoordOffset: Integer;
+    FogCoordOffset: Cardinal;
     FFogDirectValues: boolean;
 
     FHasSkinWeights0: Boolean;
-    FSkinWeights0Offset: Integer;
+    FSkinWeights0Offset: Cardinal;
     FHasSkinJoints0: Boolean;
-    FSkinJoints0Offset: Integer;
+    FSkinJoints0Offset: Cardinal;
 
     FTexCoords: TGeometryTexCoordList;
     FAttribs: TGeometryAttribList;

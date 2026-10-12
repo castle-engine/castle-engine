@@ -1,7 +1,7 @@
 /* -*- tab-width: 4 -*- */
 
 /*
-  Copyright 2026-2026 Hamid reza Kabiri.
+  Copyright 2026-2026 Hamid reza Kabiri, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -24,7 +24,6 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
@@ -35,8 +34,8 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
 /**
- * Shows one notification, when the alarm scheduled by
- * ServiceLocalNotifications fires.
+ * Receives the alarms set by ServiceLocalNotifications, and shows
+ * the notifications.
  *
  * This runs even when our application is not running: Android starts the
  * process just for this. So nothing here may assume that MainActivity,
@@ -48,10 +47,15 @@ public class LocalNotificationReceiver extends BroadcastReceiver
 
     public static final String ACTION_SHOW = "io.castleengine.SHOW_LOCAL_NOTIFICATION";
     public static final String EXTRA_ID = "id";
-    public static final String EXTRA_TITLE = "title";
-    public static final String EXTRA_TEXT = "text";
 
     private static final String CHANNEL_ID = "castle_local_notifications";
+
+    /* Android identifies a notification by a (tag, number) pair.
+       We pass our notification id (String) as the tag, so this number can be
+       constant. Deriving the number from id.hashCode() instead would mix up
+       notifications whose ids happen to have the same hash
+       (like "Aa" and "BB"). */
+    private static final int NOTIFICATION_ID = 0;
 
     /* Create the notification channel, required since Android 8.
        Safe to call many times, creating an existing channel does nothing. */
@@ -91,7 +95,7 @@ public class LocalNotificationReceiver extends BroadcastReceiver
                 "ic_castle_notification", "drawable", context.getPackageName());
         }
         if (result == 0) {
-            // Should not happen, the bell is part of this service.
+            ServiceAbstract.logWarning(CATEGORY, "Cannot find the default icon for local notifications, using the application icon instead. This should not happen (as the default icon is part of this service).");
             result = context.getApplicationInfo().icon;
         }
         return result;
@@ -145,7 +149,15 @@ public class LocalNotificationReceiver extends BroadcastReceiver
     /* Remove a notification that is already displayed. */
     public static void hide(Context context, String id)
     {
-        NotificationManagerCompat.from(context).cancel(id.hashCode());
+        NotificationManagerCompat.from(context).cancel(id, NOTIFICATION_ID);
+    }
+
+    /* Can we show notifications now. False when the user did not grant
+       the POST_NOTIFICATIONS permission (Android 13+), or disabled
+       the notifications of this application in the system settings. */
+    public static boolean notificationsEnabled(Context context)
+    {
+        return NotificationManagerCompat.from(context).areNotificationsEnabled();
     }
 
     @Override
@@ -156,12 +168,17 @@ public class LocalNotificationReceiver extends BroadcastReceiver
         }
 
         String id = intent.getStringExtra(EXTRA_ID);
-        String title = intent.getStringExtra(EXTRA_TITLE);
-        String text = intent.getStringExtra(EXTRA_TEXT);
         if (id == null) {
             return;
         }
 
+        ServiceLocalNotifications.showIfDue(context, id);
+    }
+
+    /* Show the notification now. Android silently ignores this when
+       the notifications are not allowed, so check notificationsEnabled before. */
+    public static void show(Context context, String id, String title, String text)
+    {
         createChannel(context);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID).
@@ -181,18 +198,12 @@ public class LocalNotificationReceiver extends BroadcastReceiver
             builder.setContentIntent(open);
         }
 
-        /* This notification is no longer pending, so the entry kept for
-           rescheduling after a reboot is not needed. */
-        SharedPreferences preferences = context.getSharedPreferences(
-            ServiceLocalNotifications.PREFERENCES, Context.MODE_PRIVATE);
-        preferences.edit().remove(id).apply();
-
         try {
-            NotificationManagerCompat.from(context).notify(id.hashCode(), builder.build());
+            NotificationManagerCompat.from(context).notify(id, NOTIFICATION_ID, builder.build());
         } catch (SecurityException e) {
-            /* Android 13+: the user refused the POST_NOTIFICATIONS permission.
-               Nothing to do, and this must not crash a game that is possibly
-               not even running now. */
+            /* Should not happen (Android ignores the notification silently
+               when the user did not allow the notifications), but this must
+               not crash a game that is possibly not even running now. */
             ServiceAbstract.logWarning(CATEGORY,
                 "Cannot show notification, permission not granted: " + e.getMessage());
         }

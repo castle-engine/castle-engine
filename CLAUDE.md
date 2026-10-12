@@ -192,6 +192,20 @@ In most situations, when building projects like examples and most engine tools, 
 
 - The paths are hardcoded as `EnginePaths` constant in `src/files/tools/castleinternaltools.pas`
 
+## Adding new units
+
+When adding a new engine unit, add it to:
+
+- The proper Lazarus package (one of `packages/lazarus/*.lpk`). Add the new unit at the **end** of the `<Files>` list (as the next `<ItemN>`, and increase `<Files Count="...">`). Do not insert it in alphabetical order (which would require renumbering all the following items). Adding at the end makes the diff smaller and merging branches easier. We re-sort the packages on `master` from time to time.
+
+- The proper Delphi package (one of `packages/delphi/*.dpk`, and the corresponding `*.dproj`).
+
+- `fpmake.pp`.
+
+Then run `tools/internal/check_packages` to verify that packages are correct. (CI runs it too.)
+
+See "Adding new unit or path" section at the bottom of https://castle-engine.io/coding_conventions for the complete list of steps (e.g. adding a new path requires more steps).
+
 ## Coding Conventions
 
 - **Indentation**: 2 spaces, no tabs

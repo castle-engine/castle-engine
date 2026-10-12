@@ -18,10 +18,15 @@
   code shared between FMX TOpenGLControl and FMX TCastleControl)
   for Windows. }
 
-uses
-  Windows, SysUtils,
-  CastleInternalContextWgl,
-  CastleLog, CastleUtils;
+{$ifdef read_TFmxOpenGLUtility_interface}
+{$endif read_TFmxOpenGLUtility_interface}
+
+{$ifdef read_implementation_uses}
+Windows,
+CastleInternalContextWgl, CastleUtils,
+{$endif read_implementation_uses}
+
+{$ifdef read_implementation}
 
 { TFmxOpenGLUtility --------------------------------------------------------- }
 
@@ -64,3 +69,5 @@ begin
   else
     Result := 1;
 end;
+
+{$endif read_implementation}
