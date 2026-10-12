@@ -1,5 +1,5 @@
 {
-  Copyright 2026-2026 Hamid reza Kabiri.
+  Copyright 2026-2026 Hamid reza Kabiri, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -53,12 +53,13 @@ type
       to save battery. Do not rely on the exact moment.
 
       The notification survives closing the application, and a device reboot.
-      But when the device is turned off at the moment when the notification
-      should be shown, the notification is dropped: it is not shown late,
-      after the device is turned on again.
+      When the device is turned off at the moment when the notification
+      should be shown, the notification is shown after the device is
+      turned on again.
 
-      It does not survive uninstalling the application, and it is gone once
-      it was shown or tapped.
+      It does not survive uninstalling the application (unless Android
+      restores the application data from a backup, when the application
+      is installed again), and it is gone once it was shown or tapped.
 
       On Android 13 and newer, the user is asked for the permission to show
       notifications when you call this for the first time. If the user
@@ -67,8 +68,15 @@ type
       const Title, Text: String);
 
     { Cancel a notification scheduled by Schedule with the same Id.
-      Canceling an Id that is not scheduled (never was, or was already shown)
-      is not an error and does nothing. }
+      If the notification was already shown and is still displayed
+      (the user did not dismiss it), it is removed.
+      Canceling an Id that is neither scheduled nor displayed
+      is not an error and does nothing.
+
+      Like @link(Schedule), call this when the application is active.
+      On Android, a request made when the application is not active
+      is processed only when the application is active again,
+      so the notification may still be shown. }
     class procedure Cancel(const Id: String);
   end;
 

@@ -1,7 +1,7 @@
 /* -*- tab-width: 4 -*- */
 
 /*
-  Copyright 2026-2026 Hamid reza Kabiri.
+  Copyright 2026-2026 Hamid reza Kabiri, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -22,19 +22,27 @@ import android.content.Context;
 import android.content.Intent;
 
 /**
- * Schedules again the pending local notifications after a device reboot.
+ * Schedules again the pending local notifications after a device reboot,
+ * and after the application was updated.
  *
  * Android forgets all alarms when the device restarts, so without this
  * a notification scheduled for tomorrow would silently never arrive.
+ * Some Android versions forget the alarms also when the application
+ * is updated.
  */
 public class LocalNotificationBootReceiver extends BroadcastReceiver
 {
     @Override
     public void onReceive(Context context, Intent intent)
     {
-        if (intent == null || !Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) {
+        if (intent == null) {
             return;
         }
-        ServiceLocalNotifications.rescheduleAfterBoot(context);
+        String action = intent.getAction();
+        if (!Intent.ACTION_BOOT_COMPLETED.equals(action) &&
+            !Intent.ACTION_MY_PACKAGE_REPLACED.equals(action)) {
+            return;
+        }
+        ServiceLocalNotifications.rescheduleRemembered(context);
     }
 }

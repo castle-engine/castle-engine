@@ -1,7 +1,7 @@
 /* -*- tab-width: 4 -*- */
 
 /*
-  Copyright 2026-2026 Hamid reza Kabiri.
+  Copyright 2026-2026 Hamid reza Kabiri, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -43,26 +43,55 @@ import org.json.JSONObject;
  * Nothing here talks to any server: these are local notifications,
  * scheduled by the application itself. Push notifications (sent from a server)
  * are a different thing, not implemented here.
+ *
+ * How it works: every scheduled notification is remembered in PREFERENCES,
+ * and has an alarm that makes Android call us (showIfDue) at its time.
+ * The remembered notifications decide what is shown, an alarm only tells
+ * us to look at them. So it is not a problem when Android forgets an alarm
+ * (we set the alarms again, see rescheduleRemembered) or delivers an alarm
+ * that is no longer wanted (showIfDue ignores it).
  */
 public class ServiceLocalNotifications extends ServiceAbstract
 {
     private static final String CATEGORY = "ServiceLocalNotifications";
 
-    /* Whether we already asked for the POST_NOTIFICATIONS permission
-       (Android 13+). We ask once, at the first scheduled notification,
+    /* Name of the shared preferences with the remembered notifications. */
+    private static final String PREFERENCES = "io.castleengine.local_notifications";
+
+    /* Permission necessary to show notifications since Android 13. */
+    private static final String PERMISSION = "android.permission.POST_NOTIFICATIONS";
+
+    /* Whether the PERMISSION was already requested in this run of
+       the application. We ask once, at the first scheduled notification,
        not at startup: asking makes sense only when we actually have
-       something to show. */
-    private boolean permissionAsked;
+       something to show.
 
-    /* When did we ask for the POST_NOTIFICATIONS permission
-       (System.currentTimeMillis() based), if the user possibly did not
-       answer yet. 0 if we are not waiting for the answer. See onResume. */
-    private volatile long permissionRequestTime;
+       We do not ask again in this run, regardless of what the user answers.
+       This includes the case when the question disappeared without an answer
+       (e.g. the user left the application when the question was displayed,
+       and got back to it using the application icon): for us it is the same
+       as a refusal.
+       This is also set when the game itself asked for this permission.
 
-    /* We never show a notification later than this (in milliseconds) after
-       its time. A reminder that arrives long after the event it announces
-       is worse than no reminder. */
-    private static final long MAX_LATE = 10 * 60 * 1000;
+       We ask again in the next run of the application. But Android shows
+       the question to the user only 2 times. Later it immediately answers
+       that the permission is not granted, and the user can allow
+       the notifications only in the system settings. */
+    private static boolean permissionAsked;
+
+    /* We asked for the PERMISSION and the answer did not come yet.
+       The notifications whose time comes now stay remembered (see showIfDue)
+       and are shown when the user agrees (see onPermissionResult).
+
+       Static, because Android may create the activity (and so this service)
+       again while the question is displayed. The answer comes to the new
+       instance then.
+
+       In the rare cases when MainActivity.requestPermission gives no answer
+       (see there), this stays true until the application process ends.
+       The notifications are then kept (not forgotten) when their time comes
+       while the notifications are not allowed. */
+    private static boolean waitingForPermission;
 
     public ServiceLocalNotifications(MainActivity activity)
     {
@@ -74,105 +103,14 @@ public class ServiceLocalNotifications extends ServiceAbstract
         return "local_notifications";
     }
 
-    /* Ask for the permission to post notifications, necessary since Android 13.
-       Nothing is done with the answer: if the user refuses, the notification
-       is scheduled but Android will not show it. */
-    private void requestNotificationPermission()
-    {
-        if (permissionAsked) {
-            return;
-        }
-        permissionAsked = true;
-        if (Build.VERSION.SDK_INT >= 33) { // Build.VERSION_CODES.TIRAMISU
-            if (!LocalNotificationReceiver.notificationsEnabled(getActivity())) {
-                permissionRequestTime = System.currentTimeMillis();
-            }
-            getActivity().requestPermission("android.permission.POST_NOTIFICATIONS");
-        }
-    }
-
-    /* Schedule again the remembered notifications when the application starts.
-       Android forgets the alarms not only at a device reboot (handled by
-       LocalNotificationBootReceiver) but also e.g. when the user uses
+    /* Set again the alarms of the remembered notifications when the application
+       starts. Android forgets the alarms not only at a device reboot (handled
+       by LocalNotificationBootReceiver) but also e.g. when the user uses
        "Force stop" on the application. */
     @Override
     public void onCreate()
     {
-        rescheduleRemembered(getActivity(), MAX_LATE);
-    }
-
-    /* A notification scheduled with a short delay (like "now") comes while
-       the user still looks at the dialog asking for the permission.
-       LocalNotificationReceiver cannot show it then, and leaves it remembered.
-       The dialog pauses our activity, and resumes it when the user answers.
-       So show such notifications now, if the user agreed.
-
-       Nothing else is done here. In particular we do not show the notifications
-       that should have been shown before we asked for the permission. */
-    @Override
-    public void onResume()
-    {
-        long since = permissionRequestTime;
-        if (since == 0 || !LocalNotificationReceiver.notificationsEnabled(getActivity())) {
-            return;
-        }
-        permissionRequestTime = 0;
-
-        Context context = getActivity();
-        SharedPreferences preferences = preferences();
-        SharedPreferences.Editor editor = preferences.edit();
-        long now = System.currentTimeMillis();
-
-        for (Map.Entry<String, ?> entry : preferences.getAll().entrySet()) {
-            String id = entry.getKey();
-            Remembered remembered = Remembered.parse(entry.getValue());
-            if (remembered == null ||
-                remembered.when < since ||
-                remembered.when > now ||
-                remembered.when < now - MAX_LATE) {
-                continue;
-            }
-
-            /* Cancel the alarm, in case Android did not deliver it yet
-               (alarms are not exact), to not show the notification twice. */
-            alarmManager().cancel(notificationIntent(context, id, "", ""));
-            editor.remove(id);
-            LocalNotificationReceiver.show(context, id, remembered.title, remembered.text);
-        }
-
-        editor.apply();
-        updateBootReceiverEnabled(context);
-    }
-
-    private AlarmManager alarmManager()
-    {
-        return (AlarmManager) getActivity().getSystemService(Context.ALARM_SERVICE);
-    }
-
-    /* PendingIntent that shows the notification with this id.
-
-       The id is placed in the intent data (as URI), because Android tells
-       PendingIntents apart by the intent action, data, class (not by extras).
-       So scheduling the same id again replaces the previous alarm, canceling
-       finds it, and different ids never affect each other.
-
-       Static and takes a Context, as it is used also after a reboot,
-       when there is no activity. */
-    private static PendingIntent notificationIntent(Context context,
-        String id, String title, String text)
-    {
-        Intent intent = new Intent(context, LocalNotificationReceiver.class);
-        intent.setAction(LocalNotificationReceiver.ACTION_SHOW);
-        intent.setData(Uri.parse("castle-local-notification:" + Uri.encode(id)));
-        intent.putExtra(LocalNotificationReceiver.EXTRA_ID, id);
-        intent.putExtra(LocalNotificationReceiver.EXTRA_TITLE, title);
-        intent.putExtra(LocalNotificationReceiver.EXTRA_TEXT, text);
-
-        int flags = PendingIntent.FLAG_UPDATE_CURRENT;
-        if (Build.VERSION.SDK_INT >= 23) { // Build.VERSION_CODES.M
-            flags = flags | PendingIntent.FLAG_IMMUTABLE;
-        }
-        return PendingIntent.getBroadcast(context, 0, intent, flags);
+        rescheduleRemembered(getActivity());
     }
 
     /* Notification as remembered in PREFERENCES, under the key equal to
@@ -181,8 +119,15 @@ public class ServiceLocalNotifications extends ServiceAbstract
     private static class Remembered
     {
         /* Absolute time to show, System.currentTimeMillis() based. */
-        long when;
-        String title, text;
+        final long when;
+        final String title, text;
+
+        Remembered(long when, String title, String text)
+        {
+            this.when = when;
+            this.title = title;
+            this.text = text;
+        }
 
         String serialize() throws JSONException
         {
@@ -193,7 +138,7 @@ public class ServiceLocalNotifications extends ServiceAbstract
             return json.toString();
         }
 
-        /* Returns null if the value is not valid. */
+        /* Returns null if the value is null or not valid. */
         static Remembered parse(Object value)
         {
             if (value == null) {
@@ -201,63 +146,50 @@ public class ServiceLocalNotifications extends ServiceAbstract
             }
             try {
                 JSONObject json = new JSONObject(value.toString());
-                Remembered result = new Remembered();
-                result.when = json.getLong("when");
-                result.title = json.getString("title");
-                result.text = json.getString("text");
-                return result;
+                return new Remembered(json.getLong("when"),
+                    json.getString("title"), json.getString("text"));
             } catch (JSONException e) {
                 return null;
             }
         }
     }
 
-    /* Remember the notification, to schedule it again after a device reboot
-       (a reboot forgets all alarms). */
-    private void remember(String id, long when, String title, String text)
+    /* Static and takes a Context, like all the methods that are used also
+       when our application is not running (Android starts the process
+       just for LocalNotificationReceiver or LocalNotificationBootReceiver),
+       so there is no activity. */
+    private static SharedPreferences preferences(Context context)
     {
-        Remembered remembered = new Remembered();
-        remembered.when = when;
-        remembered.title = title;
-        remembered.text = text;
-        try {
-            preferences().edit().putString(id, remembered.serialize()).apply();
-        } catch (JSONException e) {
-            logWarning(CATEGORY, "Cannot remember notification \"" + id +
-                "\", it will not be scheduled again after a reboot: " + e.getMessage());
-        }
-        updateBootReceiverEnabled(getActivity());
+        return context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE);
     }
 
-    private void forget(String id)
+    /* Remember the notification, replacing the one remembered before
+       with the same id. */
+    private static void remember(Context context, String id, Remembered notification)
+        throws JSONException
     {
-        preferences().edit().remove(id).apply();
-        updateBootReceiverEnabled(getActivity());
+        preferences(context).edit().putString(id, notification.serialize()).apply();
+        updateBootReceiverEnabled(context);
     }
 
-    private SharedPreferences preferences()
+    private static void forget(Context context, String id)
     {
-        return getActivity().getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE);
+        preferences(context).edit().remove(id).apply();
+        updateBootReceiverEnabled(context);
     }
-
-    public static final String PREFERENCES = "io.castleengine.local_notifications";
 
     /* Enable LocalNotificationBootReceiver only when some notification is
-       pending, disable it otherwise. Call this after every change to the
+       remembered, disable it otherwise. Called after every change to the
        remembered notifications (in PREFERENCES).
 
        The receiver is disabled in AndroidManifest.xml, so by default Android
        does not start our application after a device reboot. It only needs
        to start then when there is something to schedule again.
        This is the approach of AndroidX WorkManager (see its RescheduleReceiver
-       and UnfinishedWorkListener).
-
-       Static and takes a Context, as it is called also from the receivers,
-       that have no activity. */
-    public static void updateBootReceiverEnabled(Context context)
+       and UnfinishedWorkListener). */
+    private static void updateBootReceiverEnabled(Context context)
     {
-        boolean enabled = !context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).
-            getAll().isEmpty();
+        boolean enabled = !preferences(context).getAll().isEmpty();
         ComponentName receiver = new ComponentName(context, LocalNotificationBootReceiver.class);
         try {
             PackageManager packageManager = context.getPackageManager();
@@ -280,86 +212,195 @@ public class ServiceLocalNotifications extends ServiceAbstract
         }
     }
 
+    /* PendingIntent of the alarm for the notification with this id:
+       it makes LocalNotificationReceiver call showIfDue(context, id).
+
+       The id is placed in the intent data (as URI), because Android tells
+       PendingIntents apart by the intent action, data, class (not by extras).
+       So setting the alarm for the same id again replaces the previous alarm,
+       canceling finds it, and different ids never affect each other. */
+    private static PendingIntent alarmIntent(Context context, String id)
+    {
+        Intent intent = new Intent(context, LocalNotificationReceiver.class);
+        intent.setAction(LocalNotificationReceiver.ACTION_SHOW);
+        intent.setData(Uri.parse("castle-local-notification:" + Uri.encode(id)));
+        intent.putExtra(LocalNotificationReceiver.EXTRA_ID, id);
+
+        int flags = PendingIntent.FLAG_UPDATE_CURRENT;
+        if (Build.VERSION.SDK_INT >= 23) { // Build.VERSION_CODES.M
+            flags = flags | PendingIntent.FLAG_IMMUTABLE;
+        }
+        return PendingIntent.getBroadcast(context, 0, intent, flags);
+    }
+
+    private static AlarmManager alarmManager(Context context)
+    {
+        return (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+    }
+
+    /* Make the remembered notification appear at its time: show it now when
+       the time has come, otherwise set the alarm for it (replacing the previous
+       alarm for this id, if any).
+
+       We use setAndAllowWhileIdle: it survives the device dozing, and unlike
+       the "exact" alarms it requires no special permission (which Android 12+
+       grants sparingly). The cost is that Android may delay the notification:
+       usually not much, but it does not promise the exact time. It delivers
+       the alarm within an hour on Android 12 and newer, older versions may
+       delay it more when the delay is long, and all versions when the device
+       saves the battery. This is acceptable for a game event reminder. */
+    private static void showOrSetAlarm(Context context, String id, long when)
+    {
+        if (when <= System.currentTimeMillis()) {
+            /* Do not use an alarm for this: Android would fire it only after
+               a few seconds, even when its time has already passed.
+               Cancel the alarm set before for this id (if any),
+               it is not needed anymore. */
+            alarmManager(context).cancel(alarmIntent(context, id));
+            showIfDue(context, id);
+            return;
+        }
+
+        try {
+            PendingIntent intent = alarmIntent(context, id);
+            if (Build.VERSION.SDK_INT >= 23) { // Build.VERSION_CODES.M
+                alarmManager(context).setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, when, intent);
+            } else {
+                alarmManager(context).set(AlarmManager.RTC_WAKEUP, when, intent);
+            }
+        } catch (RuntimeException e) {
+            /* Android refuses to set too many alarms (500) for one application.
+               Must not crash the game, or a receiver that runs without it.
+               The notification stays remembered, so we will try again
+               in the next rescheduleRemembered. */
+            logWarning(CATEGORY, "Cannot set alarm for notification \"" + id + "\": " +
+                e.getMessage());
+        }
+    }
+
     private void schedule(String id, long delaySeconds, String title, String text)
     {
-        requestNotificationPermission();
+        Context context = getActivity();
+        Remembered notification = new Remembered(
+            System.currentTimeMillis() + delaySeconds * 1000, title, text);
 
-        long when = System.currentTimeMillis() + delaySeconds * 1000;
-        scheduleAt(getActivity(), alarmManager(),
-            notificationIntent(getActivity(), id, title, text), when);
-        remember(id, when, title, text);
+        try {
+            remember(context, id, notification);
+        } catch (JSONException e) {
+            logError(CATEGORY, "Cannot schedule notification \"" + id + "\": " + e.getMessage());
+            return;
+        }
+
+        if (!permissionAsked &&
+            Build.VERSION.SDK_INT >= 33 && // Build.VERSION_CODES.TIRAMISU
+            !LocalNotificationReceiver.notificationsEnabled(context)) {
+            /* Note that requestPermission may answer immediately (calling
+               onPermissionResult), so waitingForPermission must be set before. */
+            permissionAsked = true;
+            waitingForPermission = true;
+            getActivity().requestPermission(PERMISSION);
+        }
+
+        showOrSetAlarm(context, id, notification.when);
         logInfo(CATEGORY, "Scheduled notification \"" + id + "\" in " + delaySeconds + " seconds");
     }
 
-    /* Schedule one alarm. Shared with LocalNotificationBootReceiver.
-       We use setAndAllowWhileIdle: it survives the device dozing, and unlike
-       the "exact" alarms it requires no special permission (which Android 12+
-       grants sparingly). The cost is that Android may delay the notification
-       by a few minutes, which is acceptable for a game event reminder. */
-    public static void scheduleAt(Context context, AlarmManager alarms,
-        PendingIntent intent, long when)
+    @Override
+    public void onPermissionResult(String permission, boolean granted)
     {
-        if (Build.VERSION.SDK_INT >= 23) { // Build.VERSION_CODES.M
-            alarms.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, when, intent);
-        } else {
-            alarms.set(AlarmManager.RTC_WAKEUP, when, intent);
+        if (!PERMISSION.equals(permission)) {
+            return;
+        }
+
+        /* Do not ask again, also when it was the game that asked (not us). */
+        permissionAsked = true;
+
+        if (waitingForPermission) {
+            waitingForPermission = false;
+            /* Show the notifications whose time came while we waited
+               (or forget them, when the user refused). */
+            rescheduleRemembered(getActivity());
         }
     }
 
     private void cancel(String id)
     {
+        Context context = getActivity();
+
         /* Canceling an unknown id is not an error: the game may cancel
            a notification it never scheduled, or one that already fired. */
-        alarmManager().cancel(notificationIntent(getActivity(), id, "", ""));
-        LocalNotificationReceiver.hide(getActivity(), id);
-        forget(id);
+        forget(context, id);
+        alarmManager(context).cancel(alarmIntent(context, id));
+        LocalNotificationReceiver.hide(context, id);
         logInfo(CATEGORY, "Canceled notification \"" + id + "\"");
     }
 
-    /* Schedule again everything that was scheduled before a reboot,
-       dropping what should have already been shown.
-       Called from LocalNotificationBootReceiver, which has no activity,
-       so this is static and takes a Context. */
-    public static void rescheduleAfterBoot(Context context)
+    /* Show the notification with this id, if it is remembered and its time
+       has come. Called by LocalNotificationReceiver when the alarm fires. */
+    public static void showIfDue(Context context, String id)
     {
-        /* Do not show anything whose moment passed while the device was off. */
-        rescheduleRemembered(context, 0);
+        Remembered notification = Remembered.parse(preferences(context).getAll().get(id));
+        if (notification == null) {
+            /* The notification was canceled, or already shown,
+               when the alarm was already on its way to us. */
+            return;
+        }
+        if (notification.when > System.currentTimeMillis()) {
+            /* The notification was scheduled again for a later time, and this
+               is the previous alarm: it was already on its way to us, or Android
+               refused to replace it (see showOrSetAlarm).
+               Make sure the alarm for the right time is set. */
+            showOrSetAlarm(context, id, notification.when);
+            return;
+        }
+
+        if (LocalNotificationReceiver.notificationsEnabled(context)) {
+            forget(context, id);
+            LocalNotificationReceiver.show(context, id, notification.title, notification.text);
+        } else
+        if (!waitingForPermission) {
+            forget(context, id);
+            logInfo(CATEGORY, "Not showing notification \"" + id +
+                "\", the user did not allow the notifications");
+        }
+        /* Otherwise the user is deciding now whether to allow the notifications.
+           Leave the notification remembered, onPermissionResult will get back
+           to it. */
     }
 
-    /* Set again the alarms of the remembered notifications, because Android
-       possibly forgot them. Setting an alarm that already exists is harmless,
-       it just replaces it.
+    /* Set again the alarms of all the remembered notifications, because Android
+       forgot them (after a device reboot) or possibly forgot them.
+       Setting an alarm that already exists is harmless, it just replaces it.
 
-       Notifications that should have been shown more than maxLate milliseconds
-       ago are dropped, we will never show them.
-       The ones that should have been shown more recently are left untouched:
-       Android possibly did not deliver their alarm yet (alarms are not exact),
-       or they wait for the user to answer the permission dialog (see onResume). */
-    private static void rescheduleRemembered(Context context, long maxLate)
+       The notifications whose time has already passed (e.g. when the device
+       was turned off) are shown now. This is consistent with what the user
+       sees when the device was working at that time but nobody looked at it:
+       the notification waits on the screen.
+
+       Called at the application start, by LocalNotificationBootReceiver,
+       and when the user answers our request for the PERMISSION. */
+    public static void rescheduleRemembered(Context context)
     {
-        AlarmManager alarms = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        SharedPreferences preferences =
-            context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = preferences.edit();
-        long now = System.currentTimeMillis();
-
-        for (Map.Entry<String, ?> entry : preferences.getAll().entrySet()) {
+        int count = 0;
+        for (Map.Entry<String, ?> entry : preferences(context).getAll().entrySet()) {
             String id = entry.getKey();
-            Remembered remembered = Remembered.parse(entry.getValue());
-
-            if (remembered == null || remembered.when <= now - maxLate) {
-                alarms.cancel(notificationIntent(context, id, "", ""));
-                editor.remove(id);
-            } else
-            if (remembered.when > now) {
-                scheduleAt(context, alarms,
-                    notificationIntent(context, id, remembered.title, remembered.text),
-                    remembered.when);
+            Remembered notification = Remembered.parse(entry.getValue());
+            if (notification == null) {
+                forget(context, id);
+            } else {
+                showOrSetAlarm(context, id, notification.when);
+                count++;
             }
         }
 
-        editor.apply();
+        /* Necessary even when we did not change the remembered notifications
+           above: Android may restore them from a backup (when the application
+           is installed again), without restoring the state of the receiver. */
         updateBootReceiverEnabled(context);
+
+        if (count != 0) {
+            logInfo(CATEGORY, "Checked " + count + " remembered notifications");
+        }
     }
 
     @Override

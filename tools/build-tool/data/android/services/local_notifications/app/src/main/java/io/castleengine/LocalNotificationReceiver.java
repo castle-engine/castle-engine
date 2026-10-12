@@ -1,7 +1,7 @@
 /* -*- tab-width: 4 -*- */
 
 /*
-  Copyright 2026-2026 Hamid reza Kabiri.
+  Copyright 2026-2026 Hamid reza Kabiri, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -24,7 +24,6 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
@@ -35,8 +34,8 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
 /**
- * Shows one notification, when the alarm scheduled by
- * ServiceLocalNotifications fires.
+ * Receives the alarms set by ServiceLocalNotifications, and shows
+ * the notifications.
  *
  * This runs even when our application is not running: Android starts the
  * process just for this. So nothing here may assume that MainActivity,
@@ -48,8 +47,6 @@ public class LocalNotificationReceiver extends BroadcastReceiver
 
     public static final String ACTION_SHOW = "io.castleengine.SHOW_LOCAL_NOTIFICATION";
     public static final String EXTRA_ID = "id";
-    public static final String EXTRA_TITLE = "title";
-    public static final String EXTRA_TEXT = "text";
 
     private static final String CHANNEL_ID = "castle_local_notifications";
 
@@ -171,35 +168,15 @@ public class LocalNotificationReceiver extends BroadcastReceiver
         }
 
         String id = intent.getStringExtra(EXTRA_ID);
-        String title = intent.getStringExtra(EXTRA_TITLE);
-        String text = intent.getStringExtra(EXTRA_TEXT);
         if (id == null) {
             return;
         }
 
-        if (!notificationsEnabled(context)) {
-            /* Most likely the user is just looking at the dialog asking for
-               the POST_NOTIFICATIONS permission (Android 13+), that we show
-               when scheduling the first notification. Leave the notification
-               remembered, ServiceLocalNotifications.onResume shows it
-               if the user agrees. */
-            ServiceAbstract.logInfo(CATEGORY,
-                "Cannot show notification \"" + id + "\" now, notifications are not allowed");
-            return;
-        }
-
-        /* This notification is no longer pending, so the entry kept for
-           rescheduling after a reboot is not needed. */
-        SharedPreferences preferences = context.getSharedPreferences(
-            ServiceLocalNotifications.PREFERENCES, Context.MODE_PRIVATE);
-        preferences.edit().remove(id).apply();
-        ServiceLocalNotifications.updateBootReceiverEnabled(context);
-
-        show(context, id, title, text);
+        ServiceLocalNotifications.showIfDue(context, id);
     }
 
-    /* Show the notification now. Does nothing (except a warning in the log)
-       when the notifications are not allowed. */
+    /* Show the notification now. Android silently ignores this when
+       the notifications are not allowed, so check notificationsEnabled before. */
     public static void show(Context context, String id, String title, String text)
     {
         createChannel(context);
@@ -224,9 +201,9 @@ public class LocalNotificationReceiver extends BroadcastReceiver
         try {
             NotificationManagerCompat.from(context).notify(id, NOTIFICATION_ID, builder.build());
         } catch (SecurityException e) {
-            /* Android 13+: the user refused the POST_NOTIFICATIONS permission.
-               Nothing to do, and this must not crash a game that is possibly
-               not even running now. */
+            /* Should not happen (Android ignores the notification silently
+               when the user did not allow the notifications), but this must
+               not crash a game that is possibly not even running now. */
             ServiceAbstract.logWarning(CATEGORY,
                 "Cannot show notification, permission not granted: " + e.getMessage());
         }

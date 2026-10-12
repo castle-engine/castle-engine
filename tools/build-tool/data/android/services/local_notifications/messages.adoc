@@ -15,3 +15,5 @@ As a developer merely using this service, you do not need to know about these me
 |id
 |Send by Pascal, received on Java side
 |===
+
+To ask for the `android.permission.POST_NOTIFICATIONS` permission (necessary since Android 13), the Java code of this service uses `MainActivity.requestPermission`. So the Pascal code also receives the usual answer to it, the `permission-granted` or `permission-cancelled` message with this permission name. Nothing has to handle it.

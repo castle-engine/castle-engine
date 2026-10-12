@@ -15,7 +15,8 @@
         <receiver android:name="io.castleengine.LocalNotificationReceiver"
             android:exported="false" />
 
-        <!-- Reschedule the notifications, once device rebooted.
+        <!-- Reschedule the notifications, once device rebooted
+             or the application was updated.
 
              Note: This implies that the application will start
              automatically after a device reboot, to execute LocalNotificationBootReceiver.
@@ -36,6 +37,7 @@
             android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
     </application>
