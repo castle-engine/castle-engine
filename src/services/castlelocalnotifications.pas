@@ -53,8 +53,16 @@ type
       to save battery. Do not rely on the exact moment.
 
       The notification survives closing the application, and a device reboot.
+      But when the device is turned off at the moment when the notification
+      should be shown, the notification is dropped: it is not shown late,
+      after the device is turned on again.
+
       It does not survive uninstalling the application, and it is gone once
-      it was shown or tapped. }
+      it was shown or tapped.
+
+      On Android 13 and newer, the user is asked for the permission to show
+      notifications when you call this for the first time. If the user
+      refuses, the notifications are not shown, without any error. }
     class procedure Schedule(const Id: String; const DelaySeconds: Cardinal;
       const Title, Text: String);
 
