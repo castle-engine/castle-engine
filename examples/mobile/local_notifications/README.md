@@ -1,6 +1,6 @@
 # Local Notifications
 
-Show a notification at a chosen time, even when the application is no longer running, using [TLocalNotifications](https://castle-engine.io/apidoc/html/CastleLocalNotifications.TLocalNotifications.html).
+Show a mobile notification at a chosen time, even when the application is no longer running, using [TLocalNotifications](https://castle-engine.io/api?id=TLocalNotifications).
 
 - The _Test_ buttons send, and cancel, simple notifications: one right away, one after 10 seconds, one after 60 seconds. Send one, then close the application (or switch to another one): the notification still arrives.
 
