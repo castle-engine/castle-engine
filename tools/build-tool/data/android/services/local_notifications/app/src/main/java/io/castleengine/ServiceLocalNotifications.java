@@ -28,6 +28,9 @@ import android.os.Build;
 
 import java.util.Map;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 /**
  * Local notifications, called from Castle Game Engine.
  *
@@ -97,14 +100,57 @@ public class ServiceLocalNotifications extends ServiceAbstract
         return PendingIntent.getBroadcast(getActivity(), id.hashCode(), intent, flags);
     }
 
+    /* Notification as remembered in PREFERENCES, under the key equal to
+       the notification id. Stored as JSON, so that the title and text
+       can contain any characters. */
+    private static class Remembered
+    {
+        /* Absolute time to show, System.currentTimeMillis() based. */
+        long when;
+        String title, text;
+
+        String serialize() throws JSONException
+        {
+            JSONObject json = new JSONObject();
+            json.put("when", when);
+            json.put("title", title);
+            json.put("text", text);
+            return json.toString();
+        }
+
+        /* Returns null if the value is not valid. */
+        static Remembered parse(Object value)
+        {
+            if (value == null) {
+                return null;
+            }
+            try {
+                JSONObject json = new JSONObject(value.toString());
+                Remembered result = new Remembered();
+                result.when = json.getLong("when");
+                result.title = json.getString("title");
+                result.text = json.getString("text");
+                return result;
+            } catch (JSONException e) {
+                return null;
+            }
+        }
+    }
+
     /* Remember the notification, to schedule it again after a device reboot
-       (a reboot forgets all alarms). Stored as "<when>|<title>|<text>",
-       where <when> is absolute, System.currentTimeMillis() based. */
+       (a reboot forgets all alarms). */
     private void remember(String id, long when, String title, String text)
     {
-        SharedPreferences.Editor editor = preferences().edit();
-        editor.putString(id, when + "|" + title + "|" + text);
-        editor.apply();
+        Remembered remembered = new Remembered();
+        remembered.when = when;
+        remembered.title = title;
+        remembered.text = text;
+        try {
+            preferences().edit().putString(id, remembered.serialize()).apply();
+        } catch (JSONException e) {
+            logWarning(CATEGORY, "Cannot remember notification \"" + id +
+                "\", it will not be scheduled again after a reboot: " + e.getMessage());
+        }
         updateBootReceiverEnabled(getActivity());
     }
 
@@ -207,21 +253,9 @@ public class ServiceLocalNotifications extends ServiceAbstract
 
         for (Map.Entry<String, ?> entry : preferences.getAll().entrySet()) {
             String id = entry.getKey();
-            String[] parts = entry.getValue().toString().split("\\|", 3);
-            if (parts.length != 3) {
-                editor.remove(id);
-                continue;
-            }
+            Remembered remembered = Remembered.parse(entry.getValue());
 
-            long when;
-            try {
-                when = Long.parseLong(parts[0]);
-            } catch (NumberFormatException e) {
-                editor.remove(id);
-                continue;
-            }
-
-            if (when <= System.currentTimeMillis()) {
+            if (remembered == null || remembered.when <= System.currentTimeMillis()) {
                 /* Its moment passed while the device was off. We do not show it
                    now: a reminder that arrives after the event it announces is
                    worse than no reminder. */
@@ -232,15 +266,16 @@ public class ServiceLocalNotifications extends ServiceAbstract
             Intent intent = new Intent(context, LocalNotificationReceiver.class);
             intent.setAction(LocalNotificationReceiver.ACTION_SHOW);
             intent.putExtra(LocalNotificationReceiver.EXTRA_ID, id);
-            intent.putExtra(LocalNotificationReceiver.EXTRA_TITLE, parts[1]);
-            intent.putExtra(LocalNotificationReceiver.EXTRA_TEXT, parts[2]);
+            intent.putExtra(LocalNotificationReceiver.EXTRA_TITLE, remembered.title);
+            intent.putExtra(LocalNotificationReceiver.EXTRA_TEXT, remembered.text);
 
             int flags = PendingIntent.FLAG_UPDATE_CURRENT;
             if (Build.VERSION.SDK_INT >= 23) { // Build.VERSION_CODES.M
                 flags = flags | PendingIntent.FLAG_IMMUTABLE;
             }
             scheduleAt(context, alarms,
-                PendingIntent.getBroadcast(context, id.hashCode(), intent, flags), when);
+                PendingIntent.getBroadcast(context, id.hashCode(), intent, flags),
+                remembered.when);
         }
 
         editor.apply();
