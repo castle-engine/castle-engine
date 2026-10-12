@@ -53,6 +53,13 @@ public class LocalNotificationReceiver extends BroadcastReceiver
 
     private static final String CHANNEL_ID = "castle_local_notifications";
 
+    /* Android identifies a notification by a (tag, number) pair.
+       We pass our notification id (String) as the tag, so this number can be
+       constant. Deriving the number from id.hashCode() instead would mix up
+       notifications whose ids happen to have the same hash
+       (like "Aa" and "BB"). */
+    private static final int NOTIFICATION_ID = 0;
+
     /* Create the notification channel, required since Android 8.
        Safe to call many times, creating an existing channel does nothing. */
     private static void createChannel(Context context)
@@ -145,7 +152,7 @@ public class LocalNotificationReceiver extends BroadcastReceiver
     /* Remove a notification that is already displayed. */
     public static void hide(Context context, String id)
     {
-        NotificationManagerCompat.from(context).cancel(id.hashCode());
+        NotificationManagerCompat.from(context).cancel(id, NOTIFICATION_ID);
     }
 
     @Override
@@ -189,7 +196,7 @@ public class LocalNotificationReceiver extends BroadcastReceiver
         ServiceLocalNotifications.updateBootReceiverEnabled(context);
 
         try {
-            NotificationManagerCompat.from(context).notify(id.hashCode(), builder.build());
+            NotificationManagerCompat.from(context).notify(id, NOTIFICATION_ID, builder.build());
         } catch (SecurityException e) {
             /* Android 13+: the user refused the POST_NOTIFICATIONS permission.
                Nothing to do, and this must not crash a game that is possibly

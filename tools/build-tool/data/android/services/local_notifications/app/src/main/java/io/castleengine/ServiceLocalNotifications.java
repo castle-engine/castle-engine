@@ -24,6 +24,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 
 import java.util.Map;
@@ -83,12 +84,20 @@ public class ServiceLocalNotifications extends ServiceAbstract
     }
 
     /* PendingIntent that shows the notification with this id.
-       The request code is derived from the id, so that scheduling the same id
-       again replaces the previous alarm, and canceling finds it. */
-    private PendingIntent notificationIntent(String id, String title, String text)
+
+       The id is placed in the intent data (as URI), because Android tells
+       PendingIntents apart by the intent action, data, class (not by extras).
+       So scheduling the same id again replaces the previous alarm, canceling
+       finds it, and different ids never affect each other.
+
+       Static and takes a Context, as it is used also after a reboot,
+       when there is no activity. */
+    private static PendingIntent notificationIntent(Context context,
+        String id, String title, String text)
     {
-        Intent intent = new Intent(getActivity(), LocalNotificationReceiver.class);
+        Intent intent = new Intent(context, LocalNotificationReceiver.class);
         intent.setAction(LocalNotificationReceiver.ACTION_SHOW);
+        intent.setData(Uri.parse("castle-local-notification:" + Uri.encode(id)));
         intent.putExtra(LocalNotificationReceiver.EXTRA_ID, id);
         intent.putExtra(LocalNotificationReceiver.EXTRA_TITLE, title);
         intent.putExtra(LocalNotificationReceiver.EXTRA_TEXT, text);
@@ -97,7 +106,7 @@ public class ServiceLocalNotifications extends ServiceAbstract
         if (Build.VERSION.SDK_INT >= 23) { // Build.VERSION_CODES.M
             flags = flags | PendingIntent.FLAG_IMMUTABLE;
         }
-        return PendingIntent.getBroadcast(getActivity(), id.hashCode(), intent, flags);
+        return PendingIntent.getBroadcast(context, 0, intent, flags);
     }
 
     /* Notification as remembered in PREFERENCES, under the key equal to
@@ -210,7 +219,8 @@ public class ServiceLocalNotifications extends ServiceAbstract
         requestNotificationPermission();
 
         long when = System.currentTimeMillis() + delaySeconds * 1000;
-        scheduleAt(getActivity(), alarmManager(), notificationIntent(id, title, text), when);
+        scheduleAt(getActivity(), alarmManager(),
+            notificationIntent(getActivity(), id, title, text), when);
         remember(id, when, title, text);
         logInfo(CATEGORY, "Scheduled notification \"" + id + "\" in " + delaySeconds + " seconds");
     }
@@ -234,7 +244,7 @@ public class ServiceLocalNotifications extends ServiceAbstract
     {
         /* Canceling an unknown id is not an error: the game may cancel
            a notification it never scheduled, or one that already fired. */
-        alarmManager().cancel(notificationIntent(id, "", ""));
+        alarmManager().cancel(notificationIntent(getActivity(), id, "", ""));
         LocalNotificationReceiver.hide(getActivity(), id);
         forget(id);
         logInfo(CATEGORY, "Canceled notification \"" + id + "\"");
@@ -263,18 +273,8 @@ public class ServiceLocalNotifications extends ServiceAbstract
                 continue;
             }
 
-            Intent intent = new Intent(context, LocalNotificationReceiver.class);
-            intent.setAction(LocalNotificationReceiver.ACTION_SHOW);
-            intent.putExtra(LocalNotificationReceiver.EXTRA_ID, id);
-            intent.putExtra(LocalNotificationReceiver.EXTRA_TITLE, remembered.title);
-            intent.putExtra(LocalNotificationReceiver.EXTRA_TEXT, remembered.text);
-
-            int flags = PendingIntent.FLAG_UPDATE_CURRENT;
-            if (Build.VERSION.SDK_INT >= 23) { // Build.VERSION_CODES.M
-                flags = flags | PendingIntent.FLAG_IMMUTABLE;
-            }
             scheduleAt(context, alarms,
-                PendingIntent.getBroadcast(context, id.hashCode(), intent, flags),
+                notificationIntent(context, id, remembered.title, remembered.text),
                 remembered.when);
         }
 
