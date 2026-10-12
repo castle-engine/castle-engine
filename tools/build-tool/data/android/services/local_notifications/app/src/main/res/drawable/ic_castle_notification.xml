@@ -2,7 +2,11 @@
 <!-- Small icon of a notification, drawn by Android as a silhouette
      (only the alpha channel matters, the color is chosen by the system).
      A bell, deliberately generic: a game can override it by providing
-     its own drawable with this name. -->
+     its own drawable with this name.
+
+     Based on the "notifications" icon from Material Design Icons by Google,
+     https://github.com/google/material-design-icons ,
+     Apache License 2.0. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
