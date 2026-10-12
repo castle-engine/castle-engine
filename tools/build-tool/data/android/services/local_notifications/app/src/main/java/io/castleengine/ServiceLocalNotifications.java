@@ -54,6 +54,14 @@ public class ServiceLocalNotifications extends ServiceAbstract
        something to show. */
     private boolean permissionAsked;
 
+    /* We asked for the POST_NOTIFICATIONS permission and the user possibly
+       did not answer yet. See onResume. */
+    private volatile boolean permissionAnswerPending;
+
+    /* Our activity was paused since permissionAnswerPending was set,
+       which means that the permission dialog was displayed. */
+    private boolean permissionDialogDisplayed;
+
     public ServiceLocalNotifications(MainActivity activity)
     {
         super(activity);
@@ -74,8 +82,70 @@ public class ServiceLocalNotifications extends ServiceAbstract
         }
         permissionAsked = true;
         if (Build.VERSION.SDK_INT >= 33) { // Build.VERSION_CODES.TIRAMISU
+            permissionAnswerPending =
+                !LocalNotificationReceiver.notificationsEnabled(getActivity());
             getActivity().requestPermission("android.permission.POST_NOTIFICATIONS");
         }
+    }
+
+    /* The permission dialog pauses our activity, and resumes it when the user
+       answers. A notification scheduled with a short delay (like "now")
+       comes while the dialog is still open, LocalNotificationReceiver cannot
+       show it then and leaves it remembered. So show it now, if the user
+       agreed.
+
+       This is done only right after we asked for the permission.
+       In other cases we do not show overdue notifications (e.g. when the user
+       enabled the notifications in system settings a week later),
+       as a late reminder is worse than no reminder. */
+    @Override
+    public void onResume()
+    {
+        if (permissionAnswerPending && !permissionDialogDisplayed) {
+            /* Resumed for another reason (e.g. the game scheduled a notification
+               at startup, before the activity was resumed for the first time),
+               the permission dialog is yet to come. */
+            return;
+        }
+
+        boolean showOverdue = permissionAnswerPending &&
+            LocalNotificationReceiver.notificationsEnabled(getActivity());
+        permissionAnswerPending = false;
+        permissionDialogDisplayed = false;
+        handleOverdue(getActivity(), showOverdue);
+    }
+
+    @Override
+    public void onPause()
+    {
+        if (permissionAnswerPending) {
+            permissionDialogDisplayed = true;
+        }
+    }
+
+    /* Forget the remembered notifications whose time has passed,
+       optionally showing them. */
+    private static void handleOverdue(Context context, boolean show)
+    {
+        SharedPreferences preferences =
+            context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        long now = System.currentTimeMillis();
+
+        for (Map.Entry<String, ?> entry : preferences.getAll().entrySet()) {
+            Remembered remembered = Remembered.parse(entry.getValue());
+            if (remembered != null && remembered.when > now) {
+                continue;
+            }
+            if (remembered != null && show) {
+                LocalNotificationReceiver.show(context, entry.getKey(),
+                    remembered.title, remembered.text);
+            }
+            editor.remove(entry.getKey());
+        }
+
+        editor.apply();
+        updateBootReceiverEnabled(context);
     }
 
     private AlarmManager alarmManager()

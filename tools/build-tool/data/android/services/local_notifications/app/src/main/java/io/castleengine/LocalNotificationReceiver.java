@@ -155,6 +155,14 @@ public class LocalNotificationReceiver extends BroadcastReceiver
         NotificationManagerCompat.from(context).cancel(id, NOTIFICATION_ID);
     }
 
+    /* Can we show notifications now. False when the user did not grant
+       the POST_NOTIFICATIONS permission (Android 13+), or disabled
+       the notifications of this application in the system settings. */
+    public static boolean notificationsEnabled(Context context)
+    {
+        return NotificationManagerCompat.from(context).areNotificationsEnabled();
+    }
+
     @Override
     public void onReceive(Context context, Intent intent)
     {
@@ -169,6 +177,31 @@ public class LocalNotificationReceiver extends BroadcastReceiver
             return;
         }
 
+        if (!notificationsEnabled(context)) {
+            /* Most likely the user is just looking at the dialog asking for
+               the POST_NOTIFICATIONS permission (Android 13+), that we show
+               when scheduling the first notification. Leave the notification
+               remembered, ServiceLocalNotifications.onResume shows it
+               if the user agrees. */
+            ServiceAbstract.logInfo(CATEGORY,
+                "Cannot show notification \"" + id + "\" now, notifications are not allowed");
+            return;
+        }
+
+        /* This notification is no longer pending, so the entry kept for
+           rescheduling after a reboot is not needed. */
+        SharedPreferences preferences = context.getSharedPreferences(
+            ServiceLocalNotifications.PREFERENCES, Context.MODE_PRIVATE);
+        preferences.edit().remove(id).apply();
+        ServiceLocalNotifications.updateBootReceiverEnabled(context);
+
+        show(context, id, title, text);
+    }
+
+    /* Show the notification now. Does nothing (except a warning in the log)
+       when the notifications are not allowed. */
+    public static void show(Context context, String id, String title, String text)
+    {
         createChannel(context);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID).
@@ -187,13 +220,6 @@ public class LocalNotificationReceiver extends BroadcastReceiver
         if (open != null) {
             builder.setContentIntent(open);
         }
-
-        /* This notification is no longer pending, so the entry kept for
-           rescheduling after a reboot is not needed. */
-        SharedPreferences preferences = context.getSharedPreferences(
-            ServiceLocalNotifications.PREFERENCES, Context.MODE_PRIVATE);
-        preferences.edit().remove(id).apply();
-        ServiceLocalNotifications.updateBootReceiverEnabled(context);
 
         try {
             NotificationManagerCompat.from(context).notify(id, NOTIFICATION_ID, builder.build());
