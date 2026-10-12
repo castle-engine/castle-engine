@@ -19,9 +19,11 @@ package io.castleengine;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Build;
 
 import java.util.Map;
@@ -103,11 +105,13 @@ public class ServiceLocalNotifications extends ServiceAbstract
         SharedPreferences.Editor editor = preferences().edit();
         editor.putString(id, when + "|" + title + "|" + text);
         editor.apply();
+        updateBootReceiverEnabled(getActivity());
     }
 
     private void forget(String id)
     {
         preferences().edit().remove(id).apply();
+        updateBootReceiverEnabled(getActivity());
     }
 
     private SharedPreferences preferences()
@@ -116,6 +120,44 @@ public class ServiceLocalNotifications extends ServiceAbstract
     }
 
     public static final String PREFERENCES = "io.castleengine.local_notifications";
+
+    /* Enable LocalNotificationBootReceiver only when some notification is
+       pending, disable it otherwise. Call this after every change to the
+       remembered notifications (in PREFERENCES).
+
+       The receiver is disabled in AndroidManifest.xml, so by default Android
+       does not start our application after a device reboot. It only needs
+       to start then when there is something to schedule again.
+       This is the approach of AndroidX WorkManager (see its RescheduleReceiver
+       and UnfinishedWorkListener).
+
+       Static and takes a Context, as it is called also from the receivers,
+       that have no activity. */
+    public static void updateBootReceiverEnabled(Context context)
+    {
+        boolean enabled = !context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).
+            getAll().isEmpty();
+        ComponentName receiver = new ComponentName(context, LocalNotificationBootReceiver.class);
+        try {
+            PackageManager packageManager = context.getPackageManager();
+            /* Anything other than "enabled" means disabled here, including
+               the "default" state, as the manifest says android:enabled="false". */
+            boolean enabledNow = packageManager.getComponentEnabledSetting(receiver) ==
+                PackageManager.COMPONENT_ENABLED_STATE_ENABLED;
+            if (enabled == enabledNow) {
+                return;
+            }
+            packageManager.setComponentEnabledSetting(receiver,
+                enabled ?
+                    PackageManager.COMPONENT_ENABLED_STATE_ENABLED :
+                    PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                PackageManager.DONT_KILL_APP);
+        } catch (Exception e) {
+            /* Must not crash the game, or a receiver that runs without it. */
+            logWarning(CATEGORY, "Cannot " + (enabled ? "enable" : "disable") +
+                " rescheduling notifications after a reboot: " + e.getMessage());
+        }
+    }
 
     private void schedule(String id, long delaySeconds, String title, String text)
     {
@@ -202,6 +244,7 @@ public class ServiceLocalNotifications extends ServiceAbstract
         }
 
         editor.apply();
+        updateBootReceiverEnabled(context);
     }
 
     @Override

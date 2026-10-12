@@ -186,6 +186,7 @@ public class LocalNotificationReceiver extends BroadcastReceiver
         SharedPreferences preferences = context.getSharedPreferences(
             ServiceLocalNotifications.PREFERENCES, Context.MODE_PRIVATE);
         preferences.edit().remove(id).apply();
+        ServiceLocalNotifications.updateBootReceiverEnabled(context);
 
         try {
             NotificationManagerCompat.from(context).notify(id.hashCode(), builder.build());

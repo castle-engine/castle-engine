@@ -19,7 +19,7 @@ These are _local_ notifications: the application schedules them itself, nothing 
 
 * The system may show the notification somewhat later than requested. We use `AlarmManager.setAndAllowWhileIdle`, which wakes a dozing device but is allowed to be a few minutes late, and which (unlike exact alarms) requires no additional permission.
 
-* Pending notifications are scheduled again after a device reboot. One whose time passed while the device was off is dropped, not shown late.
+* Pending notifications are scheduled again after a device reboot. One whose time passed while the device was off is dropped, not shown late. For this, Android starts the application briefly after a reboot (using the `RECEIVE_BOOT_COMPLETED` permission, which the user is not asked about), but only when some notification is pending.
 
 * Since Android 13, showing a notification requires the `POST_NOTIFICATIONS` permission. This service asks for it when your application schedules its first notification. If the user refuses, notifications are silently not shown -- nothing fails and nothing crashes.
 
