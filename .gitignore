@@ -277,6 +277,7 @@ castle-game-engine-*.fpm
 /examples/shaders/shader_effects_on_shape/shader-effects
 /examples/shaders/shader_effects_on_texture/shader_effects_on_texture
 /examples/shaders/shader_effects_on_background/shader_effects_on_background
+/examples/shaders/shader_effects_on_several_lights/shader_effects_on_several_lights
 /examples/shaders/shader_override/shader_override
 /examples/viewport_and_scenes/show_bounding_rect_in_2d/show_bounding_rect_in_2d
 /examples/viewport_and_scenes/scene_information_cli_tool/scene_information_cli_tool
