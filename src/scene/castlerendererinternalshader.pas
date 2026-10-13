@@ -2317,14 +2317,16 @@ begin
 
   TextureShaders.Add(TextureShader);
 
-  if (TextureType = ttShader) or
-     (Node.FdEffects.Count <> 0) or
-     { MultiTexture.function requires shaders }
-     (Env.TextureFunction <> tfNone) then
+  if Node.FdEffects.Count <> 0 then
   begin
     ShapeRequiresShaders := true;
     EnableShaderLibraries(Node.FdEffects.InternalItems);
   end;
+
+  if (TextureType = ttShader) or
+     { MultiTexture.function requires shaders }
+     (Env.TextureFunction <> tfNone) then
+    ShapeRequiresShaders := true;
 
   TextureShader.Prepare(FCodeHash);
 end;
