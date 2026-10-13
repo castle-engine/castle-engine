@@ -1,33 +1,27 @@
-# Shadow volumes: loading a large mesh that is not 2-manifold
+# Shadow Volumes: Large Open Caster
 
-Loads a large mesh that is not 2-manifold into a viewport that uses [shadow volumes](https://castle-engine.io/shadow_volumes), with `CastShadows` = `true` (the default for all scenes). The example measures how long `MainViewport.PrepareResources` takes for it.
-
-- The design (`data/gameviewmain.castle-user-interface`) has a point light with `Shadows` = `true`, a ground plane, a box casting a shadow and an empty `SceneWall`.
-
-- The code (`code/gameviewmain.pas`) loads into `SceneWall` a wall of 100 x 100 separate tiles (20 000 triangles) with gaps between them. Like typical level geometry, it is not 2-manifold: each tile's diagonal is a _manifold edge_ (between 2 triangles), all other edges are _border edges_ (1 triangle).
-
-- The label shows how long preparing the wall took and its numbers of manifold and border edges.
-
-Keys:
-
-- _+_ / _-_ change the number of tiles.
-- _R_ loads the wall again.
-
-Preparing a scene for shadow volumes calculates the manifold and border edges of every shape. The engine needs them even for a shape that doesn't end up casting a shadow. A shape with border edges doesn't render shadow volumes (unless `RenderOptions.WholeSceneManifold`), and its border edges are how the engine knows that. So this cost is paid for any large level geometry loaded with the default `CastShadows` = `true`.
-
-Edges are paired up by looking up each new edge's counterpart in a hash map, which takes linear time. Before, each new edge was compared with all border edges found so far, which was quadratic in their number:
-
-| Wall | Before | After |
-| --- | --- | --- |
-| 100 x 100 tiles (20 000 triangles, 40 000 border edges) | 1.81 s | 0.05 s |
-| 150 x 150 tiles (45 000 triangles, 90 000 border edges) | 10.23 s | 0.08 s |
-| 300 x 300 tiles (180 000 triangles, 360 000 border edges) | (minutes) | 0.34 s |
-
-The times were measured on Windows (x86_64), FPC 3.2.2, release build. They include the rest of `PrepareResources` (like preparing the mesh for rendering). Your times will differ, but the difference should be similar.
+Loads a large mesh that is not 2-manifold into a viewport that uses [shadow volumes](https://castle-engine.io/shadow_volumes), and measures how long [PrepareResources](https://castle-engine.io/api?id=TCastleViewport.PrepareResources) takes for it.
 
 ![Screenshot](screenshot.png)
 
-Using [Castle Game Engine](https://castle-engine.io/).
+Keys:
+
+- _+_ / _-_: change the number of tiles.
+- _R_: load the wall again.
+
+## How it works
+
+The design file has a light with shadows, a ground plane, a box that casts a shadow, and an empty `SceneWall`. The code ([code/gameviewmain.pas](code/gameviewmain.pas)) loads into `SceneWall` a wall of separate tiles. Like typical level geometry, it is not 2-manifold: most of its edges are _border edges_.
+
+Preparing a scene for shadow volumes pairs up the edges of its shapes, to know which shapes are 2-manifold and can cast shadows. This happens for any scene with the default [CastShadows](https://castle-engine.io/api?id=TCastleTransform.CastShadows) = `true`. The edges are paired using a hash map (linear time); before, this was quadratic in the number of border edges:
+
+| Wall | Before | After |
+| --- | --- | --- |
+| 100 x 100 tiles (40 000 border edges) | 1.81 s | 0.05 s |
+| 150 x 150 tiles (90 000 border edges) | 10.23 s | 0.08 s |
+| 300 x 300 tiles (360 000 border edges) | (minutes) | 0.34 s |
+
+(Windows x86_64, FPC 3.2.2, release build.)
 
 ## Building
 
