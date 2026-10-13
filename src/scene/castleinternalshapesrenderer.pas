@@ -117,7 +117,7 @@ type
       Used for the "shadowed" pass when rendering shadow volumes from several lights. }
     procedure LightRenderDisableListedLights(const Shape: TShape;
       const Light: TLightInstance;
-      const IsGlobalLight: Boolean; var LightOn: boolean);
+      const IsGlobalLight: Boolean; var LightOn: Boolean);
 
     { Like LightRender, but turn off all lights except FLightContributionOnly
       (TRenderOnePassParams.LightContributionOnly).
@@ -125,7 +125,7 @@ type
       from several lights. }
     procedure LightRenderSingleLight(const Shape: TShape;
       const Light: TLightInstance;
-      const IsGlobalLight: Boolean; var LightOn: boolean);
+      const IsGlobalLight: Boolean; var LightOn: Boolean);
 
     { Turn off global lights that are duplicated in current scene.
       This way we render our own lights through SceneLights at each shape,
@@ -423,7 +423,7 @@ end;
 
 procedure TShapesRenderer.LightRenderDisableListedLights(const Shape: TShape;
   const Light: TLightInstance;
-  const IsGlobalLight: Boolean; var LightOn: boolean);
+  const IsGlobalLight: Boolean; var LightOn: Boolean);
 begin
   if FShadowVolumesLights.IndexOf(Light.Node) <> -1 then
     LightOn := false;
@@ -432,7 +432,7 @@ end;
 
 procedure TShapesRenderer.LightRenderSingleLight(const Shape: TShape;
   const Light: TLightInstance;
-  const IsGlobalLight: Boolean; var LightOn: boolean);
+  const IsGlobalLight: Boolean; var LightOn: Boolean);
 begin
   if Light.Node <> FLightContributionOnly then
     LightOn := false;
