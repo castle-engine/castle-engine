@@ -1,30 +1,21 @@
-# Sound reverb
+# Sound Reverb
 
-Reverb (reverberation): the echoes of a room, a hall or a cave added to the spatial sounds, using `SoundEngine.Reverb` (`TCastleSoundReverb`).
-
-- A green ball with a `TCastleSoundSource` plays a short sound every second (a spatial sound), so the reverb after it is easy to hear.
-- The buttons set `SoundEngine.Reverb` to a few environments: small room, bathroom, concert hall, cave, hangar, or no reverb.
-- _+_ / _-_ change the decay time (`TCastleSoundReverb.DecayTime`): how long the reverb lasts.
-- _"Play non-spatial"_ plays the same sound as non-spatial (like user interface sounds and music): the reverb doesn't affect it.
-
-Using the reverb in your own application:
-
-```pascal
-SoundEngine.Reverb.DecayTime := 3.0;
-SoundEngine.Reverb.ReflectionsGain := 0.25;
-SoundEngine.Reverb.LateReverbGain := 1.2;
-SoundEngine.Reverb.Enabled := true;
-```
-
-`TCastleSoundReverb` has the parameters of the OpenAL EFX _EAX reverb_ effect, with the same defaults and ranges. `TCastleSoundReverb.SetDefaults` returns to the defaults (a generic medium room). The environments in this example are rough approximations, made by ear.
-
-The reverb needs a sound backend that supports it, `SoundEngine.ReverbSupported` tells. Right now this is the OpenAL backend (the default on desktop), when the OpenAL implementation has the EFX extension. [OpenAL Soft](https://openal-soft.org/) has it, and so does Creative's OpenAL for Windows. Without it, the reverb is silently ignored.
-
-Sound `data/blip.wav` by Lokif, CC0, see `data/AUTHORS.txt`.
+Reverb (reverberation): the echoes of a room, a hall or a cave added to spatial sounds, using [SoundEngine.Reverb](https://castle-engine.io/api?id=TSoundEngine.Reverb).
 
 ![Screenshot](screenshot.png)
 
-Using [Castle Game Engine](https://castle-engine.io/).
+Keys:
+
+- _+_ / _-_: change the decay time (how long the reverb lasts).
+- Drag with the mouse to rotate the view (follows [TCastleExamineNavigation](https://castle-engine.io/api?id=TCastleExamineNavigation)).
+
+## How it works
+
+The green ball (with a [TCastleSoundSource](https://castle-engine.io/api?id=TCastleSoundSource) behavior, in the design file) plays a short spatial sound every second. The buttons set the parameters of [TCastleSoundReverb](https://castle-engine.io/api?id=TCastleSoundReverb) to a few environments, see [code/gameviewmain.pas](code/gameviewmain.pas). _"Play non-spatial"_ plays the same sound as non-spatial: the reverb doesn't affect it.
+
+The reverb needs a sound backend that supports it, see [SoundEngine.ReverbSupported](https://castle-engine.io/api?id=TSoundEngine.ReverbSupported). Right now this is the OpenAL backend with the EFX extension ([OpenAL Soft](https://openal-soft.org/) has it). Without it, the reverb is ignored.
+
+Sound `data/blip.wav` by Lokif, CC0, see [data/AUTHORS.txt](data/AUTHORS.txt).
 
 ## Building
 
