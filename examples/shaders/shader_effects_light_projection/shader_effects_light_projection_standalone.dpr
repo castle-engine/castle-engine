@@ -15,7 +15,7 @@
 { Note: The "program" declaration is optional in Pascal.
   But we keep using it, otherwise Delphi IDE breaks the "uses" clause when
   adding units to the project. }
-program shader_effects_on_light_standalone;
+program shader_effects_light_projection_standalone;
 
 {$ifdef MSWINDOWS} {$apptype GUI} {$endif}
 
