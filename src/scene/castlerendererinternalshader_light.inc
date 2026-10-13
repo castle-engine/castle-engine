@@ -214,8 +214,7 @@ begin
     a shader program, even if the effects have the same code
     (but different uniform values). Hash.AddEffects accounts for this,
     by adding the Effect node references to the hash. }
-  if Node <> nil then
-    Hash.AddEffects(Node.FdEffects);
+  Hash.AddEffects(Node.FdEffects);
 end;
 
 function TLightShader.Code: TShaderSource;
