@@ -10,8 +10,7 @@
    A field of the Effect node, set from Pascal. */
 uniform float ring_count;
 
-/* Provided by the EyeWorldSpace shader library,
-   enabled by Effect.SetShaderLibraries in Pascal. */
+/* Provided by the EyeWorldSpace shader library. */
 vec3 direction_eye_to_world_space(vec3 direction_eye);
 
 void PLUG_light_scale(inout float scale, const in vec3 normal_eye, const in vec3 light_dir)

@@ -1,47 +1,25 @@
 # Shader Effects On Several Lights
 
-Shader effects on light sources: the light of each lamp shines in rings around it, like light through a patterned lampshade.
-
-Three lamps (`TCastlePointLight`) light three floor tiles. Each lamp gets an `Effect` using `TCastleAbstractLight.SetEffects`. All effects use the same GLSL code, [data/shaders/rings_light.fs](data/shaders/rings_light.fs), with a different value of the `ring_count` uniform, so every tile shows a different number of rings.
+[Shader effects](https://castle-engine.io/shaders) on light sources: the light of each lamp shines in rings around it, like light through a patterned lampshade.
 
 ![Screenshot](screenshot.png)
 
 Keys:
 
 - _Space_: animate the ring counts.
-- Drag with the mouse to rotate the view.
+- Drag with the mouse to rotate the view (follows [TCastleExamineNavigation](https://castle-engine.io/api?id=TCastleExamineNavigation)).
 
 ## How it works
 
-The lamps, tiles and camera are set up in the [CGE editor](https://castle-engine.io/editor), in [data/gameviewmain.castle-user-interface](data/gameviewmain.castle-user-interface). Each lamp has a `Radius` that reaches only its own tile.
+Three lamps are setup in the design file, using [TCastlePointLight](https://castle-engine.io/api?id=TCastlePointLight) component. Each lamp uses a `Radius` to  reach only its own tile.
 
-The code in [code/gameviewmain.pas](code/gameviewmain.pas) only adds the effects:
+Each lamp gets a shader effect using [TCastleAbstractLight.SetEffects](https://castle-engine.io/api?id=TCastleAbstractLight.SetEffects). All effects use the same GLSL code, [data/shaders/rings_light.fs](data/shaders/rings_light.fs), with a different value of the `ring_count` uniform, so every tile shows a different number of rings.
 
-```delphi
-Effect := TEffectNode.Create;
-Effect.Language := slGLSL;
-Effect.SetShaderLibraries(['castle-shader:/EyeWorldSpace.glsl']);
-RingCount := TSFFloat.Create(Effect, true, 'ring_count', 2);
-Effect.AddCustomField(RingCount);
-Part := TEffectPartNode.Create;
-Part.ShaderType := stFragment;
-Part.SetUrl(['castle-data:/shaders/rings_light.fs']);
-Effect.SetParts([Part]);
+The fields of the `Effect` node are uniforms in the shader. To change a uniform value from Pascal, we use `RingCount.Send(...)`.
 
-Lamp2.SetEffects([Effect]);
-```
+Each lamp has its own `Effect` node, so each lamp can have different uniform values. Shapes lit by lights with different `Effect` nodes use different shader programs.
 
-An effect on a light can define `PLUG_light_scale`. It is called for every point lit by this light, and can scale the light contribution there:
-
-```glsl
-void PLUG_light_scale(inout float scale, const in vec3 normal_eye, const in vec3 light_dir)
-```
-
-`light_dir` is the direction from the lit point to the light, in eye space. The shader converts it to world space with `direction_eye_to_world_space`, a function of the `EyeWorldSpace` shader library (enabled by `Effect.SetShaderLibraries`). From the world direction it calculates how far (horizontally) the point is from the lamp, relative to the lamp height, and makes rings from it.
-
-The fields of the `Effect` node are uniforms in the shader. To change a uniform later, `Send` a new value to the field: `RingCount.Send(...)`.
-
-Each lamp has its own `Effect` node, so each lamp can have different uniform values. Shapes lit by lights with different `Effect` nodes use different shader programs. If many lights should use the same effect with the same uniform values, give them the same `Effect` node.
+Note: If many lights should use the same effect with the same uniform values, you could give them the same `Effect` node. This is *not* what happens in this example, where each lamp has its own `Effect` node with different uniform values.
 
 See [shaders documentation](https://castle-engine.io/shaders) for more information about shader effects.
 
