@@ -21,8 +21,8 @@ implementation
 uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
-  ApplicationProperties.ApplicationName := 'shader_effects_on_several_lights';
-  ApplicationProperties.Caption := 'Shader Effects On Several Lights';
+  ApplicationProperties.ApplicationName := 'shader_effects_on_lights';
+  ApplicationProperties.Caption := 'Shader Effects On Lights';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then

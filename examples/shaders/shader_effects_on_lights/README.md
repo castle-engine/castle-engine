@@ -1,4 +1,4 @@
-# Shader Effects On Several Lights
+# Shader Effects On Lights
 
 [Shader effects](https://castle-engine.io/shaders) on light sources: the light of each lamp shines in rings around it, like light through a patterned lampshade.
 
@@ -31,6 +31,6 @@ Compile by:
 
 - Or use [CGE command-line build tool](https://castle-engine.io/build_tool). Run `castle-engine compile` in this directory.
 
-- Or use [Lazarus](https://www.lazarus-ide.org/). Open in Lazarus `shader_effects_on_several_lights_standalone.lpi` file and compile / run from Lazarus. Make sure to first register [CGE Lazarus packages](https://castle-engine.io/lazarus).
+- Or use [Lazarus](https://www.lazarus-ide.org/). Open in Lazarus `shader_effects_on_lights_standalone.lpi` file and compile / run from Lazarus. Make sure to first register [CGE Lazarus packages](https://castle-engine.io/lazarus).
 
-- Or use [Delphi](https://www.embarcadero.com/products/Delphi). Open in Delphi `shader_effects_on_several_lights_standalone.dproj` file and compile / run from Delphi. See [CGE and Delphi](https://castle-engine.io/delphi) documentation for details.
+- Or use [Delphi](https://www.embarcadero.com/products/Delphi). Open in Delphi `shader_effects_on_lights_standalone.dproj` file and compile / run from Delphi. See [CGE and Delphi](https://castle-engine.io/delphi) documentation for details.

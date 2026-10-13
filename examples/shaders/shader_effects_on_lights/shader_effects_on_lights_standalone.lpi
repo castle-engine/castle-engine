@@ -11,7 +11,7 @@
         <CompatibilityMode Value="True"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <Title Value="shader_effects_on_several_lights"/>
+      <Title Value="shader_effects_on_lights"/>
     </General>
     <BuildModes Count="2">
       <Item1 Name="Debug" Default="True"/>
@@ -19,7 +19,7 @@
         <CompilerOptions>
           <Version Value="11"/>
           <Target>
-            <Filename Value="shader_effects_on_several_lights"/>
+            <Filename Value="shader_effects_on_lights"/>
           </Target>
           <SearchPaths>
             <IncludeFiles Value="code/"/>
@@ -65,7 +65,7 @@
     </RequiredPackages>
     <Units Count="4">
       <Unit0>
-        <Filename Value="shader_effects_on_several_lights_standalone.dpr"/>
+        <Filename Value="shader_effects_on_lights_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
@@ -88,7 +88,7 @@
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="shader_effects_on_several_lights"/>
+      <Filename Value="shader_effects_on_lights"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="code/"/>
