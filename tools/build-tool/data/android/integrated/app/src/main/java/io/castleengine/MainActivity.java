@@ -10,11 +10,13 @@ import android.annotation.SuppressLint;
 import android.app.NativeActivity;
 import android.app.Activity;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.content.pm.PackageManager;
 
 import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationManagerCompat;
 
 public class MainActivity extends NativeActivity
 {
@@ -191,6 +193,16 @@ public class MainActivity extends NativeActivity
 
     private static final int MY_PERMISSIONS_REQUEST = 1;
 
+    /* Permission passed to ActivityCompat.requestPermissions,
+       when the answer did not come yet. null if none. */
+    private String permissionRequestedUnanswered;
+
+    /* Permissions to request once the answer about
+       permissionRequestedUnanswered comes.
+       Android can display only one permission request at a time
+       (it immediately cancels a request made while another one is displayed). */
+    private final List<String> permissionsWaiting = new ArrayList<String>();
+
     /* Requires Android permission name.
 
        @param permission Can be one of the Manifest.permission constants,
@@ -204,18 +216,62 @@ public class MainActivity extends NativeActivity
        https://developer.android.com/training/permissions/requesting#java
        https://developer.android.com/training/permissions/usage-notes
 
-       In response, will always (but maybe asynchronously) answer with
-       "permission-granted" or "permission-cancelled".
+       In response, will answer (maybe asynchronously) with
+       "permission-granted" or "permission-cancelled" message to the Pascal code,
+       and by calling onPermissionResult of all the services.
+
+       When another permission request is displayed now, this one is made
+       once the displayed one is answered. When the same permission
+       is requested again before the answer comes, there is one answer
+       for all these requests.
+
+       Rarely there is no answer. For example when Android cancels the request
+       (the user did not answer) after this activity was created again,
+       so we no longer know what was requested (only a warning is logged then).
     */
     public void requestPermission(String permission)
     {
+        if (Build.VERSION.SDK_INT < 33 && // Build.VERSION_CODES.TIRAMISU
+            permission.equals("android.permission.POST_NOTIFICATIONS")) {
+            /* Before Android 13 the notifications are not a permission:
+               they are allowed, unless the user disabled them in the system
+               settings. We answer ourselves, because what ActivityCompat
+               answers in this case (and whether it answers at all)
+               depends on the androidx.core version. */
+            permissionResult(permission,
+                NotificationManagerCompat.from(this).areNotificationsEnabled());
+        } else
         if (ActivityCompat.checkSelfPermission(this, permission)
-          != PackageManager.PERMISSION_GRANTED) {
+          == PackageManager.PERMISSION_GRANTED) {
+            permissionResult(permission, true);
+        } else
+        if (Build.VERSION.SDK_INT < 23) { // Build.VERSION_CODES.M
+            /* Before Android 6 the permissions cannot be granted when
+               the application runs, so Android would not ask the user.
+               ActivityCompat.requestPermissions would not answer either, and we
+               would wait for the answer forever (not making the next requests). */
+            permissionResult(permission, false);
+        } else
+        if (permissionRequestedUnanswered == null) {
+            permissionRequestedUnanswered = permission;
             ActivityCompat.requestPermissions(this,
                 new String[]{permission},
                 MY_PERMISSIONS_REQUEST);
-        } else {
-            messageSend(new String[]{"permission-granted", permission});
+        } else
+        if (!permission.equals(permissionRequestedUnanswered) &&
+            !permissionsWaiting.contains(permission)) {
+            permissionsWaiting.add(permission);
+        }
+    }
+
+    /* Pass the answer to requestPermission to the Pascal code
+       and to the services. */
+    private void permissionResult(String permission, boolean granted)
+    {
+        messageSend(new String[]{
+            granted ? "permission-granted" : "permission-cancelled", permission});
+        for (ServiceAbstract service : services) {
+            service.onPermissionResult(permission, granted);
         }
     }
 
@@ -225,12 +281,31 @@ public class MainActivity extends NativeActivity
     {
         switch (requestCode) {
             case MY_PERMISSIONS_REQUEST: {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    messageSend(new String[]{"permission-granted", permissions[0]});
+                String permission = permissionRequestedUnanswered;
+                permissionRequestedUnanswered = null;
+
+                if (permissions.length != 0) {
+                    permissionResult(permissions[0], grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED);
+                } else
+                if (permission != null) {
+                    /* The request was cancelled (the user did not answer),
+                       the result arrays are empty then.
+                       Android does not say what permission it was about,
+                       so we use the one we remembered, to send an answer
+                       also in this case. */
+                    permissionResult(permission, false);
                 } else {
-                    messageSend(new String[]{"permission-cancelled", permissions[0]});
+                    ServiceAbstract.logWarning(CATEGORY, "Permission request was cancelled, and we do not know what permission it was about");
+                }
+
+                /* Make the next request. Loop, because requestPermission
+                   answers immediately when the permission was granted meanwhile.
+                   Check permissionRequestedUnanswered, because a service may
+                   request a permission from onPermissionResult. */
+                while (permissionRequestedUnanswered == null &&
+                       !permissionsWaiting.isEmpty()) {
+                    requestPermission(permissionsWaiting.remove(0));
                 }
                 return;
             }
