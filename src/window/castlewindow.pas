@@ -1803,11 +1803,11 @@ type
       program "begin...end." block on these platforms.
 
       @unorderedList(
-        @link(It schedules @link(Open) for when FMX will do
+        @item(It schedules @link(Open) for when FMX will do
           @code(Application.RealCreateForms). We cannot create forms
           earlier.)
 
-        @link(It calls FMX @code(Application.Run).
+        @item(It calls FMX @code(Application.Run).
 
           On Delphi/Android, this does almost nothing (see TPlatformAndroid.Run).
           FMX is prepared that @code(Application.Run) happens inside main program
@@ -1819,7 +1819,7 @@ type
           UIApplicationMain) works (Apple docs say "this function never returns").
         )
 
-        @link(On Delphi/Android:
+        @item(On Delphi/Android:
 
           Once the main program "begin...end." finishes,
           then actual message loop will be performed (driven by Java activity
