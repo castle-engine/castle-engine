@@ -118,7 +118,7 @@ begin
   if Animate then
   begin
     Time := Time + SecondsPassed;
-    { Use Send (not just set Value), to update the uniform value. }
+    { Use Send to update the uniform value. }
     for I := 0 to High(RingCount) do
       RingCount[I].Send(BaseRingCount[I] * (1 + 0.3 * Sin(Time * 2)));
   end;
