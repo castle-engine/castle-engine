@@ -184,6 +184,7 @@ castle-game-engine-*.fpm
 /examples/mobile/simple_3d_demo/simple_3d_demo
 /examples/mobile/two_cars/two_cars
 /examples/mobile/simplest_manifest_test/simplest_manifest_test
+/examples/shaders/shader_effects_light_projection/shader_effects_light_projection
 /examples/shaders/shader_effects_simple/shader_effects_simple
 /examples/shaders/shader_effects_on_primitives/shader_effects_primitives
 /examples/viewport_and_scenes/shadows/shadows

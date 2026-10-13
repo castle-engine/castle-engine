@@ -21,8 +21,8 @@ implementation
 uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
-  ApplicationProperties.ApplicationName := 'shader_effects_on_light';
-  ApplicationProperties.Caption := 'Shader Effects On Light';
+  ApplicationProperties.ApplicationName := 'shader_effects_light_projection';
+  ApplicationProperties.Caption := 'Shader Effects: Light Projection';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then

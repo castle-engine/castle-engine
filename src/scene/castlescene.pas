@@ -1198,18 +1198,21 @@ procedure TCastleScene.PrepareGlobalLightsTextures;
   begin
     for I := 0 to Nodes.Count - 1 do
     begin
+      { Other nodes are not allowed in the effects fields,
+        they are only warned about when loading. }
+      if not (Nodes[I] is TEffectNode) then
+        Continue;
       IDecls := Nodes[I].InterfaceDeclarations;
-      if IDecls <> nil then
-        for J := 0 to IDecls.Count - 1 do
-        begin
-          Field := IDecls.Items[J].Field;
-          if Field is TSFNode then
-            HandleTexture(TSFNode(Field).Value)
-          else
-          if Field is TMFNode then
-            for K := 0 to TMFNode(Field).Count - 1 do
-              HandleTexture(TMFNode(Field)[K]);
-        end;
+      for J := 0 to IDecls.Count - 1 do
+      begin
+        Field := IDecls.Items[J].Field;
+        if Field is TSFNode then
+          HandleTexture(TSFNode(Field).Value)
+        else
+        if Field is TMFNode then
+          for K := 0 to TMFNode(Field).Count - 1 do
+            HandleTexture(TMFNode(Field)[K]);
+      end;
     end;
   end;
 
