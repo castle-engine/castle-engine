@@ -1,7 +1,7 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{574E7AE8-4D87-4B4E-9545-81A717F961FE}</ProjectGuid>
-        <MainSource>shader_effects_on_several_lights_standalone.dpr</MainSource>
+        <ProjectGuid>{50E3B6EF-21B9-2026-3DAA-1784F15ECB38}</ProjectGuid>
+        <MainSource>shader_effects_on_lights_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
         <TargetedPlatforms>135299</TargetedPlatforms>
@@ -94,7 +94,7 @@
         <DCC_N>false</DCC_N>
         <DCC_S>false</DCC_S>
         <DCC_ImageBase>00400000</DCC_ImageBase>
-        <SanitizedProjectName>shader_effects_on_several_lights</SanitizedProjectName>
+        <SanitizedProjectName>shader_effects_on_lights</SanitizedProjectName>
         <VerInfo_Locale>1045</VerInfo_Locale>
         <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=;CFBundleName=</VerInfo_Keys>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;$(DCC_Namespace)</DCC_Namespace>
@@ -182,7 +182,7 @@
         <BorlandProject>
             <Delphi.Personality>
                 <Source>
-                    <Source Name="MainSource">shader_effects_on_several_lights_standalone.dpr</Source>
+                    <Source Name="MainSource">shader_effects_on_lights_standalone.dpr</Source>
                 </Source>
                 <Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\bcboffice2k280.bpl">Embarcadero C++Builder Office 2000 Servers Package</Excluded_Packages>
@@ -196,41 +196,41 @@
             <Deployment Version="4">
 
                 <!-- Deploy executables on all platforms, for Debug -->
-                <DeployFile LocalName="shader_effects_on_several_lights_standalone.exe" Configuration="Debug" Class="ProjectOutput">
+                <DeployFile LocalName="shader_effects_on_lights_standalone.exe" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
-                        <RemoteName>shader_effects_on_several_lights_standalone.exe</RemoteName>
+                        <RemoteName>shader_effects_on_lights_standalone.exe</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="shader_effects_on_several_lights_standalone.exe" Configuration="Debug" Class="ProjectOutput">
+                <DeployFile LocalName="shader_effects_on_lights_standalone.exe" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
-                        <RemoteName>shader_effects_on_several_lights_standalone.exe</RemoteName>
+                        <RemoteName>shader_effects_on_lights_standalone.exe</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="shader_effects_on_several_lights_standalone" Configuration="Debug" Class="ProjectOutput">
+                <DeployFile LocalName="shader_effects_on_lights_standalone" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Linux64">
-                        <RemoteName>shader_effects_on_several_lights_standalone</RemoteName>
+                        <RemoteName>shader_effects_on_lights_standalone</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
 
                 <!-- Deploy executables on all platforms, for Release -->
-                <DeployFile LocalName="shader_effects_on_several_lights_standalone.exe" Configuration="Release" Class="ProjectOutput">
+                <DeployFile LocalName="shader_effects_on_lights_standalone.exe" Configuration="Release" Class="ProjectOutput">
                     <Platform Name="Win32">
-                        <RemoteName>shader_effects_on_several_lights_standalone.exe</RemoteName>
+                        <RemoteName>shader_effects_on_lights_standalone.exe</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="shader_effects_on_several_lights_standalone.exe" Configuration="Release" Class="ProjectOutput">
+                <DeployFile LocalName="shader_effects_on_lights_standalone.exe" Configuration="Release" Class="ProjectOutput">
                     <Platform Name="Win32">
-                        <RemoteName>shader_effects_on_several_lights_standalone.exe</RemoteName>
+                        <RemoteName>shader_effects_on_lights_standalone.exe</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="shader_effects_on_several_lights_standalone" Configuration="Release" Class="ProjectOutput">
+                <DeployFile LocalName="shader_effects_on_lights_standalone" Configuration="Release" Class="ProjectOutput">
                     <Platform Name="Linux64">
-                        <RemoteName>shader_effects_on_several_lights_standalone</RemoteName>
+                        <RemoteName>shader_effects_on_lights_standalone</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -285,6 +285,100 @@
  <Platform Name="Win64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\gameviewmain.castle-user-interface" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>assets</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>assets</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\shaders\rings_light.fs" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>assets\shaders</RemoteDir>
+  <RemoteName>rings_light.fs</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>assets\shaders</RemoteDir>
+  <RemoteName>rings_light.fs</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/shaders/</RemoteDir>
+  <RemoteName>rings_light.fs</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/shaders/</RemoteDir>
+  <RemoteName>rings_light.fs</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/shaders/</RemoteDir>
+  <RemoteName>rings_light.fs</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/shaders/</RemoteDir>
+  <RemoteName>rings_light.fs</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/shaders/</RemoteDir>
+  <RemoteName>rings_light.fs</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/shaders/</RemoteDir>
+  <RemoteName>rings_light.fs</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/shaders/</RemoteDir>
+  <RemoteName>rings_light.fs</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
