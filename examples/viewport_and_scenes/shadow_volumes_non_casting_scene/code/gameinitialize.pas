@@ -48,9 +48,6 @@ begin
 end;
 
 initialization
-  Profiler.Enabled := true;
-  TCastleView.Log := true;
-
   { This initialization section configures:
     - Application.OnInitialize
     - Application.MainWindow

@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{993DB8CC-5C91-4157-A135-E2B6C82A89E9}</ProjectGuid>
+        <ProjectGuid>{30F4744F-F2D9-F146-DD4A-B72491FE6BD8}</ProjectGuid>
         <MainSource>shadow_volumes_non_casting_scene_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
@@ -190,7 +190,8 @@
                     <Excluded_Packages Name="$(BDSBIN)\dcloffice2k280.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\dclofficexp280.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
                 </Excluded_Packages>
-
+                <WelcomePageFile Path="README.md"/>
+                <WelcomePageFolder/>
             </Delphi.Personality>
             <Deployment Version="4">
 
