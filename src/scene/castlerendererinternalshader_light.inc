@@ -206,6 +206,15 @@ begin
     Define(ldTypePunctual);
   if Node is TEnvironmentLightNode then
     Define(ldTypeEnvironment);
+
+  { The light's effects are part of the shader program.
+    Their uniform values are set when the program is linked
+    and when the Effect fields change, not before rendering each shape.
+    So shapes lit by lights with different Effect nodes cannot share
+    a shader program, even if the effects have the same code
+    (but different uniform values). Hash.AddEffects accounts for this,
+    by adding the Effect node references to the hash. }
+  Hash.AddEffects(Node.FdEffects);
 end;
 
 function TLightShader.Code: TShaderSource;
