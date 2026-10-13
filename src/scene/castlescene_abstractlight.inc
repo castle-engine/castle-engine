@@ -95,8 +95,8 @@ end;
 
 procedure TCastleAbstractLight.SetEffects(const Value: array of TEffectNode);
 begin
-  if FLightNode <> nil then
-    FLightNode.SetEffects(Value);
+  Assert(FLightNode <> nil); // all descendants must assign a LightNode
+  FLightNode.SetEffects(Value);
 end;
 
 function TCastleAbstractLight.PropertySections(const PropertyName: String): TPropertySections;
