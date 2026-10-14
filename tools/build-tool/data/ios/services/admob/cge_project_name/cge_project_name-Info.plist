@@ -1,0 +1,15 @@
+<!-- This will be inserted inside the larger xxx-Info.plist file
+     by the Castle Game Engine build tool. -->
+
+<!-- The AdMob application id, see https://developers.google.com/admob/ios/quick-start#update_your_infoplist -->
+<key>GADApplicationIdentifier</key>
+<string>${IOS.ADMOB.APP_ID}</string>
+
+<!-- SKAdNetwork identifier of Google, see https://developers.google.com/admob/ios/privacy/strategies#skadnetwork -->
+<key>SKAdNetworkItems</key>
+<array>
+  <dict>
+    <key>SKAdNetworkIdentifier</key>
+    <string>cstr6suwn9.skadnetwork</string>
+  </dict>
+</array>
