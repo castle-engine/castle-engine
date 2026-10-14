@@ -227,6 +227,7 @@ var
   // which is actually "flat" (C, no classes) Steam API corresponding to the C++ API
 
   // ISteamClient
+  SteamAPI_ISteamClient_BReleaseSteamPipe: function (SteamClient: Pointer; hSteamPipe: HSteamPipe): LongBool; CDecl;
   SteamAPI_ISteamClient_SetWarningMessageHook: procedure (SteamClient: Pointer; WarningMessageHook: SteamAPIWarningMessageHook); CDecl;
   SteamAPI_ISteamClient_GetISteamUser: function (SteamClient: Pointer; SteamUserHandle: HSteamUser; SteamPipeHandle: HSteamPipe; const SteamUserInterfaceVersion: PAnsiChar): Pointer; CDecl;
   SteamAPI_ISteamClient_GetISteamUserStats: function (SteamClient: Pointer; SteamUserHandle: HSteamUser; SteamPipeHandle: HSteamPipe; const SteamUserStatsInterfaceVersion: PAnsiChar): Pointer; CDecl;
@@ -317,6 +318,7 @@ begin
   Pointer({$ifndef FPC}@{$endif} SteamAPI_GetHSteamPipe) := nil;
   Pointer({$ifndef FPC}@{$endif} SteamAPI_RegisterCallback) := nil;
   Pointer({$ifndef FPC}@{$endif} SteamAPI_UnregisterCallback) := nil;
+  Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamClient_BReleaseSteamPipe) := nil;
   Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamClient_SetWarningMessageHook) := nil;
   Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamClient_GetISteamUser) := nil;
   Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamClient_GetISteamUserStats) := nil;
@@ -365,6 +367,7 @@ begin
     Pointer({$ifndef FPC}@{$endif} SteamAPI_GetHSteamPipe) := SteamLibrary.Symbol('SteamAPI_GetHSteamPipe');
     Pointer({$ifndef FPC}@{$endif} SteamAPI_RegisterCallback) := SteamLibrary.Symbol('SteamAPI_RegisterCallback');
     Pointer({$ifndef FPC}@{$endif} SteamAPI_UnregisterCallback) := SteamLibrary.Symbol('SteamAPI_UnregisterCallback');
+    Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamClient_BReleaseSteamPipe) := SteamLibrary.Symbol('SteamAPI_ISteamClient_BReleaseSteamPipe');
     Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamClient_SetWarningMessageHook) := SteamLibrary.Symbol('SteamAPI_ISteamClient_SetWarningMessageHook');
     Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamClient_GetISteamUser) := SteamLibrary.Symbol('SteamAPI_ISteamClient_GetISteamUser');
     Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamClient_GetISteamUserStats) := SteamLibrary.Symbol('SteamAPI_ISteamClient_GetISteamUserStats');
