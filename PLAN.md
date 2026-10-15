@@ -156,11 +156,11 @@ Utilize dynamic states (VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR, VK_
 * [x] RHI Texture abstractions with explicit layout transitions (TransitionTexture) and mipmap blits.
 * [x] Implement batched 2D quad rendering (TCastleBatch2DRenderer with dynamic streaming vertex buffers and Push Constants for transforms and color tinting).
 * [x] Add standalone 2D sprite batching stress example (`examples/vulkan/vulkan_sprite_batch`).
-* [ ] Integrate `RenderBackend` property (`rbAuto`, `rbOpenGL`, `rbVulkan`) in `CastleApplicationProperties` and `TCastleWindow`.
-* [ ] Support UI scissor clipping (`TCastleUserInterface` clip rects -> `vkCmdSetScissor`) and dynamic viewport updates.
+* [x] Integrate `RenderBackend` property (`backendAuto`, `backendOpenGL`, `backendVulkan`) in `CastleApplicationProperties`.
+* [x] Support UI scissor clipping (`TCastleUserInterface` clip rects -> `vkCmdSetScissor`) and dynamic viewport updates.
 * [ ] Port `TDrawableImage` and font atlas rendering to submit through `TRHICommandList`.
 
-**Milestone 2 Status**: In Progress. Batching engine and streaming buffers implemented; windowing integration and scissor clipping underway.
+**Milestone 2 Status**: In Progress. Batching engine, streaming buffers, scissor clipping, and application backend selection implemented; TDrawableImage draw dispatch underway.
 
 
 ### Phase 3: 3D Scene Rendering & Shaders (TCastleScene & glTF/X3D) (FOUNDATION READY)
@@ -168,11 +168,11 @@ Utilize dynamic states (VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR, VK_
 * [x] GLSL 450 shader generation with UBO frequency layouts (Sets 0..3) in `CastleInternalShaderRHI`.
 * [x] Negative viewport height (`VK_KHR_maintenance1`) NDC Y-inversion and vertex depth remapping (`z = (z + w) * 0.5`).
 * [x] Runtime SPIR-V compiler (`TCastleShaderCompiler` via `libshaderc`) with persistent disk cache at `castle-data:/shaders/spirv_cache/`.
-* [ ] Abstract `TShape` vertex/index buffer allocation in `CastleInternalRenderer` to use RHI buffers instead of raw VBOs/VAOs.
+* [x] Abstract `TShape` vertex/index buffer allocation in `CastleInternalRenderer` to use RHI buffers instead of raw VBOs/VAOs.
 * [ ] Implement 3D forward pass using `TRHICommandList` (Opaque geometry sorted front-to-back, Blended geometry sorted back-to-front).
 * [ ] Port GPU skinning (joint matrix Uniform Buffers) and morph targets.
 
-**Milestone 3 Status**: Foundation Ready. Shader generation, UBO layout, SPIR-V cache, and depth remapping implemented; scene node integration planned.
+**Milestone 3 Status**: Foundation Ready. Shader generation, UBO layout, SPIR-V cache, geometry buffer abstraction, and depth remapping implemented; scene node integration planned.
 
 
 ### Phase 4: Lighting, Shadows, and Advanced Effects

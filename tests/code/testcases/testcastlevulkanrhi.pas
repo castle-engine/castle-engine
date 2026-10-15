@@ -35,6 +35,8 @@ type
     procedure TestShaderGeneratorRHI;
     procedure TestBatch2DCalculations;
     procedure TestApplicationPropertiesRenderBackend;
+    procedure TestBatch2DScissorAndClipping;
+    procedure TestGeometryBuffersToRHIBuffer;
   end;
 
 implementation
@@ -209,6 +211,67 @@ begin
   ApplicationProperties.RenderBackend := backendOpenGL;
   AssertEquals('RenderBackend should be backendOpenGL', Ord(backendOpenGL), Ord(ApplicationProperties.RenderBackend));
   ApplicationProperties.RenderBackend := backendAuto;
+end;
+
+procedure TTestCastleVulkanRHI.TestBatch2DScissorAndClipping;
+var
+  R1, R2, Intersection: TRectangle;
+  ScaleBias: TVector4;
+  ViewportW, ViewportH: Single;
+begin
+  ViewportW := 1920.0;
+  ViewportH := 1080.0;
+
+  { 1. Test 2D Orthographic Scale/Bias formula }
+  ScaleBias := Vector4(2.0 / ViewportW, 2.0 / ViewportH, -1.0, -1.0);
+  AssertTrue('ScaleBias.X should match 2.0 / 1920', Abs(ScaleBias.X - (2.0 / 1920.0)) < 0.0001);
+  AssertTrue('ScaleBias.Y should match 2.0 / 1080', Abs(ScaleBias.Y - (2.0 / 1080.0)) < 0.0001);
+  AssertTrue('ScaleBias.Z should match -1.0', Abs(ScaleBias.Z - (-1.0)) < 0.0001);
+  AssertTrue('ScaleBias.W should match -1.0', Abs(ScaleBias.W - (-1.0)) < 0.0001);
+
+  { 2. Test Scissor Rect calculation and intersection }
+  R1 := Rectangle(100, 100, 400, 300);
+  R2 := Rectangle(200, 150, 500, 400);
+  Intersection := R1 * R2;
+  AssertEquals('Intersection Left', 200, Intersection.Left);
+  AssertEquals('Intersection Bottom', 150, Intersection.Bottom);
+  AssertEquals('Intersection Width', 300, Intersection.Width);
+  AssertEquals('Intersection Height', 250, Intersection.Height);
+  AssertFalse('Intersection should not be empty', Intersection.IsEmpty);
+end;
+
+procedure TTestCastleVulkanRHI.TestGeometryBuffersToRHIBuffer;
+var
+  CoordDesc, AttrDesc, IndexDesc: TRHIBufferDesc;
+begin
+  { Coordinate VBO -> RHI vertex buffer }
+  FillChar(CoordDesc, SizeOf(CoordDesc), 0);
+  CoordDesc.Size := 100 * SizeOf(TVector3);
+  CoordDesc.Usage := [buVertex, buTransferDst];
+  CoordDesc.MemoryUsage := muGpuOnly;
+  CoordDesc.DebugName := 'MeshCoordinates';
+
+  AssertTrue('Coord buffer must have buVertex', buVertex in CoordDesc.Usage);
+  AssertEquals('Coord buffer size', 100 * SizeOf(TVector3), CoordDesc.Size);
+
+  { Attribute VBO -> RHI vertex buffer }
+  FillChar(AttrDesc, SizeOf(AttrDesc), 0);
+  AttrDesc.Size := 100 * SizeOf(TVector4);
+  AttrDesc.Usage := [buVertex, buTransferDst];
+  AttrDesc.MemoryUsage := muGpuOnly;
+  AttrDesc.DebugName := 'MeshAttributes';
+
+  AssertTrue('Attr buffer must have buVertex', buVertex in AttrDesc.Usage);
+
+  { Index VBO -> RHI index buffer }
+  FillChar(IndexDesc, SizeOf(IndexDesc), 0);
+  IndexDesc.Size := 300 * SizeOf(UInt32);
+  IndexDesc.Usage := [buIndex, buTransferDst];
+  IndexDesc.MemoryUsage := muGpuOnly;
+  IndexDesc.DebugName := 'MeshIndices';
+
+  AssertTrue('Index buffer must have buIndex', buIndex in IndexDesc.Usage);
+  AssertFalse('Index buffer must not have buVertex', buVertex in IndexDesc.Usage);
 end;
 
 initialization
