@@ -25,6 +25,14 @@ uses SysUtils, Generics.Collections, Contnrs, Classes,
   CastleUtils, CastleClassUtils;
 
 type
+  { Explicit rendering backend for the application. }
+  TRenderBackend = (
+    backendAuto,      // Automatically select best available backend (Vulkan if available, OpenGL fallback)
+    backendOpenGL,    // Force OpenGL Desktop backend
+    backendOpenGLES,  // Force OpenGLES backend
+    backendVulkan     // Force Vulkan 1.3+ backend
+  );
+
   TGLContextEvent = procedure;
 
   TGLContextEventList = class({$ifdef FPC}specialize{$endif} TList<TGLContextEvent>)
@@ -77,6 +85,7 @@ type
     FLimitFPS: Single;
     FShowUserInterfaceToQuit: Boolean;
     FCaption: String;
+    FRenderBackend: TRenderBackend;
     // Maybe we will expose them as public read-only properties in the future.
     FInitializedDebug: Boolean;
     FInitializedRelease: Boolean;
@@ -113,6 +122,11 @@ type
       It may be used e.g. by @link(InitializeLog) and
       @link(TCastleApplication.ParseStandardParameters). }
     property Version: String read FVersion write FVersion;
+
+    { Explicit rendering backend (Vulkan or OpenGL).
+      Defaults to backendAuto, which uses Vulkan when supported by the hardware and driver,
+      falling back cleanly to OpenGL. }
+    property RenderBackend: TRenderBackend read FRenderBackend write FRenderBackend default backendAuto;
 
     { Initialized to @true on devices with a touch screen (Android, iOS, Nintendo Switch).
 
@@ -489,6 +503,7 @@ begin
     {$else}
       true
     {$endif};
+  FRenderBackend := backendAuto;
   FLimitFPS := DefaultLimitFPS;
 end;
 

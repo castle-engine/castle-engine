@@ -21,6 +21,7 @@ interface
 uses
   Classes, SysUtils, Math,
   CastleTester, CastleVectors, CastleColors, CastleRectangles,
+  CastleApplicationProperties,
   CastleInternalRHI, CastleInternalVulkan, CastleInternalVulkanMemory,
   CastleInternalShaderRHI, CastleInternalBatch2DRHI;
 
@@ -33,6 +34,7 @@ type
     procedure TestVulkanMemorySubAllocator;
     procedure TestShaderGeneratorRHI;
     procedure TestBatch2DCalculations;
+    procedure TestApplicationPropertiesRenderBackend;
   end;
 
 implementation
@@ -197,6 +199,16 @@ begin
   { 2. Test Batch Constants }
   AssertTrue('MaxQuadsPerBatch must not exceed 65536 indices capacity', MaxQuadsPerBatch * 4 <= 65536);
   AssertTrue('MaxQuadsPerFrame must be at least MaxQuadsPerBatch', MaxQuadsPerFrame >= MaxQuadsPerBatch);
+end;
+
+procedure TTestCastleVulkanRHI.TestApplicationPropertiesRenderBackend;
+begin
+  AssertEquals('Default RenderBackend should be backendAuto', Ord(backendAuto), Ord(ApplicationProperties.RenderBackend));
+  ApplicationProperties.RenderBackend := backendVulkan;
+  AssertEquals('RenderBackend should be backendVulkan', Ord(backendVulkan), Ord(ApplicationProperties.RenderBackend));
+  ApplicationProperties.RenderBackend := backendOpenGL;
+  AssertEquals('RenderBackend should be backendOpenGL', Ord(backendOpenGL), Ord(ApplicationProperties.RenderBackend));
+  ApplicationProperties.RenderBackend := backendAuto;
 end;
 
 initialization
