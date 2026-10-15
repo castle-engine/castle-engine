@@ -34,7 +34,7 @@ uses
   CastlePropEdits, CastleDialogs, X3DNodes, CastleFindFiles,
   DataModuleIcons, CastleClassUtils,
   EditorUtils, FrameDesign, FrameViewFile, FormNewUnit, ToolManifest,
-  ToolPackageFormat, ToolEditorUtils;
+  ToolPackageFormat, ToolEditorUtils, FormImportPackage;
 
 const
   DockLayoutFileName = 'layout.dock-layout';
@@ -54,6 +54,7 @@ type
     ActionFindNext: TAction;
     ActionFindToggle: TAction;
     ActionImportSketchfab: TAction;
+    ActionImportPackage: TAction;
     ActionShowStatistics: TAction;
     ActionRunParameterCapabilitiesForceFixedFunction: TAction;
     ActionRunParameterCapabilitiesForceModern: TAction;
@@ -145,6 +146,7 @@ type
     MenuItemRunParameterCapabilitiesForceFixedFunction: TMenuItem;
     MenuItem41: TMenuItem;
     MenuItemImportSketchfab: TMenuItem;
+    MenuItemImportPackage: TMenuItem;
     Separator13: TMenuItem;
     Separator12: TMenuItem;
     MenuItemRunParameterDefaultWindowOrFullscreen: TMenuItem;
@@ -357,6 +359,7 @@ type
     procedure ActionFindNextExecute(Sender: TObject);
     procedure ActionFindToggleExecute(Sender: TObject);
     procedure ActionImportSketchfabExecute(Sender: TObject);
+    procedure ActionImportPackageExecute(Sender: TObject);
     procedure ActionMaximizePreviewExecute(Sender: TObject);
     procedure ActionPhysicsShowAllJointsToolsExecute(Sender: TObject);
     procedure ActionPhysicsHideAllJointsToolsExecute(Sender: TObject);
@@ -1021,6 +1024,14 @@ begin
   ImportSketchfabForm.OnCanAddImported := @CanAddImported;
   ImportSketchfabForm.OnAddImported := @AddImported;
   ImportSketchfabForm.Show;
+end;
+
+procedure TProjectForm.ActionImportPackageExecute(Sender: TObject);
+begin
+  if ImportPackageForm = nil then
+    ImportPackageForm := TImportPackageForm.Create(Application);
+
+  ImportPackageForm.Show;
 end;
 
 procedure TProjectForm.ActionMaximizePreviewExecute(Sender: TObject);

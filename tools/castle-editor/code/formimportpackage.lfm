@@ -1,0 +1,56 @@
+object ImportPackageForm: TImportPackageForm
+  Left = 800
+  Height = 600
+  Top = 229
+  Width = 800
+  Caption = 'Import Package from Castle Library'
+  ClientHeight = 600
+  ClientWidth = 800
+  DesignTimePPI = 120
+  OnClose = FormClose
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  OnShow = FormShow
+  Position = poMainFormCenter
+  ShowInTaskBar = stAlways
+  LCLVersion = '3.4.0.0'
+  object ScrollBoxPackages: TScrollBox
+    Left = 8
+    Height = 548
+    Top = 8
+    Width = 784
+    HorzScrollBar.Page = 1
+    VertScrollBar.Page = 1
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    TabOrder = 0
+    AutoScroll = True
+  end
+  object ButtonClose: TButton
+    Left = 704
+    Height = 38
+    Top = 564
+    Width = 88
+    Anchors = [akRight, akBottom]
+    AutoSize = True
+    Caption = 'Close'
+    OnClick = ButtonCloseClick
+    TabOrder = 1
+  end
+  object ButtonRefresh: TButton
+    Left = 8
+    Height = 38
+    Top = 564
+    Width = 88
+    Anchors = [akLeft, akBottom]
+    AutoSize = True
+    Caption = 'Refresh'
+    OnClick = ButtonRefreshClick
+    TabOrder = 2
+  end
+  object ImageListPackages: TImageList
+    Height = 100
+    Width = 100
+    Left = 680
+    Top = 16
+  end
+end

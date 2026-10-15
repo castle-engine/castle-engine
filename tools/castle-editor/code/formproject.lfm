@@ -751,6 +751,9 @@ object ProjectForm: TProjectForm
       object MenuItemImportSketchfab: TMenuItem
         Action = ActionImportSketchfab
       end
+      object MenuItemImportPackage: TMenuItem
+        Action = ActionImportPackage
+      end
       object Separator15: TMenuItem
         Caption = '-'
       end
@@ -1398,6 +1401,11 @@ object ProjectForm: TProjectForm
       Category = 'Data'
       Caption = 'Import from Sketchfab...'
       OnExecute = ActionImportSketchfabExecute
+    end
+    object ActionImportPackage: TAction
+      Category = 'Data'
+      Caption = 'Import Package from Castle Library...'
+      OnExecute = ActionImportPackageExecute
     end
     object ActionFindToggle: TAction
       Category = 'Edit'
