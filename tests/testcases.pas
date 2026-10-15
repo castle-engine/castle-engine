@@ -103,7 +103,8 @@ uses
   TestCastleZip,
   TestCastleInternalUrlUtils,
   TestCastleTransformManipulate,
-  TestCastleSteam;
+  TestCastleSteam,
+  TestCastleVulkanRHI;
 
 implementation
 
