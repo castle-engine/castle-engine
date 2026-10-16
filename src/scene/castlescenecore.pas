@@ -7548,7 +7548,14 @@ begin
   if prBoundingBox in Options then
     LocalBoundingBox { ignore the result };
 
-  if prShadowVolume in Options then
+  { Shadow volume data (each shape's triangles and manifold / border edges)
+    is only used when this scene casts shadow volumes.
+    Calculating the edges takes a long time for large meshes that are not
+    2-manifold (typical for level geometry: many border edges),
+    so don't do it for scenes that don't cast shadows.
+    If CastShadows changes to @true later, it is calculated
+    when the shadow volumes are rendered. }
+  if (prShadowVolume in Options) and CastShadows then
     PrepareShadowVolumes;
 
   if prSpatial in Options then
