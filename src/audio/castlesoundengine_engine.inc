@@ -42,6 +42,7 @@
       FResumeToInitialized, FPaused: boolean;
       FListenerPosition, FListenerDirection, FListenerUp: TVector3;
       FDopplerFactor: Single;
+      FReverb: TCastleSoundReverb;
 
     procedure SetVolume(const Value: Single);
     procedure SetDistanceModel(const Value: TSoundDistanceModel);
@@ -59,6 +60,7 @@
     property Paused: boolean read FPaused write SetPaused;
     procedure SetInternalBackend(const Value: TSoundEngineBackend);
     procedure SetDopplerFactor(const Value: Single);
+    procedure ReverbChanged(Sender: TObject);
 
     procedure ContextOpenCore; override;
     procedure ContextCloseCore; override;
@@ -349,6 +351,26 @@
       corresponds to 1 meter.
       Larger values allow to emphasize the effect more. }
     property DopplerFactor: Single read FDopplerFactor write SetDopplerFactor {$ifdef FPC}default 0.0{$endif};
+
+    { Reverb (reverberation) added to spatial sounds:
+      the echoes of the environment, like a room, a hall or a cave.
+      Set @link(TCastleSoundReverb.Enabled) to @true and adjust its parameters,
+      at any time (also before the sound backend is initialized).
+      See @link(TCastleSoundReverb).
+
+      Only some sound backends support it, see @link(ReverbSupported).
+      When not supported, the reverb is silently ignored. }
+    property Reverb: TCastleSoundReverb read FReverb;
+
+    { Does the current sound backend support @link(Reverb).
+      Right now this is @true with the OpenAL backend when the OpenAL implementation
+      has the EFX extension (OpenAL Soft and Creative's OpenAL have it).
+
+      Meaningful only when the sound backend is initialized,
+      that is when @link(IsContextOpenSuccess) is @true
+      (you can call @link(ContextOpen) to initialize it).
+      Otherwise it is @false. }
+    function ReverbSupported: Boolean;
   end;
 
 {$endif read_interface}
@@ -363,6 +385,8 @@ begin
   FVolume := DefaultVolume;
   FDistanceModel := DefaultDistanceModel;
   FDopplerFactor := 0.0;
+  FReverb := TCastleSoundReverb.Create;
+  FReverb.OnChange := {$ifdef FPC}@{$endif} ReverbChanged;
   FEnabled := DefaultEnabled;
   FDevice := DefaultDevice;
   LoadedBuffers := TInternalSoundBuffersList.Create(true);
@@ -406,6 +430,7 @@ begin
 
   FreeAndNil(FDevices);
   FreeAndNil(FOnOpenClose);
+  FreeAndNil(FReverb);
   inherited;
 end;
 
@@ -486,6 +511,7 @@ begin
         Backend.SetVolume(Volume);
         Backend.SetDistanceModel(DistanceModel);
         Backend.SetDopplerFactor(DopplerFactor);
+        Backend.SetReverb(Reverb.Parameters);
         Backend.SetListener(
           FListenerPosition,
           FListenerDirection,
@@ -759,6 +785,17 @@ begin
     if IsContextOpenSuccess then
       Backend.SetDistanceModel(Value);
   end;
+end;
+
+procedure TSoundEngine.ReverbChanged(Sender: TObject);
+begin
+  if IsContextOpenSuccess then
+    Backend.SetReverb(Reverb.Parameters);
+end;
+
+function TSoundEngine.ReverbSupported: Boolean;
+begin
+  Result := IsContextOpenSuccess and Backend.ReverbSupported;
 end;
 
 procedure TSoundEngine.SetDopplerFactor(const Value: Single);

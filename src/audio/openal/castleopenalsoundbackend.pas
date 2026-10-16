@@ -180,6 +180,8 @@ type
     procedure SetVelocity(const Value: TVector3); override;
     procedure SetLoop(const Value: boolean); override;
     procedure SetSpatial(const Value: boolean); override;
+    { Send the source to the reverb (when spatial) or not. }
+    procedure UpdateReverbSend;
     procedure SetVolume(const Value: Single); override;
     procedure SetMinGain(const Value: Single); override;
     procedure SetMaxGain(const Value: Single); override;
@@ -198,10 +200,18 @@ type
     ALDevice: PALCdevice;
     ALContext: PALCcontext;
     FEFXSupported: boolean;
+    { Reverb: an auxiliary effect slot with a reverb effect (EAX reverb when
+      FReverbEAX, otherwise standard reverb), created by ContextOpen
+      when EFX is supported. 0 when not available. }
+    FReverbSlot, FReverbEffect: TALuint;
+    FReverbEAX: Boolean;
     { ContextOpen was already called once with result @true. }
     WasAlreadyOpen: Boolean;
     WasAlreadyOpenDevice: String;
     TimeContextOpen: TTimerResult;
+
+    procedure CreateReverb;
+    procedure FreeReverb;
 
     { Check ALC errors. Requires valid ALDevice. }
     procedure CheckALC(const Situation: string);
@@ -231,6 +241,11 @@ type
     procedure SetDistanceModel(const Value: TSoundDistanceModel); override;
     procedure SetDopplerFactor(const Value: Single); override;
     procedure SetListener(const Position, Direction, Up: TVector3); override;
+    function ReverbSupported: Boolean; override;
+    procedure SetReverb(const Value: TSoundReverbParameters); override;
+
+    { The auxiliary effect slot with the reverb, 0 if none. }
+    property ReverbSlot: TALuint read FReverbSlot;
 
     { Is the OpenAL version at least @code(AMajor.AMinor).
       Available only when OpenAL is initialized, that is:
@@ -544,6 +559,22 @@ begin
   if ErrorCode <> AL_NO_ERROR then
     raise EALError.Create(ErrorCode,
       'OpenAL error AL_xxx at creation of sound : ' + alGetString(ErrorCode));
+
+  UpdateReverbSend;
+end;
+
+procedure TOpenALSoundSourceBackend.UpdateReverbSend;
+begin
+  { Spatial sounds go also to the auxiliary effect slot with the reverb.
+    When the reverb is disabled, the slot has no effect, so nothing is added. }
+  if SoundEngine.ReverbSlot <> 0 then
+  begin
+    if FSpatial then
+      alSource3i(ALSource, AL_AUXILIARY_SEND_FILTER, SoundEngine.ReverbSlot, 0, AL_FILTER_NULL)
+    else
+      alSource3i(ALSource, AL_AUXILIARY_SEND_FILTER, AL_EFFECTSLOT_NULL, 0, AL_FILTER_NULL);
+    {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSource3i(.., AL_AUXILIARY_SEND_FILTER, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
+  end;
 end;
 
 procedure TOpenALSoundSourceBackend.ContextClose;
@@ -695,6 +726,7 @@ end;
 procedure TOpenALSoundSourceBackend.SetSpatial(const Value: boolean);
 begin
   FSpatial := Value;
+  UpdateReverbSend;
 
   alSourcei(ALSource, AL_SOURCE_RELATIVE, BoolToAL[not Value]);
   {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcei(.., AL_SOURCE_RELATIVE, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
@@ -1015,6 +1047,134 @@ begin
   end;
 end;
 
+procedure TOpenALSoundEngineBackend.CreateReverb;
+begin
+  FReverbSlot := 0;
+  FReverbEffect := 0;
+  FReverbEAX := false;
+  { Auxiliary sends (alSource3i) need OpenAL 1.1, EFX implementations have it. }
+  if not (FEFXSupported and Assigned(alSource3i)) then
+    Exit;
+
+  alGetError(); // clear previous errors
+  alGenEffects(1, @FReverbEffect);
+  if alGetError() <> AL_NO_ERROR then
+  begin
+    FReverbEffect := 0;
+    Exit;
+  end;
+
+  { The EAX reverb has more parameters, use it when possible. }
+  alEffecti(FReverbEffect, AL_EFFECT_TYPE, AL_EFFECT_EAXREVERB);
+  FReverbEAX := alGetError() = AL_NO_ERROR;
+  if not FReverbEAX then
+  begin
+    alEffecti(FReverbEffect, AL_EFFECT_TYPE, AL_EFFECT_REVERB);
+    if alGetError() <> AL_NO_ERROR then
+    begin
+      alDeleteEffects(1, @FReverbEffect);
+      FReverbEffect := 0;
+      Exit;
+    end;
+  end;
+
+  alGenAuxiliaryEffectSlots(1, @FReverbSlot);
+  if alGetError() <> AL_NO_ERROR then
+  begin
+    FReverbSlot := 0;
+    alDeleteEffects(1, @FReverbEffect);
+    FReverbEffect := 0;
+    Exit;
+  end;
+  { No effect in the slot until the reverb is enabled. }
+  alAuxiliaryEffectSloti(FReverbSlot, AL_EFFECTSLOT_EFFECT, AL_EFFECT_NULL);
+  CheckAL('creating reverb (alAuxiliaryEffectSloti)', true);
+end;
+
+procedure TOpenALSoundEngineBackend.FreeReverb;
+begin
+  if FReverbSlot <> 0 then
+  begin
+    alDeleteAuxiliaryEffectSlots(1, @FReverbSlot);
+    FReverbSlot := 0;
+  end;
+  if FReverbEffect <> 0 then
+  begin
+    alDeleteEffects(1, @FReverbEffect);
+    FReverbEffect := 0;
+  end;
+  CheckAL('freeing reverb', true);
+end;
+
+function TOpenALSoundEngineBackend.ReverbSupported: Boolean;
+begin
+  Result := FReverbSlot <> 0;
+end;
+
+procedure TOpenALSoundEngineBackend.SetReverb(const Value: TSoundReverbParameters);
+var
+  ReflectionsPan, LateReverbPan: TVector3;
+begin
+  if FReverbSlot = 0 then
+    Exit;
+  if not Value.Enabled then
+  begin
+    alAuxiliaryEffectSloti(FReverbSlot, AL_EFFECTSLOT_EFFECT, AL_EFFECT_NULL);
+    CheckAL('disabling reverb', true);
+    Exit;
+  end;
+
+  if FReverbEAX then
+  begin
+    ReflectionsPan := Value.ReflectionsPan;
+    LateReverbPan := Value.LateReverbPan;
+    alEffectf(FReverbEffect, AL_EAXREVERB_DENSITY, Clamped(Value.Density, 0.0, 1.0));
+    alEffectf(FReverbEffect, AL_EAXREVERB_DIFFUSION, Clamped(Value.Diffusion, 0.0, 1.0));
+    alEffectf(FReverbEffect, AL_EAXREVERB_GAIN, Clamped(Value.Gain, 0.0, 1.0));
+    alEffectf(FReverbEffect, AL_EAXREVERB_GAINHF, Clamped(Value.GainHF, 0.0, 1.0));
+    alEffectf(FReverbEffect, AL_EAXREVERB_GAINLF, Clamped(Value.GainLF, 0.0, 1.0));
+    alEffectf(FReverbEffect, AL_EAXREVERB_DECAY_TIME, Clamped(Value.DecayTime, 0.1, 20.0));
+    alEffectf(FReverbEffect, AL_EAXREVERB_DECAY_HFRATIO, Clamped(Value.DecayHFRatio, 0.1, 2.0));
+    alEffectf(FReverbEffect, AL_EAXREVERB_DECAY_LFRATIO, Clamped(Value.DecayLFRatio, 0.1, 2.0));
+    alEffectf(FReverbEffect, AL_EAXREVERB_REFLECTIONS_GAIN, Clamped(Value.ReflectionsGain, 0.0, 3.16));
+    alEffectf(FReverbEffect, AL_EAXREVERB_REFLECTIONS_DELAY, Clamped(Value.ReflectionsDelay, 0.0, 0.3));
+    alEffectf(FReverbEffect, AL_EAXREVERB_LATE_REVERB_GAIN, Clamped(Value.LateReverbGain, 0.0, 10.0));
+    alEffectf(FReverbEffect, AL_EAXREVERB_LATE_REVERB_DELAY, Clamped(Value.LateReverbDelay, 0.0, 0.1));
+    alEffectf(FReverbEffect, AL_EAXREVERB_ECHO_TIME, Clamped(Value.EchoTime, 0.075, 0.25));
+    alEffectf(FReverbEffect, AL_EAXREVERB_ECHO_DEPTH, Clamped(Value.EchoDepth, 0.0, 1.0));
+    alEffectf(FReverbEffect, AL_EAXREVERB_MODULATION_TIME, Clamped(Value.ModulationTime, 0.04, 4.0));
+    alEffectf(FReverbEffect, AL_EAXREVERB_MODULATION_DEPTH, Clamped(Value.ModulationDepth, 0.0, 1.0));
+    alEffectf(FReverbEffect, AL_EAXREVERB_AIR_ABSORPTION_GAINHF, Clamped(Value.AirAbsorptionGainHF, 0.892, 1.0));
+    alEffectf(FReverbEffect, AL_EAXREVERB_HFREFERENCE, Clamped(Value.HFReference, 1000.0, 20000.0));
+    alEffectf(FReverbEffect, AL_EAXREVERB_LFREFERENCE, Clamped(Value.LFReference, 20.0, 1000.0));
+    alEffectf(FReverbEffect, AL_EAXREVERB_ROOM_ROLLOFF_FACTOR, Clamped(Value.RoomRolloffFactor, 0.0, 10.0));
+    alEffecti(FReverbEffect, AL_EAXREVERB_DECAY_HFLIMIT, BoolToAL[Value.DecayHFLimit]);
+    alEffectfv(FReverbEffect, AL_EAXREVERB_REFLECTIONS_PAN, @ReflectionsPan);
+    alEffectfv(FReverbEffect, AL_EAXREVERB_LATE_REVERB_PAN, @LateReverbPan);
+  end else
+  begin
+    alEffectf(FReverbEffect, AL_REVERB_DENSITY, Clamped(Value.Density, 0.0, 1.0));
+    alEffectf(FReverbEffect, AL_REVERB_DIFFUSION, Clamped(Value.Diffusion, 0.0, 1.0));
+    alEffectf(FReverbEffect, AL_REVERB_GAIN, Clamped(Value.Gain, 0.0, 1.0));
+    alEffectf(FReverbEffect, AL_REVERB_GAINHF, Clamped(Value.GainHF, 0.0, 1.0));
+    alEffectf(FReverbEffect, AL_REVERB_DECAY_TIME, Clamped(Value.DecayTime, 0.1, 20.0));
+    alEffectf(FReverbEffect, AL_REVERB_DECAY_HFRATIO, Clamped(Value.DecayHFRatio, 0.1, 2.0));
+    alEffectf(FReverbEffect, AL_REVERB_REFLECTIONS_GAIN, Clamped(Value.ReflectionsGain, 0.0, 3.16));
+    alEffectf(FReverbEffect, AL_REVERB_REFLECTIONS_DELAY, Clamped(Value.ReflectionsDelay, 0.0, 0.3));
+    alEffectf(FReverbEffect, AL_REVERB_LATE_REVERB_GAIN, Clamped(Value.LateReverbGain, 0.0, 10.0));
+    alEffectf(FReverbEffect, AL_REVERB_LATE_REVERB_DELAY, Clamped(Value.LateReverbDelay, 0.0, 0.1));
+    alEffectf(FReverbEffect, AL_REVERB_AIR_ABSORPTION_GAINHF, Clamped(Value.AirAbsorptionGainHF, 0.892, 1.0));
+    alEffectf(FReverbEffect, AL_REVERB_ROOM_ROLLOFF_FACTOR, Clamped(Value.RoomRolloffFactor, 0.0, 10.0));
+    alEffecti(FReverbEffect, AL_REVERB_DECAY_HFLIMIT, BoolToAL[Value.DecayHFLimit]);
+  end;
+  CheckAL('setting reverb parameters (alEffectf)', true);
+
+  { The slot copies the effect parameters when the effect is attached,
+    so attach it again after changing them. }
+  alAuxiliaryEffectSloti(FReverbSlot, AL_EFFECTSLOT_EFFECT, FReverbEffect);
+  CheckAL('enabling reverb (alAuxiliaryEffectSloti)', true);
+end;
+
 function TOpenALSoundEngineBackend.ALVersionAtLeast(const AMajor, AMinor: Integer): boolean;
 begin
   Result :=
@@ -1091,18 +1251,31 @@ function TOpenALSoundEngineBackend.ContextOpen(const ADevice: String;
     end;
   end;
 
+  function ReverbInformation: String;
+  begin
+    if FReverbSlot = 0 then
+      Result := 'not available'
+    else
+    if FReverbEAX then
+      Result := 'EAX reverb'
+    else
+      Result := 'standard reverb';
+  end;
+
   function ALSuccessInformation: string;
   begin
     Result := Format(
       'OpenAL version: %s (major: %d, minor: %d)' +NL+
       'Renderer: %s' +NL+
       'Vendor: %s' +NL+
-      'Extensions: %s', [
+      'Extensions: %s' +NL+
+      'Reverb (EFX): %s', [
         alGetString(AL_VERSION),
         FALMajorVersion, FALMinorVersion,
         alGetString(AL_RENDERER),
         alGetString(AL_VENDOR),
-        alGetString(AL_EXTENSIONS)
+        alGetString(AL_EXTENSIONS),
+        ReverbInformation
       ]);
     {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alGetString ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
   end;
@@ -1163,6 +1336,7 @@ begin
     CheckALC('initializing OpenAL (alcMakeContextCurrent)');
 
     FEFXSupported := Load_EFX(ALDevice);
+    CreateReverb;
 
     ParseVersion(alGetString(AL_VERSION), FALMajorVersion, FALMinorVersion);
     ALVersion11 := ALVersionAtLeast(1, 1);
@@ -1183,6 +1357,7 @@ end;
 
 procedure TOpenALSoundEngineBackend.ContextClose;
 begin
+  FreeReverb;
   FEFXSupported := false;
 
   { CheckALC first, in case some error is "hanging" not caught yet. }
