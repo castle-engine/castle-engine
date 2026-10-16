@@ -235,6 +235,33 @@
       should be turned off. }
     DisableShadowVolumeCastingLights: Boolean;
 
+    { Lights (TAbstractPunctualLightNode instances) that cast shadow volumes
+      when rendering shadow volumes from several lights
+      (TCastleViewport.ShadowVolumesMaxLights > 1).
+
+      When this is not @nil and DisableShadowVolumeCastingLights is @true,
+      only the lights on this list are turned off (instead of all lights
+      with shadowVolumes = TRUE): the other lights with shadowVolumes = TRUE
+      then light everything, without shadows.
+
+      @nil by default (after @link(Init)). Not owned. }
+    ShadowVolumesLights: Contnrs.TObjectList;
+
+    { When not @nil, render only the contribution of this one light
+      (TAbstractPunctualLightNode instance), to be added (blended with
+      "one, one") to what is already in the color buffer.
+      All other lights are turned off, and the shaders omit everything
+      that doesn't depend on the light: emissive color, ambient color
+      (global ambient times material ambient), the color of unlit shapes.
+      Fog only attenuates the light contribution (fog color is black).
+
+      Used by shadow volumes from several lights
+      (TCastleViewport.ShadowVolumesMaxLights > 1):
+      each shadow casting light is added separately where it is not in shadow.
+
+      @nil by default (after @link(Init)). }
+    LightContributionOnly: TObject;
+
     InsideStencilTest: Boolean;
 
     procedure Init;
