@@ -28,6 +28,7 @@ type
     ButtonRegisterLazarusPackages: TButton;
     ButtonPanel1: TButtonPanel;
     CheckBoxMuteOnRun: TCheckBox;
+    CheckBoxPackagesLibraryUrlOverride: TCheckBox;
     DirectoryEditAndroidHome: TDirectoryEdit;
     DirectoryEditJavaHome: TDirectoryEdit;
     DirectoryEditFpc: TDirectoryEdit;
@@ -36,6 +37,7 @@ type
     EditCodeEditorCommand: TFileNameEdit;
     EditCodeEditorCommandLineColumn: TFileNameEdit;
     EditCodeEditorCommandProject: TFileNameEdit;
+    EditPackagesLibraryUrl: TEdit;
     LabelAndroidDocsWww: TLabel;
     LabelAndroidHome: TLabel;
     LabelJavaHome: TLabel;
@@ -58,6 +60,7 @@ type
     LabelInstructions2: TLabel;
     LabelAndroidDocsWwwCaption: TLabel;
     LabelLazarusWebsite: TLabel;
+    LabelPackagesLibraryUrl: TLabel;
     LabelVolume: TLabel;
     LabelCodeEditorCommandInstructions: TLabel;
     LabelCodeEditorCommand: TLabel;
@@ -75,6 +78,7 @@ type
     PanelGeneral: TPanel;
     PanelCompilation: TPanel;
     PanelAndroid: TPanel;
+    PanelPackages: TPanel;
     PanelInstructions: TPanel;
     PanelCodeEditor: TPanel;
     PanelSound: TPanel;
@@ -90,6 +94,7 @@ type
     TrackVolume: TTrackBar;
     procedure ButtonOpenCgePathClick(Sender: TObject);
     procedure ButtonRegisterLazarusPackagesClick(Sender: TObject);
+    procedure CheckBoxPackagesLibraryUrlOverrideChange(Sender: TObject);
     procedure DirectoryEditAndroidHomeAcceptDirectory(Sender: TObject;
       var Value: String);
     procedure DirectoryEditCgePathChange(Sender: TObject);
@@ -310,6 +315,12 @@ begin
   EditCodeEditorCommand.Text := CodeEditorCommand;
   EditCodeEditorCommandLineColumn.Text := CodeEditorCommandLineColumn;
   EditCodeEditorCommandProject.Text := CodeEditorCommandProject;
+  CheckBoxPackagesLibraryUrlOverride.Checked := UsePackagesLibraryUrlOverride;
+  if UsePackagesLibraryUrlOverride and (PackagesLibraryUrlOverride <> '') then
+    EditPackagesLibraryUrl.Text := PackagesLibraryUrlOverride
+  else
+    EditPackagesLibraryUrl.Text := DefaultPackagesLibraryUrl;
+  CheckBoxPackagesLibraryUrlOverrideChange(nil);
 
   // compilation tab
   case Compiler of
@@ -409,6 +420,13 @@ begin
     // Android tab
     AndroidHome := DirectoryEditAndroidHome.Directory;
     JavaHome := DirectoryEditJavaHome.Directory;
+
+    // packages tab
+    UsePackagesLibraryUrlOverride := CheckBoxPackagesLibraryUrlOverride.Checked;
+    if UsePackagesLibraryUrlOverride then
+      PackagesLibraryUrlOverride := Trim(EditPackagesLibraryUrl.Text)
+    else
+      PackagesLibraryUrlOverride := '';
   end else
   begin
     { XxxCustomPath are special.
@@ -440,6 +458,13 @@ begin
       CanClose := false;
       Exit;
     end;
+    if CheckBoxPackagesLibraryUrlOverride.Checked and
+       (Trim(EditPackagesLibraryUrl.Text) = '') then
+    begin
+      ErrorBox('You must specify a packages library URL, or disable the override');
+      CanClose := false;
+      Exit;
+    end;
   end;
 end;
 
@@ -447,6 +472,11 @@ procedure TPreferencesForm.DirectoryEditFpcChange(Sender: TObject);
 begin
   FpcCustomPath := DirectoryEditFpc.Directory;
   UpdateAutoDetectedLabels;
+end;
+
+procedure TPreferencesForm.CheckBoxPackagesLibraryUrlOverrideChange(Sender: TObject);
+begin
+  EditPackagesLibraryUrl.Enabled := CheckBoxPackagesLibraryUrlOverride.Checked;
 end;
 
 procedure TPreferencesForm.ButtonRegisterLazarusPackagesClick(Sender: TObject);
@@ -573,6 +603,7 @@ begin
     3: SelectedPage := PanelFpcLazarusConfig;
     4: SelectedPage := PanelSound;
     5: SelectedPage := PanelAndroid;
+    6: SelectedPage := PanelPackages;
     else raise Exception.CreateFmt('Unexpected ListPages.ItemIndex %d', [ListPages.ItemIndex]);
   end;
   SetEnabledVisible(PanelGeneral         , PanelGeneral          = SelectedPage);
@@ -581,6 +612,7 @@ begin
   SetEnabledVisible(PanelFpcLazarusConfig, PanelFpcLazarusConfig = SelectedPage);
   SetEnabledVisible(PanelSound           , PanelSound            = SelectedPage);
   SetEnabledVisible(PanelAndroid         , PanelAndroid          = SelectedPage);
+  SetEnabledVisible(PanelPackages        , PanelPackages         = SelectedPage);
 end;
 
 end.

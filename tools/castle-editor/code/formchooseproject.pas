@@ -255,6 +255,10 @@ procedure TChooseProjectForm.FormCreate(Sender: TObject);
     Compiler := StringToCompiler(UserConfig.GetValue('compiler', CompilerToString(DefaultCompiler)));
     AndroidHome := UserConfig.GetValue('android_home', '');
     JavaHome := UserConfig.GetValue('java_home', '');
+    UsePackagesLibraryUrlOverride :=
+      UserConfig.GetValue('packages/library_url_override_enabled', false);
+    PackagesLibraryUrlOverride :=
+      UserConfig.GetValue('packages/library_url_override', '');
     SoundEngineSetVolume;
   end;
 
@@ -311,6 +315,10 @@ procedure TChooseProjectForm.FormDestroy(Sender: TObject);
     UserConfig.SetDeleteValue('compiler', CompilerToString(Compiler), CompilerToString(DefaultCompiler));
     UserConfig.SetDeleteValue('android_home', AndroidHome, '');
     UserConfig.SetDeleteValue('java_home', JavaHome, '');
+    UserConfig.SetDeleteValue('packages/library_url_override_enabled',
+      UsePackagesLibraryUrlOverride, false);
+    UserConfig.SetDeleteValue('packages/library_url_override',
+      PackagesLibraryUrlOverride, '');
   end;
 
 begin

@@ -173,6 +173,7 @@ procedure SetEnabledVisible(const Action: TAction; const Value: Boolean); overlo
 const
   FpcRtlApiReferenceUrl = 'https://www.freepascal.org/docs-html/rtl/';
   LclApiReferenceUrl = 'https://lazarus-ccr.sourceforge.io/docs/lcl/';
+  DefaultPackagesLibraryUrl = 'https://raw.githubusercontent.com/phomm/cge-packages/refs/heads/main/unified.json';
 
 function ApiReferenceUrl: String;
 
@@ -303,6 +304,10 @@ operator Enumerator(const A: TComponentList): TComponentListEnumerator;
 var
   { Path to Android SDK (for ANDROID_HOME), and Java (JAVA_HOME). }
   AndroidHome, JavaHome: String;
+  UsePackagesLibraryUrlOverride: Boolean;
+  PackagesLibraryUrlOverride: String;
+
+function PackagesLibraryUrl: String;
 
 implementation
 
@@ -312,6 +317,14 @@ uses
   CastleComponentSerialize, CastleUiControls, CastleCameras, CastleTransform,
   CastleColors, CastleTimeUtils, CastleUriUtils,
   ToolCompilerInfo, ToolCommonUtils, ToolProcessRun;
+
+function PackagesLibraryUrl: String;
+begin
+  if UsePackagesLibraryUrlOverride then
+    Result := PackagesLibraryUrlOverride
+  else
+    Result := DefaultPackagesLibraryUrl;
+end;
 
 procedure TMenuItemHelper.SetEnabledVisible(const Value: Boolean);
 begin
