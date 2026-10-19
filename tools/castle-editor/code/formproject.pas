@@ -536,6 +536,7 @@ type
       Docking: Boolean;
       WantedDocking: Boolean;
       ErrorShownRefreshFilesMissingDirectory: Boolean;
+      InstalledPackagesRequestPending: Boolean;
       { Non-zero prevents the ShellListViewSelectItem from updating
         preview window (ViewFileFrame). }
       ShellListViewUpdating: Cardinal;
@@ -559,6 +560,7 @@ type
     procedure BuildToolCall(const Commands: array of String;
       const RestartOnSuccess: Boolean = false);
     procedure BuildToolCallFinished(Sender: TObject);
+    procedure GetInstalledPackages(Sender: TObject);
     procedure ListOpenExistingViewRefresh;
     procedure MenuItemAddComponentClick(Sender: TObject);
     procedure MenuItemDesignNewCustomRootClick(Sender: TObject);
@@ -1031,6 +1033,7 @@ begin
   if ImportPackageForm = nil then
     ImportPackageForm := TImportPackageForm.Create(Application);
 
+  ImportPackageForm.OnRequestInstalledPackages := @GetInstalledPackages;
   ImportPackageForm.Show;
 end;
 
@@ -2918,7 +2921,14 @@ begin
   begin
     RunningProcess.Update;
     if not RunningProcess.Running then
+    begin
       FreeProcess;
+      if InstalledPackagesRequestPending then
+      begin
+        InstalledPackagesRequestPending := false;
+        GetInstalledPackages(nil);
+      end;
+    end;
   end;
 end;
 
@@ -3502,7 +3512,8 @@ begin
         (Command = 'editor-rebuild-if-needed') or
         (Command = 'editor-run') or
         (Command = 'cache') or
-        (Command = 'devices')
+        (Command = 'devices') or
+        (Command = 'get-installed-packages')
       ) then
       AddModeParameters(QueueItem.Parameters);
     // add --compiler parameter
@@ -3575,6 +3586,16 @@ begin
   RunningApplication := false;
   SoundEngineSetVolume;
   RefreshFiles(rfFilesInCurrentDir); // show new files created by "package"
+  if ImportPackageForm <> nil then
+    ImportPackageForm.UpdateInstalledPackageStatuses;
+end;
+
+procedure TProjectForm.GetInstalledPackages(Sender: TObject);
+begin
+  if RunningProcess <> nil then
+    InstalledPackagesRequestPending := true
+  else
+    BuildToolCall(['get-installed-packages']);
 end;
 
 procedure TProjectForm.MenuItemAddComponentClick(Sender: TObject);

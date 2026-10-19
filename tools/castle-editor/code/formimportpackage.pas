@@ -60,6 +60,7 @@ type
 
   { Record to hold component information from library. }
   TPackageInfo = record
+    Id: String;
     Name: String;
     Description: String;
     ImageUrl: String;
@@ -76,10 +77,16 @@ type
     LabelDescription: TPackageDescription;
     LabelRepo: TLabel;
     LabelLinks: TPackageDescription;
+    CheckBoxInstalled: TCheckBox;
     ButtonAdd: TButton;
+    ButtonUpdate: TButton;
+    ButtonRemove: TButton;
   public
+    Id: String;
     RepoUrl: String;
     procedure ButtonAddClick(Sender: TObject);
+    procedure ButtonUpdateClick(Sender: TObject);
+    procedure ButtonRemoveClick(Sender: TObject);
     procedure LabelRepoClick(Sender: TObject);
   end;
 
@@ -116,10 +123,13 @@ type
     procedure ParseJsonLibrary(const Content: String);
     procedure ParseFallbackLibrary(const Content: String);
   public
+    OnRequestInstalledPackages: TNotifyEvent;
+    procedure UpdateInstalledPackageStatuses;
   end;
 
 var
   ImportPackageForm: TImportPackageForm;
+  InstalledPackageIds: TStringList;
 
 const
   LibraryFallbackUrl = 'https://raw.githubusercontent.com/castle-engine/cge-www/refs/heads/master/htdocs/additional_components.php';
@@ -342,8 +352,20 @@ end;
 
 procedure TPackagePanel.ButtonAddClick(Sender: TObject);
 begin
-  { Empty click handler for now - logic will be added later. }
-  WritelnLog('ImportPackage', 'Add button clicked for: ' + LabelName.Caption);
+  WritelnLog('ImportPackage', 'Add button clicked for package ID ' + Id +
+    ': ' + LabelName.Caption);
+end;
+
+procedure TPackagePanel.ButtonUpdateClick(Sender: TObject);
+begin
+  WritelnLog('ImportPackage', 'Update button clicked for package ID ' + Id +
+    ': ' + LabelName.Caption);
+end;
+
+procedure TPackagePanel.ButtonRemoveClick(Sender: TObject);
+begin
+  WritelnLog('ImportPackage', 'Remove button clicked for package ID ' + Id +
+    ': ' + LabelName.Caption);
 end;
 
 procedure TPackagePanel.LabelRepoClick(Sender: TObject);
@@ -394,8 +416,28 @@ end;
 procedure TImportPackageForm.FormShow(Sender: TObject);
 begin
   ImageDownloadUpdateTimer.Enabled := true;
+  if Assigned(OnRequestInstalledPackages) then
+    OnRequestInstalledPackages(Self);
+  UpdateInstalledPackageStatuses;
   if ComponentList.Count = 0 then
     DownloadAndParseLibrary;
+end;
+
+procedure TImportPackageForm.UpdateInstalledPackageStatuses;
+var
+  I: Integer;
+  ComponentPanel: TPackagePanel;
+  IsInstalled: Boolean;
+begin
+  for I := 0 to ScrollBoxPackages.ControlCount - 1 do
+  begin
+    ComponentPanel := TPackagePanel(ScrollBoxPackages.Controls[I]);
+    IsInstalled := InstalledPackageIds.IndexOf(ComponentPanel.Id) <> -1;
+    ComponentPanel.CheckBoxInstalled.Checked := IsInstalled;
+    ComponentPanel.ButtonAdd.Visible := not IsInstalled;
+    ComponentPanel.ButtonUpdate.Visible := IsInstalled;
+    ComponentPanel.ButtonRemove.Visible := IsInstalled;
+  end;
 end;
 
 procedure TImportPackageForm.ImageDownloadUpdateTimerTimer(Sender: TObject);
@@ -716,6 +758,7 @@ var
 
 begin
   ArgPosition := 1;
+  Result.Id := '';
   Result.Author := '';
   SetLength(Result.Links, 0);
   Result.Name := Trim(ReadStringArgument('title'));
@@ -767,6 +810,7 @@ begin
         raise Exception.Create('Library package must be an object');
 
       PackageData := TJSONObject(LibraryPackages[I]);
+      ComponentInfo.Id := RequiredString(PackageData, 'id');
       ComponentInfo.Name := RequiredString(PackageData, 'title');
       ComponentInfo.Description := RequiredString(PackageData, 'description');
       ComponentInfo.ImageUrl := RequiredString(PackageData, 'image');
@@ -914,6 +958,7 @@ var
   PanelHeight: Integer;
   ImageUrl: String;
   LinksHtml: String;
+  IsInstalled: Boolean;
 
   function EscapeHtml(const Value: String): String;
   begin
@@ -945,14 +990,25 @@ begin
     ComponentPanel.Height := PanelHeight;
     ComponentPanel.BorderStyle := bsSingle;
     ComponentPanel.BevelOuter := bvNone;
+    ComponentPanel.Id := ComponentList[I].Id;
+
+    IsInstalled := InstalledPackageIds.IndexOf(ComponentPanel.Id) <> -1;
+
+    ComponentPanel.CheckBoxInstalled := TCheckBox.Create(ComponentPanel);
+    ComponentPanel.CheckBoxInstalled.Parent := ComponentPanel;
+    ComponentPanel.CheckBoxInstalled.Left := 8;
+    ComponentPanel.CheckBoxInstalled.Top := 8;
+    ComponentPanel.CheckBoxInstalled.Caption := 'Installed';
+    ComponentPanel.CheckBoxInstalled.Checked := IsInstalled;
+    ComponentPanel.CheckBoxInstalled.Enabled := false;
     
     { Create image on the left }
     ComponentPanel.Image := TImage.Create(ComponentPanel);
     ComponentPanel.Image.Parent := ComponentPanel;
     ComponentPanel.Image.Left := 8;
-    ComponentPanel.Image.Top := 8;
+    ComponentPanel.Image.Top := 32;
     ComponentPanel.Image.Width := 100;
-    ComponentPanel.Image.Height := 100;
+    ComponentPanel.Image.Height := 80;
     ComponentPanel.Image.Stretch := true;
     ComponentPanel.Image.Proportional := true;
     ComponentPanel.Image.Center := true;
@@ -1033,6 +1089,27 @@ begin
     ComponentPanel.ButtonAdd.Height := 30;
     ComponentPanel.ButtonAdd.Caption := 'Add';
     ComponentPanel.ButtonAdd.OnClick := @ComponentPanel.ButtonAddClick;
+    ComponentPanel.ButtonAdd.Visible := not IsInstalled;
+
+    ComponentPanel.ButtonUpdate := TButton.Create(ComponentPanel);
+    ComponentPanel.ButtonUpdate.Parent := ComponentPanel;
+    ComponentPanel.ButtonUpdate.Left := ComponentPanel.Width - 180;
+    ComponentPanel.ButtonUpdate.Top := ComponentPanel.Height - 40;
+    ComponentPanel.ButtonUpdate.Width := 80;
+    ComponentPanel.ButtonUpdate.Height := 30;
+    ComponentPanel.ButtonUpdate.Caption := 'Update';
+    ComponentPanel.ButtonUpdate.OnClick := @ComponentPanel.ButtonUpdateClick;
+    ComponentPanel.ButtonUpdate.Visible := IsInstalled;
+
+    ComponentPanel.ButtonRemove := TButton.Create(ComponentPanel);
+    ComponentPanel.ButtonRemove.Parent := ComponentPanel;
+    ComponentPanel.ButtonRemove.Left := ComponentPanel.Width - 260;
+    ComponentPanel.ButtonRemove.Top := ComponentPanel.Height - 40;
+    ComponentPanel.ButtonRemove.Width := 80;
+    ComponentPanel.ButtonRemove.Height := 30;
+    ComponentPanel.ButtonRemove.Caption := 'Remove';
+    ComponentPanel.ButtonRemove.OnClick := @ComponentPanel.ButtonRemoveClick;
+    ComponentPanel.ButtonRemove.Visible := IsInstalled;
 
     TopPosition := TopPosition + PanelHeight + 8;
   end;
@@ -1050,5 +1127,13 @@ begin
   
   WritelnLog('ImportPackage', 'Displayed ' + IntToStr(ComponentList.Count) + ' components');
 end;
+
+initialization
+  InstalledPackageIds := TStringList.Create;
+  // test
+  // InstalledPackageIds.Add('castle-bars');
+
+finalization
+  FreeAndNil(InstalledPackageIds);
 
 end.
