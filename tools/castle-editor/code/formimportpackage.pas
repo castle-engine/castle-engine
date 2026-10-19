@@ -36,6 +36,11 @@ type
     Url: String;
   end;
 
+  TPackageLink = record
+    Name: String;
+    Url: String;
+  end;
+
   TPackageDescription = class(TCustomControl)
   private
     FDescriptionRuns: specialize TList<TDescriptionRun>;
@@ -59,14 +64,18 @@ type
     Description: String;
     ImageUrl: String;
     RepoUrl: String;
+    Author: String;
+    Links: array of TPackageLink;
   end;
 
   { Component panel template class. }
   TPackagePanel = class(TPanel)
     Image: TImage;
     LabelName: TLabel;
+    LabelAuthor: TLabel;
     LabelDescription: TPackageDescription;
     LabelRepo: TLabel;
+    LabelLinks: TPackageDescription;
     ButtonAdd: TButton;
   public
     RepoUrl: String;
@@ -113,7 +122,6 @@ var
   ImportPackageForm: TImportPackageForm;
 
 const
-  LibraryUrl = 'https://raw.githubusercontent.com/castle-engine/cge-www/refs/heads/master/htdocs/additional_components.json';
   LibraryFallbackUrl = 'https://raw.githubusercontent.com/castle-engine/cge-www/refs/heads/master/htdocs/additional_components.php';
   ImageBaseUrl = 'https://raw.githubusercontent.com/castle-engine/cge-www/refs/heads/master/htdocs/images/original_size/';
   GalleryImageBaseUrl = 'https://raw.githubusercontent.com/castle-engine/cge-www/refs/heads/master/htdocs/images/gallery_size/';
@@ -708,6 +716,8 @@ var
 
 begin
   ArgPosition := 1;
+  Result.Author := '';
+  SetLength(Result.Links, 0);
   Result.Name := Trim(ReadStringArgument('title'));
   RequireComma;
   Result.Description := Trim(ReadStringArgument('description'));
@@ -720,11 +730,13 @@ end;
 procedure TImportPackageForm.ParseJsonLibrary(const Content: String);
 var
   JSONData: TJSONData;
-  LibraryComponents: TJSONArray;
-  Component: TJSONObject;
+  LibraryPackages: TJSONArray;
+  PackageData: TJSONObject;
+  PackageLinks: TJSONArray;
+  LinkData: TJSONObject;
   Field: TJSONData;
   ComponentInfo: TPackageInfo;
-  I: Integer;
+  I, J: Integer;
 
   function RequiredString(const ObjectData: TJSONObject;
     const FieldName: String): String;
@@ -733,7 +745,7 @@ var
   begin
     FieldData := ObjectData.Find(FieldName);
     if (FieldData = nil) or (FieldData.JSONType <> jtString) then
-      raise Exception.Create('Invalid component field "' + FieldName + '"');
+      raise Exception.Create('Invalid package field "' + FieldName + '"');
     Result := FieldData.AsString;
   end;
 
@@ -743,22 +755,38 @@ begin
     if JSONData.JSONType <> jtObject then
       raise Exception.Create('Library JSON root must be an object');
 
-    Field := TJSONObject(JSONData).Find('components');
+    Field := TJSONObject(JSONData).Find('packages');
     if (Field = nil) or (Field.JSONType <> jtArray) then
-      raise Exception.Create('Library JSON must contain a components array');
-    LibraryComponents := TJSONArray(Field);
+      raise Exception.Create('Library JSON must contain a packages array');
+    LibraryPackages := TJSONArray(Field);
 
     ComponentList.Clear;
-    for I := 0 to LibraryComponents.Count - 1 do
+    for I := 0 to LibraryPackages.Count - 1 do
     begin
-      if LibraryComponents[I].JSONType <> jtObject then
-        raise Exception.Create('Library component must be an object');
+      if LibraryPackages[I].JSONType <> jtObject then
+        raise Exception.Create('Library package must be an object');
 
-      Component := TJSONObject(LibraryComponents[I]);
-      ComponentInfo.Name := RequiredString(Component, 'title');
-      ComponentInfo.Description := RequiredString(Component, 'description');
-      ComponentInfo.ImageUrl := RequiredString(Component, 'image');
-      ComponentInfo.RepoUrl := RequiredString(Component, 'page');
+      PackageData := TJSONObject(LibraryPackages[I]);
+      ComponentInfo.Name := RequiredString(PackageData, 'title');
+      ComponentInfo.Description := RequiredString(PackageData, 'description');
+      ComponentInfo.ImageUrl := RequiredString(PackageData, 'image');
+      ComponentInfo.RepoUrl := RequiredString(PackageData, 'page');
+      ComponentInfo.Author := RequiredString(PackageData, 'author');
+
+      Field := PackageData.Find('links');
+      if (Field = nil) or (Field.JSONType <> jtArray) then
+        raise Exception.Create('Invalid package field "links"');
+      PackageLinks := TJSONArray(Field);
+      SetLength(ComponentInfo.Links, PackageLinks.Count);
+      for J := 0 to PackageLinks.Count - 1 do
+      begin
+        if PackageLinks[J].JSONType <> jtObject then
+          raise Exception.Create('Package link must be an object');
+        LinkData := TJSONObject(PackageLinks[J]);
+        ComponentInfo.Links[J].Name := RequiredString(LinkData, 'name');
+        ComponentInfo.Links[J].Url := RequiredString(LinkData, 'url');
+      end;
+
       ComponentList.Add(ComponentInfo);
       WritelnLog('ImportPackage', 'Found component: ' + ComponentInfo.Name);
     end;
@@ -836,8 +864,8 @@ begin
     EnableBlockingDownloads := true;
     try
       try
-        WritelnLog('ImportPackage', 'Downloading library from: ' + LibraryUrl);
-        Content := DownloadContent(LibraryUrl);
+        WritelnLog('ImportPackage', 'Downloading library from: ' + PackagesLibraryUrl);
+        Content := DownloadContent(PackagesLibraryUrl);
         WritelnLog('ImportPackage', 'Downloaded ' + IntToStr(Length(Content)) + ' bytes');
         ParseJsonLibrary(Content);
       except
@@ -880,10 +908,21 @@ end;
 procedure TImportPackageForm.DisplayComponents;
 var
   I: Integer;
+  J: Integer;
   ComponentPanel: TPackagePanel;
   TopPosition: Integer;
   PanelHeight: Integer;
   ImageUrl: String;
+  LinksHtml: String;
+
+  function EscapeHtml(const Value: String): String;
+  begin
+    Result := StringReplace(Value, '&', '&amp;', [rfReplaceAll]);
+    Result := StringReplace(Result, '<', '&lt;', [rfReplaceAll]);
+    Result := StringReplace(Result, '>', '&gt;', [rfReplaceAll]);
+    Result := StringReplace(Result, '"', '&quot;', [rfReplaceAll]);
+    Result := StringReplace(Result, '''', '&#39;', [rfReplaceAll]);
+  end;
 begin
   CancelImageDownloads;
   { Clear existing panels }
@@ -891,10 +930,13 @@ begin
     ScrollBoxPackages.Controls[0].Free;
   
   TopPosition := 8;
-  PanelHeight := 160;
   
   for I := 0 to ComponentList.Count - 1 do
   begin
+    PanelHeight := 158 + Length(ComponentList[I].Links) * 18;
+    if PanelHeight < 180 then
+      PanelHeight := 180;
+
     ComponentPanel := TPackagePanel.Create(ScrollBoxPackages);
     ComponentPanel.Parent := ScrollBoxPackages;
     ComponentPanel.Left := 8;
@@ -924,14 +966,24 @@ begin
     ComponentPanel.LabelName.Font.Style := [fsBold];
     ComponentPanel.LabelName.Caption := ComponentList[I].Name;
     ComponentPanel.LabelName.AutoSize := true;
+
+    if ComponentList[I].Author <> '' then
+    begin
+      ComponentPanel.LabelAuthor := TLabel.Create(ComponentPanel);
+      ComponentPanel.LabelAuthor.Parent := ComponentPanel;
+      ComponentPanel.LabelAuthor.Left := 120;
+      ComponentPanel.LabelAuthor.Top := 30;
+      ComponentPanel.LabelAuthor.Caption := 'By ' + ComponentList[I].Author;
+      ComponentPanel.LabelAuthor.AutoSize := true;
+    end;
     
     { Create description label (smaller text) }
     ComponentPanel.LabelDescription := TPackageDescription.Create(ComponentPanel);
     ComponentPanel.LabelDescription.Parent := ComponentPanel;
     ComponentPanel.LabelDescription.Left := 120;
-    ComponentPanel.LabelDescription.Top := 30;
+    ComponentPanel.LabelDescription.Top := 48;
     ComponentPanel.LabelDescription.Width := ComponentPanel.Width - 200;
-    ComponentPanel.LabelDescription.Height := 80;
+    ComponentPanel.LabelDescription.Height := 70;
     ComponentPanel.LabelDescription.SetHtml(ComponentList[I].Description);
 
     { Create a clickable repository link when the package has a repository URL }
@@ -941,7 +993,7 @@ begin
       ComponentPanel.LabelRepo := TLabel.Create(ComponentPanel);
       ComponentPanel.LabelRepo.Parent := ComponentPanel;
       ComponentPanel.LabelRepo.Left := 120;
-      ComponentPanel.LabelRepo.Top := 118;
+      ComponentPanel.LabelRepo.Top := 124;
       ComponentPanel.LabelRepo.Width := ComponentPanel.Width - 240;
       ComponentPanel.LabelRepo.Caption := ComponentPanel.RepoUrl;
       ComponentPanel.LabelRepo.AutoSize := false;
@@ -949,6 +1001,27 @@ begin
       ComponentPanel.LabelRepo.Font.Style := [fsUnderline];
       ComponentPanel.LabelRepo.Cursor := crHandPoint;
       ComponentPanel.LabelRepo.OnClick := @ComponentPanel.LabelRepoClick;
+    end;
+
+    if Length(ComponentList[I].Links) > 0 then
+    begin
+      LinksHtml := '';
+      for J := 0 to Length(ComponentList[I].Links) - 1 do
+      begin
+        if J > 0 then
+          LinksHtml := LinksHtml + '<br>';
+        LinksHtml := LinksHtml + '<a href="' +
+          EscapeHtml(ComponentList[I].Links[J].Url) + '">' +
+          EscapeHtml(ComponentList[I].Links[J].Name) + '</a>';
+      end;
+
+      ComponentPanel.LabelLinks := TPackageDescription.Create(ComponentPanel);
+      ComponentPanel.LabelLinks.Parent := ComponentPanel;
+      ComponentPanel.LabelLinks.Left := 120;
+      ComponentPanel.LabelLinks.Top := 146;
+      ComponentPanel.LabelLinks.Width := ComponentPanel.Width - 240;
+      ComponentPanel.LabelLinks.Height := Length(ComponentList[I].Links) * 18;
+      ComponentPanel.LabelLinks.SetHtml(LinksHtml);
     end;
     
     { Create add button }
