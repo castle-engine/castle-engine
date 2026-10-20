@@ -237,6 +237,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="DesignSteam"/>
       </Unit30>
+      <Unit31>
+        <Filename Value="../common-code/toolpackagelibrary.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="ToolPackageLibrary"/>
+      </Unit31>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

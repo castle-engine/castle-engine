@@ -559,8 +559,13 @@ type
       DesignWarningsForm: TForm;
     procedure BuildToolCall(const Commands: array of String;
       const RestartOnSuccess: Boolean = false);
+    procedure BuildToolCallWithParameters(const Commands: array of String;
+      const AdditionalParameters: array of String;
+      const RestartOnSuccess: Boolean = false);
     procedure BuildToolCallFinished(Sender: TObject);
     procedure GetInstalledPackages(Sender: TObject);
+    procedure PackageCommand(Sender: TObject;
+      const Command, PackageId: String);
     procedure ListOpenExistingViewRefresh;
     procedure MenuItemAddComponentClick(Sender: TObject);
     procedure MenuItemDesignNewCustomRootClick(Sender: TObject);
@@ -1034,6 +1039,7 @@ begin
     ImportPackageForm := TImportPackageForm.Create(Application);
 
   ImportPackageForm.OnRequestInstalledPackages := @GetInstalledPackages;
+  ImportPackageForm.OnPackageCommand := @PackageCommand;
   ImportPackageForm.Show;
 end;
 
@@ -3408,6 +3414,14 @@ end;
 
 procedure TProjectForm.BuildToolCall(const Commands: array of String;
   const RestartOnSuccess: Boolean);
+begin
+  BuildToolCallWithParameters(Commands, [], RestartOnSuccess);
+end;
+
+procedure TProjectForm.BuildToolCallWithParameters(
+  const Commands: array of String;
+  const AdditionalParameters: array of String;
+  const RestartOnSuccess: Boolean);
 
   procedure AddPlatformParameters(const Params: TStrings; const PlatformInfo: TPlatformInfo);
   begin
@@ -3474,9 +3488,13 @@ procedure TProjectForm.BuildToolCall(const Commands: array of String;
   end;
 
 var
-  BuildToolExe, Command: String;
+  BuildToolExe, Command, AdditionalParameter: String;
   QueueItem: TAsynchronousProcessQueue.TQueueItem;
 begin
+  if (Length(AdditionalParameters) > 0) and (Length(Commands) <> 1) then
+    raise EInternalError.Create(
+      'Additional build tool parameters require exactly one command');
+
   if RunningProcess <> nil then
     raise EInternalError.Create('It should not be possible to call this when RunningProcess <> nil');
 
@@ -3500,6 +3518,8 @@ begin
     QueueItem.ExeName := BuildToolExe;
     QueueItem.CurrentDirectory := ProjectPath;
     QueueItem.Parameters.Add(Command);
+    for AdditionalParameter in AdditionalParameters do
+      QueueItem.Parameters.Add(AdditionalParameter);
     // add --mode=xxx parameter
     if not (
         // we list the few commands that ignore --mode below
@@ -3513,7 +3533,10 @@ begin
         (Command = 'editor-run') or
         (Command = 'cache') or
         (Command = 'devices') or
-        (Command = 'get-installed-packages')
+        (Command = 'get-installed-packages') or
+        (Command = 'install-package') or
+        (Command = 'remove-package') or
+        (Command = 'update-package')
       ) then
       AddModeParameters(QueueItem.Parameters);
     // add --compiler parameter
@@ -3596,6 +3619,20 @@ begin
     InstalledPackagesRequestPending := true
   else
     BuildToolCall(['get-installed-packages']);
+end;
+
+procedure TProjectForm.PackageCommand(Sender: TObject;
+  const Command, PackageId: String);
+begin
+  if RunningProcess <> nil then
+  begin
+    ErrorBox('Cannot manage a package while another build tool command is running.');
+    Exit;
+  end;
+
+  BuildToolCallWithParameters([Command], [PackageId]);
+  if RunningProcess <> nil then
+    InstalledPackagesRequestPending := true;
 end;
 
 procedure TProjectForm.MenuItemAddComponentClick(Sender: TObject);

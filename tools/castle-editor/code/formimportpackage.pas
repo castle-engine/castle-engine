@@ -23,7 +23,7 @@ interface
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, StdCtrls,
   Generics.Collections,
-  CastleDownload, CastleImages, CastleStringUtils, CastleLog;
+  CastleDownload, CastleImages, CastleLog, ToolPackageLibrary;
 
 type
   TDescriptionRun = record
@@ -33,11 +33,6 @@ type
 
   TDescriptionLinkArea = record
     Bounds: TRect;
-    Url: String;
-  end;
-
-  TPackageLink = record
-    Name: String;
     Url: String;
   end;
 
@@ -58,16 +53,8 @@ type
     procedure SetHtml(const Html: String);
   end;
 
-  { Record to hold component information from library. }
-  TPackageInfo = record
-    Id: String;
-    Name: String;
-    Description: String;
-    ImageUrl: String;
-    RepoUrl: String;
-    Author: String;
-    Links: array of TPackageLink;
-  end;
+  TPackageCommandEvent = procedure(Sender: TObject;
+    const Command, PackageId: String) of object;
 
   { Component panel template class. }
   TPackagePanel = class(TPanel)
@@ -84,6 +71,7 @@ type
   public
     Id: String;
     RepoUrl: String;
+    OnPackageCommand: TPackageCommandEvent;
     procedure ButtonAddClick(Sender: TObject);
     procedure ButtonUpdateClick(Sender: TObject);
     procedure ButtonRemoveClick(Sender: TObject);
@@ -108,7 +96,7 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
   private
-    ComponentList: specialize TList<TPackageInfo>;
+    ComponentList: TPackageInfoArray;
     ImageDownloads: specialize TList<TPackageImageDownload>;
     ImageDownloadUpdateTimer: TTimer;
     procedure DownloadAndParseLibrary;
@@ -119,11 +107,9 @@ type
       const Url: String);
     procedure ImageDownloadFinished(const Sender: TCastleDownload;
       var FreeSender: Boolean);
-    function ParseComponentBlock(const Block: String): TPackageInfo;
-    procedure ParseJsonLibrary(const Content: String);
-    procedure ParseFallbackLibrary(const Content: String);
   public
     OnRequestInstalledPackages: TNotifyEvent;
+    OnPackageCommand: TPackageCommandEvent;
     procedure UpdateInstalledPackageStatuses;
   end;
 
@@ -131,17 +117,12 @@ var
   ImportPackageForm: TImportPackageForm;
   InstalledPackageIds: TStringList;
 
-const
-  LibraryFallbackUrl = 'https://raw.githubusercontent.com/castle-engine/cge-www/refs/heads/master/htdocs/additional_components.php';
-  ImageBaseUrl = 'https://raw.githubusercontent.com/castle-engine/cge-www/refs/heads/master/htdocs/images/original_size/';
-  GalleryImageBaseUrl = 'https://raw.githubusercontent.com/castle-engine/cge-www/refs/heads/master/htdocs/images/gallery_size/';
-
 implementation
 
 {$R *.lfm}
 
 uses
-  RegExpr, FPImgCmn, Types, IntfGraphics, GraphType, FPImage, fpjson, jsonparser,
+  RegExpr, FPImgCmn, Types, IntfGraphics, GraphType, FPImage,
   CastleOpenDocument, CastleControls, CastleFilesUtils,
   CastleApplicationProperties,
   editorutils;
@@ -354,18 +335,30 @@ procedure TPackagePanel.ButtonAddClick(Sender: TObject);
 begin
   WritelnLog('ImportPackage', 'Add button clicked for package ID ' + Id +
     ': ' + LabelName.Caption);
+  if Assigned(OnPackageCommand) then
+    OnPackageCommand(Self, 'install-package', Id)
+  else
+    WritelnWarning('ImportPackage', 'Cannot install package: no command handler assigned');
 end;
 
 procedure TPackagePanel.ButtonUpdateClick(Sender: TObject);
 begin
   WritelnLog('ImportPackage', 'Update button clicked for package ID ' + Id +
     ': ' + LabelName.Caption);
+  if Assigned(OnPackageCommand) then
+    OnPackageCommand(Self, 'update-package', Id)
+  else
+    WritelnWarning('ImportPackage', 'Cannot update package: no command handler assigned');
 end;
 
 procedure TPackagePanel.ButtonRemoveClick(Sender: TObject);
 begin
   WritelnLog('ImportPackage', 'Remove button clicked for package ID ' + Id +
     ': ' + LabelName.Caption);
+  if Assigned(OnPackageCommand) then
+    OnPackageCommand(Self, 'remove-package', Id)
+  else
+    WritelnWarning('ImportPackage', 'Cannot remove package: no command handler assigned');
 end;
 
 procedure TPackagePanel.LabelRepoClick(Sender: TObject);
@@ -395,7 +388,6 @@ end;
 
 procedure TImportPackageForm.FormCreate(Sender: TObject);
 begin
-  ComponentList := specialize TList<TPackageInfo>.Create;
   ImageDownloads := specialize TList<TPackageImageDownload>.Create;
   ImageDownloadUpdateTimer := TTimer.Create(Self);
   ImageDownloadUpdateTimer.Interval := 30;
@@ -410,7 +402,7 @@ begin
   ImageDownloadUpdateTimer.Enabled := false;
   CancelImageDownloads;
   FreeAndNil(ImageDownloads);
-  FreeAndNil(ComponentList);
+  ComponentList := nil;
 end;
 
 procedure TImportPackageForm.FormShow(Sender: TObject);
@@ -419,7 +411,7 @@ begin
   if Assigned(OnRequestInstalledPackages) then
     OnRequestInstalledPackages(Self);
   UpdateInstalledPackageStatuses;
-  if ComponentList.Count = 0 then
+  if Length(ComponentList) = 0 then
     DownloadAndParseLibrary;
 end;
 
@@ -595,350 +587,11 @@ begin
   FreeSender := true;
 end;
 
-function TImportPackageForm.ParseComponentBlock(const Block: String): TPackageInfo;
-var
-  ArgPosition: Integer;
-
-  procedure SkipWhitespaceAndComments;
-  begin
-    while ArgPosition <= Length(Block) do
-    begin
-      if Block[ArgPosition] <= ' ' then
-        Inc(ArgPosition)
-      else
-      if (Block[ArgPosition] = '/') and (ArgPosition < Length(Block)) and
-        (Block[ArgPosition + 1] = '/') then
-      begin
-        Inc(ArgPosition, 2);
-        while (ArgPosition <= Length(Block)) and
-          (Block[ArgPosition] <> #10) and (Block[ArgPosition] <> #13) do
-          Inc(ArgPosition);
-      end else
-      if (Block[ArgPosition] = '/') and (ArgPosition < Length(Block)) and
-        (Block[ArgPosition + 1] = '*') then
-      begin
-        Inc(ArgPosition, 2);
-        while (ArgPosition < Length(Block)) and
-          ((Block[ArgPosition] <> '*') or (Block[ArgPosition + 1] <> '/')) do
-          Inc(ArgPosition);
-        if ArgPosition < Length(Block) then
-          Inc(ArgPosition, 2);
-      end else
-      if Block[ArgPosition] = '#' then
-      begin
-        while (ArgPosition <= Length(Block)) and
-          (Block[ArgPosition] <> #10) and (Block[ArgPosition] <> #13) do
-          Inc(ArgPosition);
-      end else
-        Exit;
-    end;
-  end;
-
-  function ReadStringArgument(const ArgumentName: String): String;
-  var
-    QuoteChar: Char;
-    ParenthesisDepth: Integer;
-    IsTopLevelString: Boolean;
-    ClosedString: Boolean;
-    SawTopLevelString: Boolean;
-  begin
-    SkipWhitespaceAndComments;
-    if ArgPosition > Length(Block) then
-      raise Exception.Create('Missing ' + ArgumentName + ' argument in gallery_link');
-    Result := '';
-    ParenthesisDepth := 0;
-    SawTopLevelString := false;
-    while ArgPosition <= Length(Block) do
-    begin
-      if (Block[ArgPosition] = '/') and (ArgPosition < Length(Block)) and
-        (Block[ArgPosition + 1] = '/') then
-      begin
-        Inc(ArgPosition, 2);
-        while (ArgPosition <= Length(Block)) and
-          (Block[ArgPosition] <> #10) and (Block[ArgPosition] <> #13) do
-          Inc(ArgPosition);
-      end else
-      if (Block[ArgPosition] = '/') and (ArgPosition < Length(Block)) and
-        (Block[ArgPosition + 1] = '*') then
-      begin
-        Inc(ArgPosition, 2);
-        while (ArgPosition < Length(Block)) and
-          ((Block[ArgPosition] <> '*') or (Block[ArgPosition + 1] <> '/')) do
-          Inc(ArgPosition);
-        if ArgPosition < Length(Block) then
-          Inc(ArgPosition, 2);
-      end else
-      if Block[ArgPosition] = '#' then
-      begin
-        while (ArgPosition <= Length(Block)) and
-          (Block[ArgPosition] <> #10) and (Block[ArgPosition] <> #13) do
-          Inc(ArgPosition);
-      end else
-      if (Block[ArgPosition] = '''') or (Block[ArgPosition] = '"') then
-      begin
-        QuoteChar := Block[ArgPosition];
-        IsTopLevelString := ParenthesisDepth = 0;
-        ClosedString := false;
-        if IsTopLevelString then
-          SawTopLevelString := true;
-        Inc(ArgPosition);
-        while ArgPosition <= Length(Block) do
-        begin
-          if Block[ArgPosition] = '\' then
-          begin
-            if ArgPosition < Length(Block) then
-            begin
-              Inc(ArgPosition);
-              if (Block[ArgPosition] = QuoteChar) or
-                (Block[ArgPosition] = '\') then
-              begin
-                if IsTopLevelString then
-                  Result += Block[ArgPosition];
-              end else
-              begin
-                if IsTopLevelString then
-                begin
-                  Result += '\';
-                  Result += Block[ArgPosition];
-                end;
-              end;
-              Inc(ArgPosition);
-            end else
-            begin
-              if IsTopLevelString then
-                Result += '\';
-              Inc(ArgPosition);
-            end;
-          end else
-          if Block[ArgPosition] = QuoteChar then
-          begin
-            Inc(ArgPosition);
-            ClosedString := true;
-            Break;
-          end else
-          begin
-            if IsTopLevelString then
-              Result += Block[ArgPosition];
-            Inc(ArgPosition);
-          end;
-        end;
-        if not ClosedString then
-          raise Exception.Create('Unterminated ' + ArgumentName +
-            ' string in gallery_link');
-      end else
-      if Block[ArgPosition] = '(' then
-      begin
-        Inc(ParenthesisDepth);
-        Inc(ArgPosition);
-      end else
-      if Block[ArgPosition] = ')' then
-      begin
-        if ParenthesisDepth = 0 then
-          Break;
-        Dec(ParenthesisDepth);
-        Inc(ArgPosition);
-      end else
-      if (Block[ArgPosition] = ',') and (ParenthesisDepth = 0) then
-        Break
-      else
-        Inc(ArgPosition);
-    end;
-    if not SawTopLevelString then
-      raise Exception.Create('No string value found for ' + ArgumentName +
-        ' argument in gallery_link');
-  end;
-
-  procedure RequireComma;
-  begin
-    SkipWhitespaceAndComments;
-    if (ArgPosition > Length(Block)) or (Block[ArgPosition] <> ',') then
-      raise Exception.Create('Expected comma between gallery_link arguments');
-    Inc(ArgPosition);
-  end;
-
-begin
-  ArgPosition := 1;
-  Result.Id := '';
-  Result.Author := '';
-  SetLength(Result.Links, 0);
-  Result.Name := Trim(ReadStringArgument('title'));
-  RequireComma;
-  Result.Description := Trim(ReadStringArgument('description'));
-  RequireComma;
-  Result.ImageUrl := Trim(ReadStringArgument('image'));
-  RequireComma;
-  Result.RepoUrl := Trim(ReadStringArgument('page'));
-end;
-
-procedure TImportPackageForm.ParseJsonLibrary(const Content: String);
-var
-  JSONData: TJSONData;
-  LibraryPackages: TJSONArray;
-  PackageData: TJSONObject;
-  PackageLinks: TJSONArray;
-  LinkData: TJSONObject;
-  Field: TJSONData;
-  ComponentInfo: TPackageInfo;
-  I, J: Integer;
-
-  function RequiredString(const ObjectData: TJSONObject;
-    const FieldName: String): String;
-  var
-    FieldData: TJSONData;
-  begin
-    FieldData := ObjectData.Find(FieldName);
-    if (FieldData = nil) or (FieldData.JSONType <> jtString) then
-      raise Exception.Create('Invalid package field "' + FieldName + '"');
-    Result := FieldData.AsString;
-  end;
-
-begin
-  JSONData := GetJSON(Content);
-  try
-    if JSONData.JSONType <> jtObject then
-      raise Exception.Create('Library JSON root must be an object');
-
-    Field := TJSONObject(JSONData).Find('packages');
-    if (Field = nil) or (Field.JSONType <> jtArray) then
-      raise Exception.Create('Library JSON must contain a packages array');
-    LibraryPackages := TJSONArray(Field);
-
-    ComponentList.Clear;
-    for I := 0 to LibraryPackages.Count - 1 do
-    begin
-      if LibraryPackages[I].JSONType <> jtObject then
-        raise Exception.Create('Library package must be an object');
-
-      PackageData := TJSONObject(LibraryPackages[I]);
-      ComponentInfo.Id := RequiredString(PackageData, 'id');
-      ComponentInfo.Name := RequiredString(PackageData, 'title');
-      ComponentInfo.Description := RequiredString(PackageData, 'description');
-      ComponentInfo.ImageUrl := RequiredString(PackageData, 'image');
-      ComponentInfo.RepoUrl := RequiredString(PackageData, 'page');
-      ComponentInfo.Author := RequiredString(PackageData, 'author');
-
-      Field := PackageData.Find('links');
-      if (Field = nil) or (Field.JSONType <> jtArray) then
-        raise Exception.Create('Invalid package field "links"');
-      PackageLinks := TJSONArray(Field);
-      SetLength(ComponentInfo.Links, PackageLinks.Count);
-      for J := 0 to PackageLinks.Count - 1 do
-      begin
-        if PackageLinks[J].JSONType <> jtObject then
-          raise Exception.Create('Package link must be an object');
-        LinkData := TJSONObject(PackageLinks[J]);
-        ComponentInfo.Links[J].Name := RequiredString(LinkData, 'name');
-        ComponentInfo.Links[J].Url := RequiredString(LinkData, 'url');
-      end;
-
-      ComponentList.Add(ComponentInfo);
-      WritelnLog('ImportPackage', 'Found component: ' + ComponentInfo.Name);
-    end;
-  finally
-    JSONData.Free;
-  end;
-end;
-
-procedure TImportPackageForm.ParseFallbackLibrary(const Content: String);
-var
-  Regex: TRegExpr;
-  BlockStart, BlockEnd: Integer;
-  Block: String;
-  ComponentInfo: TPackageInfo;
-begin
-  ComponentList.Clear;
-  Regex := TRegExpr.Create;
-  try
-    Regex.ModifierM := true;
-    Regex.ModifierG := true;
-    Regex.Expression := '<\?php\s+gallery_link\s*\(';
-
-    if Regex.Exec(Content) then
-    begin
-      repeat
-        BlockStart := Regex.MatchPos[0] + Regex.MatchLen[0];
-
-        { Find the end of the PHP block }
-        BlockEnd := BlockStart;
-        while (BlockEnd < Length(Content)) and (Copy(Content, BlockEnd, 2) <> '?>') do
-          Inc(BlockEnd);
-
-        if BlockEnd < Length(Content) then
-        begin
-          Block := Copy(Content, BlockStart, BlockEnd - BlockStart);
-          ComponentInfo := ParseComponentBlock(Block);
-
-          if (ComponentInfo.Name <> '') and (ComponentInfo.ImageUrl <> '') then
-          begin
-            ComponentList.Add(ComponentInfo);
-            WritelnLog('ImportPackage', 'Found component: ' + ComponentInfo.Name);
-          end;
-        end;
-      until not Regex.ExecNext;
-    end;
-    if ComponentList.Count = 0 then
-      raise Exception.Create('No gallery_link components found in fallback library');
-  finally
-    Regex.Free;
-  end;
-end;
-
 procedure TImportPackageForm.DownloadAndParseLibrary;
-var
-  Content: String;
-
-  function DownloadContent(const Url: String): String;
-  var
-    DownloadStream: TStream;
-  begin
-    DownloadStream := Download(Url);
-    try
-      SetLength(Result, DownloadStream.Size);
-      if DownloadStream.Size > 0 then
-        DownloadStream.ReadBuffer(Result[1], DownloadStream.Size);
-    finally
-      DownloadStream.Free;
-    end;
-  end;
-
 begin
   CancelImageDownloads;
   try
-    { Enable blocking downloads only while fetching the library data. }
-    EnableBlockingDownloads := true;
-    try
-      try
-        WritelnLog('ImportPackage', 'Downloading library from: ' + PackagesLibraryUrl);
-        Content := DownloadContent(PackagesLibraryUrl);
-        WritelnLog('ImportPackage', 'Downloaded ' + IntToStr(Length(Content)) + ' bytes');
-        ParseJsonLibrary(Content);
-      except
-        on E: Exception do
-        begin
-          WritelnWarning('ImportPackage', 'Failed to download/parse JSON library: ' +
-            E.Message + '; trying fallback URL');
-          try
-            WritelnLog('ImportPackage', 'Downloading fallback library from: ' +
-              LibraryFallbackUrl);
-            Content := DownloadContent(LibraryFallbackUrl);
-            WritelnLog('ImportPackage', 'Downloaded ' + IntToStr(Length(Content)) + ' bytes');
-            ParseFallbackLibrary(Content);
-          except
-            on FallbackException: Exception do
-            begin
-              WritelnWarning('ImportPackage', 'Failed to download/parse fallback library: ' +
-                FallbackException.Message);
-              raise Exception.Create('JSON library failed: ' + E.Message +
-                '; fallback library failed: ' + FallbackException.Message);
-            end;
-          end;
-        end;
-      end;
-    finally
-      EnableBlockingDownloads := false;
-    end;
-
-    WritelnLog('ImportPackage', 'Parsed ' + IntToStr(ComponentList.Count) + ' components');
+    ComponentList := LoadPackageLibrary(PackagesLibraryUrl);
     DisplayComponents;
   except
     on E: Exception do
@@ -976,7 +629,7 @@ begin
   
   TopPosition := 8;
   
-  for I := 0 to ComponentList.Count - 1 do
+  for I := 0 to Length(ComponentList) - 1 do
   begin
     PanelHeight := 158 + Length(ComponentList[I].Links) * 18;
     if PanelHeight < 180 then
@@ -991,6 +644,7 @@ begin
     ComponentPanel.BorderStyle := bsSingle;
     ComponentPanel.BevelOuter := bvNone;
     ComponentPanel.Id := ComponentList[I].Id;
+    ComponentPanel.OnPackageCommand := OnPackageCommand;
 
     IsInstalled := InstalledPackageIds.IndexOf(ComponentPanel.Id) <> -1;
 
@@ -1115,7 +769,7 @@ begin
   end;
 
   { Start downloads only after every target TImage has been created. }
-  for I := 0 to ComponentList.Count - 1 do
+  for I := 0 to Length(ComponentList) - 1 do
   begin
     ComponentPanel := TPackagePanel(ScrollBoxPackages.Controls[I]);
         if LowerCase(ExtractFileExt(ComponentList[I].ImageUrl)) = '.gif' then
@@ -1125,7 +779,7 @@ begin
     StartImageDownload(ComponentPanel.Image, ImageUrl);
   end;
   
-  WritelnLog('ImportPackage', 'Displayed ' + IntToStr(ComponentList.Count) + ' components');
+  WritelnLog('ImportPackage', 'Displayed ' + IntToStr(Length(ComponentList)) + ' components');
 end;
 
 initialization
