@@ -37,7 +37,7 @@ type
     Name: String;
     { Package description, which may contain HTML. }
     Description: String;
-    { Image filename relative to the image base URLs below. }
+    { Image path relative to the packages library's images/ directory. }
     ImageUrl: String;
     { Package repository or project page URL. }
     RepoUrl: String;
@@ -54,10 +54,10 @@ const
   { Fallback source for the packages library, used when the JSON source fails. }
   LibraryFallbackUrl = 'https://raw.githubusercontent.com/castle-engine/cge-www/refs/heads/master/htdocs/additional_components.php';
 
-  { Base URL for regular package images. }
+  { Legacy fallback base URL for regular package images. }
   ImageBaseUrl = 'https://raw.githubusercontent.com/castle-engine/cge-www/refs/heads/master/htdocs/images/original_size/';
 
-  { Base URL for gallery-sized package images. }
+  { Legacy fallback base URL for gallery-sized package images. }
   GalleryImageBaseUrl = 'https://raw.githubusercontent.com/castle-engine/cge-www/refs/heads/master/htdocs/images/gallery_size/';
 
 { Parse packages from a JSON library document. }
@@ -70,11 +70,38 @@ function ParsePackageLibraryFallback(const Content: String): TPackageInfoArray;
   PHP library if downloading or parsing the JSON library fails. }
 function LoadPackageLibrary(const Url: String): TPackageInfoArray;
 
+{ Get a package image URL from the directory containing the given library URL,
+  using its images/ subdirectory. }
+function PackageLibraryImageUrl(const LibraryUrl, ImagePath: String): String;
+
 implementation
 
 uses
   Classes, SysUtils, RegExpr, fpjson, jsonparser,
   CastleDownload, CastleLog;
+
+function PackageLibraryImageUrl(const LibraryUrl, ImagePath: String): String;
+var
+  UrlWithoutQueryOrFragment: String;
+  QueryPosition: SizeInt;
+  FragmentPosition: SizeInt;
+  PathPosition: SizeInt;
+begin
+  UrlWithoutQueryOrFragment := LibraryUrl;
+  QueryPosition := Pos('?', UrlWithoutQueryOrFragment);
+  FragmentPosition := Pos('#', UrlWithoutQueryOrFragment);
+  if (QueryPosition > 0) and
+    ((FragmentPosition = 0) or (QueryPosition < FragmentPosition)) then
+    Delete(UrlWithoutQueryOrFragment, QueryPosition, Length(UrlWithoutQueryOrFragment));
+  FragmentPosition := Pos('#', UrlWithoutQueryOrFragment);
+  if FragmentPosition > 0 then
+    Delete(UrlWithoutQueryOrFragment, FragmentPosition,
+      Length(UrlWithoutQueryOrFragment));
+
+  PathPosition := LastDelimiter('/', UrlWithoutQueryOrFragment);
+  Result := Copy(UrlWithoutQueryOrFragment, 1, PathPosition) +
+    'images/' + ImagePath;
+end;
 
 function ParseComponentBlock(const Block: String): TPackageInfo;
 var

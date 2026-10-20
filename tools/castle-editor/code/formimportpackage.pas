@@ -81,6 +81,7 @@ type
   TPackageImageDownload = class(TCastleDownload)
   public
     ImageControl: TImage;
+    FallbackUrl: String;
   end;
 
   { Form to import package from Castle Library. }
@@ -104,7 +105,7 @@ type
     procedure CancelImageDownloads;
     procedure ImageDownloadUpdateTimerTimer(Sender: TObject);
     procedure StartImageDownload(const ImageControl: TImage;
-      const Url: String);
+      const Url: String; const FallbackUrl: String = '');
     procedure ImageDownloadFinished(const Sender: TCastleDownload;
       var FreeSender: Boolean);
   public
@@ -447,12 +448,13 @@ begin
 end;
 
 procedure TImportPackageForm.StartImageDownload(const ImageControl: TImage;
-  const Url: String);
+  const Url, FallbackUrl: String);
 var
   ImageDownload: TPackageImageDownload;
 begin
   ImageDownload := TPackageImageDownload.Create(nil);
   ImageDownload.ImageControl := ImageControl;
+  ImageDownload.FallbackUrl := FallbackUrl;
   ImageDownload.Url := Url;
   ImageDownload.OnFinish := @ImageDownloadFinished;
   ImageDownloads.Add(ImageDownload);
@@ -464,12 +466,20 @@ begin
     begin
       ImageDownloads.Remove(ImageDownload);
       ImageDownload.Free;
-      WritelnWarning('ImportPackage', 'Failed to start package image download from ' +
-        Url + ': ' + E.Message);
-      ImageControl.Canvas.Brush.Color := clGray;
-      ImageControl.Canvas.FillRect(0, 0, ImageControl.Width, ImageControl.Height);
-      ImageControl.Canvas.Font.Color := clWhite;
-      ImageControl.Canvas.TextOut(10, (ImageControl.Height div 2) - 5, 'No Image');
+      if FallbackUrl <> '' then
+      begin
+        WritelnWarning('ImportPackage', 'Failed to start package image download from ' +
+          Url + ': ' + E.Message + '; trying fallback image URL');
+        StartImageDownload(ImageControl, FallbackUrl);
+      end else
+      begin
+        WritelnWarning('ImportPackage', 'Failed to start package image download from ' +
+          Url + ': ' + E.Message);
+        ImageControl.Canvas.Brush.Color := clGray;
+        ImageControl.Canvas.FillRect(0, 0, ImageControl.Width, ImageControl.Height);
+        ImageControl.Canvas.Font.Color := clWhite;
+        ImageControl.Canvas.TextOut(10, (ImageControl.Height div 2) - 5, 'No Image');
+      end;
     end;
   end;
 end;
@@ -576,12 +586,20 @@ begin
   except
     on E: Exception do
     begin
-      WritelnWarning('ImportPackage', 'Failed to load package image from ' +
-        Sender.Url + ': ' + E.Message);
-      ImageControl.Canvas.Brush.Color := clGray;
-      ImageControl.Canvas.FillRect(0, 0, ImageControl.Width, ImageControl.Height);
-      ImageControl.Canvas.Font.Color := clWhite;
-      ImageControl.Canvas.TextOut(10, (ImageControl.Height div 2) - 5, 'No Image');
+      if ImageDownload.FallbackUrl <> '' then
+      begin
+        WritelnWarning('ImportPackage', 'Failed to load package image from ' +
+          Sender.Url + ': ' + E.Message + '; trying fallback image URL');
+        StartImageDownload(ImageControl, ImageDownload.FallbackUrl);
+      end else
+      begin
+        WritelnWarning('ImportPackage', 'Failed to load package image from ' +
+          Sender.Url + ': ' + E.Message);
+        ImageControl.Canvas.Brush.Color := clGray;
+        ImageControl.Canvas.FillRect(0, 0, ImageControl.Width, ImageControl.Height);
+        ImageControl.Canvas.Font.Color := clWhite;
+        ImageControl.Canvas.TextOut(10, (ImageControl.Height div 2) - 5, 'No Image');
+      end;
     end;
   end;
   FreeSender := true;
@@ -610,6 +628,7 @@ var
   TopPosition: Integer;
   PanelHeight: Integer;
   ImageUrl: String;
+  FallbackImageUrl: String;
   LinksHtml: String;
   IsInstalled: Boolean;
 
@@ -772,11 +791,13 @@ begin
   for I := 0 to Length(ComponentList) - 1 do
   begin
     ComponentPanel := TPackagePanel(ScrollBoxPackages.Controls[I]);
-        if LowerCase(ExtractFileExt(ComponentList[I].ImageUrl)) = '.gif' then
-      ImageUrl := GalleryImageBaseUrl + ComponentList[I].ImageUrl
+    ImageUrl := PackageLibraryImageUrl(PackagesLibraryUrl,
+      ComponentList[I].ImageUrl);
+    if LowerCase(ExtractFileExt(ComponentList[I].ImageUrl)) = '.gif' then
+      FallbackImageUrl := GalleryImageBaseUrl + ComponentList[I].ImageUrl
     else
-      ImageUrl := ImageBaseUrl + ComponentList[I].ImageUrl;
-    StartImageDownload(ComponentPanel.Image, ImageUrl);
+      FallbackImageUrl := ImageBaseUrl + ComponentList[I].ImageUrl;
+    StartImageDownload(ComponentPanel.Image, ImageUrl, FallbackImageUrl);
   end;
   
   WritelnLog('ImportPackage', 'Displayed ' + IntToStr(Length(ComponentList)) + ' components');
