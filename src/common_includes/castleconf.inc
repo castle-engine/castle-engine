@@ -798,8 +798,10 @@
   FMX can also make multi-touch events.
   But our TFmxTouchDispatcher is not ready for this (right now,
   it can deal with various bugginess of FMX multi-touch on Android and iOS only). }
-{$if defined(DELPHI) and (defined(ANDROID) or defined(IOS)) and (CompilerVersion >= 36)}
-  {$define CASTLE_HANDLE_FMX_TOUCH}
+{$ifndef PASDOC}
+  {$if defined(DELPHI) and (defined(ANDROID) or defined(IOS)) and (CompilerVersion >= 36)}
+    {$define CASTLE_HANDLE_FMX_TOUCH}
+  {$endif}
 {$endif}
 
 // -----------------------------------------------------------------------------

@@ -2317,8 +2317,13 @@ begin
 
   TextureShaders.Add(TextureShader);
 
+  if Node.FdEffects.Count <> 0 then
+  begin
+    ShapeRequiresShaders := true;
+    EnableShaderLibraries(Node.FdEffects.InternalItems);
+  end;
+
   if (TextureType = ttShader) or
-     (Node.FdEffects.Count <> 0) or
      { MultiTexture.function requires shaders }
      (Env.TextureFunction <> tfNone) then
     ShapeRequiresShaders := true;
@@ -2640,7 +2645,10 @@ begin
   LightShaders.Add(LightShader);
 
   if Light^.Node.FdEffects.Count <> 0 then
+  begin
     ShapeRequiresShaders := true;
+    EnableShaderLibraries(Light^.Node.FdEffects.InternalItems);
+  end;
 
   LightShader.Prepare(FCodeHash, LightShaders.Count - 1);
 end;
