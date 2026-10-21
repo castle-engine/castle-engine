@@ -146,8 +146,10 @@ begin
     Env.Hash;
   Hash.AddInteger(179 * (TextureUnit + 1) * IntHash);
   { Don't directly add Node to the Hash, it would prevent a lot of sharing.
-    Node is only used to get effects. }
-  Hash.AddEffects(Node.FdEffects);
+    Node is only used to get effects.
+    Pass also the texture unit, as the effect code is plugged
+    into the code of this specific texture unit. }
+  Hash.AddEffects(Node.FdEffects, TextureUnit + 1);
 {$include norqcheckend.inc}
 end;
 

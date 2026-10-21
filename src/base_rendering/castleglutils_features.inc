@@ -851,13 +851,23 @@ constructor TGLFeatures.Create;
 
       fails there with GL_INVALID_ENUM.
 
-    2. NVidia on Linux (reproduced on Michalis hostname: guardia):
+    2. NVidia on Linux (reproduced on Michalis hosts: guardia, guardia-pika, rattkin):
 
       NVIDIA GeForce RTX 3050 Ti Laptop GPU/PCIe/SSE2
+      and AMD GPU too.
 
-      But only in castle-editor build with GTK 3 backend.
-      The LCL TOpenGLControl on GTK 3 creates some non-typical GL context,
-      with OpenGL 3.2 (while in general we have OpenGL 4.6 with TCastleWindow).
+      But only in LCL applications, with GTK 3 and (in Wayland) GTK 2.
+
+      - castle-editor.
+
+      - Lazarus library tester from
+        https://github.com/castle-engine/castle-library-model-viewer
+
+      The LCL TOpenGLControl on GTK + Wayland creates some non-typical GL context
+      with OpenGL 3.2? (while in general we have OpenGL 4.6 with TCastleWindow).
+
+      Possibly this is caused by GTK allocating the default framebuffer,
+      see ScreenFbo comments in castleglimages_rendertotexture.inc?
   }
   function SafeGetFramebufferAttachmentParameter(const Target: TGLenum;
     const Attachment: TGLenum; const Pname: TGLenum; const PnameName: String;
@@ -867,18 +877,25 @@ constructor TGLFeatures.Create;
   begin
     glGetFramebufferAttachmentParameteriv(Target, Attachment, Pname, @Result);
     ErrorCode := glGetError();
-    if ErrorCode = GL_INVALID_ENUM then
+    { Observed:
+      - GL_INVALID_ENUM with castle-editor
+      - GL_INVALID_OPERATION with Lazarus library tester (guardia-pika, rattkin)
+      So capture and report anything <> GL_NO_ERROR. }
+    if ErrorCode <> GL_NO_ERROR then
     begin
-      WritelnWarning('glGetFramebufferAttachmentParameteriv', 'Returned GL_INVALID_ENUM, for Target=%d, Attachment=%d, Pname=%s. Assuming reasonable context properties: %d', [
+      WritelnWarning(
+        'glGetFramebufferAttachmentParameteriv failed with error.' + NL +
+        '  Error: %s' + NL +
+        '  Call parameters: Target=%d, Attachment=%d, Pname=%s.' + NL +
+        '  We continue, assuming reasonable context properties: %d', [
+        GLErrorString(ErrorCode),
         Target,
         Attachment,
         PnameName,
         Default
       ]);
       Result := Default;
-    end else
-    if ErrorCode <> GL_NO_ERROR then
-      raise EOpenGLError.Create(ErrorCode, 'after glGetFramebufferAttachmentParameteriv');
+    end;
   end;
   {$endif}
 
