@@ -99,6 +99,11 @@
 '  float scale = 1.0;' + LineEnding +
 '  /* PLUG: light_scale (scale, normal_eye, light_dir) */' + LineEnding +
 '' + LineEnding +
+'  /* Like scale, but per color component: multiplies the light''s color,' + LineEnding +
+'     for example by a colored image projected from the light. */' + LineEnding +
+'  vec3 color_scale = vec3(1.0);' + LineEnding +
+'  /* PLUG: light_color_scale (color_scale, normal_eye, light_dir) */' + LineEnding +
+'' + LineEnding +
 '#ifdef LIGHT<Light>_TYPE_SPOT' + LineEnding +
 '#ifdef LIGHT<Light>_HAS_BEAM_WIDTH' + LineEnding +
 '  /* calculate spot following VRML 2.0/X3D idea of beamWidth */' + LineEnding +
@@ -166,6 +171,6 @@
 '  }' + LineEnding +
 '#endif' + LineEnding +
 '' + LineEnding +
-'  color.rgb += light_color * scale;' + LineEnding +
+'  color.rgb += light_color * scale * color_scale;' + LineEnding +
 '}' + LineEnding +
 ''
