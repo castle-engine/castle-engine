@@ -37,6 +37,13 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+
+    { Add shader effects to configure how the light is applied to the lit shapes.
+      Effects on lights can use the @code(PLUG_light_scale) plug
+      to scale the light contribution at each lit point.
+      See https://castle-engine.io/shaders for documentation
+      how shader effects work in Castle Game Engine. }
+    procedure SetEffects(const Value: array of TEffectNode);
   published
   end;
 
@@ -84,6 +91,12 @@ begin
     if FLightNode <> nil then
       FRootNode.AddChildren(FLightNode);
   end;
+end;
+
+procedure TCastleAbstractLight.SetEffects(const Value: array of TEffectNode);
+begin
+  Assert(FLightNode <> nil); // all descendants must assign a LightNode
+  FLightNode.SetEffects(Value);
 end;
 
 function TCastleAbstractLight.PropertySections(const PropertyName: String): TPropertySections;
