@@ -42,6 +42,7 @@ uses
   TestCastleKeysMouse,
   TestCastleImages,
   TestCastleInternalDataCompression,
+  TestCastleInternalZLib,
   TestCastleImagesDraw,
   TestCastleBoxes,
   TestCastleFrustum,
