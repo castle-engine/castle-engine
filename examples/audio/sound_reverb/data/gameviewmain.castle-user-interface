@@ -1,0 +1,251 @@
+{
+  "$$ClassName" : "TCastleUserInterface",
+  "FullSize" : true,
+  "Name" : "Group1",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleViewport",
+      "Background" : "Background1",
+      "Camera" : "Camera1",
+      "FullSize" : true,
+      "Name" : "MainViewport",
+      "Items" : {
+        "$$ClassName" : "TCastleRootTransform",
+        "PhysicsProperties" : {
+          "$$ClassName" : "TPhysicsProperties",
+          "LayerCollisions" : {
+            "$$ClassName" : "TCastleLayerCollisions"
+          },
+          "LayerNames" : {
+            "$$ClassName" : "TCastleLayerNames"
+          }
+        },
+        "$Children" : [
+          {
+            "$$ClassName" : "TCastleCamera",
+            "Name" : "Camera1",
+            "Orthographic" : {
+              "$$ClassName" : "TCastleOrthographic"
+            },
+            "Perspective" : {
+              "$$ClassName" : "TCastlePerspective"
+            },
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent",
+              "W" : 2.5000000000000000E-001,
+              "X" : -1.0000000000000000E+000
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "Y" : 3.0000000000000000E+000,
+              "Z" : 1.2000000000000000E+001
+            }
+          },
+          {
+            "$$ClassName" : "TCastlePointLight",
+            "Intensity" : 1.0000000000000000E+002,
+            "Name" : "PointLight1",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 3.0000000000000000E+000,
+              "Y" : 6.0000000000000000E+000,
+              "Z" : 4.0000000000000000E+000
+            }
+          },
+          {
+            "$$ClassName" : "TCastlePlane",
+            "Name" : "Floor",
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "SizePersistent" : {
+              "$$ClassName" : "TCastleVector2Persistent",
+              "X" : 4.0000000000000000E+001,
+              "Y" : 4.0000000000000000E+001
+            }
+          },
+          {
+            "$$ClassName" : "TCastleSphere",
+            "ColorPersistent" : {
+              "$$ClassName" : "TCastleColorPersistent",
+              "Blue" : 2.0000000000000000E-001,
+              "Green" : 8.0000000000000000E-001,
+              "Red" : 2.0000000000000000E-001
+            },
+            "Name" : "SoundBall",
+            "Radius" : 6.0000000000000000E-001,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 2.0000000000000000E+000,
+              "Y" : 1.0000000000000000E+000,
+              "Z" : -2.0000000000000000E+000
+            },
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleSoundSource",
+                "Name" : "SoundSource1"
+              }
+            ]
+          }
+        ]
+      },
+      "$NonVisualComponents" : [
+        {
+          "$$ClassName" : "TCastleBackground",
+          "Name" : "Background1"
+        },
+        {
+          "$$ClassName" : "TCastleSound",
+          "Name" : "SoundBlip",
+          "URL" : "castle-data:/blip.wav"
+        }
+      ],
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleExamineNavigation",
+          "Name" : "ExamineNavigation1"
+        }
+      ],
+      "InternalDesignCamera" : {
+        "$$ClassName" : "TCastleCamera",
+        "Name" : "",
+        "Orthographic" : {
+          "$$ClassName" : "TCastleOrthographic"
+        },
+        "Perspective" : {
+          "$$ClassName" : "TCastlePerspective"
+        },
+        "RotationPersistent" : {
+          "$$ClassName" : "TCastleVector4RotationPersistent",
+          "W" : 2.5000000000000000E-001,
+          "X" : -1.0000000000000000E+000
+        },
+        "TranslationPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "Y" : 3.0000000000000000E+000,
+          "Z" : 1.2000000000000000E+001
+        }
+      },
+      "InternalDesignNavigations[dnFly]" : {
+        "$$ClassName" : "TCastleWalkNavigationDesign",
+        "Name" : ""
+      },
+      "InternalDesignNavigations[dnExamine]" : {
+        "$$ClassName" : "TCastleExamineNavigationDesign",
+        "Exists" : false,
+        "Name" : ""
+      },
+      "InternalDesignNavigations[dn2D]" : {
+        "$$ClassName" : "TCastle2DNavigationDesign",
+        "Exists" : false,
+        "Name" : ""
+      }
+    },
+    {
+      "$$ClassName" : "TCastleVerticalGroup",
+      "HorizontalAnchorParent" : "hpRight",
+      "HorizontalAnchorSelf" : "hpRight",
+      "Name" : "GroupEnvironments",
+      "Padding" : 1.0000000000000000E+001,
+      "Spacing" : 1.0000000000000000E+001,
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : -2.0000000000000000E+001,
+        "Y" : -6.0000000000000000E+001
+      },
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleButton",
+          "AutoSizeWidth" : false,
+          "Caption" : "No reverb",
+          "Name" : "ButtonOff",
+          "Width" : 2.6000000000000000E+002
+        },
+        {
+          "$$ClassName" : "TCastleButton",
+          "AutoSizeWidth" : false,
+          "Caption" : "Small room",
+          "Name" : "ButtonSmallRoom",
+          "Width" : 2.6000000000000000E+002
+        },
+        {
+          "$$ClassName" : "TCastleButton",
+          "AutoSizeWidth" : false,
+          "Caption" : "Bathroom",
+          "Name" : "ButtonBathroom",
+          "Width" : 2.6000000000000000E+002
+        },
+        {
+          "$$ClassName" : "TCastleButton",
+          "AutoSizeWidth" : false,
+          "Caption" : "Concert hall",
+          "Name" : "ButtonHall",
+          "Width" : 2.6000000000000000E+002
+        },
+        {
+          "$$ClassName" : "TCastleButton",
+          "AutoSizeWidth" : false,
+          "Caption" : "Cave",
+          "Name" : "ButtonCave",
+          "Width" : 2.6000000000000000E+002
+        },
+        {
+          "$$ClassName" : "TCastleButton",
+          "AutoSizeWidth" : false,
+          "Caption" : "Hangar",
+          "Name" : "ButtonHangar",
+          "Width" : 2.6000000000000000E+002
+        },
+        {
+          "$$ClassName" : "TCastleButton",
+          "AutoSizeWidth" : false,
+          "Caption" : "Play non-spatial (dry)",
+          "Name" : "ButtonNonSpatial",
+          "Width" : 2.6000000000000000E+002
+        }
+      ]
+    },
+    {
+      "$$ClassName" : "TCastleLabel",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 0.0000000000000000E+000
+      },
+      "FontSize" : 2.0000000000000000E+001,
+      "HorizontalAnchorParent" : "hpLeft",
+      "HorizontalAnchorSelf" : "hpLeft",
+      "Name" : "LabelInfo",
+      "Padding" : 1.0000000000000000E+001,
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 2.0000000000000000E+001,
+        "Y" : -2.0000000000000000E+001
+      },
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleLabel",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 0.0000000000000000E+000
+      },
+      "FontSize" : 2.0000000000000000E+001,
+      "HorizontalAnchorParent" : "hpRight",
+      "HorizontalAnchorSelf" : "hpRight",
+      "Name" : "LabelFps",
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : -2.0000000000000000E+001,
+        "Y" : -2.0000000000000000E+001
+      },
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    }
+  ]
+}

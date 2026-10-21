@@ -20,7 +20,8 @@ unit CastleSoundBase;
 
 interface
 
-uses SysUtils, Generics.Collections;
+uses SysUtils, Generics.Collections,
+  CastleVectors;
 
 type
   ENoMoreSources = class(Exception);
@@ -93,7 +94,54 @@ type
     Used for @link(TCastleSound.Frequency). }
   TSoundFrequency = Single;
 
+  { Reverb parameters, passed to sound backends.
+    Use @link(TCastleSoundReverb) (through @link(TSoundEngine.Reverb))
+    to control the reverb, this record is only an internal way to pass
+    the parameters to sound backends. See @link(TCastleSoundReverb)
+    for the meaning of each parameter. }
+  TSoundReverbParameters = record
+    Enabled: Boolean;
+    Density, Diffusion, Gain, GainHF, GainLF, DecayTime, DecayHFRatio,
+    DecayLFRatio, ReflectionsGain, ReflectionsDelay, LateReverbGain,
+    LateReverbDelay, EchoTime, EchoDepth, ModulationTime, ModulationDepth,
+    AirAbsorptionGainHF, HFReference, LFReference, RoomRolloffFactor: Single;
+    DecayHFLimit: Boolean;
+    ReflectionsPan, LateReverbPan: TVector3;
+    { Set the defaults (of the OpenAL EFX reverb), with Enabled = @false. }
+    procedure SetDefaults;
+  end;
+
 implementation
+
+{ TSoundReverbParameters ----------------------------------------------------- }
+
+procedure TSoundReverbParameters.SetDefaults;
+begin
+  Enabled := false;
+  Density := 1.0;
+  Diffusion := 1.0;
+  Gain := 0.32;
+  GainHF := 0.89;
+  GainLF := 1.0;
+  DecayTime := 1.49;
+  DecayHFRatio := 0.83;
+  DecayLFRatio := 1.0;
+  ReflectionsGain := 0.05;
+  ReflectionsDelay := 0.007;
+  LateReverbGain := 1.26;
+  LateReverbDelay := 0.011;
+  EchoTime := 0.25;
+  EchoDepth := 0.0;
+  ModulationTime := 0.25;
+  ModulationDepth := 0.0;
+  AirAbsorptionGainHF := 0.994;
+  HFReference := 5000.0;
+  LFReference := 250.0;
+  RoomRolloffFactor := 0.0;
+  DecayHFLimit := true;
+  ReflectionsPan := TVector3.Zero;
+  LateReverbPan := TVector3.Zero;
+end;
 
 { TSoundDeviceList ----------------------------------------------------------- }
 
