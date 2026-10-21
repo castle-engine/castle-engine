@@ -2706,10 +2706,11 @@ var
   BinaryFile: boolean;
 begin
   { Do not copy README.adoc, most services define it and would just overwrite each other.
-    It is for informational purposes in CGE sources.
-    Similarly do not copy CastleEngineService.xml, most services define it,
-    it is internal info for build tool. }
-  if SameText(DestinationRelativeFileName, 'README.adoc') or
+    It is for informational purposes in CGE sources. Same for:
+    - other docs of a service, like README_messages.adoc.
+    - CastleEngineService.xml (most services define it,
+      it is internal info for build tool). }
+  if IsWild(DestinationRelativeFileName, 'README*.adoc', true) or
      SameText(DestinationRelativeFileName, 'CastleEngineService.xml') then
     Exit;
 
