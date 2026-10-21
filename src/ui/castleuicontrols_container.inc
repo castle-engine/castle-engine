@@ -838,7 +838,7 @@
     procedure ReleaseCapture(const C: TCastleUserInterface);
 
     { Load application settings from an XML file.
-      See https://castle-engine.io/manual_castle_settings.php
+      See https://castle-engine.io/data_settings
       for a documentation of the file format.
 
       This loads UIScaling, UIReferenceWidth, UIReferenceHeight, DefaultFont.
@@ -853,7 +853,7 @@
       TCastleUserInterface instance).
 
       We still recommend to call this only once rendering context is available,
-      in case you use "warmup cache" feature ( https://castle-engine.io/manual_castle_settings.php#section_warmup_cache ).
+      in case you use "warmup cache" feature ( https://castle-engine.io/data_settings#section_warmup_cache ).
       The cache will be initialized better (with rendering resoruces too)
       if you call this after rendering context is available.
       It is easiest if you use TCastleWindow: just do this in Application.OnInitialize
@@ -900,7 +900,7 @@
       usEncloseReferenceSizeAutoOrientation,
       usFitReferenceSize.
 
-      See the documentation of these values and @url(https://castle-engine.io/manual_castle_settings.php manual)
+      See the documentation of these values and @url(https://castle-engine.io/data_settings manual)
       to understand how UI scaling works.
 
       You can set both UIReferenceWidth and UIReferenceHeight,

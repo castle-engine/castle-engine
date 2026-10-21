@@ -1,0 +1,270 @@
+{
+  "$$ClassName": "TCastleUserInterface",
+  "FullSize": true,
+  "Name": "RootGroup",
+  "$Children": [
+    {
+      "$$ClassName": "TCastleLabel",
+      "FontSize": 60,
+      "Name": "LabelTitle",
+      "Text": [
+        "Local Notifications"
+      ],
+      "HorizontalAnchorParent": "hpMiddle",
+      "HorizontalAnchorSelf": "hpMiddle",
+      "Alignment": "hpMiddle",
+      "VerticalAnchorParent": "vpTop",
+      "VerticalAnchorSelf": "vpTop",
+      "TranslationPersistent": {
+        "$$ClassName": "TCastleVector2Persistent",
+        "Y": -30.0
+      },
+      "ColorPersistent": {
+        "$$ClassName": "TCastleColorPersistent",
+        "Red": 1.0,
+        "Green": 1.0,
+        "Blue": 1.0
+      }
+    },
+    {
+      "$$ClassName": "TCastleVerticalGroup",
+      "Name": "Columns",
+      "Spacing": 70,
+      "HorizontalAnchorParent": "hpMiddle",
+      "HorizontalAnchorSelf": "hpMiddle",
+      "VerticalAnchorParent": "vpMiddle",
+      "VerticalAnchorSelf": "vpMiddle",
+      "$Children": [
+        {
+          "$$ClassName": "TCastleVerticalGroup",
+          "Name": "TestColumn",
+          "Spacing": 22,
+          "Alignment": "hpMiddle",
+          "$Children": [
+            {
+              "$$ClassName": "TCastleLabel",
+              "FontSize": 44,
+              "Name": "LabelTestHeader",
+              "Text": [
+                "Test"
+              ],
+              "HorizontalAnchorParent": "hpMiddle",
+              "HorizontalAnchorSelf": "hpMiddle",
+              "Alignment": "hpMiddle",
+              "ColorPersistent": {
+                "$$ClassName": "TCastleColorPersistent",
+                "Red": 1.0,
+                "Green": 0.85,
+                "Blue": 0.4
+              }
+            },
+            {
+              "$$ClassName": "TCastleButton",
+              "Caption": "Send Notification 'Hello World' Now",
+              "FontSize": 36,
+              "Name": "ButtonHelloWorldNow",
+              "PaddingHorizontal": 20,
+              "PaddingVertical": 24,
+              "AutoSizeWidth": false,
+              "Width": 840
+            },
+            {
+              "$$ClassName": "TCastleButton",
+              "Caption": "Send Notification 'Hello 1' after 10 seconds",
+              "FontSize": 36,
+              "Name": "ButtonHello1Send",
+              "PaddingHorizontal": 20,
+              "PaddingVertical": 24,
+              "AutoSizeWidth": false,
+              "Width": 840
+            },
+            {
+              "$$ClassName": "TCastleButton",
+              "Caption": "Cancel Notification 'Hello 1'",
+              "FontSize": 36,
+              "Name": "ButtonHello1Cancel",
+              "PaddingHorizontal": 20,
+              "PaddingVertical": 24,
+              "AutoSizeWidth": false,
+              "Width": 840
+            },
+            {
+              "$$ClassName": "TCastleButton",
+              "Caption": "Send Notification 'Hello 2' after 60 seconds",
+              "FontSize": 36,
+              "Name": "ButtonHello2Send",
+              "PaddingHorizontal": 20,
+              "PaddingVertical": 24,
+              "AutoSizeWidth": false,
+              "Width": 840
+            },
+            {
+              "$$ClassName": "TCastleButton",
+              "Caption": "Cancel Notification 'Hello 2'",
+              "FontSize": 36,
+              "Name": "ButtonHello2Cancel",
+              "PaddingHorizontal": 20,
+              "PaddingVertical": 24,
+              "AutoSizeWidth": false,
+              "Width": 840
+            }
+          ]
+        },
+        {
+          "$$ClassName": "TCastleVerticalGroup",
+          "Name": "GardenColumn",
+          "Spacing": 22,
+          "Alignment": "hpMiddle",
+          "$Children": [
+            {
+              "$$ClassName": "TCastleLabel",
+              "FontSize": 44,
+              "Name": "LabelGardenHeader",
+              "Text": [
+                "Garden"
+              ],
+              "HorizontalAnchorParent": "hpMiddle",
+              "HorizontalAnchorSelf": "hpMiddle",
+              "Alignment": "hpMiddle",
+              "ColorPersistent": {
+                "$$ClassName": "TCastleColorPersistent",
+                "Red": 1.0,
+                "Green": 0.85,
+                "Blue": 0.4
+              }
+            },
+            {
+              "$$ClassName": "TCastleUserInterface",
+              "Name": "PlantArea",
+              "Width": 360,
+              "Height": 330,
+              "$Children": [
+                {
+                  "$$ClassName": "TCastleRectangleControl",
+                  "ColorPersistent": {
+                    "$$ClassName": "TCastleColorPersistent",
+                    "Red": 0.25,
+                    "Green": 0.7,
+                    "Blue": 0.25
+                  },
+                  "Name": "Stem",
+                  "Width": 16,
+                  "Height": 0,
+                  "HorizontalAnchorParent": "hpMiddle",
+                  "HorizontalAnchorSelf": "hpMiddle",
+                  "VerticalAnchorParent": "vpBottom",
+                  "VerticalAnchorSelf": "vpBottom",
+                  "TranslationPersistent": {
+                    "$$ClassName": "TCastleVector2Persistent",
+                    "Y": 90.0
+                  }
+                },
+                {
+                  "$$ClassName": "TCastleShape",
+                  "Name": "Flower",
+                  "ShapeType": "stCircle",
+                  "Exists": false,
+                  "ColorPersistent": {
+                    "$$ClassName": "TCastleColorPersistent",
+                    "Red": 1.0,
+                    "Green": 0.82,
+                    "Blue": 0.15
+                  },
+                  "Width": 80,
+                  "Height": 80,
+                  "HorizontalAnchorParent": "hpMiddle",
+                  "HorizontalAnchorSelf": "hpMiddle",
+                  "VerticalAnchorParent": "vpBottom",
+                  "VerticalAnchorSelf": "vpMiddle",
+                  "TranslationPersistent": {
+                    "$$ClassName": "TCastleVector2Persistent",
+                    "Y": 90.0
+                  }
+                },
+                {
+                  "$$ClassName": "TCastleRectangleControl",
+                  "ColorPersistent": {
+                    "$$ClassName": "TCastleColorPersistent",
+                    "Red": 0.6,
+                    "Green": 0.33,
+                    "Blue": 0.18
+                  },
+                  "Name": "Pot",
+                  "Width": 170,
+                  "Height": 90,
+                  "HorizontalAnchorParent": "hpMiddle",
+                  "HorizontalAnchorSelf": "hpMiddle",
+                  "VerticalAnchorParent": "vpBottom",
+                  "VerticalAnchorSelf": "vpBottom"
+                }
+              ]
+            },
+            {
+              "$$ClassName": "TCastleLabel",
+              "FontSize": 32,
+              "Name": "LabelGarden",
+              "Text": [
+                "Plant a seed. It grows in one minute,",
+                "even if you close the application."
+              ],
+              "HorizontalAnchorParent": "hpMiddle",
+              "HorizontalAnchorSelf": "hpMiddle",
+              "Alignment": "hpMiddle",
+              "ColorPersistent": {
+                "$$ClassName": "TCastleColorPersistent",
+                "Red": 1.0,
+                "Green": 1.0,
+                "Blue": 1.0
+              }
+            },
+            {
+              "$$ClassName": "TCastleButton",
+              "Caption": "Plant a Seed",
+              "FontSize": 36,
+              "Name": "ButtonPlant",
+              "PaddingHorizontal": 20,
+              "PaddingVertical": 24,
+              "AutoSizeWidth": false,
+              "Width": 840
+            },
+            {
+              "$$ClassName": "TCastleButton",
+              "Caption": "Dig It Up",
+              "FontSize": 36,
+              "Name": "ButtonDigUp",
+              "PaddingHorizontal": 20,
+              "PaddingVertical": 24,
+              "AutoSizeWidth": false,
+              "Width": 840
+            }
+          ]
+        }
+      ],
+      "Alignment": "hpMiddle"
+    },
+    {
+      "$$ClassName": "TCastleLabel",
+      "FontSize": 30,
+      "Name": "LabelStatus",
+      "Text": [
+        ""
+      ],
+      "HorizontalAnchorParent": "hpMiddle",
+      "HorizontalAnchorSelf": "hpMiddle",
+      "Alignment": "hpMiddle",
+      "VerticalAnchorParent": "vpBottom",
+      "VerticalAnchorSelf": "vpBottom",
+      "ColorPersistent": {
+        "$$ClassName": "TCastleColorPersistent",
+        "Red": 0.7,
+        "Green": 0.7,
+        "Blue": 0.7
+      },
+      "TranslationPersistent": {
+        "$$ClassName": "TCastleVector2Persistent",
+        "Y": 30.0
+      },
+      "MaxWidth": 860
+    }
+  ]
+}
