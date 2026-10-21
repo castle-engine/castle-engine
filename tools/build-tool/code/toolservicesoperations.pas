@@ -31,6 +31,14 @@ type
     type
       TServiceCopy = class
         Source, Target: String;
+        { If not empty, do this copy only when the project defines
+          (with non-empty value) the service parameter with this key.
+          Otherwise the copy is silently skipped.
+          Allows a service to accept an optional file from the project.
+
+          Lowercase, as the service parameter keys are not case-sensitive.
+          Read from if_parameter attribute of <copy>. }
+        IfParameter: String;
       end;
       TServiceCopyList = specialize TObjectList<TServiceCopy>;
     var
@@ -138,6 +146,7 @@ begin
             CopyOperation := TServiceCopy.Create;
             CopyOperation.Source := I.Current.AttributeString('source');
             CopyOperation.Target := I.Current.AttributeString('target');
+            CopyOperation.IfParameter := LowerCase(I.Current.AttributeStringDef('if_parameter', ''));
             PackageOperations.Add(CopyOperation);
           end;
         finally FreeAndNil(I) end;
@@ -149,10 +158,23 @@ end;
 procedure TServiceManifest.Package(const Project: TCastleProject; const OutputPath: String);
 var
   C: TServiceCopy;
-  Source, Target: String;
+  Source, Target, ParameterValue: String;
 begin
   for C in PackageOperations do
   begin
+    if (C.IfParameter <> '') and not (
+         FService.Parameters.TryGetValue(C.IfParameter, ParameterValue) and
+         (ParameterValue <> '')
+       ) then
+    begin
+      WritelnVerbose(Format('Packaging service %s: Skipped copying %s, as the project does not define service parameter "%s"', [
+        FService.Name,
+        C.Source,
+        C.IfParameter
+      ]));
+      Continue;
+    end;
+
     (* Copy.Source may be something like '${IOS.FMOD.LIBRARY_PATH}' and the macro
       may expand to an absolute path, or a path relative to the project. *)
     Source := CombinePaths(Project.Path, Project.ReplaceMacros(C.Source));
@@ -167,7 +189,8 @@ begin
         Target
       ]);
     if RegularFileExists(Target) then
-      raise Exception.CreateFmt('Service file "%s" already exists, specified by multiple services: %s', [
+      raise Exception.CreateFmt('Packaging service %s: File "%s" already exists, it was already copied by another service or another <copy> of this service', [
+        FService.Name,
         Target
       ]);
 

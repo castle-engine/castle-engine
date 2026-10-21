@@ -2,7 +2,7 @@
 
 <!--
   Test that we can read CastleSettings.xml, see
-  https://castle-engine.io/manual_castle_settings.php .
+  https://castle-engine.io/data_settings .
 -->
 
 <castle_settings>
