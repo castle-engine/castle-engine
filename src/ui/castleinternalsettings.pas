@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Reading CastleSettings.xml ( https://castle-engine.io/manual_castle_settings.php ). }
+{ Reading CastleSettings.xml ( https://castle-engine.io/data_settings ). }
 unit CastleInternalSettings;
 
 {$I castleconf.inc}
@@ -71,7 +71,7 @@ type
 { Register new TWarmupCacheFormat using @code(WarmupCacheFormats.RegisterFormat). }
 function WarmupCacheFormats: TWarmupCacheFormatList;
 
-{ Load CastleSettings.xml ( https://castle-engine.io/manual_castle_settings.php )
+{ Load CastleSettings.xml ( https://castle-engine.io/data_settings )
   into a container.
   This also creates a TWarmupCache that is owned by the container. }
 procedure SettingsLoad(const Container: TCastleContainer; const SettingsUrl: String);

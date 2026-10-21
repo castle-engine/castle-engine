@@ -32,9 +32,25 @@
     //procedure AddString(const S: String; const Multiplier: UInt32);
     procedure AddInteger(const I: Integer);
     procedure AddFloat(const F: Single; const UniquePrimeNumber: Cardinal);
-    procedure AddPointer(Ptr: Pointer);
-    procedure AddEffects(Nodes: TX3DNodeList); overload;
-    procedure AddEffects(Nodes: TMFNode); overload;
+
+    { Add pointer (reference) to the hash.
+
+      Multiplier allows to distinguish the same pointer used in different roles.
+      E.g. pass "light number + 1" when adding something specific to
+      a given light source. Must be non-zero. }
+    procedure AddPointer(Ptr: Pointer; const Multiplier: UInt32 = 1);
+
+    { Add enabled Effect nodes to the hash.
+
+      Multiplier allows to distinguish the same effects used at different
+      "slots", when the generated shader code depends on the slot.
+      E.g. effects on a light source should pass "light number + 1",
+      effects on a texture should pass "texture unit + 1".
+      This way the same Effect node used on a different light number
+      (or texture unit) results in a different hash.
+      Must be non-zero. }
+    procedure AddEffects(Nodes: TX3DNodeList; const Multiplier: UInt32 = 1); overload;
+    procedure AddEffects(Nodes: TMFNode; const Multiplier: UInt32 = 1); overload;
 
     function ToString: String;
     procedure Clear;
@@ -80,13 +96,17 @@ begin
 end;
 *)
 
-procedure TShaderCodeHash.AddPointer(Ptr: Pointer);
+procedure TShaderCodeHash.AddPointer(Ptr: Pointer; const Multiplier: UInt32);
+var
+  Value: UInt32;
 begin
+  Assert(Multiplier <> 0);
   { This will cut the pointer on non-32bit processors.
     But that's not a problem --- we just want it for hash,
     taking the least significant 32 bits from pointer is OK for this. }
-  Sum := Sum + UInt32(PtrUInt(Ptr));
-  XorValue := XorValue xor UInt32(PtrUInt(Ptr));
+  Value := UInt32(PtrUInt(Ptr)) * Multiplier;
+  Sum := Sum + Value;
+  XorValue := XorValue xor Value;
 end;
 
 procedure TShaderCodeHash.AddInteger(const I: Integer);
@@ -101,7 +121,7 @@ end;
 
 {$include norqcheckend.inc}
 
-procedure TShaderCodeHash.AddEffects(Nodes: TX3DNodeList);
+procedure TShaderCodeHash.AddEffects(Nodes: TX3DNodeList; const Multiplier: UInt32);
 var
   I: Integer;
 begin
@@ -114,17 +134,17 @@ begin
   for I := 0 to Nodes.Count - 1 do
     if (Nodes[I] is TEffectNode) and
        TEffectNode(Nodes[I]).FdEnabled.Value then
-      AddPointer(Nodes[I]);
+      AddPointer(Nodes[I], Multiplier);
 end;
 
-procedure TShaderCodeHash.AddEffects(Nodes: TMFNode);
+procedure TShaderCodeHash.AddEffects(Nodes: TMFNode; const Multiplier: UInt32);
 var
   I: Integer;
 begin
   for I := 0 to Nodes.Count - 1 do
     if (Nodes[I] is TEffectNode) and
        TEffectNode(Nodes[I]).FdEnabled.Value then
-      AddPointer(Nodes[I]);
+      AddPointer(Nodes[I], Multiplier);
 end;
 
 function TShaderCodeHash.ToString: String;

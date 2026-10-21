@@ -301,9 +301,21 @@ var
   BoundFboStack: TGLFramebufferList;
 
   { The FBO id meaning "the screen".
-    This is 0 (GLObjectNone for WebGL) in usual circumstances,
-    except on iOS and iPhone Simulator it can be non-zero:
-    (see https://stackoverflow.com/questions/11617013/why-would-glbindframebuffergl-framebuffer-0-result-in-blank-screen-in-cocos2d)
+
+    This is 0 (GLObjectNone for WebGL) in usual circumstances, except it can
+    be non-zero in some special cases:
+
+    - iOS, iPhone Simulator
+      https://stackoverflow.com/questions/11617013/why-would-glbindframebuffergl-framebuffer-0-result-in-blank-screen-in-cocos2d
+
+    - GTK3:
+      https://stackoverflow.com/questions/62422683/framebuffer-issue-render-to-texture-with-gtk3-glarea-vs-glfw-identical-opengl#62436181
+
+    - Qt6:
+      https://doc.qt.io/qt-6/qopenglfunctions.html
+      "Note that Qt will translate a framebuffer argument of 0 to the currently bound QOpenGLContext's defaultFramebufferObject()."
+      https://doc.qt.io/qt-6/qopenglcontext.html#defaultFramebufferObject
+      "On some platforms (for instance, iOS) the default framebuffer object depends on the surface being rendered to, and might be different from 0."
   }
   ScreenFbo: TGLFramebuffer;
   ScreenFboQueried: boolean;
@@ -343,15 +355,6 @@ begin
     ScreenFbo := glGetInteger(GL_FRAMEBUFFER_BINDING);
     {$endif}
     if ScreenFbo <> GLObjectNone then
-      { See about GTK3:
-        https://stackoverflow.com/questions/62422683/framebuffer-issue-render-to-texture-with-gtk3-glarea-vs-glfw-identical-opengl#62436181
-
-        See about Qt6:
-        https://doc.qt.io/qt-6/qopenglfunctions.html
-        "Note that Qt will translate a framebuffer argument of 0 to the currently bound QOpenGLContext's defaultFramebufferObject()."
-        https://doc.qt.io/qt-6/qopenglcontext.html#defaultFramebufferObject
-        "On some platforms (for instance, iOS) the default framebuffer object depends on the surface being rendered to, and might be different from 0."
-      }
       WritelnLog('The screen FBO is not 0, it is %d. This known to happen on iOS, iPhone Simulator, GTK 3, Qt6.',
         [ScreenFbo]);
   end;

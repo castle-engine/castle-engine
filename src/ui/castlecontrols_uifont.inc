@@ -37,7 +37,7 @@ procedure InternalSetUIFont(const Value: TCastleAbstractFont);
   (treat it like "engine default font"), and instead set your default font by
   setting @link(TCastleContainer.DefaultFont Window.Container.DefaultFont).
   You can do it by code, or by editing CastleSettings.xml (this way editor
-  will be aware of this new default), see https://castle-engine.io/manual_castle_settings.php .
+  will be aware of this new default), see https://castle-engine.io/data_settings .
 
   Note that assigning font here @italic(does not) make it automatically freed.
   Use the ownership mechanism to make sure it is freed,

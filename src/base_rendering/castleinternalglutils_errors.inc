@@ -56,7 +56,8 @@ var
 
 procedure GLOutOfMemory(const AdditionalComment: string = '');
 
-function GLErrorString(const ErrorCode: TGLenum; const AdditionalComment: string = ''): string;
+function GLErrorString(const ErrorCode: TGLenum;
+  const AdditionalComment: String = ''): String;
 
 { Check are any OpenGL errors recorded (in glGetError).
   If there are errors, our behavior depends on whether we were compiled
@@ -78,31 +79,73 @@ procedure CheckGLErrors(const AdditionalComment: string = '');
 
 {$ifdef read_implementation}
 
-function GLErrorString(const ErrorCode: TGLenum; const AdditionalComment: string): string;
+function GLErrorString(const ErrorCode: TGLenum;
+  const AdditionalComment: String): String;
 var
-  S: string;
+  EnumName, Description: String;
 begin
-  { Do not use gluErrorString, not available in OpenGL ES.
+  { Convert OpenGL ErrorCode to human-readable strings in EnumName and Description.
+    Note: Do not use gluErrorString, not available in OpenGL ES.
     Error descriptions below from
     http://www.khronos.org/opengles/sdk/docs/man/xhtml/glGetError.xml }
+
   case ErrorCode of
-    GL_NO_ERROR: S := 'No error has been recorded.';
-    GL_INVALID_ENUM: S := 'An unacceptable value is specified for an enumerated argument.';
-    GL_INVALID_VALUE: S := 'A numeric argument is out of range.';
-    GL_INVALID_OPERATION: S := 'The specified operation is not allowed in the current state.';
+    GL_NO_ERROR:
+      begin
+        EnumName := 'GL_NO_ERROR';
+        Description := 'No error has been recorded.';
+      end;
+    GL_INVALID_ENUM:
+      begin
+        EnumName := 'GL_INVALID_ENUM';
+        Description := 'An unacceptable value is specified for an enumerated argument.';
+      end;
+    GL_INVALID_VALUE:
+      begin
+        EnumName := 'GL_INVALID_VALUE';
+        Description := 'A numeric argument is out of range.';
+      end;
+    GL_INVALID_OPERATION:
+      begin
+        EnumName := 'GL_INVALID_OPERATION';
+        Description := 'The specified operation is not allowed in the current state.';
+      end;
     {$ifndef OpenGLES}
-    GL_STACK_OVERFLOW: S := 'Stack overflow';
-    GL_STACK_UNDERFLOW: S := 'Stack underflow';
+    GL_STACK_OVERFLOW:
+      begin
+        EnumName := 'GL_STACK_OVERFLOW';
+        Description := 'Stack overflow';
+      end;
+    GL_STACK_UNDERFLOW:
+      begin
+        EnumName := 'GL_STACK_UNDERFLOW';
+        Description := 'Stack underflow';
+      end;
     {$endif}
-    GL_INVALID_FRAMEBUFFER_OPERATION: S := 'The command is trying to render to or read from the framebuffer while the currently bound framebuffer is not framebuffer complete (i.e. the return value from glCheckFramebufferStatus is not GL_FRAMEBUFFER_COMPLETE).';
-    GL_OUT_OF_MEMORY: S := 'There is not enough memory left to execute the command.';
-    else S := 'Unknown error.';
+    GL_INVALID_FRAMEBUFFER_OPERATION:
+      begin
+        EnumName := 'GL_INVALID_FRAMEBUFFER_OPERATION';
+        Description := 'The command is trying to render to or read from the framebuffer while the currently bound framebuffer is not framebuffer complete (i.e. the return value from glCheckFramebufferStatus is not GL_FRAMEBUFFER_COMPLETE).';
+      end;
+    GL_OUT_OF_MEMORY:
+      begin
+        EnumName := 'GL_OUT_OF_MEMORY';
+        Description := 'There is not enough memory left to execute the command.';
+      end;
+    else
+      begin
+        EnumName := 'unknown';
+        Description := 'Unknown error.';
+      end;
   end;
 
-  if AdditionalComment <> '' then
-    Result := AdditionalComment + nl else
-    Result := '';
-  Result := Result + Format('OpenGL error (%d): %s', [ErrorCode, S]);
+  Result :=
+    Iff(AdditionalComment <> '', AdditionalComment + NL, '') +
+    Format('Rendering error %s (%d): %s', [
+      EnumName,
+      ErrorCode,
+      Description
+    ]);
 end;
 
 constructor EOpenGLError.Create(const AErrorCode: TGLenum; const AdditionalComment: string);
