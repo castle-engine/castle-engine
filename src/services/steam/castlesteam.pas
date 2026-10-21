@@ -278,7 +278,10 @@ destructor TCastleSteam.Destroy;
 begin
   FreeAndNil(FAchievements);
   if Enabled then
-    SteamAPI_Shutdown();
+    begin
+      SteamAPI_ISteamClient_BReleaseSteamPipe(SteamClient, SteamPipeHandle);
+      SteamAPI_Shutdown();
+    end;
   if ApplicationProperties(false) <> nil then
     ApplicationProperties(false).OnUpdate.Remove({$ifdef FPC}@{$endif} Update);
   inherited;
