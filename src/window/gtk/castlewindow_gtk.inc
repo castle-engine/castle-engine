@@ -89,6 +89,15 @@ private
 
   {$ifdef CASTLE_WINDOW_GTK_WAYLAND}
   WaylandEglWindow: Pwl_egl_window;
+
+  { Has the compositor configured our toplevel surface (we know it is true
+    in signal_expose_event).
+    Until then, we must not do eglSwapBuffers: it would attach a buffer
+    to the xdg_surface before the first configure, which is
+    a protocol error (xdg_surface.unconfigured_buffer).
+    Some compositors (e.g. Niri) disconnect the client for it,
+    and GTK only reports "Lost connection to Wayland compositor". }
+  WaylandSurfaceConfigured: Boolean;
   {$endif CASTLE_WINDOW_GTK_WAYLAND}
 
   { Run ADialog as a modal window.
@@ -408,6 +417,10 @@ SIGNAL_GLAREA_BEGIN
       if Event.Count > 0 then
        Writeln('Have Expose event with Event.Count = ', Event.Count);
   }
+
+  {$ifdef CASTLE_WINDOW_GTK_WAYLAND}
+  WaylandSurfaceConfigured := true;
+  {$endif CASTLE_WINDOW_GTK_WAYLAND}
 
   Invalidate;
 
@@ -1007,6 +1020,10 @@ var
 {$endif}
 begin
   Application.InitializeDisplay;
+
+  {$ifdef CASTLE_WINDOW_GTK_WAYLAND}
+  WaylandSurfaceConfigured := false;
+  {$endif CASTLE_WINDOW_GTK_WAYLAND}
 
   WindowGtk := PGtkWindow(gtk_window_new(GTK_WINDOW_TOPLEVEL));
 

@@ -66,6 +66,17 @@ procedure TCastleWindow.SwapBuffers;
 begin
   Assert(not Closed);
   Assert(Context <> nil);
+  {$ifdef CASTLE_WINDOW_GTK_WAYLAND}
+  { On Niri + Wayland, doing eglSwapBuffers before the surface is configured
+    results in an error. Niri disconnects us, GTK stops process with error
+    "Lost connection to Wayland compositor.".
+
+    As a workaround, we drop initial frames.
+
+    Proper solution: See CASTLE_WINDOW_GTK_WAYLAND comments. }
+  if not WaylandSurfaceConfigured then
+    Exit;
+  {$endif CASTLE_WINDOW_GTK_WAYLAND}
   Context.SwapBuffers;
 end;
 

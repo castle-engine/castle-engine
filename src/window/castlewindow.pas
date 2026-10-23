@@ -306,10 +306,28 @@ unit CastleWindow;
     Also clicking doesn't register correctly -- looks like mouse position
     is off by the size of the menu bar?
 
+    Proper solution: give EGL its own wl_surface as a wl_subsurface?
+    We tried a variant of this, see gdk_window_ensure_native in castlewindow_gtk.inc .
+    Other approaches may be possible.
+
   - Runtime switching between X11 and Wayland should be implemented.
     We can already detect when running on Wayland with GTK,
     but right now it only makes an error if it mismatches the definition
-    of CASTLE_WINDOW_GTK_WAYLAND / CASTLE_WINDOW_GTK_WITH_XLIB. }
+    of CASTLE_WINDOW_GTK_WAYLAND / CASTLE_WINDOW_GTK_WITH_XLIB.
+
+  Note: This symbol is required with EGL (e.g. when using OpenGLES) on
+  Wayland + Niri on PikaOS, it seems.
+
+  - Without CASTLE_WINDOW_GTK_WAYLAND, we get display using
+    eglGetDisplay(EGL_DEFAULT_DISPLAY), which will not work.
+    We have to allocate display using
+    eglGetPlatformDisplay(EGL_PLATFORM_WAYLAND_KHR, WaylandDisplay, nil),
+    passing proper Wayland display pointer.
+
+  - On the user side, this can be workarounded by setting EGL_PLATFORM=x11,
+    which makes eglGetDisplay(EGL_DEFAULT_DISPLAY) correct.
+    Defining CASTLE_WINDOW_GTK_WAYLAND means user doesn't need to do this.
+}
 {.$define CASTLE_WINDOW_GTK_WAYLAND}
 {$ifdef CASTLE_WINDOW_GTK_WAYLAND}
   {$define USE_EGL}
