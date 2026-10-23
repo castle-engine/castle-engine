@@ -230,6 +230,8 @@ type
     FMaxFragmentUniformComponents: Cardinal;
     FMaxVertexUniformComponents: Cardinal;
     FDepthBufferFormat: TGLenum;
+    FDepthTextureInternalFormat: TGLenum;
+    FDepthTextureImageType: TGLenum;
     class var
       FRequestCapabilities: TGLRequestCapabilities;
       FDebug: Boolean;
@@ -628,6 +630,15 @@ type
     { Format for FBO renderbuffer depth attachment, closest to the current
       (on-screen) depth buffer precision. }
     property DepthBufferFormat: TGLenum read FDepthBufferFormat;
+
+    { Best parameters for the depth textures, for glTexImage2D.
+      Used for shadow maps, screen-space effects using depth etc.
+
+      Note that "format" parameter for glTexImage2D should always be
+      GL_DEPTH_COMPONENT. Don't confuse it with the "internal format"
+      which should be DepthTextureInternalFormat. }
+    property DepthTextureInternalFormat: TGLenum read FDepthTextureInternalFormat;
+    property DepthTextureImageType: TGLenum read FDepthTextureImageType;
   end;
 
 { Initialize GLVersion and GLFeatures. }
@@ -1205,6 +1216,42 @@ begin
     FDepthBufferFormat := GL_DEPTH_COMPONENT16;
   {$else}
   FDepthBufferFormat := GL_DEPTH_COMPONENT;
+  {$endif}
+
+  {$if defined(CASTLE_WEBGL)}
+  if VersionWebGL_2 then
+  begin
+    FDepthTextureInternalFormat := GL_DEPTH_COMPONENT24;
+    FDepthTextureImageType := GL_UNSIGNED_INT;
+  end else
+  begin
+    { These values are only used when WEBGL_depth_texture is available with
+      WebGL 1 (as only then FTextureDepth can be true,
+      if not VersionWebGL_2).
+      And WEBGL_depth_texture only allows GL_DEPTH_COMPONENT
+      (not sized constants like GL_DEPTH_COMPONENT16/24).
+      Both UNSIGNED_SHORT and UNSIGNED_INT are allowed.
+      See https://developer.mozilla.org/en-US/docs/Web/API/WEBGL_depth_texture . }
+    FDepthTextureInternalFormat := GL_DEPTH_COMPONENT;
+    FDepthTextureImageType := GL_UNSIGNED_SHORT;
+  end;
+  {$elseif defined(OpenGLES)}
+  { OpenGLES allows only GL_UNSIGNED_SHORT or GL_UNSIGNED_INT for depth textures.
+    See http://www.khronos.org/registry/gles/extensions/OES/OES_depth_texture.txt .
+    This was true for OES_depth_texture, looks like it is true for OpenGLES 3.0
+    core too, based on "OpenGL ES 3.2 NVIDIA 515.86.01". }
+  if VersionES_3_0 then
+  begin
+    FDepthTextureInternalFormat := GL_DEPTH_COMPONENT24;
+    FDepthTextureImageType := GL_UNSIGNED_INT;
+  end else
+  begin
+    FDepthTextureInternalFormat := GL_DEPTH_COMPONENT16;
+    FDepthTextureImageType := GL_UNSIGNED_SHORT;
+  end;
+  {$else}
+  FDepthTextureInternalFormat := GL_DEPTH_COMPONENT;
+  FDepthTextureImageType := GL_UNSIGNED_BYTE;
   {$endif}
 
   FShadowVolumesPossible :=

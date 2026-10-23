@@ -465,12 +465,8 @@ var
           {$ifdef OpenGLES} GL_DEPTH_STENCIL {$else} GL_DEPTH_STENCIL_EXT {$endif},
           {$ifdef OpenGLES} GL_UNSIGNED_INT_24_8 {$else} GL_UNSIGNED_INT_24_8_EXT {$endif})
       else
-        TexImage2D(GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT,
-          { On OpenGLES, using GL_UNSIGNED_BYTE will result in FBO failing
-            with INCOMPLETE_ATTACHMENT.
-            http://www.khronos.org/registry/gles/extensions/OES/OES_depth_texture.txt
-            allows only GL_UNSIGNED_SHORT or GL_UNSIGNED_INT for depth textures. }
-          {$ifdef OpenGLES} GL_UNSIGNED_SHORT {$else} GL_UNSIGNED_BYTE {$endif});
+        TexImage2D(GLFeatures.DepthTextureInternalFormat, GL_DEPTH_COMPONENT,
+          GLFeatures.DepthTextureImageType);
       //glTexParameteri(ScreenEffectTextureTarget, GL_TEXTURE_COMPARE_MODE_ARB, GL_NONE);
       //glTexParameteri(ScreenEffectTextureTarget, GL_DEPTH_TEXTURE_MODE_ARB, GL_LUMINANCE);
     end else

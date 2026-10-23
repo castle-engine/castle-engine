@@ -718,14 +718,34 @@ begin
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, TextureWrap.Data[0]);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, TextureWrap.Data[1]);
 
-  { OpenGLES allows only GL_UNSIGNED_SHORT or GL_UNSIGNED_INT for depth textures.
-    This was true for OES_depth_texture, looks like it is true for OpenGLES 3.0 core too,
-    based on "OpenGL ES 3.2 NVIDIA 515.86.01". }
-  ImageType := {$ifdef OpenGLES} GL_UNSIGNED_SHORT {$else} GL_UNSIGNED_BYTE {$endif};
-  ImageInternalFormat := {$ifdef OpenGLES} GL_DEPTH_COMPONENT16 {$else} GL_DEPTH_COMPONENT {$endif};
-  ImageFormat := {$ifdef OpenGLES} 'depth-short' {$else} 'depth-byte' {$endif};
-  ImageSize := {$ifdef OpenGLES} SizeOf(TGLushort) {$else} SizeOf(TGLbyte) {$endif}
-    * Width * Height;
+  ImageType := GLFeatures.DepthTextureImageType;
+  ImageInternalFormat := GLFeatures.DepthTextureInternalFormat;
+  case ImageType of
+    GL_UNSIGNED_SHORT:
+      begin
+        ImageFormat := 'depth-short';
+        ImageSize := SizeOf(TGLushort) * Width * Height;
+      end;
+    GL_UNSIGNED_INT:
+      begin
+        ImageFormat := 'depth-int';
+        ImageSize := SizeOf(TGLuint) * Width * Height;
+      end;
+    GL_UNSIGNED_BYTE:
+      begin
+        ImageFormat := 'depth-byte';
+        ImageSize := SizeOf(TGLbyte) * Width * Height;
+      end;
+    else
+    begin
+      WritelnWarning('Unexpected depth texture image type: %d', [ImageType]);
+      { These values are only used for TextureMemoryProfiler.Allocate call,
+        so using some defaults is acceptable. Rendering will be OK,
+        just TextureMemoryProfiler will have wrong values. }
+      ImageFormat := 'unknown';
+      ImageSize := Width * Height;
+    end;
+  end;
 
   { Do not init any texture image. Just initialize texture sizes
     and both internal and external formats to GL_DEPTH_COMPONENT_ARB
