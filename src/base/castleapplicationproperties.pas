@@ -698,7 +698,7 @@ begin
   Result :=
     {$ifdef WASI}
       {$if defined(FPC_WASM_BRANCHFUL_EXCEPTIONS)}
-        {$info Handling exceptions on web by "branchful" (slower, works everywhere) appoach}
+        {$info Handling exceptions on web by "branchful" (slower, works everywhere) approach}
         true
       {$elseif defined(FPC_WASM_LEGACY_EXCEPTIONS)}
         {$info Handling exceptions on web by "legacy wasm" approach}
