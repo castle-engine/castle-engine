@@ -1,6 +1,6 @@
 {%MainUnit castleglutils.pas}
 {
-  Copyright 2016-2025 Michalis Kamburelis.
+  Copyright 2016-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -229,6 +229,7 @@ type
     FTransformFeedbackVaryings: Boolean;
     FMaxFragmentUniformComponents: Cardinal;
     FMaxVertexUniformComponents: Cardinal;
+    FDepthBufferFormat: TGLenum;
     class var
       FRequestCapabilities: TGLRequestCapabilities;
       FDebug: Boolean;
@@ -623,6 +624,10 @@ type
 
     { Maximum number of TSkinNode joints that can be passed in uniforms. }
     function MaxSkinJointsInUniforms: Cardinal;
+
+    { Format for FBO renderbuffer depth attachment, closest to the current
+      (on-screen) depth buffer precision. }
+    property DepthBufferFormat: TGLenum read FDepthBufferFormat;
   end;
 
 { Initialize GLVersion and GLFeatures. }
@@ -1174,6 +1179,33 @@ begin
     FDoubleBuffer := true;
     {$endif}
   end;
+
+  { Calculate FDepthBufferFormat.
+    We try to choose format matching the current depth buffer size,
+    in particular we try to choose 24-bit (not 16-bit) in case of OpenGLES/WebGL.
+    See https://github.com/castle-engine/castle-engine/issues/748 .
+
+    OpenGLES note:
+    For FBO renderbuffer, we really need to use the enum with 16 or 24 suffix,
+    not the generic GL_DEPTH_COMPONENT.
+    Trying to use generic GL_DEPTH_COMPONENT results in FBO incomplete errors
+    (tested on Mesa OpenGLES).
+
+    See https://registry.khronos.org/OpenGL/extensions/OES/OES_depth24.txt
+    about OES_depth24. }
+  {$if defined(CASTLE_WEBGL)}
+  if (DepthBits >= 24) and VersionWebGL_2 then
+    FDepthBufferFormat := GL_DEPTH_COMPONENT24
+  else
+    FDepthBufferFormat := GL_DEPTH_COMPONENT16;
+  {$elseif defined(OpenGLES)}
+  if (DepthBits >= 24) and (VersionES_3_0 or HasExtension('GL_OES_depth24')) then
+    FDepthBufferFormat := GL_DEPTH_COMPONENT24
+  else
+    FDepthBufferFormat := GL_DEPTH_COMPONENT16;
+  {$else}
+  FDepthBufferFormat := GL_DEPTH_COMPONENT;
+  {$endif}
 
   FShadowVolumesPossible :=
     (StencilBits >= 4) and

@@ -596,19 +596,7 @@ begin
     // TODO: non-WebGL OpenGLES may also need packed depth+stencil (GL_DEPTH_STENCIL_OES).
     {$endif}
     begin
-      DepthBufferFormatPacked :=
-        { OpenGLES notes:
-          - When depth is a texture, GL_DEPTH_COMPONENT works just as well
-            as GL_DEPTH_COMPONENT16. Our depth textures use UNSIGNED_SHORT,
-            so they match 16 bits. Although when we use UNSIGNED_INT for
-            depth for screen effects it also works...
-            So it really doesn't seem to matter, at least for Mesa OpenGLES
-            everything works.
-          - For renderbuffer, we really need to use the enum with 16 suffix.
-            Otherwise (on Mesa OpenGLES) we'll get FBO incomplete errors. }
-        {$ifdef OpenGLES} GL_DEPTH_COMPONENT16
-        {$else} GL_DEPTH_COMPONENT
-        {$endif};
+      DepthBufferFormatPacked := GLFeatures.DepthBufferFormat;
       DepthAttachmentPacked := GL_DEPTH_ATTACHMENT;
       DepthAttachmentWithStencil := false;
     end;
