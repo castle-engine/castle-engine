@@ -454,11 +454,13 @@ begin
     P := FRegisteredProtocols.Add('assets');
     P.ReadEvent := {$ifdef FPC}@{$endif} TUrlCastleAndroidAssets{$ifdef FPC}(nil){$endif}.Read;
     P.ExistsEvent := {$ifdef FPC}@{$endif} TUrlCastleAndroidAssets{$ifdef FPC}(nil){$endif}.Exists;
+    P.FindFilesEvent := {$ifdef FPC}@{$endif} TUrlCastleAndroidAssets{$ifdef FPC}(nil){$endif}.FindFiles;
     P.DetectMimeTypeFromExtension := true;
 
     P := FRegisteredProtocols.Add('castle-android-assets');
     P.ReadEvent := {$ifdef FPC}@{$endif} TUrlCastleAndroidAssets{$ifdef FPC}(nil){$endif}.Read;
     P.ExistsEvent := {$ifdef FPC}@{$endif} TUrlCastleAndroidAssets{$ifdef FPC}(nil){$endif}.Exists;
+    P.FindFilesEvent := {$ifdef FPC}@{$endif} TUrlCastleAndroidAssets{$ifdef FPC}(nil){$endif}.FindFiles;
     P.DetectMimeTypeFromExtension := true;
     {$endif}
 

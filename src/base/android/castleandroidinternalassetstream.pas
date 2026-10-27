@@ -1,5 +1,5 @@
 {
-  Copyright 2013-2024 Michalis Kamburelis.
+  Copyright 2013-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -24,7 +24,7 @@ uses SysUtils, Classes,
   {$ifdef FPC} CastleAndroidInternalAssetManager
   {$else} Androidapi.AssetManager
   {$endif},
-  CastleUriUtils;
+  CastleUriUtils, CastleFindFiles;
 
 type
   EAssetReadError = class(EReadError);
@@ -77,9 +77,16 @@ function AssetPathToURI(const AssetPath: string): string;
 { Check for existence of an Android asset at the given path. }
 function AndroidAssetExists(const AssetPath: string): TUriExists;
 
+{ List files in Android AssetPath matching the given Mask.
+
+  TODO: Reports only files, not subdirectories, as Android NDK asset API
+  doesn't allow to enumerate subdirectories. }
+procedure FindFilesInAndroidAssets(const AssetPath, Mask: String;
+  const FileEvent: TFoundFileMethod; var StopSearch: Boolean);
+
 implementation
 
-uses CastleAndroidInternalLog,
+uses CastleAndroidInternalLog, StrUtils,
   {$ifdef FPC} CastleAndroidNativeAppGlue, {$else} Androidapi.AppGlue, {$endif}
   CastleClassUtils, CastleLog, CastleStringUtils, URIParser;
 
@@ -233,6 +240,66 @@ begin
   end;
 
   Result := ueNotExists;
+end;
+
+procedure FindFilesInAndroidAssets(const AssetPath, Mask: String;
+  const FileEvent: TFoundFileMethod; var StopSearch: Boolean);
+var
+  AssetManager: PAAssetManager;
+  ADir: PAAssetDir;
+  Asset: PAAsset;
+  FilePtr: PAnsiChar;
+  PathDir, FilePath: AnsiString;
+  FileInfo: TFileInfo;
+begin
+  { Asset paths use slash as separator, and the directory name passed
+    to AAssetManager_openDir should not end with slash.
+    Empty string means the top-level assets directory.
+
+    We overuse UriExcludeSlash for this purpose, it handles /,
+    and doesn't really assume it is an URL. }
+  PathDir := UriExcludeSlash(AssetPath);
+
+  AssetManager := GetMainAssetManager;
+  ADir := AAssetManager_openDir(AssetManager, PAnsiChar(PathDir));
+  if ADir = nil then
+    Exit;
+  try
+    { Note: AAssetDir_getNextFileName returns only files, not subdirectories.
+      This is a limitation of the Android NDK asset API,
+      so we cannot report subdirectories here. }
+    FilePtr := AAssetDir_getNextFileName(ADir);
+    while FilePtr <> nil do
+    begin
+      FileInfo := Default(TFileInfo);
+      FileInfo.Name := FilePtr;
+      if IsWild(FileInfo.Name, Mask, false) then
+      begin
+        if PathDir <> '' then
+          FilePath := PathDir + '/' + FileInfo.Name
+        else
+          FilePath := FileInfo.Name;
+        FileInfo.Url := AssetPathToURI(FilePath);
+        FileInfo.Directory := false;
+        FileInfo.Symlink := false;
+
+        { Opening asset in AASSET_MODE_UNKNOWN to query length is cheap,
+          it doesn't read the contents. }
+        Asset := AAssetManager_open(AssetManager, PAnsiChar(FilePath), AASSET_MODE_UNKNOWN);
+        if Asset <> nil then
+        begin
+          { Take only the least-significant 32 bits, like TReadAssetStream.GetSize. }
+          FileInfo.Size := AAsset_getLength(Asset) and Int64(High(UInt32));
+          AAsset_close(Asset);
+        end;
+
+        FileEvent(FileInfo, StopSearch);
+        if StopSearch then
+          Exit;
+      end;
+      FilePtr := AAssetDir_getNextFileName(ADir);
+    end;
+  finally AAssetDir_close(ADir) end;
 end;
 
 end.
