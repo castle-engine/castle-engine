@@ -637,25 +637,29 @@ begin
 
   if Url = '' then Exit;
 
-  {$ifdef CASTLE_ASSUME_READ_ERROR_MEANS_MISSING_FILE}
-  try
-  {$endif CASTLE_ASSUME_READ_ERROR_MEANS_MISSING_FILE}
-
-    Stream := Download(Url, XmlReadingOptions);
-
-  {$ifdef CASTLE_ASSUME_READ_ERROR_MEANS_MISSING_FILE}
-  except
-    on E: Exception do
-    begin
-      WritelnWarning('Error reading "%s", assuming the file does not exist. The exception was "%s": %s', [
-        Url,
-        E.ClassName,
-        E.Message
-      ]);
-      Exit;
+  if UriExists(Url) = ueUnknown then
+  begin
+    { In this case, we cannot check whether file exists before reading it,
+      so we must tolerate failures and then behave as if the file
+      doesn't exist. This matters when data location
+      is on URL that doesn't support existence checks, e.g. http(s). }
+    try
+      Stream := Download(Url, XmlReadingOptions);
+    except
+      on E: Exception do
+      begin
+        WritelnWarning('Error reading "%s", assuming the file does not exist. The exception was "%s": %s', [
+          Url,
+          E.ClassName,
+          E.Message
+        ]);
+        Exit;
+      end;
     end;
-  end;
-  {$endif CASTLE_ASSUME_READ_ERROR_MEANS_MISSING_FILE}
+  end else
+    { In other cases (file exists, or doesn't exist, or is a directory)
+      just read it, letting Download raise a proper exception if it fails. }
+    Stream := Download(Url, XmlReadingOptions);
 
   try
     ReadXMLFile(Config, Stream, Url);
