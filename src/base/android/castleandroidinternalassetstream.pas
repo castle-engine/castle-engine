@@ -79,8 +79,33 @@ function AndroidAssetExists(const AssetPath: string): TUriExists;
 
 { List files in Android AssetPath matching the given Mask.
 
-  TODO: Reports only files, not subdirectories, as Android NDK asset API
-  doesn't allow to enumerate subdirectories. }
+  Known limitation: This reports only files, not subdirectories,
+  as Android asset API doesn't allow to enumerate subdirectories.
+  For example, if you have in assets
+
+    level1/level.gltf
+    level1/textures/my_texture.png
+
+  and you do FindFilesInAndroidAssets('level1', '*', ...),
+  it will report 'level.gltf', but it will not report subdirectory 'textures'.
+  Consequently, recursive searching by @link(CastleFindFiles.FindFiles) will
+  not visit the 'textures' subdirectory and it will not list 'my_texture.png'
+  inside.
+
+  There seems no reasonable solution to this, as long as we use Android asset API.
+
+  To enable listing subdirectories, you must generate "CastleDataInformation.xml"
+  and include it in your data. Our engine will automatically use it then
+  for UriExists and FindFiles, and listing subdirectories will work.
+
+  The "CastleDataInformation.xml" is automatically generated and packed
+  when using our build tool to package your application for Android with FPC.
+  It is not yet generated and used for Android with Delphi -- you need to
+  generate it manually, following code from
+  "procedure GenerateDataInformation(const CurrentDataPath: String);"
+  in tools/build-tool/code/toolpackage.pas .
+  TODO: We plan to make it easier, by generating "CastleDataInformation.xml"
+  automatically when building from Delphi IDE. }
 procedure FindFilesInAndroidAssets(const AssetPath, Mask: String;
   const FileEvent: TFoundFileMethod; var StopSearch: Boolean);
 
