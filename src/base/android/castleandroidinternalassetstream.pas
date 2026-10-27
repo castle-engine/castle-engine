@@ -23,7 +23,8 @@ interface
 uses SysUtils, Classes,
   {$ifdef FPC} CastleAndroidInternalAssetManager
   {$else} Androidapi.AssetManager
-  {$endif} ;
+  {$endif},
+  CastleUriUtils;
 
 type
   EAssetReadError = class(EReadError);
@@ -73,15 +74,26 @@ function URIToAssetPath(const URI: string): string;
 
 function AssetPathToURI(const AssetPath: string): string;
 
+{ Check for existence of an Android asset at the given path. }
+function AndroidAssetExists(const AssetPath: string): TUriExists;
+
 implementation
 
 uses CastleAndroidInternalLog,
   {$ifdef FPC} CastleAndroidNativeAppGlue, {$else} Androidapi.AppGlue, {$endif}
   CastleClassUtils, CastleLog, CastleStringUtils, URIParser;
 
+function GetMainAssetManager: PAAssetManager;
+begin
+  Result :=
+    {$ifdef FPC} AndroidMainApp^.Activity^.AssetManager
+    {$else} TAndroidApplicationGlue.Current.NativeActivity^.AssetManager
+    {$endif};
+end;
+
+{ TReadAssetStream ----------------------------------------------------------- }
+
 constructor TReadAssetStream.Create(Path: AnsiString);
-var
-  AssetManager: PAAssetManager;
 begin
   inherited Create;
   if ExtractFileExt(Path) = '.gz' then
@@ -90,11 +102,7 @@ begin
     //   [Path]);
     Path := ChangeFileExt(Path, '');
   end;
-  AssetManager :=
-    {$ifdef FPC} AndroidMainApp^.Activity^.AssetManager
-    {$else} TAndroidApplicationGlue.Current.NativeActivity^.AssetManager
-    {$endif} ;
-  Asset := AAssetManager_open(AssetManager, PAnsiChar(Path), AASSET_MODE_STREAMING);
+  Asset := AAssetManager_open(GetMainAssetManager, PAnsiChar(Path), AASSET_MODE_STREAMING);
   if Asset = nil then
     raise EAssetNotFound.CreateFmt('Android asset "%s" not found', [Path]);
 end;
@@ -187,6 +195,44 @@ begin
   U.Protocol := 'castle-android-assets';
   U.Path := '/' + AssetPath; // AssetPath does not start with slash
   Result := EncodeURI(U);
+end;
+
+function AndroidAssetExists(const AssetPath: string): TUriExists;
+var
+  AssetManager: PAAssetManager;
+  ADir: PAAssetDir;
+  FilePtr: PAnsiChar;
+  PathAnsi, PathDir, PathBaseName, FoundPathBaseName: AnsiString;
+begin
+  PathDir := ExtractFileDir(AssetPath);
+  PathBaseName := ExtractFileName(AssetPath);
+
+  AssetManager := GetMainAssetManager;
+  ADir := AAssetManager_openDir(AssetManager, PAnsiChar(PathDir));
+  if ADir <> nil then
+  begin
+    try
+      FilePtr := AAssetDir_getNextFileName(ADir);
+      while FilePtr <> nil do
+      begin
+        FoundPathBaseName := FilePtr;
+        if FoundPathBaseName = PathBaseName then
+          Exit(ueFile);
+        FilePtr := AAssetDir_getNextFileName(ADir);
+      end;
+    finally AAssetDir_close(ADir) end;
+  end;
+
+  { Check is it maybe directory }
+  PathAnsi := AssetPath;
+  ADir := AAssetManager_openDir(AssetManager, PAnsiChar(PathAnsi));
+  if ADir <> nil then
+  begin
+    AAssetDir_close(ADir);
+    Exit(ueDirectory);
+  end;
+
+  Result := ueNotExists;
 end;
 
 end.

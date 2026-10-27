@@ -453,10 +453,12 @@ begin
     // handle Android-specific assets
     P := FRegisteredProtocols.Add('assets');
     P.ReadEvent := {$ifdef FPC}@{$endif} TUrlCastleAndroidAssets{$ifdef FPC}(nil){$endif}.Read;
+    P.ExistsEvent := {$ifdef FPC}@{$endif} TUrlCastleAndroidAssets{$ifdef FPC}(nil){$endif}.Exists;
     P.DetectMimeTypeFromExtension := true;
 
     P := FRegisteredProtocols.Add('castle-android-assets');
     P.ReadEvent := {$ifdef FPC}@{$endif} TUrlCastleAndroidAssets{$ifdef FPC}(nil){$endif}.Read;
+    P.ExistsEvent := {$ifdef FPC}@{$endif} TUrlCastleAndroidAssets{$ifdef FPC}(nil){$endif}.Exists;
     P.DetectMimeTypeFromExtension := true;
     {$endif}
 
