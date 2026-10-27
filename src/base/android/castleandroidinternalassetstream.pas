@@ -111,7 +111,8 @@ procedure FindFilesInAndroidAssets(const AssetPath, Mask: String;
 
 implementation
 
-uses CastleAndroidInternalLog, StrUtils,
+uses CastleAndroidInternalLog,
+  { Needed for IsWild with FPC } StrUtils,
   {$ifdef FPC} CastleAndroidNativeAppGlue, {$else} Androidapi.AppGlue, {$endif}
   CastleClassUtils, CastleLog, CastleStringUtils, URIParser;
 
