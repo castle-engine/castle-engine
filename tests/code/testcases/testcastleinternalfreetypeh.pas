@@ -16,6 +16,8 @@
 { Test CastleInternalFreeTypeH. }
 unit TestCastleInternalFreeTypeH;
 
+{$I ../../../src/common_includes/castleconf.inc}
+
 interface
 
 uses CastleTester;
@@ -32,7 +34,11 @@ uses CastleInternalFreeTypeH;
 
 procedure TTestCastleInternalFreeTypeH.TestTypeSizes;
 begin
+  {$ifdef CPU64}
   AssertEquals(40, SizeOf(FT_Bitmap));
+  {$else}
+  AssertEquals(24, SizeOf(FT_Bitmap));
+  {$endif}
   AssertEquals(2, SizeOf(FT_Bitmap.num_grays));
 
   { Note: on 16-bit CPUs, this would need a bit adjustment
