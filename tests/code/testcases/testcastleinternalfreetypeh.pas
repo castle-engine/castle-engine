@@ -33,13 +33,18 @@ implementation
 uses CastleInternalFreeTypeH;
 
 procedure TTestCastleInternalFreeTypeH.TestTypeSizes;
+var
+  B: FT_Bitmap;
 begin
   {$ifdef CPU64}
   AssertEquals(40, SizeOf(FT_Bitmap));
   {$else}
   AssertEquals(24, SizeOf(FT_Bitmap));
   {$endif}
-  AssertEquals(2, SizeOf(FT_Bitmap.num_grays));
+  // This compiles with FPC, but not Delphi
+  //AssertEquals(2, SizeOf(FT_Bitmap.num_grays));
+  // This compiles with both
+  AssertEquals(2, SizeOf(B.num_grays));
 
   { Note: on 16-bit CPUs, this would need a bit adjustment
     (and checking FreeType actual sizes using C testcase).
