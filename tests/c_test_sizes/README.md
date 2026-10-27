@@ -1,3 +1,5 @@
+## Test sizes of EGL types (egl_sizes_test.c)
+
 Simple C application to test the size of various types used by C, EGL, X.
 
 Output (on x86_64 CPU):
@@ -18,3 +20,7 @@ Window size: 8
 ```
 
 See castleinternalegl.pas for some comments why this is useful.
+
+## Test sizes of FreeType types (freetype_sizes.c)
+
+Similar for FreeType.

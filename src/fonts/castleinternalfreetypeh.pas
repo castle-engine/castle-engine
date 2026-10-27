@@ -161,25 +161,28 @@ const
 
 type
   FT_Bool = boolean;
-  FT_FWord = smallint;
-  FT_UFWord = word;
+  { Note: FT_FWord and FT_UFWord and equal, respectively,
+    to FT_Short and FT_UShort. But FreeType C header defines them separately,
+    with docs that XxxWord are 16-bit, while XXxShort correspond to C "short"
+    types. Our definitions below reflect that. }
+  FT_FWord = Int16;
+  FT_UFWord = UInt16;
   FT_Char = AnsiChar;
   FT_Byte = byte;
-  FT_String = Ansichar;
+  // FT_String = Ansichar; // nothing uses FT_String, only PFT_String is used
   PFT_String = PAnsiChar;
-  FT_Short = smallint;
-  FT_UShort = word;
-  FT_Int = CInt32;
-  FT_UInt = CUInt32;
-  {$if defined(cpu64) and not(defined(win64) and defined(cpux86_64))}
-  FT_Long = int64;
-  FT_ULong = {$ifdef FPC} qword {$else} UInt64 {$endif};
-  FT_Pos = int64;
-  {$ELSE}
-  FT_Long = CInt32;
-  FT_ULong = CUInt32;
-  FT_Pos = CInt32;
-  {$ENDIF}
+  FT_Short = CShort;
+  FT_UShort = CUShort;
+  FT_Int = CInt;
+  FT_UInt = CUInt;
+  { Note that C "long" is either 64-bit or 32-bit on 2 common platforms:
+    - 64-bit on: defined(cpu64) and not(defined(win64) and defined(cpux86_64))
+    - 32-bit on 32-bit processors
+    - (see CTypes for exact definition accounting also for 16-bit).
+    This is expected by FreeType definitions. }
+  FT_Long = CLong;
+  FT_ULong = CULong;
+  FT_Pos = CLong;
   FT_F2Dot14 = smallint;
   FT_F26Dot6 = CInt32;
   FT_Fixed = FT_Long;
@@ -255,7 +258,7 @@ type
     width : integer;
     pitch : integer;
     buffer : pointer;
-    num_grays : shortint;
+    num_grays : CUShort;
     pixel_mode : Ansichar;
     palette_mode : Ansichar;
     palette : pointer;
