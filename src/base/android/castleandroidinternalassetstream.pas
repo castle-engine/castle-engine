@@ -233,36 +233,43 @@ end;
 function AndroidAssetExists(const AssetPath: string): TUriExists;
 var
   AssetManager: PAAssetManager;
+  Asset: PAAsset;
   ADir: PAAssetDir;
-  FilePtr: PAnsiChar;
-  PathAnsi, PathDir, PathBaseName, FoundPathBaseName: AnsiString;
+  PathAnsi: AnsiString;
 begin
-  PathDir := ExtractFileDir(AssetPath);
-  PathBaseName := ExtractFileName(AssetPath);
+  { Asset paths use slash as separator, and the directory name passed
+    to AAssetManager_openDir should not end with slash.
+    See FindFilesInAndroidAssets for why we use UriExcludeSlash. }
+  PathAnsi := UriExcludeSlash(AssetPath);
+
+  { Strip .gz, consistent with TReadAssetStream.Create. }
+  if ExtractFileExt(PathAnsi) = '.gz' then
+    PathAnsi := ChangeFileExt(PathAnsi, '');
 
   AssetManager := GetMainAssetManager;
-  ADir := AAssetManager_openDir(AssetManager, PAnsiChar(PathDir));
-  if ADir <> nil then
+
+  { Opening asset in AASSET_MODE_UNKNOWN is cheap, it doesn't read the contents. }
+  Asset := AAssetManager_open(AssetManager, PAnsiChar(PathAnsi), AASSET_MODE_UNKNOWN);
+  if Asset <> nil then
   begin
-    try
-      FilePtr := AAssetDir_getNextFileName(ADir);
-      while FilePtr <> nil do
-      begin
-        FoundPathBaseName := FilePtr;
-        if FoundPathBaseName = PathBaseName then
-          Exit(ueFile);
-        FilePtr := AAssetDir_getNextFileName(ADir);
-      end;
-    finally AAssetDir_close(ADir) end;
+    AAsset_close(Asset);
+    Exit(ueFile);
   end;
 
-  { Check is it maybe directory }
-  PathAnsi := AssetPath;
+  { Check is it maybe directory.
+    Note that AAssetManager_openDir may return non-nil (empty directory)
+    even for non-existing directory, so we need to check is it non-empty.
+
+    Known limitation: Directory that contains only subdirectories
+    (no files) is reported as ueNotExists, since
+    AAssetDir_getNextFileName doesn't report subdirectories. }
   ADir := AAssetManager_openDir(AssetManager, PAnsiChar(PathAnsi));
   if ADir <> nil then
   begin
-    AAssetDir_close(ADir);
-    Exit(ueDirectory);
+    try
+      if AAssetDir_getNextFileName(ADir) <> nil then
+        Exit(ueDirectory);
+    finally AAssetDir_close(ADir) end;
   end;
 
   Result := ueNotExists;
