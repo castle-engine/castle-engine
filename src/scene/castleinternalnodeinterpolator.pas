@@ -1218,8 +1218,6 @@ initialization
   ModelFormat.FileFilterName := 'Castle Animation Frames (*.castle-anim-frames, *.kanim)';
   ModelFormat.Extensions.Add('.castle-anim-frames');
   ModelFormat.Extensions.Add('.kanim');
-  {$ifdef XML_READ_REQUIRES_SEEKABLE_STREAM}
-  ModelFormat.OnLoadForceMemoryStream := true;
-  {$endif}
+  ModelFormat.OnLoadForceMemoryStream := XmlReadingForceMemoryStream;
   RegisterModelFormat(ModelFormat);
 end.

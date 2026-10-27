@@ -768,13 +768,6 @@
   {$define CASTLE_ASSUME_READ_ERROR_MEANS_MISSING_FILE}
 {$endif}
 
-{ Stream must be seekable for Delphi XML reading,
-  and it may not be automatically seekable (e.g. when downloading
-  Android assets). }
-{$ifdef DELPHI}
-  {$define XML_READ_REQUIRES_SEEKABLE_STREAM}
-{$endif}
-
 { fonts ---------------------------------------------------------------------- }
 
 { Use pure Pascal implementation of a subset of FreeType API

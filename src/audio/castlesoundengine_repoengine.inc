@@ -691,9 +691,7 @@ begin
       absolute (to not depend on the current dir when loading sound files. }
     BaseUrl := AbsoluteURI(FRepositoryUrl);
 
-    Stream := Download(BaseUrl
-      {$ifdef XML_READ_REQUIRES_SEEKABLE_STREAM} , [soForceMemoryStream] {$endif}
-    );
+    Stream := Download(BaseUrl, XmlReadingOptions);
     try
       ReadXMLFile(SoundConfig, Stream, BaseUrl);
     finally FreeAndNil(Stream) end;

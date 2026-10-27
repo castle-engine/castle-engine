@@ -641,9 +641,7 @@ begin
   try
   {$endif CASTLE_ASSUME_READ_ERROR_MEANS_MISSING_FILE}
 
-    Stream := Download(Url
-      {$ifdef XML_READ_REQUIRES_SEEKABLE_STREAM} , [soForceMemoryStream] {$endif}
-    );
+    Stream := Download(Url, XmlReadingOptions);
 
   {$ifdef CASTLE_ASSUME_READ_ERROR_MEANS_MISSING_FILE}
   except
