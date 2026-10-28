@@ -809,6 +809,25 @@
 
             </Deployment>
             <Platforms>
+                <!--
+                  For Delphi 10.4, the mobile platforms have to be listed here,
+                  with value "False".
+
+                  Otherwise the "Add Platform" menu from Delphi IDE is grayed out.
+                  This doesn't matter for new Delphis -- for Delphi 13,
+                  "Add Platform" menu allows to add mobile platforms regardless
+                  of whether they are present with "False" below, or not present
+                  at all.
+
+                  Note that we have to list mobile platforms with "False",
+                  not "True" (already added) - as users must add them manually,
+                  as each Delphi version generates a bit different settings in DPROJ,
+                  see https://castle-engine.io/delphi_mobile .
+                -->
+                <Platform value="Android">False</Platform>
+                <Platform value="Android64">False</Platform>
+                <Platform value="iOSDevice64">False</Platform>
+                <Platform value="iOSSimulator">False</Platform>
                 <Platform value="Linux64">True</Platform>
                 <Platform value="OSX64">True</Platform>
                 <Platform value="OSXARM64">True</Platform>
