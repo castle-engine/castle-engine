@@ -390,7 +390,7 @@
                   with value "False".
 
                   Otherwise the "Add Platform" menu from Delphi IDE is grayed out.
-                  This doesn't matter for new Delphis -- for Delphi 13,
+                  This doesn't matter for new Delphis - - for Delphi 13,
                   "Add Platform" menu allows to add mobile platforms regardless
                   of whether they are present with "False" below, or not present
                   at all.
