@@ -520,16 +520,16 @@ begin
         Project.DoPackage(OverrideCompiler, Target, OS, CPU, Mode, PackageFormat, PackageNameIncludeVersion, UpdateOnlyCode);
       end else
       if Command = 'install' then
-        Project.DoInstall(Target, OS, CPU, Mode, PackageFormat, PackageNameIncludeVersion)
+        Project.DoInstall(OverrideCompiler, Target, OS, CPU, Mode, PackageFormat, PackageNameIncludeVersion)
       else
       if Command = 'uninstall' then
-        Project.DoUnInstall(Target, OS, CPU)
+        Project.DoUnInstall(OverrideCompiler, Target, OS, CPU, Mode)
       else
       if Command = 'run' then
       begin
         RestOfParameters := CreateRunParameters;
         try
-          Project.DoRun(Target, OS, CPU, RestOfParameters);
+          Project.DoRun(OverrideCompiler, Target, OS, CPU, Mode, RestOfParameters);
         finally FreeAndNil(RestOfParameters) end;
       end else
       if Command = 'compile-run' then
@@ -537,7 +537,7 @@ begin
         Project.DoCompile(OverrideCompiler, Target, OS, CPU, Mode, CompilerExtraOptions);
         RestOfParameters := CreateRunParameters;
         try
-          Project.DoRun(Target, OS, CPU, RestOfParameters);
+          Project.DoRun(OverrideCompiler, Target, OS, CPU, Mode, RestOfParameters);
         finally FreeAndNil(RestOfParameters) end;
       end
       else

@@ -173,11 +173,14 @@ var
   OutputNote: String;
 begin
   if (FOutputPath = '') or
-     { Do not reuse cached FOutputPath for different WorkingDirectory,
-       otherwise doing DoCompile for different projects in same run would accidentally
-       reuse output.
-       Testcase: "castle-engine cache", each mode (release valgrind debug)
-       must build new files. }
+     { Do not reuse cached FOutputPath for different WorkingDirectory.
+       This would break:
+       - doing DoCompile for different projects in same run
+         (they would accidentally reuse output.)
+         Testcase: "castle-engine cache", each mode (release valgrind debug)
+         must build new files.
+       - TCastleProject.DelphiAndroidOutputPath calls this with
+         DelphiWorkingPath as WorkingDirectory. }
      (FOutputPathForWorkingDirectory <> WorkingDirectory) then
   begin
     if OutputPathBase = '' then
