@@ -59,7 +59,7 @@ var
   RemoveMask: String = '';
 
 const
-  Options: array [0..31] of TOption =
+  Options: array [0..32] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: 'v'; Long: 'version'; Argument: oaNone),
@@ -92,7 +92,8 @@ const
     (Short: #0 ; Long: 'project-main-view'; Argument: oaRequired),
     (Short: #0 ; Long: 'remove-mask'; Argument: oaRequired),
     (Short: #0 ; Long: 'use-delphi-dcc'; Argument: oaNone),
-    (Short: #0 ; Long: 'delphi-version'; Argument: oaRequired)
+    (Short: #0 ; Long: 'delphi-version'; Argument: oaRequired),
+    (Short: #0 ; Long: 'dont-pass-engine-paths'; Argument: oaNone)
   );
 
 procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
@@ -295,6 +296,8 @@ begin
               'When compiling with Delphi, use the historic approach of calling the "dccXXX" compiler directly, instead of using msbuild on the generated .dproj.') + NL +
             OptionDescription('--delphi-version=VERSION',
               'When compiling with Delphi, use the given Delphi version. The version provided is the "Product Version", corresponding to the subdirectories of "C:\Program Files (x86)\Embarcadero\Studio", like 37.0 for Delphi 13. By default, the tool automatically detects the latest installed Delphi version.') + NL +
+            OptionDescription('--dont-pass-engine-paths',
+              'Do not pass engine paths to the underlying compiler (fpc, dcc, msbuild). Useful to avoid hitting the 32k command-line limit with msbuild.') + NL +
             TargetOptionHelp +
             NL +
             OSOptionHelp +
@@ -365,6 +368,7 @@ begin
     29: RemoveMask := Argument;
     30: CompileDelphiUsingDcc := true;
     31: ForceDelphiVersion := TDelphiVersion.FromString(Argument);
+    32: PassEnginePaths := false;
     else raise EInternalError.Create('OptionProc');
   end;
 end;

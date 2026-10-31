@@ -61,6 +61,16 @@ This happens with both old (10.2) and new (13.1) Delphi versions.
 
 ( We can *not* avoid this problem by using environment references like `$(CGESRC)` in the `DCC_UnitSearchPath`. It seems msbuild expands them before passing to dcc, so we still get too long command-line. )
 
+The solution to this is to
+
+- Provide engine paths in your Delphi configuration. Follow [installing engine in Delphi](https://castle-engine.io/delphi_packages), in particular _"Configure Delphi to Use Engine"_.
+
+- And call build tool with additional `--dont-pass-engine-paths` option. For example:
+
+    ```
+    castle-engine compile --target=android --compiler=delphi --mode=debug --dont-pass-engine-paths
+    ```
+
 ## Conclusion
 
 For above reasons:
