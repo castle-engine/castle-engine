@@ -685,7 +685,7 @@ begin
       begin
         ManifestFile := Project.DelphiAndroidOutputPath(CPU, Mode) + 'AndroidManifest.xml';
         if not RegularFileExists(ManifestFile) then
-          raise Exception.CreateFmt('Cannot find "%s". Compile the project with Delphi first, for the same platform and mode (--mode=%s).', [
+          raise Exception.CreateFmt('Cannot find "%s". Package the project first (using "Deploy" from Delphi IDE or command-line "castle-engine package") for the same platform and mode (--mode=%s).', [
             ManifestFile,
             ModeToString(Mode)
           ]);

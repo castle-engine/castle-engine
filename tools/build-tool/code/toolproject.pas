@@ -945,6 +945,42 @@ var
     finally FreeAndNil(Pack) end;
   end;
 
+  { Create APK using Delphi: run msbuild with "Deploy" target.
+    The project must be already compiled. }
+  procedure PackageAndroidDelphi(const PackageFormat: TPackageFormatNoDefault);
+  var
+    DelphiCPU: TCPU;
+    Options: TCompilerOptions;
+    MainSource, DeployProjFile, ApkFile: String;
+  begin
+    if PackageFormat <> pfAndroidApk then
+      raise Exception.Create('Creating Android package other than APK is not implemented with Delphi');
+
+    { Only Delphi IDE can generate .deployproj, and it is necessary
+      for msbuild to have "Deploy" target. }
+    MainSource := AndroidSourceFile(coDelphi, true, false);
+    DeployProjFile := ChangeFileExt(MainSource, '.deployproj');
+    if not RegularFileExists(DeployProjFile) then
+      raise Exception.CreateFmt('Cannot find "%s". You need to deploy the project once from Delphi IDE, to create this file. See https://castle-engine.io/delphi_mobile for details.', [
+        DeployProjFile
+      ]);
+
+    DelphiCPU := DelphiAndroidCPU(Target, CPU);
+
+    Options := TCompilerOptions.Create;
+    try
+      Options.OS := Android;
+      Options.CPU := DelphiCPU;
+      Options.Mode := Mode;
+      RunDelphiMSBuild(Path, MainSource, 'Deploy', Options);
+    finally FreeAndNil(Options) end;
+
+    ApkFile := DelphiAndroidApkFile(DelphiCPU, Mode);
+    if not RegularFileExists(ApkFile) then
+      raise Exception.CreateFmt('Delphi did not create the expected APK: "%s"', [ApkFile]);
+    Writeln('Build ' + ApkFile);
+  end;
+
 var
   PackageFormatFinal: TPackageFormatNoDefault;
   WantsIOSArchive: Boolean;
@@ -978,13 +1014,15 @@ begin
     pfAndroidApk, pfAndroidAppBundle:
       begin
         if FinalCompiler = coDelphi then
-          raise Exception.Create('"package" command is not implemented for Delphi with Android');
-
-        if Target = targetAndroid then
-          AndroidCPUS := DetectAndroidCPUS
+          PackageAndroidDelphi(PackageFormatFinal)
         else
-          AndroidCPUS := [CPU];
-        PackageAndroid(Self, OS, AndroidCPUS, Mode, PackageFormatFinal, PackageNameIncludeVersion);
+        begin
+          if Target = targetAndroid then
+            AndroidCPUS := DetectAndroidCPUS
+          else
+            AndroidCPUS := [CPU];
+          PackageAndroid(Self, OS, AndroidCPUS, Mode, PackageFormatFinal, PackageNameIncludeVersion);
+        end;
       end;
     pfNintendoSwitchProject:
       PackageNintendoSwitch(Self);

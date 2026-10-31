@@ -92,6 +92,23 @@ procedure CompileFpc(
 procedure CompileDelphi(
   const WorkingDirectory, CompileFile: String; const Options: TCompilerOptions);
 
+{ Run msbuild with Delphi project (.dproj alongside the CompileFile),
+  for the platform and configuration determined by Options.
+
+  @param(MSBuildTarget Msbuild target, like 'Build' or 'Deploy'.)
+
+  @param(ExtraDefines Additional defines, separated by semicolons.
+    Matter only for targets that compile.)
+
+  @param(ExtraUnitSearchPath Additional unit search paths, separated by semicolons.
+    Matter only for targets that compile.)
+
+  @raises(Exception If the .dproj doesn't exist, or msbuild failed.) }
+procedure RunDelphiMSBuild(
+  const WorkingDirectory, CompileFile, MSBuildTarget: String;
+  const Options: TCompilerOptions;
+  const ExtraDefines: String = ''; const ExtraUnitSearchPath: String = '');
+
 { Compile with lazbuild. }
 procedure CompileLazbuild(
   const WorkingDirectory, LazarusProjectFile: String; const Options: TCompilerOptions);
@@ -1231,12 +1248,76 @@ begin
   end;
 end;
 
+procedure RunDelphiMSBuild(
+  const WorkingDirectory, CompileFile, MSBuildTarget: String;
+  const Options: TCompilerOptions;
+  const ExtraDefines, ExtraUnitSearchPath: String);
+var
+  DelphiPath, RsVars, DprojFileAbsolute: String;
+  MSBuildPlatform, MSBuildConfig: String;
+  WrapperBat, WrapperBatContents, OutPath, MSBuildOutput: String;
+  ComSpec, MsBuildVerbosity: String;
+  MSBuildExitStatus: Integer;
+begin
+  DelphiPath := FindDelphiPath(true);
+  RsVars := DelphiPath + 'bin' + PathDelim + 'rsvars.bat';
+  if not RegularFileExists(RsVars) then
+    raise Exception.CreateFmt('Cannot find Delphi "rsvars.bat" (expected in "%s"). It is necessary to set up the environment for msbuild.', [RsVars]);
+
+  DprojFileAbsolute := CombinePaths(WorkingDirectory, ChangeFileExt(CompileFile, '.dproj'));
+  if not RegularFileExists(DprojFileAbsolute) then
+    raise Exception.CreateFmt('Cannot find Delphi project file "%s". Generate the DPROJ by running "castle-engine generate-program".', [
+      DprojFileAbsolute
+    ]);
+
+  MSBuildPlatform := DelphiPlatform(Options.OS, Options.CPU);
+  MSBuildConfig := DelphiConfig(Options.Mode);
+
+  { Write bat that sets up the Delphi environment (calling rsvars.bat)
+    then runs msbuild. }
+  OutPath := CompilationOutputPath(coDelphi, Options.OS, Options.CPU, WorkingDirectory);
+  ForceDirectories(OutPath);
+  WrapperBat := InclPathDelim(OutPath) + 'castle-msbuild.bat';
+  if Verbose then
+    MsBuildVerbosity := ''
+  else
+    { Using /verbosity:minimal by default, otherwise it shows really long lines
+      (compiler and linker command-line).
+      It's a pity, because it also shows Delphi compiler version,
+      lines compiled -- useful stuff.
+      Using /nologo, otherwise it shows msbuild version, .NET version, MS copyright. }
+    MsBuildVerbosity := '/nologo /verbosity:minimal';
+  WrapperBatContents :=
+    '@echo off' + NL +
+    'call "' + RsVars + '"' + NL +
+    'if errorlevel 1 exit /b 1' + NL +
+    'set "DCC_Define=' + ExtraDefines + '"' + NL +
+    'set "DCC_UnitSearchPath=' + ExtraUnitSearchPath + '"' + NL +
+    'msbuild "' + DprojFileAbsolute + '"' +
+      ' /target:' + MSBuildTarget +
+      ' /p:Config=' + MSBuildConfig +
+      ' /p:Platform=' + MSBuildPlatform +
+      ' ' + MsBuildVerbosity + NL +
+    'exit /b %errorlevel%' + NL;
+  StringToFile(FilenameToUriSafe(WrapperBat), WrapperBatContents);
+
+  Writeln('Delphi msbuild (target: ' + MSBuildTarget + ') executing...');
+
+  ComSpec := GetEnvironmentVariable('ComSpec');
+  if ComSpec = '' then
+    ComSpec := 'cmd.exe';
+
+  RunCommandIndirPassthrough(WorkingDirectory, ComSpec, ['/c', WrapperBat],
+    MSBuildOutput, MSBuildExitStatus);
+  if MSBuildExitStatus <> 0 then
+    raise Exception.CreateFmt('Failed to execute msbuild target "%s"', [MSBuildTarget]);
+end;
+
 { Compile with Delphi using msbuild.
 
-  Assumes we have .dproj alongside the .dpr file.
+  Falls back to dcc if we don't have .dproj alongside the .dpr file.
 
-  This is our recommended and default approach now.
-  See ../delphi_dcc_vs_msbuild.md for discussion. }
+  See ../delphi_dcc_vs_msbuild.md for discussion when msbuild, when dcc are better. }
 procedure CompileDelphiMSBuild(const WorkingDirectory, CompileFile: String; const Options: TCompilerOptions);
 
   procedure AddEnginePath(var SearchPaths: String; NewPath: String);
@@ -1263,21 +1344,11 @@ procedure CompileDelphiMSBuild(const WorkingDirectory, CompileFile: String; cons
   end;
 
 var
-  DelphiPath, RsVars, DprojFile, DprojFileAbsolute: String;
-  MSBuildPlatform, MSBuildConfig, ExtraDefines, ExtraUnitSearchPath: String;
-  WrapperBat, WrapperBatContents, OutPath, MSBuildOutput: String;
-  ComSpec, MsBuildVerbosity: String;
-  MSBuildExitStatus: Integer;
+  DprojFile, ExtraDefines, ExtraUnitSearchPath: String;
   S: String;
 begin
-  DelphiPath := FindDelphiPath(true);
-  RsVars := DelphiPath + 'bin' + PathDelim + 'rsvars.bat';
-  if not RegularFileExists(RsVars) then
-    raise Exception.CreateFmt('Cannot find Delphi "rsvars.bat" (expected in "%s"). It is necessary to set up the environment for msbuild.', [RsVars]);
-
   DprojFile := ChangeFileExt(CompileFile, '.dproj');
-  DprojFileAbsolute := CombinePaths(WorkingDirectory, DprojFile);
-  if not RegularFileExists(DprojFileAbsolute) then
+  if not RegularFileExists(CombinePaths(WorkingDirectory, DprojFile)) then
   begin
     WritelnWarning('Cannot find Delphi project file "%s". ' + NL +
       'We recommend to generate the DPROJ by running "castle-engine generate-program" to have "msbuild" compilation working. ' + NL +
@@ -1286,8 +1357,10 @@ begin
     Exit;
   end;
 
-  MSBuildPlatform := DelphiPlatform(Options.OS, Options.CPU);
-  MSBuildConfig := DelphiConfig(Options.Mode);
+  { Make a warning that Options.ExtraOptions are unsupported. }
+  if Options.ExtraOptions.Count > 0 then
+    WritelnWarning('Delphi', 'Extra compiler options have been provided, but they are ignored when compiling with msbuild. The extra compiler options are:' + NL +
+      Options.ExtraOptions.Text);
 
   { Add extra defines using the DCC_Define environment variable.
     The generated .dproj uses $(DCC_Define), making this injection
@@ -1304,49 +1377,8 @@ begin
   ExtraUnitSearchPath := '';
   AddEngineSearchPaths(ExtraUnitSearchPath);
 
-  { Make a warning that Options.ExtraOptions are unsupported. }
-  if Options.ExtraOptions.Count > 0 then
-    WritelnWarning('Delphi', 'Extra compiler options have been provided, but they are ignored when compiling with msbuild. The extra compiler options are:' + NL +
-      Options.ExtraOptions.Text);
-
-  { Write bat that sets up the Delphi environment (calling rsvars.bat)
-    then runs msbuild. }
-  OutPath := CompilationOutputPath(coDelphi, Options.OS, Options.CPU, WorkingDirectory);
-  ForceDirectories(OutPath);
-  WrapperBat := InclPathDelim(OutPath) + 'castle-msbuild.bat';
-  if Verbose then
-    MsBuildVerbosity := ''
-  else
-    { Using /verbosity:minimal by default, otherwise it shows really long lines
-      (compiler and linker command-line).
-      It's a pity, because it also shows Delphi compiler version,
-      lines compiled -- useful stuff.
-      Using /nologo, otherwise it shows msbuild version, .NET version, MS copyright. }
-    MsBuildVerbosity := '/nologo /verbosity:minimal';
-  WrapperBatContents :=
-    '@echo off' + NL +
-    'call "' + RsVars + '"' + NL +
-    'if errorlevel 1 exit /b 1' + NL +
-    'set "DCC_Define=' + ExtraDefines + '"' + NL +
-    'set "DCC_UnitSearchPath=' + ExtraUnitSearchPath + '"' + NL +
-    'msbuild "' + DprojFileAbsolute + '"' +
-      ' /target:Build' +
-      ' /p:Config=' + MSBuildConfig +
-      ' /p:Platform=' + MSBuildPlatform +
-      ' ' + MsBuildVerbosity + NL +
-    'exit /b %errorlevel%' + NL;
-  StringToFile(FilenameToUriSafe(WrapperBat), WrapperBatContents);
-
-  Writeln('Delphi compiler (msbuild) executing...');
-
-  ComSpec := GetEnvironmentVariable('ComSpec');
-  if ComSpec = '' then
-    ComSpec := 'cmd.exe';
-
-  RunCommandIndirPassthrough(WorkingDirectory, ComSpec, ['/c', WrapperBat],
-    MSBuildOutput, MSBuildExitStatus);
-  if MSBuildExitStatus <> 0 then
-    raise Exception.Create('Failed to compile');
+  RunDelphiMSBuild(WorkingDirectory, CompileFile, 'Build', Options,
+    ExtraDefines, ExtraUnitSearchPath);
 end;
 
 procedure CompileDelphi(const WorkingDirectory, CompileFile: String; const Options: TCompilerOptions);
