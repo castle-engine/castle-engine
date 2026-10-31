@@ -31,12 +31,14 @@ uses Classes,
 
   CompilerOptions.OS andCompilerOptions.CPU are ignored by this routine.
   This routine may modify CompilerOptions contents. }
-procedure CompileAndroid(const Compiler: TCompiler;
+procedure CompileAndroid(Compiler: TCompiler;
   const Project: TCastleProject;
   const WorkingDirectory, CompileFile: string;
   const CompilerOptions: TCompilerOptions);
 
-{ Android CPU values supported by the current compiler. }
+{ Android CPU values supported by the current compiler.
+
+  This assumes FPC compiler is used for Android compilation, not Delphi. }
 function DetectAndroidCPUS: TCPUS;
 
 { Convert CPU to an architecture name understood by Android,
@@ -83,23 +85,38 @@ begin
   Result := DetectAndroidCPUSCached;
 end;
 
-procedure CompileAndroid(const Compiler: TCompiler;
+procedure CompileAndroid(Compiler: TCompiler;
   const Project: TCastleProject;
   const WorkingDirectory, CompileFile: string;
   const CompilerOptions: TCompilerOptions);
 var
   CPU: TCPU;
 begin
-  for CPU in DetectAndroidCPUS do
-  begin
-    CompilerOptions.OS := Android;
-    CompilerOptions.CPU := CPU;
-    Compile(Compiler, WorkingDirectory, CompileFile, CompilerOptions);
-    if Project <> nil then
-    begin
-      CheckRenameFile(Project.AndroidLibraryFile(cpuNone), Project.AndroidLibraryFile(CPU));
-      Writeln('Compiled library for Android in ', Project.AndroidLibraryFile(CPU, false));
-    end;
+  FinishDetectingCompiler(Compiler);
+  case Compiler of
+    coDelphi:
+      begin
+        { With Delphi, we just compile the CompileFile (which is a normal
+          program DPR) for Android/aarch64. }
+        CompilerOptions.OS := Android;
+        CompilerOptions.CPU := Aarch64;
+        Compile(Compiler, WorkingDirectory, CompileFile, CompilerOptions);
+      end;
+    coFpc:
+      begin
+        for CPU in DetectAndroidCPUS do
+        begin
+          CompilerOptions.OS := Android;
+          CompilerOptions.CPU := CPU;
+          Compile(Compiler, WorkingDirectory, CompileFile, CompilerOptions);
+          if Project <> nil then
+          begin
+            CheckRenameFile(Project.AndroidLibraryFile(cpuNone), Project.AndroidLibraryFile(CPU));
+            Writeln('Compiled library for Android in ', Project.AndroidLibraryFile(CPU, false));
+          end;
+        end;
+      end;
+    else raise EInternalError.Create('CompileAndroid: Compiler unexpected');
   end;
 end;
 

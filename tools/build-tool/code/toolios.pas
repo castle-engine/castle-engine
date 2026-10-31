@@ -39,7 +39,7 @@ type
 
   CompilerOptions.OS andCompilerOptions.CPU are ignored by this routine.
   This routine may modify CompilerOptions contents. }
-procedure CompileIOS(const Compiler: TCompiler;
+procedure CompileIOS(Compiler: TCompiler;
   const WorkingDirectory, CompileFile: string;
   const CompilerOptions: TCompilerOptions);
 
@@ -73,7 +73,7 @@ uses SysUtils, DOM,
 const
   IOSPartialLibraryName = 'lib_cge_project.a';
 
-procedure CompileIOS(const Compiler: TCompiler;
+procedure CompileIOS(Compiler: TCompiler;
   const WorkingDirectory, CompileFile: string;
   const CompilerOptions: TCompilerOptions);
 
@@ -119,21 +119,36 @@ procedure CompileIOS(const Compiler: TCompiler;
   end;
 
 begin
-  { To compile CastleInternalVorbisFile properly.
-    Later PackageIOS will actually add the static tremolo files to the project. }
-  CompilerOptions.ExtraOptions.Add('-dCASTLE_TREMOLO_STATIC');
+  FinishDetectingCompiler(Compiler);
+  case Compiler of
+    coDelphi:
+      begin
+        { With Delphi, we just compile the CompileFile (which is a normal
+          program DPR) for iOS/aarch64. }
+        CompilerOptions.OS := iOS;
+        CompilerOptions.CPU := aarch64;
+        Compile(Compiler, WorkingDirectory, CompileFile, CompilerOptions);
+      end;
+    coFpc:
+      begin
+        { To compile CastleInternalVorbisFile properly.
+          Later PackageIOS will actually add the static tremolo files to the project. }
+        CompilerOptions.ExtraOptions.Add('-dCASTLE_TREMOLO_STATIC');
 
-  if IosSimulatorSupport then
-  begin
-    { iPhoneSimulator for i386 is not useful, since
-      - macOS on i386 is no longer supported
-      - fpcupdeluxe seems to not even allow making FPC cross-compiler for iPhoneSimulator on i386 }
-    //CompileLibrary(iphonesim, i386);
-    CompileLibrary(iphonesim, x86_64);
+        if IosSimulatorSupport then
+        begin
+          { iPhoneSimulator for i386 is not useful, since
+            - macOS on i386 is no longer supported
+            - fpcupdeluxe seems to not even allow making FPC cross-compiler for iPhoneSimulator on i386 }
+          //CompileLibrary(iphonesim, i386);
+          CompileLibrary(iphonesim, x86_64);
+        end;
+        if IosArm32Support then
+          CompileLibrary(iOS, arm);
+        CompileLibrary(iOS, aarch64);
+      end;
+    else raise EInternalError.Create('CompileIOS: Compiler unexpected');
   end;
-  if IosArm32Support then
-     CompileLibrary(iOS, arm);
-  CompileLibrary(iOS, aarch64);
 end;
 
 procedure LinkIOSLibrary(const Compiler: TCompiler; const CompilationWorkingDirectory, OutputFile: string);

@@ -29,6 +29,9 @@ uses DOM, Classes, Generics.Collections,
 type
   TCompiler = (coAutodetect, coFpc, coDelphi);
 
+  { Like TCompiler, but never coAutodetect. }
+  TCompilerDetected = coFpc..coDelphi;
+
   TScreenOrientation = (soAny, soLandscape, soPortrait);
 
   TLocalizedAppName = class

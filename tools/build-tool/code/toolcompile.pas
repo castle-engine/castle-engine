@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2024 Michalis Kamburelis.
+  Copyright 2014-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -70,8 +70,15 @@ type
     destructor Destroy; override;
   end;
 
-{ Compile with Pascal compiler.
-  SearchPaths, ExtraOptions may be @nil (same as empty). }
+{ Compile with a Pascal compiler.
+
+  @param(Compiler Compiler to use. May be coAutodetect.)
+
+  @param(SearchPaths Additional search paths for units/includes.
+    May be @nil (same as empty).)
+
+  @param(ExtraOptions Extra compiler options.
+    May be @nil (same as empty).) }
 procedure Compile(Compiler: TCompiler;
   const WorkingDirectory, CompileFile: String; const Options: TCompilerOptions);
 
@@ -134,6 +141,18 @@ function DelphiPlatform(const OS: TOS; const CPU: TCPU;
 { Convert our TCompilationMode to Delphi "Config" name, like 'Release', 'Debug',
   used for e.g. output directory. }
 function DelphiConfig(const Mode: TCompilationMode): String;
+
+{ Resolve Compiler to something other than coAutodetect.
+
+  @param(DefaultToFpc Assume FPC if no compiler was found.
+    This makes sense when we need to know "what compiler was used to make this",
+    but we don't really need to call the compiler.
+    This happens with "castle-engine package --assume-compiled" command.
+    We should not fail in this case when no compiler (FPC, Delphi) if found
+    on the system (and command-line and manifest left compiler as coAutodetect),
+    we should assume FPC.) }
+procedure FinishDetectingCompiler(var Compiler: TCompiler;
+  const DefaultToFpc: Boolean = false);
 
 implementation
 
@@ -975,9 +994,9 @@ begin
   finally FreeAndNil(FpcOptions) end;
 end;
 
-procedure Compile(Compiler: TCompiler; const WorkingDirectory, CompileFile: String; const Options: TCompilerOptions);
+procedure FinishDetectingCompiler(var Compiler: TCompiler;
+  const DefaultToFpc: Boolean);
 begin
-  { resolve Compiler to something other than coAutodetect }
   if Compiler = coAutodetect then
   begin
     if FindExeFpcCompiler(false) <> '' then
@@ -986,10 +1005,17 @@ begin
     if FindDelphiPath(false) <> '' then
       Compiler := coDelphi
     else
+    if DefaultToFpc then
+      Compiler := coFpc
+    else
       raise Exception.Create('Neither FPC nor Delphi found, cannot autodetect compiler');
   end;
   Assert(Compiler <> coAutodetect);
+end;
 
+procedure Compile(Compiler: TCompiler; const WorkingDirectory, CompileFile: String; const Options: TCompilerOptions);
+begin
+  FinishDetectingCompiler(Compiler);
   case Compiler of
     coFpc: CompileFpc(WorkingDirectory, CompileFile, Options);
     coDelphi: CompileDelphi(WorkingDirectory, CompileFile, Options);

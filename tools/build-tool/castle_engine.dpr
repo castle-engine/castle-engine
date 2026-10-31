@@ -517,7 +517,7 @@ begin
             Project.DoClean;
           Project.DoCompile(OverrideCompiler, Target, OS, CPU, Mode, CompilerExtraOptions);
         end;
-        Project.DoPackage(Target, OS, CPU, Mode, PackageFormat, PackageNameIncludeVersion, UpdateOnlyCode);
+        Project.DoPackage(OverrideCompiler, Target, OS, CPU, Mode, PackageFormat, PackageNameIncludeVersion, UpdateOnlyCode);
       end else
       if Command = 'install' then
         Project.DoInstall(Target, OS, CPU, Mode, PackageFormat, PackageNameIncludeVersion)
