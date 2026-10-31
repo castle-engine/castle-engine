@@ -112,13 +112,17 @@
       These things are specific to the Delphi version, so let Delphi generate them:
       in Delphi IDE, right-click on "Target Platforms" and choose "Add Platform...".
       Here we only make sure that the output of mobile platforms goes to a separate
-      directory for each platform, not to the project directory.
+      directory for each platform, not to the project directory,
+      and that Android application id follows qualified_name.
+      Delphi uses defaults for the keys not specified in VerInfo_Keys.
     -->
     <PropertyGroup Condition="'$(Base_Android)'!=''">
         <DCC_ExeOutput>castle-engine-output\delphi\$(Platform)\$(Config)</DCC_ExeOutput>
+        <VerInfo_Keys>package=io.castleengine.image.render.custom.shader</VerInfo_Keys>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Android64)'!=''">
         <DCC_ExeOutput>castle-engine-output\delphi\$(Platform)\$(Config)</DCC_ExeOutput>
+        <VerInfo_Keys>package=io.castleengine.image.render.custom.shader</VerInfo_Keys>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_iOSDevice64)'!=''">
         <DCC_ExeOutput>castle-engine-output\delphi\$(Platform)\$(Config)</DCC_ExeOutput>
