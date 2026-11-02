@@ -17,24 +17,18 @@
 (*CastleWindow backend using Lazarus LCL or Delphi FMX underneath.
 
   *Should* work with all platforms,
-  all LCL widgetsets,
-  all Delphi FMX platforms.
+  - all LCL widgetsets,
+  - all Delphi FMX platforms.
 
-  Note that there are a few TODOs in this file, for some specific Delphi (FMX)
-  or FPC / Lazarus (LCL) backends. Things are not perfect on their end always,
-  there are platform-specific edge cases.
-  We still try to support all LCL and FMX widgetsets here, *but*
-  we focus our testing on platforms where we actually use this backend by default.
+  We focus our testing on platforms where we actually use this backend by default.
   This means right now:
 
-  - Delphi/Linux,
-    Delphi/Android,
-    TODO: likely we will use it too for Delphi/iOS,
-    TODO: likely we will use it too for Delphi/macOS
+  - Delphi with all non-Windows platforms
+    (see https://castle-engine.io/delphi_mobile ,
+    https://castle-engine.io/delphi_linux ,
+    https://castle-engine.io/delphi_macos )
 
-    They all use FireMonkey (FMX).
-
-  Historically, it was useful also with some LCL backends (e.g. we depended on
+  Historically, this was useful also with some LCL backends (e.g. we depended on
   this for FPC/macOS for a long time, before we implemented castlewindow_cocoa.inc).
   And it may be useful with more platforms in the future, both LCL and FMX.
 
