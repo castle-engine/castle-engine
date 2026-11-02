@@ -3496,7 +3496,10 @@ begin
       AddModeParameters(QueueItem.Parameters);
     // add --compiler parameter
     if (Command = 'compile') or
-       (Command = 'package') then
+       (Command = 'package') or
+       (Command = 'install') or
+       (Command = 'uninstall') or
+       (Command = 'run') then
       AddCompilerParameters(QueueItem.Parameters);
     // add --target, --os, --cpu parameters
     if (Command = 'compile') or
