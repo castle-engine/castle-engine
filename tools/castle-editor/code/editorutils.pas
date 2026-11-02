@@ -227,6 +227,8 @@ var
 var
   { Which compiler to use (passed to build tool). Current user preference. }
   Compiler: TCompiler;
+  { Do not pass engine paths when calling MSBuild with Delphi. Current user preference. }
+  MSBuildDontPassEnginePaths: Boolean;
 
 const
   DefaultMuteOnRun = true;

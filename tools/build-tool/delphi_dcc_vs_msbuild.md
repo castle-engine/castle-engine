@@ -65,10 +65,10 @@ The solution to this is to
 
 - Provide engine paths in your Delphi configuration. Follow [installing engine in Delphi](https://castle-engine.io/delphi_packages), in particular _"Configure Delphi to Use Engine"_.
 
-- And call build tool with additional `--dont-pass-engine-paths` option. For example:
+- And call build tool with additional `--msbuild-dont-pass-engine-paths` option. For example:
 
     ```
-    castle-engine compile --target=android --compiler=delphi --mode=debug --dont-pass-engine-paths
+    castle-engine compile --target=android --compiler=delphi --mode=debug --msbuild-dont-pass-engine-paths
     ```
 
 ## Conclusion

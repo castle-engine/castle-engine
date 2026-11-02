@@ -139,13 +139,14 @@ var
     See ../delphi_dcc_vs_msbuild.md for discussion. }
   CompileDelphiUsingDcc: Boolean = false;
 
-  { Should compilers pass paths to the engine on the command-line.
-    We generally recommend this, to make sure that proper engine is compiled,
-    and so you don't need to tweak any machine-specific compiler settings
-    (like Delphi settings, or FPC ~/.fpc.cfg).
+  { Should MSBuild pass paths to the engine on the command-line.
+
+    We would like this to be true
+    (to make sure that proper engine is compiled,
+    and so you don't need to tweak any machine-specific compiler settings).
     But it causes problems with MSBuild path limit length
     (see delphi_dcc_vs_msbuild.md ). }
-  PassEnginePaths: Boolean = true;
+  MSBuildPassEnginePaths: Boolean = true;
 
 const
   CompilationModeToStr: array [TCompilationMode] of string = (
@@ -678,7 +679,7 @@ begin
 
   FpcOptions := TCastleStringList.Create;
   try
-    if PassEnginePaths and (CastleEnginePath <> '') then
+    if {PassEnginePaths and} (CastleEnginePath <> '') then
       CastleEngineSrc := CastleEnginePath + 'src' + PathDelim
     else
       CastleEngineSrc := '';
@@ -1174,7 +1175,7 @@ begin
   if not RegularFileExists(DccExe) then
     raise Exception.CreateFmt('Cannot find Delphi compiler for this OS/CPU: %s', [DccExe]);
 
-  if PassEnginePaths and (CastleEnginePath <> '') then
+  if {PassEnginePaths and} (CastleEnginePath <> '') then
     CastleEngineSrc := CastleEnginePath + 'src' + PathDelim
   else
     CastleEngineSrc := '';
@@ -1334,7 +1335,7 @@ procedure CompileDelphiMSBuild(const WorkingDirectory, CompileFile: String; cons
   var
     S: String;
   begin
-    if PassEnginePaths and (CastleEnginePath <> '') then
+    if MSBuildPassEnginePaths and (CastleEnginePath <> '') then
     begin
       for S in EnginePaths do
         AddEnginePath(SearchPaths, S);
