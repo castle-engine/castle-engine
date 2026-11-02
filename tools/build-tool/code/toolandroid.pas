@@ -671,7 +671,7 @@ end;
 
   With Delphi, the id is determined by the "package" key in Delphi project
   options ("Version Info"), it's not synchronized with qualified_name.
-  So we read the manifest that Delphi generated during compilation. }
+  So we read the manifest that Delphi generated. }
 function AndroidApplicationId(const Project: TCastleProject;
   const Compiler: TCompilerDetected; const CPU: TCPU;
   const Mode: TCompilationMode): String;
