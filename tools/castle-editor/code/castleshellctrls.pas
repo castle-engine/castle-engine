@@ -847,18 +847,14 @@ end;
 
 class function TCustomCastleShellTreeView.GetBasePath: String;
 begin
-  {$if defined(windows) and not defined(wince)}
-  Result := '';
-  {$endif}
-  {$ifdef wince}
-  Result := '\';
-  {$endif}
-  {$ifdef unix}
-  Result := '/';
-  {$endif}
-  {$ifdef HASAMIGA}
-  Result := '';
-  {$endif}
+  { This is deliberately written in such way that it fails compilation
+    on platforms for which we didn't define result, or where we defined result
+    twice. }
+  Result :=
+    {$if defined(windows) and not defined(wince)} '' {$endif}
+    {$ifdef unix} '/' {$endif}
+    {$ifdef HASAMIGA} '' {$endif}
+  ;
 end;
 
 function TCustomCastleShellTreeView.GetRootPath: String;

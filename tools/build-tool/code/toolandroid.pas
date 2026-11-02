@@ -1,9 +1,9 @@
 {
-  Copyright 2014-2024 Michalis Kamburelis.
+  Copyright 2014-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -31,12 +31,14 @@ uses Classes,
 
   CompilerOptions.OS andCompilerOptions.CPU are ignored by this routine.
   This routine may modify CompilerOptions contents. }
-procedure CompileAndroid(const Compiler: TCompiler;
+procedure CompileAndroid(Compiler: TCompiler;
   const Project: TCastleProject;
   const WorkingDirectory, CompileFile: string;
   const CompilerOptions: TCompilerOptions);
 
-{ Android CPU values supported by the current compiler. }
+{ Android CPU values supported by the current compiler.
+
+  This assumes FPC compiler is used for Android compilation, not Delphi. }
 function DetectAndroidCPUS: TCPUS;
 
 { Convert CPU to an architecture name understood by Android,
@@ -47,13 +49,22 @@ procedure PackageAndroid(const Project: TCastleProject;
   const OS: TOS; const CPUS: TCPUS; const SuggestedPackageMode: TCompilationMode;
   const PackageFormat: TPackageFormatNoDefault; const PackageNameIncludeVersion: Boolean);
 
+{ Install the Android package on a device.
+
+  @param(CPU Used only when Compiler is coDelphi,
+    as Delphi output is in a directory specific to CPU.) }
 procedure InstallAndroid(const Project: TCastleProject;
+  const Compiler: TCompilerDetected; const CPU: TCPU;
   const PackageMode: TCompilationMode;
   const PackageFormat: TPackageFormatNoDefault; const PackageNameIncludeVersion: Boolean);
 
-procedure UnInstallAndroid(const Project: TCastleProject);
+procedure UnInstallAndroid(const Project: TCastleProject;
+  const Compiler: TCompilerDetected; const CPU: TCPU;
+  const Mode: TCompilationMode);
 
-procedure RunAndroid(const Project: TCastleProject);
+procedure RunAndroid(const Project: TCastleProject;
+  const Compiler: TCompilerDetected; const CPU: TCPU;
+  const Mode: TCompilationMode);
 
 { Output list of Android devices, like "adb devices" does.
   This detects adb executable and runs it. }
@@ -83,23 +94,38 @@ begin
   Result := DetectAndroidCPUSCached;
 end;
 
-procedure CompileAndroid(const Compiler: TCompiler;
+procedure CompileAndroid(Compiler: TCompiler;
   const Project: TCastleProject;
   const WorkingDirectory, CompileFile: string;
   const CompilerOptions: TCompilerOptions);
 var
   CPU: TCPU;
 begin
-  for CPU in DetectAndroidCPUS do
-  begin
-    CompilerOptions.OS := Android;
-    CompilerOptions.CPU := CPU;
-    Compile(Compiler, WorkingDirectory, CompileFile, CompilerOptions);
-    if Project <> nil then
-    begin
-      CheckRenameFile(Project.AndroidLibraryFile(cpuNone), Project.AndroidLibraryFile(CPU));
-      Writeln('Compiled library for Android in ', Project.AndroidLibraryFile(CPU, false));
-    end;
+  FinishDetectingCompiler(Compiler);
+  case Compiler of
+    coDelphi:
+      begin
+        { With Delphi, we just compile the CompileFile (which is a normal
+          program DPR) for Android/aarch64. }
+        CompilerOptions.OS := Android;
+        CompilerOptions.CPU := Aarch64;
+        Compile(Compiler, WorkingDirectory, CompileFile, CompilerOptions);
+      end;
+    coFpc:
+      begin
+        for CPU in DetectAndroidCPUS do
+        begin
+          CompilerOptions.OS := Android;
+          CompilerOptions.CPU := CPU;
+          Compile(Compiler, WorkingDirectory, CompileFile, CompilerOptions);
+          if Project <> nil then
+          begin
+            CheckRenameFile(Project.AndroidLibraryFile(cpuNone), Project.AndroidLibraryFile(CPU));
+            Writeln('Compiled library for Android in ', Project.AndroidLibraryFile(CPU, false));
+          end;
+        end;
+      end;
+    else raise EInternalError.Create('CompileAndroid: Compiler unexpected');
   end;
 end;
 
@@ -269,7 +295,7 @@ var
     var
       TemplatePath: string;
     begin
-      TemplatePath := 'android/integrated-services/' + ServiceName;
+      TemplatePath := 'android/services/' + ServiceName;
       Project.ExtractTemplate(TemplatePath, AndroidProjectPath);
     end;
 
@@ -542,40 +568,68 @@ var
       end;
 
       {$ifdef MSWINDOWS}
-      RunCommandSimple(AndroidProjectPath, AndroidProjectPath + 'gradlew.bat', Args.ToArray);
+      ExecuteCommandSimple(AndroidProjectPath, AndroidProjectPath + 'gradlew.bat', Args.ToArray);
       {$else}
       if RegularFileExists(AndroidProjectPath + 'gradlew') then
       begin
         Args.Insert(0, './gradlew');
-        RunCommandSimple(AndroidProjectPath, 'bash', Args.ToArray);
+        ExecuteCommandSimple(AndroidProjectPath, 'bash', Args.ToArray);
       end else
       begin
         Writeln('Local Gradle wrapper ("gradlew") not found, so we will call the Gradle on $PATH.');
         Writeln('Make sure you have installed Gradle (e.g. from the Debian "gradle" package), in a version compatible with the Android Gradle plugin (see https://developer.android.com/studio/releases/gradle-plugin.html#updating-gradle ).');
-        RunCommandSimple(AndroidProjectPath, 'gradle', Args.ToArray);
+        ExecuteCommandSimple(AndroidProjectPath, 'gradle', Args.ToArray);
       end;
       {$endif}
     finally FreeAndNil(Args) end;
   end;
 
 var
-  PackageName: string;
+  PackageName: String;
   PackageMode: TCompilationMode;
+  AndroidProjectPathNoDelim, RandomAndroidProjectPath: String;
+  ServiceManifests: TServiceManifestList;
 begin
   { calculate clean AndroidProjectPath }
-  AndroidProjectPath := TempOutputPath(Project.Path) +
-    'android' + PathDelim + 'project' + PathDelim;
+  AndroidProjectPathNoDelim := TempOutputPath(Project.Path) +
+    'android' + PathDelim + 'project';
+  AndroidProjectPath := AndroidProjectPathNoDelim + PathDelim;
   if DirectoryExists(AndroidProjectPath) then
+  try
     RemoveNonEmptyDir(AndroidProjectPath);
+  except
+    on E: ERemoveFailed do
+    begin
+      RandomAndroidProjectPath := AndroidProjectPathNoDelim + '-old-' + IntToStr(Random(1000000));
+      WritelnWarning('Removing "%s" failed with error: %s. As a workaround we will try to rename the directory to new random name "%s".', [
+        AndroidProjectPath,
+        E.Message,
+        RandomAndroidProjectPath
+      ]);
+      if not RenameFile(
+        AndroidProjectPathNoDelim,
+        RandomAndroidProjectPath) then
+      begin
+        raise ERemoveFailed.CreateFmt('Cannot remove or rename the directory "%s". Some application has "locked" it -- try to kill processes, like Android tools and Gradle daemon, that possibly keep this directory open. Then remove this directory manually and retry.', [
+          AndroidProjectPathNoDelim
+        ]);
+      end;
+    end;
+  end;
 
   PackageMode := SuggestedPackageMode;
 
   CalculateSigningProperties(PackageMode);
 
-  GenerateFromTemplates;
-  GenerateServicesFromTemplates;
-  PackageServices(Project, Project.AndroidServices,
-    'castle-data:/android/integrated-services/', AndroidProjectPath);
+  ServiceManifests := LoadServices(Project.AndroidServices, 'castle-data:/android/services/');
+  try
+    { Services may raise the min SDK version, this must be known before
+      GenerateFromTemplates expands ANDROID_MIN_SDK_VERSION. }
+    ApplyServicesAndroidMinSdkVersion(Project, ServiceManifests);
+    GenerateFromTemplates;
+    GenerateServicesFromTemplates;
+    PackageServices(Project, ServiceManifests, AndroidProjectPath);
+  finally FreeAndNil(ServiceManifests) end;
   GenerateIcons;
   GenerateAssets;
   GenerateLocalization;
@@ -603,7 +657,6 @@ begin
           PackageModeToName[PackageMode] + PathDelim +
           'app-' + PackageModeToName[PackageMode] + '.aab',
           Project.OutputPath + PackageName);
-        DoMakeExecutable(Project.OutputPath + PackageName);
       end;
     else
       raise Exception.Create('Unexpected PackageFormat in PackageAndroid: ' + PackageFormatToString(PackageFormat));
@@ -612,42 +665,103 @@ begin
   Writeln('Build ' + PackageName);
 end;
 
+{ Android application id (the "package" in AndroidManifest.xml).
+
+  With FPC, we generate the manifest using qualified_name.
+
+  With Delphi, the id is determined by the "package" key in Delphi project
+  options ("Version Info"), it's not synchronized with qualified_name.
+  So we read the manifest that Delphi generated. }
+function AndroidApplicationId(const Project: TCastleProject;
+  const Compiler: TCompilerDetected; const CPU: TCPU;
+  const Mode: TCompilationMode): String;
+var
+  ManifestFile: String;
+  Doc: TXMLDocument;
+begin
+  case Compiler of
+    coFpc: Result := Project.QualifiedName;
+    coDelphi:
+      begin
+        ManifestFile := Project.DelphiAndroidOutputPath(CPU, Mode) + 'AndroidManifest.xml';
+        if not RegularFileExists(ManifestFile) then
+          raise Exception.CreateFmt('Cannot find "%s". Package the project first (using "Deploy" from Delphi IDE or command-line "castle-engine package") for the same platform and mode (--mode=%s).', [
+            ManifestFile,
+            ModeToString(Mode)
+          ]);
+        URLReadXML(Doc, FilenameToUriSafe(ManifestFile));
+        try
+          Result := Doc.DocumentElement.AttributeString('package');
+        finally FreeAndNil(Doc) end;
+        if Result <> Project.QualifiedName then
+          WritelnWarning('Android', Format('Application id in Delphi project is "%s", different than qualified_name "%s" in CastleEngineManifest.xml. We recommend to set the same id in Delphi project options, in "Version Info", "package" key.', [
+            Result,
+            Project.QualifiedName
+          ]));
+      end;
+    else raise EInternalError.Create('AndroidApplicationId: Compiler unexpected');
+  end;
+end;
+
 procedure InstallAndroid(const Project: TCastleProject;
+  const Compiler: TCompilerDetected; const CPU: TCPU;
   const PackageMode: TCompilationMode;
   const PackageFormat: TPackageFormatNoDefault; const PackageNameIncludeVersion: Boolean);
 var
-  PackageName: string;
+  PackageName, ApplicationId: string;
 begin
-  PackageName := Project.OutputPath +
-    AndroidPackageFile(Project, PackageMode, PackageFormat, PackageNameIncludeVersion);
+  case Compiler of
+    coFpc:
+      PackageName := Project.OutputPath +
+        AndroidPackageFile(Project, PackageMode, PackageFormat, PackageNameIncludeVersion);
+    coDelphi:
+      begin
+        if PackageFormat <> pfAndroidApk then
+          raise Exception.Create('Installing Android package other than APK is not implemented with Delphi');
+        PackageName := Project.DelphiAndroidApkFile(CPU, PackageMode);
+      end;
+    else raise EInternalError.Create('InstallAndroid: Compiler unexpected');
+  end;
   if not RegularFileExists(PackageName) then
     raise Exception.CreateFmt('No Android package found: "%s"', [PackageName]);
 
   { Uninstall and then install, instead of calling "install -r",
     to avoid failures because apk signed with different keys (debug vs release). }
 
-  Writeln('Reinstalling application identified as "' + Project.QualifiedName + '".');
-  Writeln('If this fails, an often cause is that a previous development version of the application, signed with a different key, remains on the device. In this case uninstall it first by "castle-engine uninstall" or "adb uninstall ' + Project.QualifiedName + '". Note that it will clear your UserConfig data, unless you pass -k to "adb".');
+  ApplicationId := AndroidApplicationId(Project, Compiler, CPU, PackageMode);
+  Writeln('Reinstalling application identified as "' + ApplicationId + '".');
+  Writeln('If this fails, an often cause is that a previous development version of the application, signed with a different key, remains on the device. In this case uninstall it first by "castle-engine uninstall --target=android" or "adb uninstall ' + ApplicationId + '". Note that it will clear your UserConfig data, unless you pass -k to "adb".');
   Flush(Output); // don't mix output with adb output
-  RunCommandSimple(AdbExe, ['install', '-r', PackageName]);
+  ExecuteCommandSimple(AdbExe, ['install', '-r', PackageName]);
   Writeln('Install successful.');
 end;
 
-procedure UnInstallAndroid(const Project: TCastleProject);
+procedure UnInstallAndroid(const Project: TCastleProject;
+  const Compiler: TCompilerDetected; const CPU: TCPU;
+  const Mode: TCompilationMode);
+var
+  ApplicationId: String;
 begin
-  Writeln('Uninstalling Android application identified as "' + Project.QualifiedName + '".');
-  RunCommandSimple(AdbExe, ['uninstall', Project.QualifiedName]);
+  ApplicationId := AndroidApplicationId(Project, Compiler, CPU, Mode);
+  Writeln('Uninstalling Android application identified as "' + ApplicationId + '".');
+  ExecuteCommandSimple(AdbExe, ['uninstall', ApplicationId]);
   Writeln('Uninstall successful.');
 end;
 
-procedure RunAndroid(const Project: TCastleProject);
+procedure RunAndroid(const Project: TCastleProject;
+  const Compiler: TCompilerDetected; const CPU: TCPU;
+  const Mode: TCompilationMode);
 var
   ActivityName, LogTag: string;
 begin
-  ActivityName := 'io.castleengine.MainActivity';
-  RunCommandSimple(AdbExe, ['shell', 'am', 'start',
+  case Compiler of
+    coFpc: ActivityName := 'io.castleengine.MainActivity';
+    coDelphi: ActivityName := 'com.embarcadero.firemonkey.FMXNativeActivity';
+    else raise EInternalError.Create('RunAndroid: Compiler unexpected');
+  end;
+  ExecuteCommandSimple(AdbExe, ['shell', 'am', 'start',
     '-a', 'android.intent.action.MAIN',
-    '-n', Project.QualifiedName + '/' + ActivityName ]);
+    '-n', AndroidApplicationId(Project, Compiler, CPU, Mode) + '/' + ActivityName ]);
   Writeln('Android application successfully started.');
 
   LogTag := Copy(Project.Name, 1, MaxAndroidTagLength);
@@ -659,7 +773,7 @@ begin
     because we don't want to capture output,
     we want to immediately pass it to user.
 
-    Later implementation relies on RunCommandSimple, this way
+    Later implementation relies on ExecuteCommandSimple, this way
     we pass new ChildProcessId to EditorUtils, since it writelns the magic string
     'Castle Game Engine Internal: ProcessID: ...' . And passing this
     ChildProcessId to EditorUtils allows better behavior when using "Stop"
@@ -675,13 +789,13 @@ begin
       but it would not solve issue AD 1 above.
   }
   //ExecuteProcess(AdbExe, ['logcat', '-s', LogTag + ':V']);
-  RunCommandSimple(AdbExe, ['logcat', '-s', LogTag + ':V']);
+  ExecuteCommandSimple(AdbExe, ['logcat', '-s', LogTag + ':V']);
 end;
 
 procedure WritelnAndroidDevices;
 begin
   Writeln('Detecting Android devices:');
-  RunCommandSimple(AdbExe, ['devices']);
+  ExecuteCommandSimple(AdbExe, ['devices']);
 end;
 
 end.

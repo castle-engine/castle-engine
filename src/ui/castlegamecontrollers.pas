@@ -8,7 +8,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
   This file is based on ZenGL, with "zlib" license
   ( http://www.zengl.org/license.html ) which is fully compatible with
@@ -106,17 +106,40 @@ type
       e.g. position (-1,-1) may not be reachable, usually it is not reachable.
 
       So: Your application should not assume that user can make a stick
-      position beyond the circle of radius 1, but it should accept such positions. }
+      position beyond the circle of radius 1, but it should accept such positions.
+
+      @seealso AxisRight }
     function AxisLeft: TVector2;
 
     { Right analog stick position.
-      See @link(TGameController.AxisLeft) for details of possible values. }
+      See @link(TGameController.AxisLeft) for details of possible values.
+      @seealso AxisLeft }
     function AxisRight: TVector2;
 
-    { Left trigger axis, in range 0..1. }
+    { Left trigger axis, in range 0..1.
+
+      On some controllers, like @url(https://castle-engine.io/nintendo_switch Nintendo Switch),
+      the triggers are "digital" so they can be only pressed or released.
+      In such case, this axis will have only values 0.0 or 1.0.
+
+      On other controllers, like Xbox controllers, the triggers are "analog",
+      so they can be pressed with any amount of force.
+      In such case, this axis will have any value from 0.0 to 1.0.
+
+      Note: If you don't really want to treat trigger as "analog",
+      you want to simply detect it as presses / released ("digital"),
+      then detect on the application side when the trigger passes a certian
+      "threshold".
+      For example, when TGameController.AxisLeftTrigger > 0.5 then
+      treat it as "pressed". See https://castle-engine.io/controllers
+      for pointers.
+
+      @seealso AxisRightTrigger
+    }
     function AxisLeftTrigger: Single;
 
-    { Right trigger axis, in range 0..1. }
+    { Right trigger axis, in range 0..1.
+      @seealso AxisLeftTrigger }
     function AxisRightTrigger: Single;
 
     { Nice caption (label) of a given button.
@@ -230,7 +253,8 @@ type
       Always returns TExplicitControllerManagerBackend, but cannot be
       declared as such.
       Used by CASTLE_WINDOW_LIBRARY when
-      an external API notifies us about the controllers state. }
+      an external API notifies us about the controllers state.
+      @exclude }
     function InternalExplicitBackend: TInternalControllerManagerBackend;
 
     { Used by CastleWindow to notify us that some devices have been
@@ -319,23 +343,58 @@ begin
 end;
 
 const
-  { Map TGameControllerButton to additional information, like Caption.
-    Specific to the XBox Controller, more specifically
-    https://en.wikipedia.org/wiki/Xbox_Wireless_Controller }
-  XBoxMap: array[TGameControllerButton] of record
+  { Map TGameControllerButton to additional information, like Caption. }
+  ButtonsInfo: array[TGameControllerButton] of record
     Caption: String;
     Meaning: TGameControllerButtonMeaning;
-    { For now, always @true, because we declare all and only buttons for
-      XBox Controller, and we treat all controlles as XBox Controller.
-      But it will not be such always. }
     Handled: Boolean;
-  end = (
+  end =
+
+  {$ifdef CASTLE_NINTENDO_SWITCH}
+  { Information specific to the Nintendo Switch controller.
+    Caption follows Nintendo naming:
+    https://www.nintendo.com/en-gb/Support/Nintendo-Switch/Joy-Con-Controller-Diagram-1518877.html
+    https://en-americas-support.nintendo.com/app/answers/detail/a_id/22634/~/joy-con-controller-diagram
+  }
+  (
+    { gbNorth }           (Caption: 'X'                ; Meaning: gmNone   ; Handled: true),
+    { gbEast }            (Caption: 'A'                ; Meaning: gmConfirm; Handled: true),
+    { gbSouth }           (Caption: 'B'                ; Meaning: gmCancel ; Handled: true),
+    { gbWest }            (Caption: 'Y'                ; Meaning: gmNone   ; Handled: true),
+    // { gbLeftTrigger }     (Caption: 'L'; Meaning: gmNone   ; Handled: true),
+    // { gbRightTrigger }    (Caption: 'R'; Meaning: gmNone   ; Handled: true),
+    { gpLeftBumper }      (Caption: 'ZL'     ; Meaning: gmNone   ; Handled: true),
+    { gpRightBumper }     (Caption: 'ZR'     ; Meaning: gmNone   ; Handled: true),
+    { gbLeftStickClick }  (Caption: 'Left Stick Click' ; Meaning: gmNone   ; Handled: true),
+    { gbRightStickClick } (Caption: 'Right Stick Click'; Meaning: gmNone   ; Handled: true),
+    { gbDPadUp }          (Caption: 'D-Pad Up'         ; Meaning: gmNone   ; Handled: true),
+    { gbDPadRight }       (Caption: 'D-Pad Right'      ; Meaning: gmNone   ; Handled: true),
+    { gbDPadDown }        (Caption: 'D-Pad Down'       ; Meaning: gmNone   ; Handled: true),
+    { gbDPadLeft }        (Caption: 'D-Pad Left'       ; Meaning: gmNone   ; Handled: true),
+    { gpView }            (Caption: '-'             ; Meaning: gmNone   ; Handled: true),
+    { gpMenu }            (Caption: '+'             ; Meaning: gmNone   ; Handled: true),
+    // While this button exists on the Nintendo Switch controller,
+    // it is handled by the system, so we cannot detect it in CGE applications.
+    { gpGuide }           (Caption: 'Home'          ; Meaning: gmNone   ; Handled: false),
+    // While this button exists on the Nintendo Switch controller,
+    // it is handled by the system, so we cannot detect it in CGE applications.
+    { gpShare }           (Caption: 'Capture'       ; Meaning: gmNone   ; Handled: false)
+  )
+  {$else}
+  { Information specific to the XBox Controller, more specifically
+    https://en.wikipedia.org/wiki/Xbox_Wireless_Controller
+    Note that Handled is always true,
+    because for now we declare all and only buttons that are
+    the XBox Controller, and we treat all controlles on non-Nintendo as XBox Controller.
+    But it will not be such always.
+  }
+  (
     { gbNorth }           (Caption: 'Y'                ; Meaning: gmNone   ; Handled: true),
     { gbEast }            (Caption: 'B'                ; Meaning: gmCancel ; Handled: true),
     { gbSouth }           (Caption: 'A'                ; Meaning: gmConfirm; Handled: true),
     { gbWest }            (Caption: 'X'                ; Meaning: gmNone   ; Handled: true),
-    { gbLeftTrigger }     (Caption: 'Left Trigger'     ; Meaning: gmNone   ; Handled: true),
-    { gbRightTrigger }    (Caption: 'Right Trigger'    ; Meaning: gmNone   ; Handled: true),
+    // { gbLeftTrigger }     (Caption: 'Left Trigger'     ; Meaning: gmNone   ; Handled: true),
+    // { gbRightTrigger }    (Caption: 'Right Trigger'    ; Meaning: gmNone   ; Handled: true),
     { gpLeftBumper }      (Caption: 'Left Bumper'      ; Meaning: gmNone   ; Handled: true),
     { gpRightBumper }     (Caption: 'Right Bumper'     ; Meaning: gmNone   ; Handled: true),
     { gbLeftStickClick }  (Caption: 'Left Stick Click' ; Meaning: gmNone   ; Handled: true),
@@ -348,11 +407,13 @@ const
     { gpMenu }            (Caption: 'Menu'             ; Meaning: gmNone   ; Handled: true),
     { gpGuide }           (Caption: 'Guide'            ; Meaning: gmNone   ; Handled: true),
     { gpShare }           (Caption: 'Share'            ; Meaning: gmNone   ; Handled: true)
-  );
+  )
+  {$endif}
+  ;
 
 function TGameController.ButtonCaption(const Button: TGameControllerButton): String;
 begin
-  if not XBoxMap[Button].Handled then
+  if not ButtonsInfo[Button].Handled then
   begin
     WritelnWarning('TGameController.ButtonCaption: Button %d is not handled by the game controller "%s".', [
       Ord(Button),
@@ -360,12 +421,12 @@ begin
       Name
     ]);
   end;
-  Result := XBoxMap[Button].Caption;
+  Result := ButtonsInfo[Button].Caption;
 end;
 
 function TGameController.ButtonMeaning(const Button: TGameControllerButton): TGameControllerButtonMeaning;
 begin
-  if not XBoxMap[Button].Handled then
+  if not ButtonsInfo[Button].Handled then
   begin
     WritelnWarning('TGameController.ButtonMeaning: Button %d is not handled by the game controller "%s".', [
       Ord(Button),
@@ -373,7 +434,7 @@ begin
       Name
     ]);
   end;
-  Result := XBoxMap[Button].Meaning;
+  Result := ButtonsInfo[Button].Meaning;
 end;
 
 { TInternalControllerManagerBackend ------------------------------------------ }

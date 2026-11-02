@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -18,9 +18,10 @@
 
 {$ifdef read_interface}
 //type
-  TBeforeGLVertexProc = procedure (Node: TAbstractGeometryNode;
-    const Vert: TVector3) of object;
-
+  { Callback type for @link(TLightsRenderer.LightRenderEvent).
+    Modify whether the light is "on" right before it's rendered.
+    By default, LightOn is the value of Light.LightNode.FdOn field.
+    This is useful to filter lights. }
   TLightRenderEvent = CastleRendererInternalLights.TLightRenderEvent;
 
   TRenderer = class;

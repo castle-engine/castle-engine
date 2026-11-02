@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -77,7 +77,7 @@ procedure TCastleWindow.BackendMakeCurrent;
 begin
   Assert(not Closed);
   Assert(Context <> nil);
-  Context.WindowXID := WindowXID;
+  Context.RenderingAreaXID := RenderingAreaXID;
   Context.MakeCurrent;
 end;
 
@@ -85,7 +85,7 @@ procedure TCastleWindow.SwapBuffers;
 begin
   Assert(not Closed);
   Assert(Context <> nil);
-  Context.WindowXID := WindowXID;
+  Context.RenderingAreaXID := RenderingAreaXID;
   Context.SwapBuffers;
 end;
 

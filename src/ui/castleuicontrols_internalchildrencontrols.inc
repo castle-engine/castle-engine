@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -35,6 +35,12 @@
     it added / removed from the TInternalChildrenControls automatically. }
   TInternalChildrenControls = class
   strict private
+    { TODO: merge this with TCastleUserInterfaceList?
+      The differences betwen this class and TCastleUserInterfaceList:
+      - We rely on TComponent.Notification.
+      - We expose less list methods, as we don't descend from any standard
+        list class. }
+
     FParent: TCastleUserInterface;
     FContainer: TCastleContainer;
 

@@ -1,10 +1,10 @@
 {%MainUnit castlesoundengine.pas}
 {
-  Copyright 2010-2024 Michalis Kamburelis.
+  Copyright 2010-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -56,6 +56,7 @@
 
     constructor Create(AnEngine: TRepoSoundEngine); reintroduce;
     destructor Destroy; override;
+    procedure BeforeDestruction; override;
 
     { Currently played looping sound. Set to @nil to just stop playing.
 
@@ -90,8 +91,16 @@ end;
 
 destructor TLoopingChannel.Destroy;
 begin
-  if FAllocatedSource <> nil then
-    FAllocatedSource.Release;
+  inherited;
+end;
+
+procedure TLoopingChannel.BeforeDestruction;
+begin
+  { This unassociates us from Sound, calling
+    - FSound.InternalRemoveChangeNotification
+    - FSound.RemoveFreeNotification
+    - FAllocatedSource.Release }
+  Sound := nil; // to stop playing, and clean nicely
   inherited;
 end;
 

@@ -1,9 +1,9 @@
 {
-  Copyright 2020-2020 Michalis Kamburelis.
+  Copyright 2020-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -13,7 +13,11 @@
   ----------------------------------------------------------------------------
 }
 
-{ Configuration of loading models in the glTF 2.0 format. }
+{ Configuration of loading models in the glTF 2.0 format.
+  This unit is pointless now -- @link(GltfForcePhongMaterials) is deprecated.
+  But it may become relevant again, if we introduce a class like
+  TGltfLoadOptions in the future, see TCastleSceneLoadOptions comments.
+  @exclude }
 unit CastleLoadGltf;
 
 {$I castleconf.inc}
@@ -21,17 +25,7 @@ unit CastleLoadGltf;
 interface
 
 var
-  { Makes model loaded from glTF use Phong materials (TMaterialNode) instead of
-    Physically-Based Rendering materials (TPhysicalMaterialNode).
-
-    Phong is a worse lighting model in general (less realistic, and most authoring
-    tools now expose parameters closer to PBR, like Blender).
-    However Phong lighting model is cheaper to compute, and it allows both
-    Gouraud and Phong shading. And Phong lighting model combined with Gouraud shading
-    is very cheap to render, which in effect means that your models render fast.
-
-    We just interpret glTF pbrMetallicRoughness parameter "baseColor" (RGB part)
-    as Phong "diffuseColor". }
+  { @deprecated Use @link(TCastleSceneLoadOptions.GltfPhongMaterials) instead. }
   GltfForcePhongMaterials: Boolean = false;
 
 implementation

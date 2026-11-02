@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -148,7 +148,7 @@ initialization
   RegisterSerializableComponent(R);
 
   RegisterSerializableComponent(TCastleRopeJoint, ['Physics', 'Joint', 'Rope']);
-  RegisterSerializableComponent(TCastleHingeJoint, ['Physics', 'Joint', 'Hinge ']);
+  RegisterSerializableComponent(TCastleHingeJoint, ['Physics', 'Joint', 'Hinge']);
   RegisterSerializableComponent(TCastleBallJoint, ['Physics', 'Joint', 'Ball']);
   RegisterSerializableComponent(TCastleDistanceJoint, ['Physics', 'Joint', 'Distance']);
   RegisterSerializableComponent(TCastleGrabJoint, ['Physics', 'Joint', 'Grab']);

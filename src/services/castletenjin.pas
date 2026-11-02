@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -24,7 +24,7 @@ uses Classes;
 
 type
   { Tenjin ( https://www.tenjin.com/ ) integration.
-    On Android ( https://github.com/castle-engine/castle-engine/blob/master/tools/build-tool/data/android/integrated-services/tenjin/README.md )
+    On Android ( https://github.com/castle-engine/castle-engine/blob/master/tools/build-tool/data/android/services/tenjin/README.md )
     and on iOS ( https://github.com/castle-engine/castle-engine/blob/master/tools/build-tool/data/ios/services/tenjin/README.md ).
 
     Usage:

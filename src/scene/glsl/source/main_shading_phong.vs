@@ -19,7 +19,9 @@ attribute vec3 castle_Normal;
 
 /* PLUG-DECLARATIONS */
 
+/* VARYING-PASSTHROUGH-GEOMETRY-SHADERS */
 varying vec4 castle_vertex_eye;
+/* VARYING-PASSTHROUGH-GEOMETRY-SHADERS */
 varying vec3 castle_normal_eye;
 
 #if defined(COLOR_PER_VERTEX_RGB)
@@ -33,6 +35,7 @@ varying vec4 castle_ColorPerVertexFragment;
 /* Include fragment shader utilities used by both Gouraud and Phong shading. */
 /* CASTLE-COMMON-CODE */
 
+/* CASTLE-MAIN-BEGIN */
 void main(void)
 {
   #ifdef COLOR_PER_VERTEX
@@ -74,6 +77,8 @@ void main(void)
     #endif
 
   /* PLUG: vertex_eye_space (castle_vertex_eye, castle_normal_eye) */
+  /* PLUG: vertex_eye_space_extended (castle_vertex_eye, castle_normal_eye, normal_object) */
 
   gl_Position = castle_ProjectionMatrix * castle_vertex_eye;
 }
+/* CASTLE-MAIN-END */

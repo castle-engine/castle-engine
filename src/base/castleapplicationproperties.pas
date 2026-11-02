@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -22,7 +22,7 @@ unit CastleApplicationProperties;
 interface
 
 uses SysUtils, Generics.Collections, Contnrs, Classes,
-  CastleClassUtils;
+  CastleUtils, CastleClassUtils;
 
 type
   TGLContextEvent = procedure;
@@ -38,12 +38,12 @@ type
   TWarningEvent = procedure (const Category, Message: String) of object;
   TLogEvent = procedure (const Message: String) of object;
 
-  TWarningEventList = class({$ifdef FPC}specialize{$endif} TList<TWarningEvent>)
+  TWarningEventList = class({$ifdef FPC}specialize{$endif} TMethodList<TWarningEvent>)
   public
     procedure ExecuteAll(const Category, Message: String);
   end;
 
-  TLogEventList = class({$ifdef FPC}specialize{$endif} TList<TLogEvent>)
+  TLogEventList = class({$ifdef FPC}specialize{$endif} TMethodList<TLogEvent>)
   public
     procedure ExecuteAll(const Message: String);
   end;
@@ -68,7 +68,7 @@ type
     FOnGLContextEarlyOpen, FOnGLContextOpen, FOnGLContextClose: TGLContextEventList;
     FOnUpdate, FOnInitializeJavaActivity,
       FOnGLContextOpenObject, FOnGLContextCloseObject,
-      FOnPause, FOnResume: TNotifyEventList;
+      FOnPause, FOnResume, FOnUserInteraction: TNotifyEventList;
     FOnWarning: TWarningEventList;
     FOnLog: TLogEventList;
     FOnInitializeDebug: TProcedureList;
@@ -166,9 +166,11 @@ type
 
     { Is it common, on current platform, to show the "Quit" button in your application.
       E.g. it is normal to show "Quit" on PC (Windows, Linux etc.).
-      But on mobile devices and consoles (like Nintendo Switch) you should not
-      show "Quit", it is expected that user knows how to use OS-specific
-      mechanism to just switch to a different application.
+      But on mobile devices, consoles (like Nintendo Switch) and web
+      you should not show "Quit", as it is expected that user knows how to
+      use OS-specific mechanism to just switch to a different application.
+      In case of web, user is expected to just close the browser tab / window
+      whenever they want to quit the game.
 
       Just like the @link(TouchDevice), you can change this at runtime
       for debug purposes (to e.g. easily test mobile UI on PC). }
@@ -179,8 +181,11 @@ type
       So "try .. except" works reliably and you can use exceptions
       to report error-like conditions, and later recover from them.
 
-      This is @true on all platforms except web.
-      See "Known Limitations" on https://castle-engine.io/web . }
+      This is @true on all platforms now, except on web
+      with older FPC versions.
+      See @url(https://castle-engine.io/web "Known Limitations" in the web documentation).
+      We recommend you use @url(https://wiki.freepascal.org/WebAssembly/Exceptions
+      newer FPC with exceptions support on web) to have this @true on web too. }
     function CanCatchExceptions: Boolean;
 
     { Limit the number of (real) frames per second, to not hog the CPU.
@@ -292,6 +297,12 @@ type
     property OnResume: TNotifyEventList read FOnResume;
     { @groupEnd }
 
+    { Called when user interacts with the application,
+      for example clicks mouse, presses a key, touches the screen.
+      This is used by the web target, when certain things
+      (like audio playback) can be activated only in response to user interaction. }
+    property OnUserInteraction: TNotifyEventList read FOnUserInteraction;
+
     { Events called upon @link(WritelnWarning). }
     property OnWarning: TWarningEventList read FOnWarning;
 
@@ -328,6 +339,8 @@ type
     procedure _Pause;
     { @exclude }
     procedure _Resume;
+    { @exclude }
+    procedure _UserInteraction;
     { @exclude }
     procedure _Warning(const Category, Message: String);
     { @exclude }
@@ -397,8 +410,6 @@ function ApplicationProperties(
 
 implementation
 
-uses CastleUtils;
-
 { TGLContextEventList -------------------------------------------------------- }
 
 procedure TGLContextEventList.ExecuteForward;
@@ -461,6 +472,7 @@ begin
   FOnInitializeJavaActivity := TNotifyEventList.Create;
   FOnPause := TNotifyEventList.Create;
   FOnResume := TNotifyEventList.Create;
+  FOnUserInteraction := TNotifyEventList.Create;
   FOnWarning := TWarningEventList.Create;
   FOnLog := TLogEventList.Create;
   FOnInitializeDebug := TProcedureList.Create;
@@ -492,6 +504,7 @@ begin
   FreeAndNil(FOnInitializeJavaActivity);
   FreeAndNil(FOnPause);
   FreeAndNil(FOnResume);
+  FreeAndNil(FOnUserInteraction);
   FreeAndNil(FOnWarning);
   FreeAndNil(FOnLog);
   FreeAndNil(FOnInitializeDebug);
@@ -541,6 +554,36 @@ procedure TCastleApplicationProperties._Update;
 begin
   DoPendingFree;
   FOnUpdate.ExecuteAll(Self);
+
+  {$ifdef FPC}
+  { Execute callbacks registered by TThread.Synchronize.
+    Frameworks like LCL and our CastleWindow must call this,
+    otherwise TThread.Synchronize will not work.
+
+    Note that in Delphi the CheckSynchronize is also available
+    ( see https://docwiki.embarcadero.com/Libraries/Athens/en/System.Classes.CheckSynchronize )
+    but it happens to be not necessary to call it, at least now:
+
+    - on Windows, Delphi TThread.Synchronize seems to be implemented
+      using Windows messages and so it works already
+      (with our TCastleWindow using WinAPI, in backend CASTLE_WINDOW_WINAPI ).
+
+    - on non-Windows platforms, with Delphi, we always use CASTLE_WINDOW_FORM
+      backend. So FMX calls CheckSynchronize itself,
+      and so we don't have to call it here.
+
+    But for FPC, for backends not using CASTLE_WINDOW_FORM, we need to call this.
+
+    Note that, strictly speaking, we don't need to call CheckSynchronize here
+    when using CastleWindow with CASTLE_WINDOW_FORM backend, as then
+    LCL will already do this. But it doesn't hurt, and it means that all
+    CGE code doing periodically ApplicationProperties._Update (including
+    all CastleWindow backends, and applications not using CastleWindow or any
+    other GUI, like
+    examples/network/castle_download/castle_download.dpr )
+  }
+  CheckSynchronize;
+  {$endif}
 end;
 
 procedure TCastleApplicationProperties._UpdateEnd;
@@ -585,6 +628,11 @@ end;
 procedure TCastleApplicationProperties._Resume;
 begin
   FOnResume.ExecuteAll(Self);
+end;
+
+procedure TCastleApplicationProperties._UserInteraction;
+begin
+  FOnUserInteraction.ExecuteAll(Self);
 end;
 
 procedure TCastleApplicationProperties._Warning(const Category, Message: String);
@@ -647,7 +695,23 @@ end;
 
 function TCastleApplicationProperties.CanCatchExceptions: Boolean;
 begin
-  Result := {$ifdef WASI} false {$else} true {$endif};
+  Result :=
+    {$ifdef WASI}
+      {$if defined(FPC_WASM_BRANCHFUL_EXCEPTIONS)}
+        {$info Handling exceptions on web by "branchful" (slower, works everywhere) approach}
+        true
+      {$elseif defined(FPC_WASM_LEGACY_EXCEPTIONS)}
+        {$info Handling exceptions on web by "legacy wasm" approach}
+        true
+      {$elseif defined(FPC_WASM_EXNREF_EXCEPTIONS)}
+        {$info Handling exceptions on web by "modern wasm (exnref)" approach}
+        true
+      {$else}
+        {$info Not handling exceptions on the web. Use newer FPC and enable it following the instructions at https://wiki.freepascal.org/WebAssembly/Exceptions}
+        false
+      {$endif}
+    {$else} true
+    {$endif};
 end;
 
 initialization

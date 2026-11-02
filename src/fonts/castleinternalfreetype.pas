@@ -11,7 +11,7 @@
   the same as used by the "Castle Game Engine": LGPL (version 2.1)
   with "static linking exception" (with exactly the same wording
   of the "static linking exception").
-  See the file COPYING.txt, included in this distribution, for details about
+  See the file COPYING.md, included in this distribution, for details about
   the copyright of "Castle Game Engine".
   See http://www.freepascal.org/faq.var#general-license about the copyright
   of FPC RTL.
@@ -43,6 +43,8 @@
     following David Emerson patch from
     http://free-pascal-general.1045716.n5.nabble.com/freetype-unit-unicode-td4866273.html
     adjusted to use our CastleUnicode unit.
+
+  - More detailed error reporting around FT_Load_Glyph and FT_Get_Glyph.
 }
 unit CastleInternalFreeType;
 
@@ -70,7 +72,14 @@ type
   TFontBitmap = record
     height, width, pitch,
     x,y, advanceX, advanceY : integer;
-    { for some reason, default FPC TByteArray has limited length (0..32767).
+
+    { Data expressed as 1 byte for each pixel, in 0..255 range,
+      just like our TGrayscaleImage.
+      Access it like Bitmap.Data^[Y * Bitmap.Pitch + X].
+
+      Note: Using CastleUtils.PByteArray,
+      not standard ^TByteArray,
+      because for some reason, default FPC TByteArray has limited length (0..32767).
       We sometimes need longer (if you try to generate some huge font size, like 300). }
     data : CastleUtils.PByteArray;
   end;
@@ -128,7 +137,6 @@ type
     private
       FTLib : PFT_Library;
       FList : TList;
-      FPaths : TStringList;
       CurFont : TMgrFont;
       CurSize : PMgrSize;
       CurRenderMode : FT_Render_Mode;
@@ -136,7 +144,6 @@ type
     protected
       function GetFontId (afilename:string; anindex:integer) : integer;
       function CreateFont (afilename:string; anindex:integer) : integer;
-      //function SearchFont (afilename:string) : string;
       function GetFont (FontID:integer) : TMgrFont;
       procedure GetSize (aSize : integer);
       function CreateSize (aSize : integer) : PMgrSize;
@@ -160,14 +167,14 @@ type
 
 const
   sErrErrorsInCleanup : string = '%d errors detected while freeing a Font Manager object';
-  sErrFontFileNotFound : string = 'Font file "%s" not found';
   sErrFreeType : string = 'Error %d while %s';
   sInitializing : string = 'initializing font engine';
   sDestroying : string = 'destroying font engine';
   sErrErrorInCleanup : string = 'freeing Font Manager object';
   sErrSetPixelSize : string = 'setting pixel size %d';
   sErrSetCharSize : string = 'setting char size %d';
-  sErrLoadingGlyph : string = 'loading glyph';
+  sErrLoadGlyph : string = 'loading glyph %d (FT_Load_Glyph)';
+  sErrGetGlyph : string = 'getting glyph %d (FT_Get_Glyph)';
   sErrKerning : string = 'determining kerning distance';
   sErrMakingString1 : string = 'making string bitmaps step 1';
   sErrMakingString2 : string = 'making string bitmaps step 2';
@@ -246,6 +253,10 @@ end;}
 { TMgrFont }
 
 constructor TMgrFont.Create (aMgr:TFontManager; afilename:string; anindex:integer);
+{$ifdef CASTLE_FREETYPE_PASCAL}
+var
+  FontStream: TCustomMemoryStream;
+{$endif}
 begin
   inherited create;
   Filename := afilename;
@@ -254,19 +265,30 @@ begin
   LastSize := nil;
 
   Try
-    { Old code:
-    FTCheck(FT_New_Face (aMgr.FTLib, PAnsiChar(AnsiString(afilename)), anindex, font),format (sErrLoadFont,[anindex,afilename]));
+    { We never open the font by filename (FreeType's FT_New_Face).
+      Instead we always use CGE Download() to open the URL
+      (afilename can be any URL), and pass the memory chunk to FreeType
+      using FT_New_Memory_Face.
 
-      This mostly worked OK, except on Windows where it fails reading
-      a filename with non-ASCII characters.
-      Also it required a temporary file when accessing non-file URLs.
-      So now we make it simpler: just use CGE Download() to open the URL
-      (afilename can be any URL), and pass memory chunk to FreeType using
-      FT_New_Memory_Face.
-    }
+      Reasons: opening by filename failed on Windows for filenames with
+      non-ASCII characters (as it is unclear in what encoding FreeType
+      expects the filename), and it required a temporary file to access
+      non-file URLs. }
 
     MemoryStream := Download(afilename, [soForceMemoryStream]) as TCustomMemoryStream;
-    FTCheck(FT_New_Memory_Face(aMgr.FTLib, MemoryStream.Memory, MemoryStream.Size, anindex, font),
+
+    {$ifdef CASTLE_FREETYPE_PASCAL}
+    { Pascal FreeType implementation takes and owns MemoryStream
+      (also in case of failure), so don't keep reference to it. }
+    FontStream := MemoryStream;
+    MemoryStream := nil;
+    {$endif}
+
+    FTCheck(FT_New_Memory_Face(aMgr.FTLib,
+      {$ifdef CASTLE_FREETYPE_PASCAL} FontStream,
+      {$else} MemoryStream.Memory, MemoryStream.Size,
+      {$endif}
+      anindex, font),
       format (sErrLoadFont,[anindex,afilename]));
 
     { We will free MemoryStream only in our destructor.
@@ -288,6 +310,15 @@ destructor TMgrFont.destroy;
 begin
   try
     FreeGlyphs;
+    { Free the face explicitly. With the FreeType library, FT_Done_FreeType
+      would also free all remaining faces, but that's not the case
+      with CASTLE_FREETYPE_PASCAL. Also, MemoryStream must remain valid
+      until FT_Done_Face. }
+    if Font <> nil then
+    begin
+      FT_Done_Face(Font);
+      Font := nil;
+    end;
   finally
     FreeAndNil(MemoryStream);
     FSizes.Free;
@@ -326,7 +357,6 @@ var r : integer;
 begin
   inherited create;
   FList := Tlist.Create;
-  FPaths := TStringList.Create;
 
   if not FreeTypeLibraryInitialized then
     raise EFreeTypeLibraryNotFound.Create('Cannot load FreeType library, loading font files not possible');
@@ -358,7 +388,6 @@ destructor TFontManager.Destroy;
 begin
   FreeFontObjects;
   FList.Free;
-  FPaths.Free;
   try
     if assigned(FTLib) then
       FreeLibrary;
@@ -442,7 +471,7 @@ procedure TFontManager.SetPixelSize (aSize : integer);
       until (r < 0) or
          ( (available_sizes^[r].height=asize) and
            (available_sizes^[r].width=asize) );
-      if r >= 0 then
+      if r < 0 then
         raise FreeTypeException.CreateFmt ('Size %d not available for %s %s',
                   [aSize, style_name, family_name]);
       end;
@@ -478,19 +507,21 @@ function TFontManager.CreateGlyph (c : TUnicodeChar) : PMgrGlyph;
 var e : integer;
 begin
   new (result);
-  FillByte(Result^,SizeOf(Result),0);
+  FillByte(Result^,SizeOf(TMgrGlyph),0);
   result^.character := c;
   result^.GlyphIndex := FT_Get_Char_Index (CurFont.font, c);
   //WriteFT_Face(CurFont.Font);
+  { FT_Load_Glyph sets "glyph slot" in CurFont.Font^.glyph.
+    See https://freetype.org/freetype2/docs/reference/ft2-glyph_retrieval.html#ft_load_glyph }
   e := FT_Load_Glyph (CurFont.font, result^.GlyphIndex, FT_Load_Default);
   if e <> 0 then
     begin
-    FTError (sErrLoadingGlyph, e);
+    FTError (Format(sErrLoadGlyph, [c]), e);
     end;
   e := FT_Get_Glyph (Curfont.font^.glyph, result^.glyph);
   if e <> 0 then
     begin
-    FTError (sErrLoadingGlyph, e);
+    FTError (Format(sErrGetGlyph, [c]), e);
     end;
   CurSize^.Glyphs.Add (result);
 end;

@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -24,6 +24,9 @@ uses SysUtils,
   CastleWindow, CastleControls, CastleLog, CastleSoundEngine,
   CastleFilesUtils, CastleKeysMouse, CastleColors, CastleTimeUtils,
   CastleUIControls, CastleApplicationProperties
+  {$ifdef PLAY_SOUNDS_TEST_FMOD}
+  , CastleFmodSoundBackend
+  {$endif}
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
   , GameViewMain
@@ -37,6 +40,10 @@ procedure ApplicationInitialize;
 begin
   { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
+
+  {$ifdef PLAY_SOUNDS_TEST_FMOD}
+  UseFmodSoundBackend;
+  {$endif}
 
   { Configure sound stuff }
   // Default is 16, but 8 is easier to display and test.

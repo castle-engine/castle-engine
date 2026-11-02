@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -16,6 +16,9 @@
 
 { Test CastleComponentSerialize unit. }
 unit TestCastleComponentSerialize;
+
+{ Needed for CASTLE_DEFORMAT_BUGGY }
+{$I ../../../src/common_includes/castleconf.inc}
 
 interface
 
@@ -665,11 +668,16 @@ begin
     for I := 0 to ValidOutputNumbersCount - 1 do
       NumbersReadBackPtrs[I] := @(NumbersReadBack[I]);
 
+    {$ifdef CASTLE_DEFORMAT_BUGGY}
+    AbortTest;
+    Exit;
+    {$else}
     ValidOutput := FileToString('castle-data:/designs/test_custom_serialization_valid_output.castle-component');
     DeFormat(ComponentToString(T1), ValidOutput, NumbersReadBackPtrs, false);
 
     for I := 0 to ValidOutputNumbersCount - 1 do
       AssertEquals(ValidOutputNumbers[I], NumbersReadBack[I]);
+    {$endif}
   finally FreeAndNil(COwner) end;
 end;
 
@@ -833,6 +841,8 @@ var
   Rocket2: TCastleTransform;
   RocketDesign2: TRocketDesign;
 begin
+  Rocket1 := nil;
+  Rocket2 := nil;
   RocketsOwner := nil;
   RocketDesign1 := nil;
   RocketDesign2 := nil;
@@ -885,6 +895,8 @@ var
   Rocket1: TCastleTransform;
   Rocket2: TCastleTransform;
 begin
+  Rocket1 := nil;
+  Rocket2 := nil;
   RocketsOwner := nil;
   RocketDesign := nil;
   RocketsFactory := nil;

@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Reading CastleSettings.xml ( https://castle-engine.io/manual_castle_settings.php ). }
+{ Reading CastleSettings.xml ( https://castle-engine.io/data_settings ). }
 unit CastleInternalSettings;
 
 {$I castleconf.inc}
@@ -71,7 +71,7 @@ type
 { Register new TWarmupCacheFormat using @code(WarmupCacheFormats.RegisterFormat). }
 function WarmupCacheFormats: TWarmupCacheFormatList;
 
-{ Load CastleSettings.xml ( https://castle-engine.io/manual_castle_settings.php )
+{ Load CastleSettings.xml ( https://castle-engine.io/data_settings )
   into a container.
   This also creates a TWarmupCache that is owned by the container. }
 procedure SettingsLoad(const Container: TCastleContainer; const SettingsUrl: String);
@@ -232,7 +232,7 @@ type
     NewFontAntiAliased: Boolean;
     AllSizesAtLoadStr: String;
     AllSizesAtLoad: TDynIntegerArray;
-    UnicodeCharList: TUnicodeCharList;
+    UnicodeCharList: TUnicodeCharSet;
     RawString: String;
     S: String;
     StringList: TCastleStringList;
@@ -244,7 +244,7 @@ type
       NewFontAntiAliased := FontElement.AttributeBooleanDef('anti_aliased', true);
 
       { Load additional character list for the font }
-      UnicodeCharList := TUnicodeCharList.Create;
+      UnicodeCharList := TUnicodeCharSet.Create;
       { providing only_sample_text="true" will force loading only characters
         explicitly specified, e.g. by sample_text="..." field or other means }
       if not FontElement.AttributeBooleanDef('only_sample_text', false) then

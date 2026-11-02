@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -19,13 +19,27 @@ unit CastleLog;
 
 {$include castleconf.inc}
 
-{$ifndef PASDOC}
-  {$if (not defined(FPC)) and defined(MSWINDOWS) and defined(DEBUG)}
-    { Log using WinAPI OutputDebugString.
-      This is comfortably visible in Delphi IDE Event Log.
-      See https://stackoverflow.com/questions/11218434/how-to-view-output-of-outputdebugstring }
-    {$define CASTLE_LOG_TO_WINDOWS_EVENT_LOG}
-  {$endif}
+{$if (not defined(FPC)) and defined(MSWINDOWS) and defined(DEBUG)}
+  { Log using WinAPI OutputDebugString.
+    This is comfortably visible in Delphi IDE Event Log.
+    See https://stackoverflow.com/questions/11218434/how-to-view-output-of-outputdebugstring
+
+    Note: We also considered using Log.d from Fmx.Types, it would look cleaner
+    than using WinAPI's OutputDebugString directly. But Fmx.Types is not
+    available in all situations:
+    - It works on all platforms with Delphi...
+      but only as long as we use FMX for GUI under the hood.
+    - So this would be not OK when CGE doesn't use FMX for GUI:
+      - TCastleWindow applications using Delphi/Win[32|64] are not using
+        FMX, we use WinAPI directly there.
+      - Also TCastleControl based on VCL -- obviously doesn't use FMX, only VCL.
+    - Though it would be OK for other combinations now.
+      - TCastleControl based on FMX would of course be good, for Windows too.
+      - TCastleWindow on all non-Windows platforms right now also uses FMX,
+        so it would be OK there too.
+
+    See https://www.youtube.com/watch?v=U3rHwL_Q7W8 . }
+  {$define CASTLE_LOG_TO_WINDOWS_EVENT_LOG}
 {$endif}
 
 interface
@@ -72,7 +86,7 @@ type
 }
 procedure InitializeLog(const ALogStream: TStream = nil);
 
-{ Log a message. 
+{ Log a message.
 
   See https://castle-engine.io/log for documentation where does
   the log appear. When using the @url(https://castle-engine.io/editor editor),
@@ -115,6 +129,17 @@ procedure WritelnWarning(const Category: string; const MessageBase: string;
   const Args: array of const); overload;
 procedure WritelnWarning(const MessageBase: string;
   const Args: array of const); overload;
+
+{ Shortcut to output a warning, but only if WarningDone is @false.
+  Sets WarningDone to @true after the first call. }
+procedure WritelnWarningOnce(var WarningDone: Boolean;
+  const Message: String); overload;
+procedure WritelnWarningOnce(var WarningDone: Boolean;
+  const Category: string; const Message: String); overload;
+procedure WritelnWarningOnce(var WarningDone: Boolean;
+  const MessageBase: String; const Args: array of const); overload;
+procedure WritelnWarningOnce(var WarningDone: Boolean;
+  const Category: string; const MessageBase: String; const Args: array of const); overload;
 
 var
   { Dump backtrace (call stack) with each log.
@@ -486,7 +511,7 @@ begin
     WarningCategory := 'Warning';
   WritelnLog(WarningCategory, Message);
   { Note that TCastleApplicationProperties.OnWarning will be called
-    regardless of whether InitializeLog was called or not. 
+    regardless of whether InitializeLog was called or not.
     This is good, to make sure we notify about early warnings. }
   ApplicationProperties._Warning(Category, Message);
 end;
@@ -506,6 +531,46 @@ procedure WritelnWarning(const MessageBase: string;
   const Args: array of const);
 begin
   WritelnWarning('', MessageBase, Args);
+end;
+
+procedure WritelnWarningOnce(var WarningDone: Boolean;
+  const Message: String);
+begin
+  if not WarningDone then
+  begin
+    WritelnWarning(Message);
+    WarningDone := true;
+  end;
+end;
+
+procedure WritelnWarningOnce(var WarningDone: Boolean;
+  const Category: String; const Message: String);
+begin
+  if not WarningDone then
+  begin
+    WritelnWarning(Category, Message);
+    WarningDone := true;
+  end;
+end;
+
+procedure WritelnWarningOnce(var WarningDone: Boolean;
+  const MessageBase: String; const Args: array of const);
+begin
+  if not WarningDone then
+  begin
+    WritelnWarning(MessageBase, Args);
+    WarningDone := true;
+  end;
+end;
+
+procedure WritelnWarningOnce(var WarningDone: Boolean;
+  const Category: String; const MessageBase: String; const Args: array of const);
+begin
+  if not WarningDone then
+  begin
+    WritelnWarning(Category, MessageBase, Args);
+    WarningDone := true;
+  end;
 end;
 
 function LastLogCount: Integer;

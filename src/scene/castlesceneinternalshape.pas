@@ -1,9 +1,9 @@
 {
-  Copyright 2003-2023 Michalis Kamburelis.
+  Copyright 2003-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -24,7 +24,8 @@ interface
 uses Generics.Collections,
   X3DNodes, X3DFields, CastleImages, CastleVectors, CastleClassUtils,
   {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
-  CastleGLUtils, CastleInternalRenderer, CastleRenderOptions, CastleShapes;
+  CastleGLUtils, CastleInternalRenderer, CastleRenderOptions, CastleShapes,
+  CastleTimeUtils;
 
 type
   { Shape within a scene rendered using OpenGL.
@@ -38,6 +39,7 @@ type
     procedure SchedulePrepareResources;
     function PrepareTexture(Shape: TShape; Texture: TAbstractTextureNode): Pointer;
     function UnprepareTexture(Shape: TShape; Texture: TAbstractTextureNode): Pointer;
+    procedure UnprepareAllTextures;
   public
     PassedFrustumAndDistanceCulling: Boolean;
 
@@ -48,9 +50,7 @@ type
       OcclusionQueryId. }
     OcclusionQueryId: TGLQuery;
     OcclusionQueryAsked: boolean;
-
-    { For Hierarchical Occlusion Culling. }
-    RenderedFrameId: Cardinal;
+    OcclusionQueryAskedFrameId: TFrameId;
 
     { Do not share the cache of this shape with other shapes.
       Offers tiny optimization when you know that this shape cannot be shared anyway.
@@ -68,7 +68,12 @@ type
 
   { Shape with additional information how to render it inside a world,
     that allows to render it independently of the containing TCastleScene.
-    Meaning of fields follows the TShapesCollector.Add parameters. }
+    Meaning of fields follows the TShapesCollector.Add parameters.
+
+    Implementation note: We tested whether remaking this to be a record
+    makes sense for performance on https://github.com/michaliskambi/many-cubes/ .
+    It doesn't. We would also lose the property of quick copy/replace
+    (and we use it during sorting) and <> nil (used by shapes batching). }
   TCollectedShape = class
     Shape: TGLShape;
     RenderOptions: TCastleRenderOptions;
@@ -211,15 +216,27 @@ begin
        chFontStyleFontChanged
      ] <> [] then
   begin
-    TTextureResources.Unprepare(State.MainTexture);
     { Make next PrepareResources prepare all textures.
-      Testcase:
+
+      Testcase 1:
       - castle-model-viewer
       - open demo-models/rendered_texture/rendered_texture_tweak_size.x3dv
       - use s / S
       - without this fix, texture would change to none, and never again
-        update RenderedTexture contents. }
-    TexturesPrepared := false;
+        update RenderedTexture contents.
+
+      Testcase 2, showing we need to unprepare *all* textures,
+      not only e.g. State.MainTexture:
+      - Use TCastleImageTransform with both Texture and TextureNormalMap,
+        Repeat = 1 1
+      - Change Repeat to 100 100 (changes boundaryModeS/T on TTexturePropertiesNode,
+        which should eventually call chTextureRendererProperties
+        on all shapes using the associated texture).
+      - Without unpreparing all (if we would e.g. unprepare only
+        State.MainTexture), we would see wrong lighting, as normalmap
+        would use clamp instead of repeat.
+    }
+    UnprepareAllTextures;
     { Make sure PrepareResources is actually called soon. }
     SchedulePrepareResources;
   end;
@@ -274,6 +291,15 @@ begin
   end;
 end;
 
+procedure TGLShape.UnprepareAllTextures;
+begin
+  if TexturesPrepared then
+  begin
+    TexturesPrepared := false;
+    EnumerateTextures({$ifdef FPC}@{$endif} UnprepareTexture);
+  end;
+end;
+
 procedure TGLShape.GLContextClose;
 
   { Free Arrays and Vbo of all shapes. }
@@ -296,12 +322,7 @@ procedure TGLShape.GLContextClose;
   end;
 
 begin
-  if TexturesPrepared then
-  begin
-    TexturesPrepared := false;
-    EnumerateTextures({$ifdef FPC}@{$endif} UnprepareTexture);
-  end;
-
+  UnprepareAllTextures;
   FreeCaches;
   FreeQuery(OcclusionQueryId);
 end;

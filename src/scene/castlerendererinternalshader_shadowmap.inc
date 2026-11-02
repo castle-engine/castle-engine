@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -112,7 +112,7 @@ begin
     when given light is applied. }
   Shader.Plug(stFragment,
     Format('uniform %s %s;', [SamplerType, ShadowMapName]) + NL +
-    Format('varying vec4 %s;', [ProjectedTexCoordName]) + NL +
+    Format('varying shadowsPrecision vec4 %s;', [ProjectedTexCoordName]) + NL +
 
     // Do not redeclare shadow() and friends on OpenGLES
     {$ifndef OpenGLES}

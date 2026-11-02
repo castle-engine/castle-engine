@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -281,38 +281,20 @@
     { Ability to add a callback (object of procedure have to be TComponent)
       to be informed when a behavior is added to this CastleTransform. }
     procedure AddNotificationOnBehaviorAdded(const AEvent: TComponentEvent); overload;
-    { Ability to add a callback (object of procedure have to be TComponent)
-      to be informed when a behavior is added to this CastleTransform with
-      object class filtering. }
-    procedure AddNotificationOnBehaviorAdded(const AEvent: TComponentEvent;
-      const ClassFilter: TComponentClass); overload;
     { Calls all behavior add callbacks with ABehavior as the parameter value. }
     procedure NotifyBehaviorAdded(const ABehavior: TCastleBehavior);
     { Remove all occurrences of callback (object of procedure have to be TComponent)
       from "OnBehaviorAdded" list. }
     procedure RemoveNotificationOnBehaviorAdded(const AEvent: TComponentEvent); overload;
-    { Remove a callback (object of procedure have to be TComponent)
-      from "OnBehaviorAdded" calbacks list with object class filtering. }
-    procedure RemoveNotificationOnBehaviorAdded(const AEvent: TComponentEvent;
-      const ClassFilter: TComponentClass); overload;
 
     { Ability to add a callback (object of procedure have to be TComponent)
       to be informed when a behavior is added to this CastleTransform }
     procedure AddNotificationBeforeBehaviorRemove(const AEvent: TComponentEvent); overload;
-    { Ability to add a callback (object of procedure have to be TComponent)
-      to be informed when a behevior is added to this CastleTransform with
-      object class filtering. }
-    procedure AddNotificationBeforeBehaviorRemove(const AEvent: TComponentEvent;
-      const ClassFilter: TComponentClass); overload;
     { Calls all behavior remove callbacks with ABehavior as the parameter value. }
     procedure NotifyBeforeBehaviorRemove(const ABehavior: TCastleBehavior);
     { Remove all occurrences of callback (object of procedure have to be TComponent)
       from "BeforeBehaviorRemove" list. }
     procedure RemoveNotificationBeforeBehaviorRemove(const AEvent: TComponentEvent); overload;
-    { Remove a callback (object of procedure have to be TComponent)
-      from "BeforeBehaviorRemove" calbacks list with object class filtering. }
-    procedure RemoveNotificationBeforeBehaviorRemove(const AEvent: TComponentEvent;
-      const ClassFilter: TComponentClass); overload;
 
     { Call ParentBeforeDetach and WorldBeforeDetach on a behavior that will soon be freed. }
     procedure BeforeBehaviorDestroy(const Behavior: TCastleBehavior);
@@ -563,7 +545,7 @@
       TODO: The names LocalRender, TRenderParams are now confusing.
       LocalRender is not a method where one should "render" anymore.
       It's a "collection phase". Think of it as
-      "TCastleTranssform.CollectThingsToRender(const Params: ...)"
+      "TCastleTransform.CollectThingsToRender(const Params: ...)"
       and bear with us as we figure out a non-confusing naming around this. }
     procedure LocalRender(const Params: TRenderParams); virtual;
 
@@ -619,7 +601,8 @@
     procedure ExistsInRootChanged; virtual;
 
     { Helper for InternalBuildNode.
-      Result must be TAbstractChildNode or @nil. }
+      Result must be TAbstractChildNode or @nil.
+      @exclude }
     function InternalBuildNodeInside: TObject; virtual;
   public
     const
@@ -2151,8 +2134,10 @@
 
       It exports content for all nodes, even csTransient,
       and thus it is never @nil.
-      Caller should avoid check for @code(csTransient in Transform.ComponentState)
-      if you want to avoid this. }
+      Caller should make a check before calling this,
+      like @code(if not (csTransient in Transform.ComponentState) then...)
+      if it wants to avoid storing csTransient.
+      @exclude }
     function InternalBuildNode: TObject;
   published
     { Is this object (and all children) visible and colliding.
@@ -2373,7 +2358,7 @@ begin
   PendingRemovals;
 
   { Before we start destroying the transform we need to remove all behaviors from
-    it, because destroying behavior calls on it events like BeforeParentDetach,
+    it, because destroying behavior calls on it events like ParentBeforeDetach,
     ParentChanged.
 
     And we want Parent (this TCastleTransform) state to be valid
@@ -2381,7 +2366,7 @@ begin
 
     In case of descendants, like TCastleScene, also their state has to be valid
     in case behavior's implementation accesses them, e.g. doing
-    "(Parent as TCastleScene).StopAnimation" from BeforeParentDetach implementation.
+    "(Parent as TCastleScene).StopAnimation" from ParentBeforeDetach implementation.
     That's why we do this from BeforeDestruction, before e.g. TCastleScene.Destroy starts
     destroying the instance. }
 
@@ -2811,6 +2796,43 @@ begin
   List.Exchange(Index1, Index2);
 end;
 
+{ Testcase that this helps:
+  https://github.com/michaliskambi/many-cubes/ .
+  It is possible it will not be a relevant optimization at some point in the future. }
+{$define CASTLE_OPTIMIZE_LocalBoundingBox}
+{$ifdef CASTLE_OPTIMIZE_LocalBoundingBox}
+
+function TCastleTransform.LocalBoundingBox: TBox3D;
+var
+  I: Integer;
+  Child: TCastleTransform;
+begin
+  if Exists and (List.Count <> 0) then
+  begin
+    Child := List[0];
+    if not (Child.InternalExcludeFromParentBoundingVolume and
+            (InternalGizmoBoundingBox = 0)) then
+      Result := Child.BoundingBox
+    else
+      Result := TBox3D.Empty;
+
+    for I := 1 to List.Count - 1 do
+    begin
+      Child := List[I];
+      { Ignoring InternalExcludeFromParentBoundingVolume when
+        InternalGizmoBoundingBox <> 0 is a hack,
+        so that when TCastleViewport.ItemsWithGizmosBoundingBox is called,
+        then all gizmos are taken into account. }
+      if not (Child.InternalExcludeFromParentBoundingVolume and
+              (InternalGizmoBoundingBox = 0)) then
+        Result.Include(Child.BoundingBox);
+    end;
+  end else
+    Result := TBox3D.Empty;
+end;
+
+{$else}
+
 function TCastleTransform.LocalBoundingBox: TBox3D;
 var
   I: Integer;
@@ -2828,6 +2850,8 @@ begin
         Result.Include(List[I].BoundingBox);
   end;
 end;
+
+{$endif}
 
 function TCastleTransform.GetRenderList(const Params: TRenderParams): TCastleTransformList;
 begin
@@ -3149,25 +3173,18 @@ begin
   end;
 end;
 
-procedure TCastleTransform.AddNotificationOnBehaviorAdded(const AEvent: TComponentEvent);
-begin
-  AddNotificationOnBehaviorAdded(AEvent, TCastleComponent);
-end;
-
 procedure TCastleTransform.AddNotificationOnBehaviorAdded(
-  const AEvent: TComponentEvent; const ClassFilter: TComponentClass);
+  const AEvent: TComponentEvent);
 begin
   if FOnAddedBehaviorNotification = nil then
     FOnAddedBehaviorNotification := TCastleComponentNotification.Create(Self);
-
-  FOnAddedBehaviorNotification.AddNotification(AEvent, ClassFilter);
+  FOnAddedBehaviorNotification.AddNotification(AEvent);
 end;
 
 procedure TCastleTransform.NotifyBehaviorAdded(const ABehavior: TCastleBehavior);
 begin
   if FOnAddedBehaviorNotification = nil then
     Exit;
-
   FOnAddedBehaviorNotification.Notify(ABehavior);
 end;
 
@@ -3176,32 +3193,15 @@ procedure TCastleTransform.RemoveNotificationOnBehaviorAdded(
 begin
   if FOnAddedBehaviorNotification = nil then
     Exit;
-
   FOnAddedBehaviorNotification.RemoveNotification(AEvent);
-end;
-
-procedure TCastleTransform.RemoveNotificationOnBehaviorAdded(
-  const AEvent: TComponentEvent; const ClassFilter: TComponentClass);
-begin
-  if FOnAddedBehaviorNotification = nil then
-    Exit;
-
-  FOnAddedBehaviorNotification.RemoveNotification(AEvent, ClassFilter);
 end;
 
 procedure TCastleTransform.AddNotificationBeforeBehaviorRemove(
   const AEvent: TComponentEvent);
 begin
-  AddNotificationBeforeBehaviorRemove(AEvent, TCastleComponent);
-end;
-
-procedure TCastleTransform.AddNotificationBeforeBehaviorRemove(
-  const AEvent: TComponentEvent; const ClassFilter: TComponentClass);
-begin
   if FBeforeRemoveBehaviorNotification = nil then
     FBeforeRemoveBehaviorNotification := TCastleComponentNotification.Create(Self);
-
-  FBeforeRemoveBehaviorNotification.AddNotification(AEvent, ClassFilter);
+  FBeforeRemoveBehaviorNotification.AddNotification(AEvent);
 end;
 
 procedure TCastleTransform.NotifyBeforeBehaviorRemove(
@@ -3209,7 +3209,6 @@ procedure TCastleTransform.NotifyBeforeBehaviorRemove(
 begin
   if FBeforeRemoveBehaviorNotification = nil then
     Exit;
-
   FBeforeRemoveBehaviorNotification.Notify(ABehavior);
 end;
 
@@ -3218,17 +3217,7 @@ procedure TCastleTransform.RemoveNotificationBeforeBehaviorRemove(
 begin
   if FBeforeRemoveBehaviorNotification = nil then
     Exit;
-
   FBeforeRemoveBehaviorNotification.RemoveNotification(AEvent);
-end;
-
-procedure TCastleTransform.RemoveNotificationBeforeBehaviorRemove(
-  const AEvent: TComponentEvent; const ClassFilter: TComponentClass);
-begin
-  if FBeforeRemoveBehaviorNotification = nil then
-    Exit;
-
-  FBeforeRemoveBehaviorNotification.RemoveNotification(AEvent, ClassFilter);
 end;
 
 procedure TCastleTransform.BeforeBehaviorDestroy(const Behavior: TCastleBehavior);

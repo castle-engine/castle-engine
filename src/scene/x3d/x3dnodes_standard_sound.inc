@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -217,7 +217,7 @@ begin
       { if not playing, try to start playing }
       BufferLoaded := true;
       UpdatePlayingSoundProperties(SoundNode);
-      // TODO: we could set here Parameters.Offset to not always start playing from start
+      // TODO: we could set here PlayingSound.InitialOffset to not always start playing from start
       SoundNode.SoundSource.Play(PlayingSound);
     end else
     begin

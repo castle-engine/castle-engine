@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -29,10 +29,8 @@ interface
 
 uses CastleVectors, CastleInternalOpenAL, Math;
 
-{$ifndef PASDOC}
 {$I castleinternalefx_api.inc}
 {$I castleinternalefx_api_creative.inc}
-{$endif PASDOC}
 
 { Checks is EFX extension, along with all it's entry points, present
   for given OpenAL device. If true, it will also initialize the entry

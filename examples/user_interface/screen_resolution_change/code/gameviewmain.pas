@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -126,7 +126,10 @@ begin
   Result := inherited;
   if Result then Exit;
 
-  if Event.IsKey(keyF5) then
+  { Screenshot.
+    "P" is better on the web where F5 is used to refresh the page,
+    remember it as "PrintScreen/Photo". }
+  if Event.IsKey(keyF5) or Event.IsKey(keyP) then
   begin
     Container.SaveScreenToDefaultFile;
     Exit(true);

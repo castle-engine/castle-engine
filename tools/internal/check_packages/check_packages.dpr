@@ -1,10 +1,9 @@
-// -*- compile-command: "castle-engine compile --mode=debug && castle-engine run" -*-
 {
-  Copyright 2021-2025 Michalis Kamburelis.
+  Copyright 2021-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -279,6 +278,8 @@ type
   end;
 
 constructor TLazarusPackage.Create(const APackageFileName: String);
+const
+  RelativePathFromLpkToCgeRoot = '../../';
 var
   Doc: TXMLDocument;
   FilesElement, FileElement: TDOMElement;
@@ -299,9 +300,9 @@ begin
     begin
       FileElement := FilesElement.Child('Item' + IntToStr(I));
       FileName := FileElement.Child('Filename').AttributeString('Value');
-      if not IsPrefix('../', FileName, not FileNameCaseSensitive) then
+      if not IsPrefix(RelativePathFromLpkToCgeRoot, FileName, not FileNameCaseSensitive) then
         PackageWarning('All filenames in lpk must be in CGE root, invalid: %s', [FileName]);
-      FileName := PrefixRemove('../', FileName, not FileNameCaseSensitive);
+      FileName := PrefixRemove(RelativePathFromLpkToCgeRoot, FileName, not FileNameCaseSensitive);
       Files.Append(FileName);
     end;
   finally FreeAndNil(Doc) end;
@@ -356,7 +357,7 @@ begin
       Inc(FilesCount); // ItemXxx numbering is 1-based, so increment FilesCount first
       FileElement := FilesElement.CreateChild('Item' + IntToStr(FilesCount));
       FileFilenameElement := FileElement.CreateChild('Filename');
-      FileFilenameElement.AttributeSet('Value', '../' + MissingFile);
+      FileFilenameElement.AttributeSet('Value', '../../' + MissingFile);
       if ExtractFileExt(MissingFile) = '.inc' then
       begin
         FileTypeElement := FileElement.CreateChild('Type');
@@ -581,7 +582,7 @@ begin
   CgePathExpanded := SReplaceChars(CgePathExpanded, '\', '/'); // replace backslashes with slashes
   Writeln('Checking CGE in directory: ', CgePathExpanded);
 
-  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/castle_base.lpk');
+  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/lazarus/castle_engine_base.lpk');
   try
     Package.CheckFiles([
       'src/common_includes/',
@@ -602,32 +603,45 @@ begin
     [
       'src/base/android/',
       'src/files/indy/',
-      'src/base_rendering/web/'
+      'src/base/wasi/',
+      'src/base_rendering/web/',
+      'src/audio/castleinternalwebaudiobackend.pas',
+
+      // Ignore units that are only to be compiled when pulled by CastleHttps with FPC 3.2.x
+      'src/files/castleinternalforfpc32x*.pas'
     ],
     [
       'src/vampyre_imaginglib/'
     ]);
   finally FreeAndNil(Package) end;
 
-  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/castle_window.lpk');
+  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/lazarus/castle_engine_window.lpk');
   try
     Package.CheckFiles([
       'src/window/'
     ],
-    [ ],
+    [
+      // Only used when with CASTLE_WINDOW_GTK_3.
+      'src/window/gtk/gtk3/',
+      'src/window/gtk/castleinternalgdkwayland.pas'
+    ],
     [ ]);
   finally FreeAndNil(Package) end;
 
-  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/alternative_castle_window_based_on_lcl.lpk');
+  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/lazarus/alternative_castle_engine_window_based_on_lcl.lpk');
   try
     Package.CheckFiles([
       'src/window/'
     ],
-    [ ],
+    [
+      // Only used when with CASTLE_WINDOW_GTK_3.
+      'src/window/gtk/gtk3/',
+      'src/window/gtk/castleinternalgdkwayland.pas'
+    ],
     [ ]);
   finally FreeAndNil(Package) end;
 
-  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/castle_components.lpk');
+  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/lazarus/castle_engine_lcl.lpk');
   try
     Package.CheckFiles([
       'src/lcl/'
@@ -636,7 +650,7 @@ begin
     [ ]);
   finally FreeAndNil(Package) end;
 
-  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/castle_indy.lpk');
+  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/lazarus/castle_engine_indy.lpk');
   try
     Package.CheckFiles([
       'src/files/indy/'
@@ -645,7 +659,7 @@ begin
     [ ]);
   finally FreeAndNil(Package) end;
 
-  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/castle_editor_components.lpk');
+  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/lazarus/castle_engine_editor_components.lpk');
   try
     Package.CheckFiles([
       'tools/castle-editor/components/'
@@ -682,7 +696,9 @@ begin
       'src/delphi/castleinternaldelphidesign.pas',
       'src/base/android/',
       'src/files/indy/',
+      'src/base/wasi/',
       'src/base_rendering/web/',
+      'src/audio/castleinternalwebaudiobackend.pas',
 
       // This will be in castle_engine_design package
       'src/files/tools/',
@@ -697,6 +713,9 @@ begin
       'src/audio/castleinternalsoxsoundbackend.pas',
       'src/base/castleinternalgzio.pas',
 
+      // Internal unit only for Delphi/Android and Delphi/iOS (would have to go to FMX package, for now we just ignore it)
+      'src/audio/castleinternalmediaplayersoundbackend.pas',
+
       // TODO: FMOD is not yet supported with Delphi
       'src/audio/fmod/castlefmodsoundbackend.pas',
       'src/audio/fmod/castleinternalfmod.pas',
@@ -704,9 +723,6 @@ begin
       // TODO: CGE localization is not yet supported with Delphi, uses FPC GetText
       'src/base/castlesystemlanguage.pas',
       'src/files/castlelocalizationgettext.pas',
-
-      // TODO: OpenGLES (mobile) is not yet supported with Delphi
-      'src/base_rendering/castlegles.pas',
 
       // TODO: CastleScript is not yet fully supported with Delphi
       'src/castlescript/castlescriptxml.pas',
@@ -720,7 +736,10 @@ begin
       'src/ui/windows/castleinternaltdxinput_tlb.pas',
 
       // This is only supported with FPC, but planned to be removed from CGE
-      'src/scene/castleraytracer.pas'
+      'src/scene/castleraytracer.pas',
+
+      // Ignore units that are only to be compiled when pulled by CastleHttps with FPC 3.2.x
+      'src/files/castleinternalforfpc32x*.pas'
     ],
     [
       'src/vampyre_imaginglib/'
@@ -747,7 +766,11 @@ begin
       'src/window/deprecated_units/',
 
       // Only for CASTLE_WINDOW_XLIB, available only with FPC, and that's OK -- it's not a default for Linux
-      'src/window/unix/castleinternalxlib.pas'
+      'src/window/unix/castleinternalxlib.pas',
+
+      // Only used when with CASTLE_WINDOW_GTK_3.
+      'src/window/gtk/gtk3/',
+      'src/window/gtk/castleinternalgdkwayland.pas'
     ],
     [ ]);
   finally FreeAndNil(Package) end;
@@ -791,7 +814,14 @@ begin
     ],
     [
       'src/files/indy/',
-      'src/base_rendering/web/'
+
+      // Ignore units that are only to be compiled when pulled by CastleHttps with FPC 3.2.x
+      'src/files/castleinternalforfpc32x*.pas'
+
+      { Contrary to .lpk / .dpk checks, in fpmake.pp we *do* require
+        specifying gtk3 units. They are under "if" to be relevant only
+        on platforms that support GTK and X, so not a problem. }
+      // 'src/window/gtk/gtk3/'
     ],
     [
       'src/vampyre_imaginglib/'

@@ -1,10 +1,10 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2025 Michalis Kamburelis.
+  Copyright 2015-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -84,6 +84,7 @@
     public property FdVolumetricVisibilityStart: TSFFloat read FFdVolumetricVisibilityStart;
     {  }
     property VolumetricVisibilityStart: Single read GetVolumetricVisibilityStart write SetVolumetricVisibilityStart;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -197,6 +198,17 @@ begin
   FFdVolumetricVisibilityStart := TSFFloat.Create(Self, True, 'volumetricVisibilityStart', 0);
    FdVolumetricVisibilityStart.ChangeAlways := chEverything;
   AddField(FFdVolumetricVisibilityStart);
+end;
+
+procedure TLocalFogNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  if not FdVolumetric.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdVolumetric.X3DName);
+  if not FdVolumetricDirection.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdVolumetricDirection.X3DName);
+  if not FdVolumetricVisibilityStart.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdVolumetricVisibilityStart.X3DName);
 end;
 
 {$endif read_implementation}

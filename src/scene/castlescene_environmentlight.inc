@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -158,20 +158,13 @@ end;
 
 function TCastleEnvironmentLight.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'DiffuseTextureCubemap') or
-     (PropertyName = 'DiffuseTextureNegativeZ') or
-     (PropertyName = 'DiffuseTexturePositiveZ') or
-     (PropertyName = 'DiffuseTexturePositiveY') or
-     (PropertyName = 'DiffuseTextureNegativeY') or
-     (PropertyName = 'DiffuseTextureNegativeX') or
-     (PropertyName = 'DiffuseTexturePositiveX') or
-     (PropertyName = 'SpecularTextureCubemap') or
-     (PropertyName = 'SpecularTextureNegativeZ') or
-     (PropertyName = 'SpecularTexturePositiveZ') or
-     (PropertyName = 'SpecularTexturePositiveY') or
-     (PropertyName = 'SpecularTextureNegativeY') or
-     (PropertyName = 'SpecularTextureNegativeX') or
-     (PropertyName = 'SpecularTexturePositiveX') then
+  if ArrayContainsString(PropertyName, [
+       'DiffuseTextureCubemap', 'DiffuseTextureNegativeZ', 'DiffuseTexturePositiveZ',
+       'DiffuseTexturePositiveY', 'DiffuseTextureNegativeY', 'DiffuseTextureNegativeX',
+       'DiffuseTexturePositiveX', 'SpecularTextureCubemap', 'SpecularTextureNegativeZ',
+       'SpecularTexturePositiveZ', 'SpecularTexturePositiveY', 'SpecularTextureNegativeY',
+       'SpecularTextureNegativeX', 'SpecularTexturePositiveX'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);

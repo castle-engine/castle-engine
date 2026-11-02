@@ -1,10 +1,10 @@
 {%MainUnit castleinternalfmxutils.pas}
 {
-  Copyright 2022-2023 Michalis Kamburelis.
+  Copyright 2022-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -18,12 +18,20 @@
   code shared between FMX TOpenGLControl and FMX TCastleControl)
   for Linux. }
 
-uses
-  SysUtils,
-  { Needed for TCustomForm used by XWindowHandle }
-  FMX.Forms,
-  CTypes,
-  CastleInternalContextEgl, CastleLog, CastleUtils;
+{$ifdef read_TFmxOpenGLUtility_interface}
+strict private
+  GLAreaInitialized: Boolean;
+  GLAreaGtk: Pointer;
+  GLAreaRect: TVector4Integer; //< x, y, width, height
+  DrawingAreaParent: Pointer;
+{$endif read_TFmxOpenGLUtility_interface}
+
+{$ifdef read_implementation_uses}
+CTypes,
+CastleInternalContextEgl, CastleUtils,
+{$endif read_implementation_uses}
+
+{$ifdef read_implementation}
 
 {$I castleinternalfmxutils_gtk3.inc}
 
@@ -351,3 +359,5 @@ begin
   end else
     Result := 1;
 end;
+
+{$endif read_implementation}

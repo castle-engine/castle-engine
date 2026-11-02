@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+Specify basic information about the project, including how this project is build.
+See https://castle-engine.io/project_manifest for documentation of this file.
+-->
+
+<project name="facebook_integration"
+  standalone_source="facebook_integration_standalone.dpr"
+  game_units="GameInitialize"
+  qualified_name="io.castleengine.facebook.integration"
+  caption="Facebook Integration"
+>
+  <compiler_options>
+    <search_paths>
+      <path value="code/" />
+    </search_paths>
+  </compiler_options>
+
+  <!-- See iOS service README:
+  https://github.com/castle-engine/castle-engine/blob/master/tools/build-tool/data/ios/services/facebook/README.adoc
+  -->
+  <ios team="HJ95YRBGJZ">
+    <services>
+      <service name="facebook">
+        <parameter key="app_id" value="760026309941847" />
+        <parameter key="client_token" value="SECRET-ASK-MICHALIS" />
+        <parameter key="app_title" value="Castle Game Engine Example" />
+      </service>
+    </services>
+  </ios>
+
+  <!-- See Android service README:
+  https://github.com/castle-engine/castle-engine/blob/master/tools/build-tool/data/android/services/facebook/README.adoc
+  -->
+  <android>
+    <services>
+      <service name="facebook">
+        <parameter key="app_id" value="760026309941847" />
+        <parameter key="client_token" value="SECRET-ASK-MICHALIS" />
+      </service>
+    </services>
+  </android>
+</project>

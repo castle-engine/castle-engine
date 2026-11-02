@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -302,7 +302,7 @@ begin
 
   FMaterial := TUnlitMaterialNode.Create;
   FMaterial.EmissiveColor := FColor.XYZ;
-  FMaterial.Transparency := 1 - FColor.W;
+  FMaterial.Transparency := OpacityToTransparency(FColor.W);
 
   Appearance := TAppearanceNode.Create;
   Appearance.ShadowCaster := false;
@@ -332,7 +332,7 @@ begin
   if TCastleColor.PerfectlyEquals(FColor, AValue) then Exit;
   FColor := AValue;
   FMaterial.EmissiveColor := FColor.XYZ;
-  FMaterial.Transparency := 1 - FColor.W;
+  FMaterial.Transparency := OpacityToTransparency(FColor.W);
 end;
 
 { TDebugSphere ----------------------------------------------------------------- }

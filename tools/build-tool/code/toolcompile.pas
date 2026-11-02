@@ -1,9 +1,9 @@
 {
-  Copyright 2014-2024 Michalis Kamburelis.
+  Copyright 2014-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -70,8 +70,15 @@ type
     destructor Destroy; override;
   end;
 
-{ Compile with Pascal compiler.
-  SearchPaths, ExtraOptions may be @nil (same as empty). }
+{ Compile with a Pascal compiler.
+
+  @param(Compiler Compiler to use. May be coAutodetect.)
+
+  @param(SearchPaths Additional search paths for units/includes.
+    May be @nil (same as empty).)
+
+  @param(ExtraOptions Extra compiler options.
+    May be @nil (same as empty).) }
 procedure Compile(Compiler: TCompiler;
   const WorkingDirectory, CompileFile: String; const Options: TCompilerOptions);
 
@@ -84,6 +91,23 @@ procedure CompileFpc(
   SearchPaths, ExtraOptions may be @nil (same as empty). }
 procedure CompileDelphi(
   const WorkingDirectory, CompileFile: String; const Options: TCompilerOptions);
+
+{ Run msbuild with Delphi project (.dproj alongside the CompileFile),
+  for the platform and configuration determined by Options.
+
+  @param(MSBuildTarget Msbuild target, like 'Build' or 'Deploy'.)
+
+  @param(ExtraDefines Additional defines, separated by semicolons.
+    Matter only for targets that compile.)
+
+  @param(ExtraUnitSearchPath Additional unit search paths, separated by semicolons.
+    Matter only for targets that compile.)
+
+  @raises(Exception If the .dproj doesn't exist, or msbuild failed.) }
+procedure RunDelphiMSBuild(
+  const WorkingDirectory, CompileFile, MSBuildTarget: String;
+  const Options: TCompilerOptions;
+  const ExtraDefines: String = ''; const ExtraUnitSearchPath: String = '');
 
 { Compile with lazbuild. }
 procedure CompileLazbuild(
@@ -110,6 +134,20 @@ var
     (official "FPC for iOS" installation). }
   FpcVersionForIPhoneSimulator: String = 'auto';
 
+  { When compiling with Delphi, use msbuild (false) or dcc (true) to compile.
+    Default is false, use msbuild.
+    See ../delphi_dcc_vs_msbuild.md for discussion. }
+  CompileDelphiUsingDcc: Boolean = false;
+
+  { Should MSBuild pass paths to the engine on the command-line.
+
+    We would like this to be true
+    (to make sure that proper engine is compiled,
+    and so you don't need to tweak any machine-specific compiler settings).
+    But it causes problems with MSBuild path limit length
+    (see delphi_dcc_vs_msbuild.md ). }
+  MSBuildPassEnginePaths: Boolean = true;
+
 const
   CompilationModeToStr: array [TCompilationMode] of string = (
     'release',
@@ -117,12 +155,39 @@ const
     'debug'
   );
 
+{ Convert our OS + CPU to the Delphi "Platform" name,
+  like 'Win32', 'Win64', 'Linux64'.
+  @raises(Exception If OS/CPU is not supported by Delphi
+    and RaiseExceptionOnUnsupported.
+    If RaiseExceptionOnUnsupported=false, returns empty string
+    in such case, without an exception or even a warning.) }
+function DelphiPlatform(const OS: TOS; const CPU: TCPU;
+  const RaiseExceptionOnUnsupported: Boolean = true): String;
+
+{ Convert our TCompilationMode to Delphi "Config" name, like 'Release', 'Debug',
+  used for e.g. output directory. }
+function DelphiConfig(const Mode: TCompilationMode): String;
+
+{ Resolve Compiler to something other than coAutodetect.
+
+  @param(DefaultToFpc Assume FPC if no compiler was found.
+    This makes sense when we need to know "what compiler was used to make this",
+    but we don't really need to call the compiler.
+    This happens with "castle-engine package --assume-compiled" command.
+    We should not fail in this case when no compiler (FPC, Delphi) if found
+    on the system (and command-line and manifest left compiler as coAutodetect),
+    we should assume FPC.) }
+procedure FinishDetectingCompiler(var Compiler: TCompiler;
+  const DefaultToFpc: Boolean = false);
+
 implementation
 
-uses SysUtils, Process,
+uses SysUtils, StrUtils,
   CastleUtils, CastleLog, CastleFilesUtils, CastleFindFiles,
-  CastleInternalTools,
-  ToolCommonUtils, ToolUtils, ToolFpcVersion, ToolCompilerInfo, ToolProcessRun;
+  CastleUriUtils,
+  CastleInternalTools, CastleInternalProcess,
+  ToolCommonUtils, ToolUtils, ToolFpcVersion, ToolCompilerInfo, ToolProcessRun
+  {$ifdef DARWIN} , ToolMacOS {$endif};
 
 { TCompilerOptions ----------------------------------------------------------- }
 
@@ -197,7 +262,7 @@ begin
     if CachedValue <> '' then
     begin
       FpcExe := FindExeFpcCompiler;
-      MyRunCommandIndir(GetCurrentDir, FpcExe, ['-V' + CachedValue, '-iV'], FpcOutput, FpcExitStatus);
+      ExecuteCommandCapture('', FpcExe, ['-V' + CachedValue, '-iV'], FpcOutput, FpcExitStatus);
       if FpcExitStatus <> 0 then
       begin
         WritelnWarning('Failed to execute FPC with "-V' + CachedValue + '" option, indicating that using this option for iPhone Simulator is invalid.' + NL +
@@ -292,12 +357,43 @@ end;
 
 { Other routines ------------------------------------------------------------- }
 
+{ Like ExecuteCommandCapture with PassThrough=true, but has simpler parameters
+  OverrideEnvironmentName / OverrideEnvironmentValue, instead of OverrideEnvironment,
+  allowing to optionally (when OverrideEnvironmentName <> '') override
+  at most 1 environment variable. }
+procedure RunCommandIndirPassthrough(const CurrentDirectory: String;
+  const ExeName: String;
+  const Options: array of string;
+  var OutputString: String; var ExitStatus: Integer;
+  const OverrideEnvironmentName: String = '';
+  const OverrideEnvironmentValue: String = '';
+  const LineFiltering: TLineFiltering = nil;
+  const LineFilteringData: Pointer = nil;
+  const Flags: TExecuteCommandFlags = []);
+var
+  OverrideEnvironment: TStringList;
+begin
+  // calculate OverrideEnvironment from OverrideEnvironmentName
+  OverrideEnvironment := nil;
+  if OverrideEnvironmentName <> '' then
+  begin
+    OverrideEnvironment := EnvironmentStrings;
+    OverrideEnvironment.Values[OverrideEnvironmentName] := OverrideEnvironmentValue;
+    // WritelnVerbose('Environment: ' + P.Environment.Text);
+  end;
+  try
+    ExecuteCommandCapture(CurrentDirectory, ExeName, Options,
+      OutputString, ExitStatus, LineFiltering, LineFilteringData, Flags,
+      OverrideEnvironment, true);
+  finally FreeAndNil(OverrideEnvironment) end;
+end;
+
 { Writeln a message that FPC/Lazarus crashed and we will retry,
   and clean compilation leftover files. }
 procedure FpcLazarusCrashRetry(const WorkingDirectory, ToolName, ProjectName: String);
 begin
   Writeln('-------------------------------------------------------------');
-  Writeln('It seems ' + ToolName + ' crashed. If you can reproduce this problem, please report it to http://bugs.freepascal.org/ ! We want to help ' + ProjectName + ' developers to fix this problem, and the only way to do it is to report it. If you need help creating a good bugreport, speak up on the ' + ProjectName + ' mailing list or Castle Game Engine forum.');
+  Writeln('It seems ' + ToolName + ' crashed. If you can reproduce this problem, please report it to ' + ProjectName + ' developers ( https://gitlab.com/freepascal.org/fpc/source/-/work_items ). We want to help ' + ProjectName + ' developers to fix this problem, and the only way to do it is to report it. If you need help creating a good bugreport, speak up on the ' + ProjectName + ' mailing list or Castle Game Engine forum.');
   Writeln;
   Writeln('As a workaround, right now we''ll clean your project, and (if we have permissions) the Castle Game Engine units, and try compiling again.');
   Writeln('-------------------------------------------------------------');
@@ -341,7 +437,11 @@ begin
     IsSuffix('warning: section "__datacoal_nt" is deprecated', LineLower, false) or
     IsSuffix('note: change section name to "__data"', LineLower, false) or
     (Line = '.section __DATA, __datacoal_nt, coalesced') or
-    (Line = '         ^      ~~~~~~~~~~~~~~')
+    (Line = '         ^      ~~~~~~~~~~~~~~') or
+    // occurs on mac, see https://castle-engine.io/macos
+    IsWild(Line, 'ld: warning: object file (*.o) was built for newer ''macOS'' version (*) than being linked (*)', false) or
+    (Line = 'ld: warning: ignoring duplicate libraries: ''-lc''') or
+    IsWild(Line, 'ld: warning: no platform load command found in ''*.or'', assuming: macOS', false)
   );
   // Uncomment this just to debug that our line splitting in TCaptureOutputFilter works
   // Line := '<begin>' + Line + '<end>';
@@ -505,6 +605,12 @@ var
   end;
 
   procedure AddMacOSOptions;
+  {$ifdef DARWIN}
+  var
+    SdkPath: String;
+    XcodePath: String;
+    SdkVersionMajor, SdkVersionMinor: Cardinal;
+  {$endif}
   begin
     if (Options.OS = darwin) and ((Options.CPU = X86_64) or (Options.CPU = Aarch64)) then
     begin
@@ -514,6 +620,26 @@ var
       // TODO: Lazarus proposes such debugger options; should we pass them too? Why aren't they FPC defaults?
       // FpcOptions.Add('-gw2');
       // FpcOptions.Add('-godwarfsets');
+
+      { We need to pass additional options on macOS to link.
+        See https://github.com/castle-engine/castle-fpc ,
+        and utils_calculate_fpc_opts in
+        https://github.com/castle-engine/castle-fpc/blob/master/build_utilities }
+      {$ifdef DARWIN}
+      SdkPath := MacOsSdkPath;
+      XcodePath := MacOsXcodePath;
+      if (SdkPath <> '') and (XcodePath <> '') then
+      begin
+        FpcOptions.Add('-XR' + SdkPath);
+        FpcOptions.Add('-Fl' + SdkPath + '/usr/lib');
+        FpcOptions.Add('-FD' + XcodePath + '/Toolchains/XcodeDefault.xctoolchain/usr/bin');
+      end;
+      if MacOsSdkVersion(SdkVersionMajor, SdkVersionMinor) and
+         (SdkVersionMajor >= 11) then
+      begin
+        FpcOptions.Add('-WM10.15');
+      end;
+      {$endif DARWIN}
     end;
   end;
 
@@ -553,7 +679,7 @@ begin
 
   FpcOptions := TCastleStringList.Create;
   try
-    if CastleEnginePath <> '' then
+    if {PassEnginePaths and} (CastleEnginePath <> '') then
       CastleEngineSrc := CastleEnginePath + 'src' + PathDelim
     else
       CastleEngineSrc := '';
@@ -797,6 +923,18 @@ begin
       //FpcOptions.Add('-CaEABIHF');
     end;
 
+    { Align memory to 16 KB, to satisfy Goole Play requirements, following
+      https://developer.android.com/guide/practices/page-sizes
+      see also useful:
+      - https://forum.lazarus.freepascal.org/index.php?topic=71336.15
+      - https://medium.com/@contact2kalshetty/android-15-16kb-page-size-a-complete-handbook-for-android-developers-detect-fix-ship-6c4df068aef6
+    }
+    if Options.OS = Android then
+    begin
+      FpcOptions.Add('-k-z common-page-size=16384');
+      FpcOptions.Add('-k-z max-page-size=16384');
+    end;
+
     if Options.DetectMemoryLeaks then // see https://castle-engine.io/memory_leaks
     begin
       FpcOptions.Add('-gl'); // HeapTrc
@@ -864,14 +1002,27 @@ begin
     begin
       LinkerOutputBinaryPos := LinkerOutputBinaryPos + StrLen('Linking ');
       Options.LinkerOutputFile := Copy(FpcOutput, LinkerOutputBinaryPos, Pos(NL, FpcOutput, LinkerOutputBinaryPos) - LinkerOutputBinaryPos);
-    end else
-      Writeln('Warning: build-tool could not recognize the linker output binary name, may cause error later.');
+    end
+    { Do not show a warning when Options.LinkerOutputFile = ''.
+      Because:
+      - It will cause a clear error anyway, when something wants to use this,
+        which happens only from CompileMacOS now.
+      - In most cases (non-macOS) users don't need to care about this.
+      - And it is, unfortunately, easily possible to stumble on this,
+        if FPC verbosity options disable the "Linking" line.
+        Which may happen if you modified fpc.cfg or if you don't have one,
+        FPC defaults are actually to be silent (when no fpc.cfg present).
+      Ultimately, we should solve above TODO and get this info without parsing
+      FPC output.
+    }
+    { else
+      Writeln('Warning: build-tool could not recognize the linker output binary name, may cause error later.')};
   finally FreeAndNil(FpcOptions) end;
 end;
 
-procedure Compile(Compiler: TCompiler; const WorkingDirectory, CompileFile: String; const Options: TCompilerOptions);
+procedure FinishDetectingCompiler(var Compiler: TCompiler;
+  const DefaultToFpc: Boolean);
 begin
-  { resolve Compiler to something other than coAutodetect }
   if Compiler = coAutodetect then
   begin
     if FindExeFpcCompiler(false) <> '' then
@@ -880,10 +1031,17 @@ begin
     if FindDelphiPath(false) <> '' then
       Compiler := coDelphi
     else
+    if DefaultToFpc then
+      Compiler := coFpc
+    else
       raise Exception.Create('Neither FPC nor Delphi found, cannot autodetect compiler');
   end;
   Assert(Compiler <> coAutodetect);
+end;
 
+procedure Compile(Compiler: TCompiler; const WorkingDirectory, CompileFile: String; const Options: TCompilerOptions);
+begin
+  FinishDetectingCompiler(Compiler);
   case Compiler of
     coFpc: CompileFpc(WorkingDirectory, CompileFile, Options);
     coDelphi: CompileDelphi(WorkingDirectory, CompileFile, Options);
@@ -891,7 +1049,11 @@ begin
   end;
 end;
 
-procedure CompileDelphi(const WorkingDirectory, CompileFile: String; const Options: TCompilerOptions);
+{ Compile with Delphi by calling the dccXXX compiler.
+
+  This is our historic approach.
+  See ../delphi_dcc_vs_msbuild.md for discussion. }
+procedure CompileDelphiDcc(const WorkingDirectory, CompileFile: String; const Options: TCompilerOptions);
 var
   CastleEngineSrc: String;
   DccOptions: TCastleStringList;
@@ -1013,7 +1175,7 @@ begin
   if not RegularFileExists(DccExe) then
     raise Exception.CreateFmt('Cannot find Delphi compiler for this OS/CPU: %s', [DccExe]);
 
-  if CastleEnginePath <> '' then
+  if {PassEnginePaths and} (CastleEnginePath <> '') then
     CastleEngineSrc := CastleEnginePath + 'src' + PathDelim
   else
     CastleEngineSrc := '';
@@ -1045,6 +1207,196 @@ begin
     if DccExitStatus <> 0 then
       raise Exception.Create('Failed to compile');
   finally FreeAndNil(DccOptions) end;
+end;
+
+function DelphiPlatform(const OS: TOS; const CPU: TCPU;
+  const RaiseExceptionOnUnsupported: Boolean = true): String;
+begin
+  Result := '';
+  case OS of
+    Win32 : Result := 'Win32';
+    Win64 : Result := 'Win64';
+    Linux :
+      if CPU = x86_64 then Result := 'Linux64';
+    MacOSX:
+      case CPU of
+        x86_64 : Result := 'OSX64';
+        Aarch64: Result := 'OSXARM64';
+      end;
+    Android:
+      case CPU of
+        Arm    : Result := 'Android';
+        Aarch64: Result := 'Android64';
+      end;
+    iOS:
+      if CPU = Aarch64 then Result := 'iOSDevice64';
+  end;
+  if (Result = '') and RaiseExceptionOnUnsupported then
+    raise Exception.CreateFmt('OS / CPU combination "%s / %s" is not supported by Delphi (msbuild)', [
+      OSToString(OS),
+      CPUToString(CPU)
+    ]);
+end;
+
+function DelphiConfig(const Mode: TCompilationMode): String;
+begin
+  case Mode of
+    cmRelease, cmValgrind: Result := 'Release';
+    cmDebug              : Result := 'Debug';
+    {$ifndef COMPILER_CASE_ANALYSIS}
+    else raise EInternalError.Create('DelphiConfig: Mode?');
+    {$endif}
+  end;
+end;
+
+procedure RunDelphiMSBuild(
+  const WorkingDirectory, CompileFile, MSBuildTarget: String;
+  const Options: TCompilerOptions;
+  const ExtraDefines, ExtraUnitSearchPath: String);
+var
+  DelphiPath, RsVars, DprojFileAbsolute: String;
+  MSBuildPlatform, MSBuildConfig: String;
+  WrapperBat, WrapperBatContents, OutPath, MSBuildOutput: String;
+  ComSpec, MsBuildVerbosity: String;
+  MSBuildExitStatus: Integer;
+begin
+  DelphiPath := FindDelphiPath(true);
+  RsVars := DelphiPath + 'bin' + PathDelim + 'rsvars.bat';
+  if not RegularFileExists(RsVars) then
+    raise Exception.CreateFmt('Cannot find Delphi "rsvars.bat" (expected in "%s"). It is necessary to set up the environment for msbuild.', [RsVars]);
+
+  DprojFileAbsolute := CombinePaths(WorkingDirectory, ChangeFileExt(CompileFile, '.dproj'));
+  if not RegularFileExists(DprojFileAbsolute) then
+    raise Exception.CreateFmt('Cannot find Delphi project file "%s". Generate the DPROJ by running "castle-engine generate-program".', [
+      DprojFileAbsolute
+    ]);
+
+  MSBuildPlatform := DelphiPlatform(Options.OS, Options.CPU);
+  MSBuildConfig := DelphiConfig(Options.Mode);
+
+  { Write bat that sets up the Delphi environment (calling rsvars.bat)
+    then runs msbuild. }
+  OutPath := CompilationOutputPath(coDelphi, Options.OS, Options.CPU, WorkingDirectory);
+  ForceDirectories(OutPath);
+  WrapperBat := InclPathDelim(OutPath) + 'castle-msbuild.bat';
+  if Verbose then
+    MsBuildVerbosity := ''
+  else
+    { Using /verbosity:minimal by default, otherwise it shows really long lines
+      (compiler and linker command-line).
+      It's a pity, because it also shows Delphi compiler version,
+      lines compiled -- useful stuff.
+      Using /nologo, otherwise it shows msbuild version, .NET version, MS copyright. }
+    MsBuildVerbosity := '/nologo /verbosity:minimal';
+  WrapperBatContents :=
+    '@echo off' + NL +
+    'call "' + RsVars + '"' + NL +
+    'if errorlevel 1 exit /b 1' + NL +
+    'set "DCC_Define=' + ExtraDefines + '"' + NL +
+    'set "DCC_UnitSearchPath=' + ExtraUnitSearchPath + '"' + NL +
+    'msbuild "' + DprojFileAbsolute + '"' +
+      ' /target:' + MSBuildTarget +
+      ' /p:Config=' + MSBuildConfig +
+      ' /p:Platform=' + MSBuildPlatform +
+      ' ' + MsBuildVerbosity + NL +
+    'exit /b %errorlevel%' + NL;
+  StringToFile(FilenameToUriSafe(WrapperBat), WrapperBatContents);
+
+  Writeln('Delphi msbuild (target: ' + MSBuildTarget + ') executing...');
+
+  ComSpec := GetEnvironmentVariable('ComSpec');
+  if ComSpec = '' then
+    ComSpec := 'cmd.exe';
+
+  RunCommandIndirPassthrough(WorkingDirectory, ComSpec, ['/c', WrapperBat],
+    MSBuildOutput, MSBuildExitStatus);
+  if MSBuildExitStatus <> 0 then
+    raise Exception.CreateFmt('Failed to execute msbuild target "%s"', [MSBuildTarget]);
+end;
+
+{ Compile with Delphi using msbuild.
+
+  Falls back to dcc if we don't have .dproj alongside the .dpr file.
+
+  See ../delphi_dcc_vs_msbuild.md for discussion when msbuild, when dcc are better. }
+procedure CompileDelphiMSBuild(const WorkingDirectory, CompileFile: String; const Options: TCompilerOptions);
+
+  procedure AddEnginePath(var SearchPaths: String; NewPath: String);
+  begin
+    NewPath := CastleEnginePath + 'src' + PathDelim + NewPath;
+    if not DirectoryExists(NewPath) then
+      WritelnWarning('Path', 'Path "%s" does not exist. Make sure that $CASTLE_ENGINE_PATH points to the directory containing Castle Game Engine sources.', [
+        NewPath
+      ]);
+    SearchPaths := SAppendPart(SearchPaths, ';', NewPath);
+  end;
+
+  procedure AddEngineSearchPaths(var SearchPaths: String);
+  var
+    S: String;
+  begin
+    if MSBuildPassEnginePaths and (CastleEnginePath <> '') then
+    begin
+      for S in EnginePaths do
+        AddEnginePath(SearchPaths, S);
+      for S in EnginePathsDelphi do
+        AddEnginePath(SearchPaths, S);
+    end;
+  end;
+
+var
+  DprojFile, ExtraDefines, ExtraUnitSearchPath: String;
+  S: String;
+begin
+  DprojFile := ChangeFileExt(CompileFile, '.dproj');
+  if not RegularFileExists(CombinePaths(WorkingDirectory, DprojFile)) then
+  begin
+    WritelnWarning('Cannot find Delphi project file "%s". ' + NL +
+      'We recommend to generate the DPROJ by running "castle-engine generate-program" to have "msbuild" compilation working. ' + NL +
+      'Falling back to Delphi dcc usage.', [DprojFile]);
+    CompileDelphiDcc(WorkingDirectory, CompileFile, Options);
+    Exit;
+  end;
+
+  { Make a warning that Options.ExtraOptions are unsupported. }
+  if Options.ExtraOptions.Count > 0 then
+    WritelnWarning('Delphi', 'Extra compiler options have been provided, but they are ignored when compiling with msbuild. The extra compiler options are:' + NL +
+      Options.ExtraOptions.Text);
+
+  { Add extra defines using the DCC_Define environment variable.
+    The generated .dproj uses $(DCC_Define), making this injection
+    possible. }
+  ExtraDefines := '';
+  for S in Options.Defines do
+    ExtraDefines := SAppendPart(ExtraDefines, ';', S);
+
+  { Similarly, add extra unit search paths using the DCC_UnitSearchPath.
+    Note: project search paths are assumed to be already set in the .dproj file.
+    We add engine search paths, so the building works when $CASTLE_ENGINE_PATH
+    is set, regardless if Delphi was pointed to the engine sources using
+    "Configure Delphi to Use Engine". }
+  ExtraUnitSearchPath := '';
+  AddEngineSearchPaths(ExtraUnitSearchPath);
+
+  RunDelphiMSBuild(WorkingDirectory, CompileFile, 'Build', Options,
+    ExtraDefines, ExtraUnitSearchPath);
+end;
+
+procedure CompileDelphi(const WorkingDirectory, CompileFile: String; const Options: TCompilerOptions);
+begin
+  { Use "dcc" for Windows, "msbuild" for non-Windows.
+
+    We would like to just use msbuild everywhere, but it has problems:
+    On some systems, if we add engine paths to DCC_UnitSearchPath,
+    the command-line gets too long and we get errors about command-line
+    not fitting in 32k.
+
+    See https://github.com/castle-engine/castle-engine/blob/master/tools/build-tool/delphi_dcc_vs_msbuild.md . }
+
+  if CompileDelphiUsingDcc or (Options.OS in AllWindowsOSes) then
+    CompileDelphiDcc(WorkingDirectory, CompileFile, Options)
+  else
+    CompileDelphiMSBuild(WorkingDirectory, CompileFile, Options);
 end;
 
 procedure RunLazbuild(const WorkingDirectory: String; const LazbuildOptions: TCastleStringList);
@@ -1127,16 +1479,18 @@ begin
     // register CGE packages first
     if CastleEnginePath <> '' then
     begin
-      LazbuildAddPackage('packages/castle_base.lpk');
-      LazbuildAddPackage('packages/castle_window.lpk');
-      LazbuildAddPackage('packages/castle_components.lpk');
-      LazbuildAddPackage('packages/castle_editor_components.lpk');
+      LazbuildAddPackage('packages/lazarus/castle_engine_base.lpk');
+      LazbuildAddPackage('packages/lazarus/castle_engine_window.lpk');
+      LazbuildAddPackage('packages/lazarus/castle_engine_lcl.lpk');
+      LazbuildAddPackage('packages/lazarus/castle_engine_editor_components.lpk');
     end;
 
     LazbuildOptions.Clear;
     LazbuildOptions.Add('--os=' + OSToString(Options.OS));
     LazbuildOptions.Add('--cpu=' + CPUToString(Options.CPU));
-    { // Do not pass --build-mode, as project may not have it defined.
+    {
+    // Do not pass --build-mode, as project may not have it defined.
+    // TODO: We can detect first build modes available, using lazbuild --get-build-modes.
     if Options.Mode = cmDebug then
       LazbuildOptions.Add('--build-mode=Debug')
     else

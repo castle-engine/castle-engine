@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -28,7 +28,7 @@ function HasGenerateMipmap: boolean;
 { Call glGenerateMipmap.
 
   @raises(EGenerateMipmapNotAvailable If glGenerateMipmap
-    is available on this OpenGL version. If you don't want to get
+    is not available on this OpenGL version. If you don't want to get
     this exception, you can always check HasGenerateMipmap
     before calling this.) }
 procedure GenerateMipmap(target: TGLenum);

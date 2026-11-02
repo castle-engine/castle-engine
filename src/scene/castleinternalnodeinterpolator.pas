@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -22,7 +22,7 @@ unit CastleInternalNodeInterpolator;
 interface
 
 uses Classes, Generics.Collections,
-  CastleUtils, X3DNodes, CastleBoxes, X3DLoadInternalGLTF;
+  CastleUtils, X3DNodes, CastleBoxes;
 
 type
   TGetKeyNodeWithTime = procedure (const Index: Cardinal;
@@ -819,7 +819,7 @@ const
   var
     SStream: TStringStream;
   begin
-    SStream := TStringStream.Create(Contents);
+    SStream := TStringStream.Create(Contents, TEncoding.UTF8);
     try
       Result := LoadNode(SStream, BaseUrl, GltfJsonMimeType);
     finally FreeAndNil(SStream) end;
@@ -911,7 +911,7 @@ const
           begin
             MimeType := FrameElement.AttributeStringDef('mime_type', '');
             if (MimeType = '') or (MimeType = 'model/x3d+xml') then
-              NewNode := LoadX3DXmlInternal(FrameElement.ChildElement('X3D'), AbsoluteBaseUrl)
+              NewNode := LoadX3DXmlInternalFromElement(FrameElement.ChildElement('X3D'), AbsoluteBaseUrl)
             else
             if (MimeType = GltfJsonMimeType) then
               NewNode := LoadGLTFFromString(FrameElement.TextData, AbsoluteBaseUrl)
@@ -1198,7 +1198,8 @@ begin
   finally FreeAndNil(BakedAnimations) end;
 end;
 
-function LoadAnimFrames(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
+function LoadAnimFrames(const Stream: TStream; const BaseUrl: String;
+  const LoadOptions: TCastleSceneLoadOptions): TX3DRootNode;
 var
   Animations: TNodeInterpolator.TAnimationList;
 begin
@@ -1217,5 +1218,6 @@ initialization
   ModelFormat.FileFilterName := 'Castle Animation Frames (*.castle-anim-frames, *.kanim)';
   ModelFormat.Extensions.Add('.castle-anim-frames');
   ModelFormat.Extensions.Add('.kanim');
+  ModelFormat.OnLoadForceMemoryStream := XmlReadingForceMemoryStream;
   RegisterModelFormat(ModelFormat);
 end.

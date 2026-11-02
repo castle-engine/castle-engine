@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -24,7 +24,8 @@ CastleInternalEgl, CastleInternalContextEgl,
 {$ifdef read_window_interface}
 private
   Context: TGLContextEgl;
-  procedure ContextCreate(WndPtr: EGLNativeWindowType);
+  procedure ContextCreate(WndPtr: EGLNativeWindowType
+    {$ifdef CASTLE_WINDOW_GTK_WAYLAND} ; WaylandDisplay: Pointer {$endif});
   procedure ContextDestroy;
 public
   { Query the EGL context what is current size. }
@@ -33,10 +34,15 @@ public
 
 {$ifdef read_implementation}
 
-procedure TCastleWindow.ContextCreate(WndPtr: EGLNativeWindowType);
+procedure TCastleWindow.ContextCreate(WndPtr: EGLNativeWindowType
+  {$ifdef CASTLE_WINDOW_GTK_WAYLAND} ; WaylandDisplay: Pointer {$endif});
 begin
   Context := TGLContextEgl.Create;
   Context.WndPtr := WndPtr;
+  {$ifdef CASTLE_WINDOW_GTK_WAYLAND}
+  Context.UseWayland := true;
+  Context.WaylandDisplay := WaylandDisplay;
+  {$endif CASTLE_WINDOW_GTK_WAYLAND}
   Context.Initialize(FRequirements);
 end;
 
@@ -60,6 +66,17 @@ procedure TCastleWindow.SwapBuffers;
 begin
   Assert(not Closed);
   Assert(Context <> nil);
+  {$ifdef CASTLE_WINDOW_GTK_WAYLAND}
+  { On Niri + Wayland, doing eglSwapBuffers before the surface is configured
+    results in an error. Niri disconnects us, GTK stops process with error
+    "Lost connection to Wayland compositor.".
+
+    As a workaround, we drop initial frames.
+
+    Proper solution: See CASTLE_WINDOW_GTK_WAYLAND comments. }
+  if not WaylandSurfaceConfigured then
+    Exit;
+  {$endif CASTLE_WINDOW_GTK_WAYLAND}
   Context.SwapBuffers;
 end;
 

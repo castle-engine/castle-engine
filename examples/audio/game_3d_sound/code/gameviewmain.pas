@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -41,7 +41,7 @@ type
     SoundSourceRat: TCastleSoundSource;
     SceneLevel: TCastleScene;
     TntFactory: TCastleComponentFactory;
-    
+
   private
     const
       { Max number of TNT items. }
@@ -62,6 +62,7 @@ type
     procedure Stop; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
     function Press(const Event: TInputPressRelease): Boolean; override;
+    function Release(const Event: TInputPressRelease): Boolean; override;
   end;
 
 var
@@ -70,7 +71,8 @@ var
 implementation
 
 uses SysUtils,
-  CastleUtils, CastleBoxes, CastleWindow, CastleSceneCore;
+  CastleUtils, CastleBoxes, CastleWindow, CastleSceneCore,
+  CastleApplicationProperties;
 
 { TViewMain ----------------------------------------------------------------- }
 
@@ -93,6 +95,13 @@ begin
     NewTnt(0.0);
 
   TimerSpawnTnts.OnTimer := {$ifdef FPC}@{$endif}DoTimerSpawnTnts;
+
+  { Don't move by mouse dragging -- it would happen when user cancels
+    pointer lock on web with Escape key, and move mouse while still
+    holding right mouse button. Works correctly, but confusing. }
+  {$ifdef WASI}
+  Navigation.Input := Navigation.Input - [niMouseDragging];
+  {$endif}
 end;
 
 procedure TViewMain.Stop;
@@ -159,6 +168,9 @@ begin
     SoundEngine.Volume := 0
   else
     SoundEngine.Volume := 1;
+
+  // crosshair makes sense only with mouse look
+  CrosshairForMouseLook.Exists := Navigation.MouseLook;
 end;
 
 procedure TViewMain.DoTimerSpawnTnts(Sender: TObject);
@@ -209,29 +221,50 @@ begin
     Exit(true);
   end;
 
-  if Event.IsMouseButton(buttonRight) then
-  begin
-    Navigation.MouseLook := not Navigation.MouseLook;
-    // crosshair makes sense only with mouse look
-    CrosshairForMouseLook.Exists := Navigation.MouseLook;
-    Exit(true);
-  end;
-
   if Event.IsKey(keyF1) then
   begin
     HelpMessage.Exists := not HelpMessage.Exists;
     Exit(true);
   end;
 
-  if Event.IsKey(keyF5) then
+  { Screenshot.
+    "P" is better on the web where F5 is used to refresh the page,
+    remember it as "PrintScreen/Photo". }
+  if Event.IsKey(keyF5) or Event.IsKey(keyP) then
   begin
     Container.SaveScreenToDefaultFile;
     Exit(true);
   end;
 
-  if Event.IsKey(keyEscape) then
+  if Event.IsKey(keyEscape) and ApplicationProperties.ShowUserInterfaceToQuit then
   begin
     Application.Terminate;
+    Exit(true);
+  end;
+
+  if Event.IsMouseButton(buttonRight) then
+  begin
+    { Start mouse look.
+
+      Note: we enable/disable mouse look on TViewPlay.Press/Release,
+      and we *do not* call in TViewPlay.Update something like
+      "WalkNavigation.MouseLook := buttonRight in Container.MousePressed",
+      because forcing mouse look in Update would be bad UX on web after
+      user cancels pointer lock. See https://castle-engine.io/web#pointer_lock . }
+    Navigation.MouseLook := true;
+    Exit(true);
+  end;
+end;
+
+function TViewMain.Release(const Event: TInputPressRelease): Boolean;
+begin
+  Result := inherited;
+  if Result then Exit; // allow the ancestor to handle keys
+
+  if Event.IsMouseButton(buttonRight) then
+  begin
+    { Stop mouse look. See comment in Press. }
+    Navigation.MouseLook := false;
     Exit(true);
   end;
 end;

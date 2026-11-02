@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -438,8 +438,7 @@ var
       {$endif}
         glTexImage2D(ScreenEffectTextureTarget, 0, InternalFormat,
           ScreenEffectTextureWidth,
-          ScreenEffectTextureHeight, 0, Format, AType,
-          {$ifdef CASTLE_WEBGL} IJSArrayBufferView {$endif} (nil));
+          ScreenEffectTextureHeight, 0, Format, AType, nil);
     end;
 
   begin
@@ -460,17 +459,14 @@ var
     end;
     if Depth then
     begin
-      {$ifndef OpenGLES}
-      // TODO-es What do we use here? See TGLRenderToTexture TODO at similar place
       if GLFeatures.ShadowVolumesPossible and GLFeatures.PackedDepthStencil then
-        TexImage2D(GL_DEPTH24_STENCIL8_EXT, GL_DEPTH_STENCIL_EXT, GL_UNSIGNED_INT_24_8_EXT) else
-      {$endif}
-        TexImage2D(GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT,
-          { On OpenGLES, using GL_UNSIGNED_BYTE will result in FBO failing
-            with INCOMPLETE_ATTACHMENT.
-            http://www.khronos.org/registry/gles/extensions/OES/OES_depth_texture.txt
-            allows only GL_UNSIGNED_SHORT or GL_UNSIGNED_INT for depth textures. }
-          {$ifdef OpenGLES} GL_UNSIGNED_SHORT {$else} GL_UNSIGNED_BYTE {$endif});
+        TexImage2D(
+          {$ifdef OpenGLES} GL_DEPTH24_STENCIL8 {$else} GL_DEPTH24_STENCIL8_EXT {$endif},
+          {$ifdef OpenGLES} GL_DEPTH_STENCIL {$else} GL_DEPTH_STENCIL_EXT {$endif},
+          {$ifdef OpenGLES} GL_UNSIGNED_INT_24_8 {$else} GL_UNSIGNED_INT_24_8_EXT {$endif})
+      else
+        TexImage2D(GLFeatures.DepthTextureInternalFormat, GL_DEPTH_COMPONENT,
+          GLFeatures.DepthTextureImageType);
       //glTexParameteri(ScreenEffectTextureTarget, GL_TEXTURE_COMPARE_MODE_ARB, GL_NONE);
       //glTexParameteri(ScreenEffectTextureTarget, GL_DEPTH_TEXTURE_MODE_ARB, GL_LUMINANCE);
     end else

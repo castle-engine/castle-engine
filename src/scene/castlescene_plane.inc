@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -142,9 +142,9 @@ end;
 
 function TCastlePlane.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'SizePersistent') or
-     (PropertyName = 'Axis') or
-     (PropertyName = 'DoubleSided') then
+  if ArrayContainsString(PropertyName, [
+       'SizePersistent', 'Axis', 'DoubleSided'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);

@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -31,7 +31,7 @@
 uses
   {$ifdef UNIX} CThreads, {$endif} // necessary to have asynchronous downloading on Unix
   SysUtils, Classes, StrUtils, Math,
-  {$ifdef FPC} OpenSSLSockets, {$endif} // support HTTPS
+  CastleHttps, // support HTTPS
   CastleDownload, CastleParameters, CastleClassUtils, CastleLog, CastleUtils,
   CastleApplicationProperties, CastleStringUtils;
 

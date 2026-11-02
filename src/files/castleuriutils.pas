@@ -1,9 +1,9 @@
 {
-  Copyright 2007-2024 Michalis Kamburelis.
+  Copyright 2007-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -289,16 +289,49 @@ function ChangeUriExt(const Url, Extension: String): String;
 { Delete extension of the URL. }
 function DeleteUriExt(const Url: String): String;
 
-{ Extract filename (last part after slash) from URL. }
+{ Extract filename (last part after slash) from URL.
+
+  Strips the anchor (#xxx) or query (?xxx) at the end of the URL.
+  So note that ExtractUriPath(Url) + ExtractUriName(Url) will not give you
+  the full URL back: they may miss the anchor or query.
+
+  Note that the resulting string is still percent-encoded, it is not decoded.
+  For example, for "http://example.org/foo%20bar.txt" it returns "foo%20bar.txt",
+  not "foo bar.txt". Use @link(UrlDecode) to decode it if you want. }
 function ExtractUriName(const Url: String): String;
 
-{ Extract path (everything before last part), including final slash, from URL. }
+{ Extract extension (including the dot) from URL, if any.
+
+  In case of multiple extensions, returns only the last one,
+  e.g. @code(https://example.org/file.tar.gz) returns @code(.gz).
+  This is consistent with standard @code(ExtractFileExt).
+
+  Note: To detect content type, it's better to use MIME type, see
+  @link(UriMimeType). Even better: rely on MIME type reported when
+  downloading given file (e.g. by the @link(TCastleDownload)), so that
+  in case of http or https URLs, you get the MIME type reported by the server.
+
+  If you use this function to detect content type based on the file extension,
+  you sidestep MIME types idea.
+
+  Just like @link(ExtractUriName), note that
+  the resulting string is still percent-encoded, it is not decoded. }
+function ExtractUriExt(const Url: String): String;
+
+{ Extract path (everything before last part), including final slash, from URL.
+
+  Preserves URL being relative or absolute.
+  That is, returns relative URL if input was relative.
+
+  Note that the resulting string is still percent-encoded.
+  For example, for "http://example.org/foo%20bar/file.txt" it returns
+  "http://example.org/foo%20bar/". }
 function ExtractUriPath(const Url: String): String;
 
 { Ensure URL ends with slash.
 
   For an empty URL, returns empty string (so it does not turn "" into "/").
-  For an URL ending with bashslash (which usually means you passed Windows
+  For an URL ending with backslash (which usually means you passed Windows
   path name), it removes the backslash before adding slash.
 
   This should be used instead of InclPathDelim or IncludeTrailingPathDelimiter,
@@ -411,8 +444,16 @@ function RelativeToCastleDataUrl(const Url: String; out WasInsideData: Boolean):
   See @url(https://castle-engine.io/url#castle-config castle-config protocol
   documentation).
 
-  If the URL has a different protocol, it is returned unchanged. }
-function ResolveCastleConfigUrl(const Url: String): String;
+  If the URL has a different protocol, it is returned unchanged.
+
+  @param(UseFallbackIfNotExists If @true, then search for config file
+    also in the fallback location. This provides compatibility for iOS
+    applications using FPC, for which we changed config location from
+    @code(<sandbox>/Library/) to @code(<sandbox>/Library/Application Support/)
+    during 7.0-alpha.3.snapshot development, on 2026-10-07.)
+}
+function ResolveCastleConfigUrl(const Url: String;
+  const UseFallbackIfNotExists: Boolean = false): String;
 
 { Encode String using @url(https://en.wikipedia.org/wiki/Percent-encoding percent encoding),
   for example space is converted to @code(%20). }
@@ -421,6 +462,21 @@ function UrlEncode(const S: String): String;
 { Decode string using @url(https://en.wikipedia.org/wiki/Percent-encoding percent encoding),
   for example @code(%20)is converted to space. }
 function UrlDecode(const S: String): String;
+
+{ Encode a single form value for application/x-www-form-urlencoded encoding.
+  This is similar to UrlEncode, but it also replaces space with plus,
+  and it allows fewer characters unescaped.
+  @exclude }
+function InternalUrlEncodeForm(const S: String): String;
+
+{ Extract query parameters from URL ending like @code(?model=foo&texture=bar).
+  The query parameters are returned as a map from parameter name to
+  parameter value.
+  If the URL does not contain query parameters, the returned map is empty.
+
+  Query provided should be the URL ending (not the whole URL), for example
+  @code(?model=foo&texture=bar). Leading '?' is optional. }
+function UrlQueryParameters(Query: String): TStringStringMap;
 
 var
   { On systems where filesystems are usually case-sensitive
@@ -541,11 +597,13 @@ begin
   {$endif}
 end;
 
-function InternalUriEscapeCore(const S: String; const Allowed: TSysCharSet): String;
+function InternalUriEscapeCore(const S: String; const Allowed: TSysCharSet;
+  const SpaceToPlus: Boolean = false): String;
 var
   i, L: Integer;
   {$ifdef FPC}
   P: PChar;
+  AnyEscaping: Boolean;
   {$else}
   J: Integer;
   Utf16Char: String; // String here becouse somtimes UTF-16 char can be two wide chars
@@ -553,23 +611,44 @@ var
   {$endif}
 begin
   L := Length(s);
+
   {$ifdef FPC}
+  AnyEscaping := false;
+
+  // First pass to calculate length of the result string (L).
+  // By the way, calculate AnyEscaping, to possibly to early exit in easy case.
   for i := 1 to Length(s) do
-    if not CharInSet(s[i], Allowed) then Inc(L,2);
-  if L = Length(s) then
+  begin
+    if not CharInSet(s[i], Allowed) then
+    begin
+      AnyEscaping := true;
+      if not (SpaceToPlus and (s[i] = ' ')) then
+        Inc(L, 2); // replaced to %xx, so it becomes longer by 2 chars
+    end;
+  end;
+
+  // utilize AnyEscaping to avoid unnecessary work when there is nothing to escape
+  if not AnyEscaping then
   begin
     Result := s;
     Exit;
   end;
 
+  // some escaping necessary, do it in one pass
   SetLength(Result, L);
   P := @Result[1];
   for i := 1 to Length(s) do
   begin
     if not CharInSet(s[i], Allowed) then
     begin
-      P^ := '%'; Inc(P);
-      StrFmt(P, '%.2x', [ord(s[i])]); Inc(P);
+      if SpaceToPlus and (s[i] = ' ') then
+      begin
+        P^ := '+';
+      end else
+      begin
+        P^ := '%'; Inc(P);
+        StrFmt(P, '%.2x', [ord(s[i])]); Inc(P);
+      end;
     end else
       P^ := s[i];
     Inc(P);
@@ -600,10 +679,16 @@ begin
       if not CharInSet(s[i], Allowed) then
       begin
         // Not surrogate but also not allowed
-        UTF8Char := UTF8String(S[I]);
-        for J := 1 to Length(UTF8Char) do
+        if SpaceToPlus and (s[i] = ' ') then
         begin
-          Result := Result + '%' + Format('%.2x', [ord(UTF8Char[J])]);
+          Result := Result + '+';
+        end else
+        begin
+          UTF8Char := UTF8String(S[I]);
+          for J := 1 to Length(UTF8Char) do
+          begin
+            Result := Result + '%' + Format('%.2x', [ord(UTF8Char[J])]);
+          end;
         end;
       end else
       begin
@@ -625,6 +710,13 @@ const
   ValidPathChars = Unreserved + SubDelims + ['@', ':', '/'];
 begin
   Result := InternalUriEscapeCore(S, ValidPathChars);
+end;
+
+function InternalUrlEncodeForm(const S: String): String;
+const
+  Valid = ['A'..'Z', 'a'..'z', '0'..'9', '-', '_', '.', '*'];
+begin
+  Result := InternalUriEscapeCore(S, Valid, true);
 end;
 
 { other routines ------------------------------------------------------------- }
@@ -943,7 +1035,8 @@ end;
 function AbsoluteUri(const Uri: String): String;
 begin
   if UriProtocol(Uri) = '' then
-    Result := FilenameToUriSafe(Uri) else
+    Result := FilenameToUriSafe(Uri)
+  else
     Result := Uri;
 end;
 
@@ -1033,6 +1126,15 @@ var
   I: Integer;
   FilenamePart: String;
 begin
+  {$ifdef WASI}
+  { Without this condition, our routine FilenameToUriSafe
+    (called also from AbsoluteUri with possibly '' as argument)
+    would call GetCurrentDir, which on WebAssembly raises an exception
+    "EInOutError: Invalid drive specified". }
+  if FileName = '' then
+    Exit('');
+  {$endif}
+
   FileName := ExpandFileNameFixed(FileName);
 
   Result := 'file:';
@@ -1077,9 +1179,174 @@ var
   FUriMimeExtensions: TStringStringMap;
 
 function UriMimeExtensions: TStringStringMap;
+
+  { Fill FUriMimeExtensions with initial useful content. }
+  procedure AddDefaultMimeExtensions;
+  begin
+    { Parts of this list were based on LCL code
+      lcl/interfaces/customdrawn/customdrawnobject_android.inc
+      (license is LGPL with static linking exception, just like our engine).
+
+      See also various resources linked from
+      "Function to get the mimetype from a file extension" thread on Lazarus
+      mailing list:
+      http://comments.gmane.org/gmane.comp.ide.lazarus.general/62738
+
+      We somewhat cleaned it up (e.g. "postscript" and "mpeg" lowercase),
+      fixed categorization, and fixed/added many types looking at
+      /etc/mime.types and
+      /usr/share/mime/packages/freedesktop.org.xml on Debian.
+
+      For description of MIME content types see also
+      https://en.wikipedia.org/wiki/Internet_media_type
+      http://en.wikipedia.org/wiki/MIME
+      http://tools.ietf.org/html/rfc4288
+
+      Later, this list was extended to support all 3D and 2D model formats
+      and other files used in our engine. Internally, we communicate
+      "file types" as a string with MIME type, so all supported resource types
+      must be expressed as MIME types.
+    }
+
+    // 3D models (see also castle-model-viewer MIME specification in castle-model-viewer/desktop/castle-model-viewer.xml)
+    FUriMimeExtensions.Add('.wrl', 'model/vrml');
+    FUriMimeExtensions.Add('.wrz', 'model/vrml');
+    FUriMimeExtensions.Add('.x3dv', 'model/x3d+vrml');
+    FUriMimeExtensions.Add('.x3dvz', 'model/x3d+vrml');
+    FUriMimeExtensions.Add('.x3d', 'model/x3d+xml');
+    FUriMimeExtensions.Add('.x3dz', 'model/x3d+xml');
+    FUriMimeExtensions.Add('.x3db', 'model/x3d+binary');
+    FUriMimeExtensions.Add('.dae', 'model/vnd.collada+xml');
+    { See http://en.wikipedia.org/wiki/.3ds about 3ds mime type.
+      application/x-3ds is better (3DS is hardly an "image"),
+      but Debian /usr/share/mime/packages/freedesktop.org.xml also uses
+      image/x-3ds, so I guess image/x-3ds is more popular. }
+    FUriMimeExtensions.Add('.3ds', 'image/x-3ds');
+    FUriMimeExtensions.Add('.max', 'image/x-3ds');
+    FUriMimeExtensions.Add('.iv', 'application/x-inventor');
+    FUriMimeExtensions.Add('.md3', 'application/x-md3');
+    FUriMimeExtensions.Add('.obj', 'application/x-wavefront-obj');
+    FUriMimeExtensions.Add('.geo', 'application/x-geo');
+    FUriMimeExtensions.Add('.kanim', 'application/x-castle-anim-frames');
+    FUriMimeExtensions.Add('.castle-anim-frames', 'application/x-castle-anim-frames');
+    FUriMimeExtensions.Add('.json', 'application/json');
+    { Note that https://en.wikipedia.org/wiki/PLY_(file_format)
+      says PLY is text/plain, but we need specific MIME type to distinguish it.
+      X_ITE uses model/ply, so let's follow it.
+      https://create3000.github.io/x_ite/#supported-file-formats }
+    FUriMimeExtensions.Add('.ply', 'model/ply');
+    { Various sites propose various MIME types for STL:
+      https://gist.github.com/allysonsouza/1bf9d4a0295a14373979cd23d15df0a9
+        application/wavefront-stl
+        application/vnd.ms-pki.stl
+      We used application/x-stl in the past.
+      Let's follow https://en.wikipedia.org/wiki/STL_(file_format) . }
+    FUriMimeExtensions.Add('.stl', 'model/stl');
+    FUriMimeExtensions.Add('.glb', 'model/gltf-binary');
+    FUriMimeExtensions.Add('.gltf', 'model/gltf+json');
+    // Images.
+    { Only images that we *cannot* handle in CastleImages unit are listed below.
+      For images we can handle -> their extensions and mime types are added
+      to UriMimeExtensions by CastleImages.RegisterMimeTypes. }
+    FUriMimeExtensions.Add('.svg', 'image/svg+xml');
+    FUriMimeExtensions.Add('.ico', 'image/x-icon');
+    FUriMimeExtensions.Add('.icns', 'image/icns');
+    FUriMimeExtensions.Add('.castle-sprite-sheet', 'application/x-castle-sprite-sheet');
+    { I didn't found real MIME type for Starling Texture Atlas.
+      Created as image type based on
+      https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types }
+    FUriMimeExtensions.Add('.starling-xml', 'application/x-starling-sprite-sheet');
+    FUriMimeExtensions.Add('.cocos2d-plist', 'application/x-cocos2d-sprite-sheet');
+    FUriMimeExtensions.Add('.plist', 'application/x-plist');
+
+    // HTML
+    FUriMimeExtensions.Add('.htm', 'text/html');
+    FUriMimeExtensions.Add('.html', 'text/html');
+    FUriMimeExtensions.Add('.shtml', 'text/html');
+    FUriMimeExtensions.Add('.css', 'text/css');
+    FUriMimeExtensions.Add('.php', 'text/php');
+
+    // Plain text
+    FUriMimeExtensions.Add('.txt', 'text/plain');
+    FUriMimeExtensions.Add('.pas', 'text/plain');
+    FUriMimeExtensions.Add('.pp', 'text/plain');
+    FUriMimeExtensions.Add('.inc', 'text/plain');
+    FUriMimeExtensions.Add('.c', 'text/plain');
+    FUriMimeExtensions.Add('.cpp', 'text/plain');
+    FUriMimeExtensions.Add('.java', 'text/plain');
+    FUriMimeExtensions.Add('.log', 'text/plain');
+    FUriMimeExtensions.Add('.md', 'text/plain');
+
+    // Videos
+    FUriMimeExtensions.Add('.mp4', 'video/mp4');
+    FUriMimeExtensions.Add('.avi', 'video/x-msvideo');
+    FUriMimeExtensions.Add('.mpeg', 'video/mpeg');
+    FUriMimeExtensions.Add('.mpg', 'video/mpeg');
+    FUriMimeExtensions.Add('.mpe', 'video/mpeg');
+    FUriMimeExtensions.Add('.ogv', 'video/ogg');
+    FUriMimeExtensions.Add('.mov', 'video/quicktime');
+    FUriMimeExtensions.Add('.flv', 'video/x-flv');
+    FUriMimeExtensions.Add('.swf', 'application/x-shockwave-flash');
+    FUriMimeExtensions.Add('.swfl', 'application/x-shockwave-flash');
+
+    // Sounds
+    FUriMimeExtensions.Add('.mp3', 'audio/mpeg'); // see https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/MIME_types/Common_types
+    FUriMimeExtensions.Add('.ogg', 'audio/ogg');
+    FUriMimeExtensions.Add('.oga', 'audio/ogg');
+    FUriMimeExtensions.Add('.wav', 'audio/wav');
+    FUriMimeExtensions.Add('.mid', 'audio/midi');
+    FUriMimeExtensions.Add('.midi', 'audio/midi');
+    FUriMimeExtensions.Add('.au', 'audio/basic');
+    FUriMimeExtensions.Add('.snd', 'audio/basic');
+    FUriMimeExtensions.Add('.mp2', 'audio/mpeg');
+    FUriMimeExtensions.Add('.flac', 'audio/flac'); // see https://en.wikipedia.org/wiki/FLAC , https://mimetype.io/audio/flac , https://mimetype.io/audio/x-flac
+
+    // Documents
+    FUriMimeExtensions.Add('.rtf', 'text/rtf');
+    FUriMimeExtensions.Add('.eps', 'application/postscript');
+    FUriMimeExtensions.Add('.ps', 'application/postscript');
+    FUriMimeExtensions.Add('.pdf', 'application/pdf');
+    FUriMimeExtensions.Add('.csv', 'application/csv');
+    // Documents - old MS Office
+    FUriMimeExtensions.Add('.xls', 'application/vnd.ms-excel');
+    FUriMimeExtensions.Add('.doc', 'application/msword');
+    FUriMimeExtensions.Add('.ppt', 'application/vnd.ms-powerpoint');
+    // Documents - open standards
+    FUriMimeExtensions.Add('.odt', 'application/vnd.oasis.opendocument.text');
+    FUriMimeExtensions.Add('.ods', 'application/vnd.oasis.opendocument.spreadsheet');
+    FUriMimeExtensions.Add('.odp', 'application/vnd.oasis.opendocument.presentation');
+    FUriMimeExtensions.Add('.odg', 'application/vnd.oasis.opendocument.graphics');
+    FUriMimeExtensions.Add('.odc', 'application/vnd.oasis.opendocument.chart');
+    FUriMimeExtensions.Add('.odf', 'application/vnd.oasis.opendocument.formula');
+    FUriMimeExtensions.Add('.odi', 'application/vnd.oasis.opendocument.image');
+    // Documents - new MS Office
+    FUriMimeExtensions.Add('.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    FUriMimeExtensions.Add('.pptx', 'application/vnd.openxmlformats-officedocument.presentationml.presentation');
+    FUriMimeExtensions.Add('.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+
+    // Compressed archives
+    FUriMimeExtensions.Add('.zip', 'application/zip');
+    FUriMimeExtensions.Add('.tar', 'application/x-tar');
+    FUriMimeExtensions.Add('.rar', 'application/x-rar-compressed');
+    FUriMimeExtensions.Add('.gz', 'application/gzip');
+
+    // Various
+    FUriMimeExtensions.Add('.xml', 'application/xml');
+    FUriMimeExtensions.Add('.castlescript', 'text/x-castlescript');
+    FUriMimeExtensions.Add('.kscript', 'text/x-castlescript');
+    FUriMimeExtensions.Add('.js', 'application/javascript');
+    FUriMimeExtensions.Add('.castle-user-interface', 'text/x-castle-user-interface');
+    FUriMimeExtensions.Add('.castle-transform', 'text/x-castle-transform');
+    FUriMimeExtensions.Add('.castle-component', 'text/x-castle-component');
+    FUriMimeExtensions.Add('.tmx', 'application/x-tiled-map');
+  end;
+
 begin
   if FUriMimeExtensions = nil then
+  begin
     FUriMimeExtensions := TStringStringMap.Create;
+    AddDefaultMimeExtensions;
+  end;
   Result := FUriMimeExtensions;
 end;
 
@@ -1176,46 +1443,24 @@ begin
 end;
 
 function ChangeUriExt(const Url, Extension: String): String;
-
-  {$ifndef FPC}
-  { Mask default Delphi ChangeFileExt that behaves badly for filenames
-    like '.hidden'.}
-  function ChangeFileExt(const FileName, NewExtension: String): String;
-  var
-    I: Integer;
-    ExtDotPos: Integer;
-  begin
-    ExtDotPos := 0;
-    for I := Length(FileName) downto 1 do
-      if FileName[I] in AllowDirectorySeparators then
-      begin
-        // no extension, leave ExtDotPos = 0
-        Break;
-      end else
-      if (FileName[I] = '.') and
-         (I > 1) and
-         (not (FileName[I - 1] in AllowDirectorySeparators)) then
-      begin
-        // dot, but not at the beginning of the name -> valid ExtDotPos
-        ExtDotPos := I;
-        Break;
-      end;
-
-    if ExtDotPos <> 0 then
-      Result := Copy(FileName, 1, ExtDotPos - 1) + NewExtension
-    else
-      Result := FileName + NewExtension;
-  end;
-  {$endif}
-
 var
-  UrlWithoutAnchor, Anchor: String;
+  U: TURI;
 begin
-  UrlWithoutAnchor := Url;
-  UriExtractAnchor(UrlWithoutAnchor, Anchor);
-  Result := ChangeFileExt(UrlWithoutAnchor, Extension);
-  if Anchor <> '' then
-    Result := Result + '#' + Anchor;
+  { Use ParseUri to deconstruct the URL.
+    Note: We don't use AbsoluteUri, to avoid turning relative
+    URL/filename into absolute. }
+  U := ParseUri(Url);
+
+  { Delphi (but not FPC) behaves not OK for hidden Unix filenames, like ".hidden".
+    It considers the ".hidden" an extension, and replaces it.
+    So we avoid using standard ChangeFileExt, if the document starts with a dot
+    (and has no other extension). }
+  if BackPos('.', U.Document) <> 1 then
+    U.Document := ChangeFileExt(U.Document, Extension)
+  else
+    U.Document := U.Document + Extension;
+
+  Result := EncodeURI(U);
 end;
 
 function DeleteUriExt(const Url: String): String;
@@ -1223,51 +1468,66 @@ begin
   Result := ChangeUriExt(Url, '');
 end;
 
+function ExtractUriExt(const Url: String): String;
+var
+  UrlName: String;
+begin
+  { Use ExtractUriName first, that strips #xxx anchor, ?xxx query .
+    This way we use ExtractFileExt to search for . only inside the last part. }
+  UrlName := ExtractUriName(Url);
+
+  { Delphi (but not FPC) behaves not OK for hidden Unix filenames, like ".hidden".
+    It considers the ".hidden" an extension. }
+  if BackPos('.', UrlName) = 1 then
+    Exit('');
+
+  Result := ExtractFileExt(UrlName);
+end;
+
 function ExtractUriName(const Url: String): String;
 var
-  UrlWithoutAnchor: String;
-  {$ifndef FPC} I: Integer; {$endif}
+  U: TURI;
 begin
-  UrlWithoutAnchor := UriDeleteAnchor(Url);
-  {$ifdef FPC}
-  Result := ExtractFileName(UrlWithoutAnchor);
-  {$else}
-  { In Delphi, / separator in paths is not recognized, so we cannot use ExtractFilePath.
-    TODO: our own solution should be just used for both compilers.
-    Need autotests to confirm it behaves the same, on both platforms. }
+  { Deconstruct URL using ParseUri.
+    This strips (from end):
+    - HTTP query part "?xxx"
+    - Anchor part "#xxx"
+    We process with AbsoluteUri to tolerate simple filenames.
+  }
+  U := ParseUri(AbsoluteUri(Url));
 
-  I := BackCharsPos(['/'], UrlWithoutAnchor);
-  if I <> 0 then
-    Result := SEnding(UrlWithoutAnchor, I + 1)
-  else
-    Result := UrlWithoutAnchor;
-  {$endif}
+  { API promises that this is percent-encoded, so encode again. }
+  Result := UrlEncode(U.Document);
 end;
 
 function ExtractUriPath(const Url: String): String;
 var
+  U: TURI;
   UrlWithoutAnchor: String;
-  {$ifndef FPC} I: Integer; {$endif}
+  I: Integer;
 begin
-  { While on non-Windows ExtractFilePath would work on full URL as well,
-    but on Windows the ":" inside anchor (like
-    "castle-data:/starling/character_zombie_atlas.starling-xml#fps:8,anim-naming:strict-underscore")
-    would cause trouble: it would be considered a drive letter separator,
-    and change the result. }
-  UrlWithoutAnchor := UriDeleteAnchor(Url);
-  {$ifdef FPC}
-  Result := ExtractFilePath(UrlWithoutAnchor);
-  {$else}
-  { In Delphi, / separator in paths is not recognized, so we cannot use ExtractFilePath.
-    TODO: our own solution should be just used for both compilers.
-    Need autotests to confirm it behaves the same, on both platforms. }
-
-  I := BackCharsPos(['/'], UrlWithoutAnchor);
-  if I <> 0 then
-    Result := Copy(UrlWithoutAnchor, 1, I)
-  else
-    Result := UrlWithoutAnchor;
-  {$endif}
+  if (UriProtocol(Url) = '') and not IsPathAbsolute(Url) then
+  begin
+    { To preserve relative URLs, we handle them manually, using simple
+      string manipulation. }
+    UrlWithoutAnchor := UriDeleteAnchor(Url);
+    I := BackCharsPos(['/' {$ifdef MSWINDOWS}, '\'{$endif}], UrlWithoutAnchor);
+    if I <> 0 then
+      Result := Copy(UrlWithoutAnchor, 1, I)
+    else
+      Result := '';
+  end else
+  begin
+    { For absolute URLs or absolute filenames,
+      use AbsoluteUri + ParseUri to deconstruct the URL.
+      This also will make filename -> URL, which is OK.
+      Consistent with ExtractUriName. }
+    U := ParseUri(AbsoluteUri(Url));
+    U.Document := '';
+    U.Params := '';
+    U.Bookmark := '';
+    Result := EncodeURI(U);
+  end;
 end;
 
 function UriIncludeSlash(const Url: String): String;
@@ -1508,7 +1768,19 @@ function ApplicationDataCore(const Path: String): String;
       BundleDataParentPath := BundlePath + 'Contents/Resources/';
       {$endif}
 
-      // data subdirectory in the macOS application bundle or iOS data
+      { Use data/ subdirectory in the macOS application bundle or iOS data.
+
+        Delphi-specific notes:
+
+        - Relying on data/ subdirectory inside bundle
+          matches the "deployment" of files we put in DPROJ.
+
+        - Note that we look in the bundle, and do not rely on
+          Delphi System.StartUpCopy mechanism.
+          This way you don't need to use Delphi's System.StartUpCopy
+          approach (which would make application data copy at start,
+          wasting time and storage and causing bugs due to stale files not
+          being updated). }
       Result := BundleDataParentPath + 'data/';
       if DirectoryExists(Result) then Exit;
 
@@ -1777,7 +2049,7 @@ end;
 var
   WebTemporaryConfig: TCastleMemoryFileSystem;
 
-function ResolveCastleConfigUrl(const Url: String): String;
+function ResolveCastleConfigUrl(const Url: String; const UseFallbackIfNotExists: Boolean): String;
 
   { TODO: Initializes a temporary filesystem now. }
   function WebGetApplicationConfigPath: String;
@@ -1821,6 +2093,20 @@ function ResolveCastleConfigUrl(const Url: String): String;
     {$endif}
   end;
 
+  { Resolves a castle-config URL using a fallback mechanism.
+    Call only when
+    - UriProtocol(Url) = 'castle-config'
+    - InternalApplicationConfigFallback <> '' }
+  function ResolveCastleConfigUrlUsingFallback(const Url: String): String;
+  var
+    U: TUri;
+    RelativeToData: String;
+  begin
+    U := ParseUri(Url);
+    RelativeToData := PrefixRemove('/', U.Path + U.Document, false);
+    Result := InternalApplicationConfigFallback + UrlEncode(RelativeToData);
+  end;
+
 var
   U: TUri;
   RelativeToData: String;
@@ -1831,8 +2117,79 @@ begin
     RelativeToData := PrefixRemove('/', U.Path + U.Document, false);
     Result := ApplicationConfigCore(RelativeToData);
     //WritelnLog('castle-config', Format('Resolved "%s" to "%s"', [Url, Result]));
+
+    { Support opening config files from old location. }
+    if UseFallbackIfNotExists and
+       (InternalApplicationConfigFallback <> '') and
+       { Right now, InternalApplicationConfigFallback only works when it
+         resolves to file:// protocol, because below we use FileExists
+         (to avoid depending on UriExists, that would then call
+         ResolveCastleConfigUrl back, creating complicated situation).
+         And this is acceptable, because this is only used
+         on iOS, where config locations (regular and fallback) are regular
+         directories. }
+       (UriProtocol(Result) = 'file') and
+       (UriProtocol(InternalApplicationConfigFallback) = 'file') and
+       { File only exists in fallback location. }
+       (not FileExists(UriToFilenameSafe(Result))) and
+       FileExists(UriToFilenameSafe(ResolveCastleConfigUrlUsingFallback(Url))) then
+      Result := ResolveCastleConfigUrlUsingFallback(Url);
+
   end else
     Result := Url;
+end;
+
+function UrlQueryParameters(Query: String): TStringStringMap;
+
+  { Decode URL query parameters. In addition to UrlDecode,
+    this also handles + for space. }
+  function UrlDecodeForm(const S: String): String;
+  begin
+    { URL query parameters are encoded using application/x-www-form-urlencoded encoding,
+      see https://url.spec.whatwg.org/#application/x-www-form-urlencoded . }
+    Result := S;
+    Result := SReplaceChars(Result, '+', ' ');
+    Result := UrlDecode(Result);
+  end;
+
+var
+  ParamName, ParamValue, NameValue: String;
+  NameValues: TCastleStringList;
+  EqPos: Integer;
+begin
+  Result := TStringStringMap.Create;
+
+  if SCharIs(Query, 1, '?') then
+    Query := SEnding(Query, 2);
+
+  NameValues := CastleStringUtils.SplitString(Query, '&');
+  try
+    for NameValue in NameValues do
+    begin
+      EqPos := Pos('=', NameValue);
+      if EqPos > 0 then
+      begin
+        ParamName := UrlDecodeForm(Copy(NameValue, 1, EqPos - 1));
+        ParamValue := UrlDecodeForm(SEnding(NameValue, EqPos + 1));
+      end else
+      begin
+        ParamName := UrlDecodeForm(NameValue);
+        ParamValue := '';
+      end;
+
+      { Ignore empty parameter names, like in ...?x=1&&y=2 (double &)
+        or in ?=1 (no key name). }
+      if ParamName = '' then
+        Continue;
+
+      if Result.ContainsKey(ParamName) then
+        WritelnWarning('Duplicate page URL parameter "%s", ignoring all but first occurrence', [
+          ParamName
+        ])
+      else
+        Result.Add(ParamName, ParamValue);
+    end;
+  finally FreeAndNil(NameValues) end;
 end;
 
 initialization

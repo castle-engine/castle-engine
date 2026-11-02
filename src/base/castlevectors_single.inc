@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -801,23 +801,23 @@ const
 
 function SwapEndian(const V: TVector2): TVector2;
 begin
-  Result.X := SwapEndian(V.X);
-  Result.Y := SwapEndian(V.Y);
+  Result.X := SwapSingle(V.X);
+  Result.Y := SwapSingle(V.Y);
 end;
 
 function SwapEndian(const V: TVector3): TVector3;
 begin
-  Result.X := SwapEndian(V.X);
-  Result.Y := SwapEndian(V.Y);
-  Result.Z := SwapEndian(V.Z);
+  Result.X := SwapSingle(V.X);
+  Result.Y := SwapSingle(V.Y);
+  Result.Z := SwapSingle(V.Z);
 end;
 
 function SwapEndian(const V: TVector4): TVector4;
 begin
-  Result.X := SwapEndian(V.X);
-  Result.Y := SwapEndian(V.Y);
-  Result.Z := SwapEndian(V.Z);
-  Result.W := SwapEndian(V.W);
+  Result.X := SwapSingle(V.X);
+  Result.Y := SwapSingle(V.Y);
+  Result.Z := SwapSingle(V.Z);
+  Result.W := SwapSingle(V.W);
 end;
 
 function NtoLE(const V: TVector2): TVector2;

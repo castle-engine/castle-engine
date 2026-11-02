@@ -27,7 +27,11 @@ uses
   {$ENDIF}
   SysUtils,
   classes,
-  contnrs, CastleUtils, Generics.Collections, FPHashCompatibility;
+  contnrs,
+  Generics.Collections,
+  { After Generics.Collections in uses clause,
+    in case CASTLE_WORKAROUND_DICTIONARY_FIND matters for current compiler/platform. }
+  CastleUtils;
 
 type
   TJSONtype = (jtUnknown, jtNumber, jtString, jtBoolean, jtNull, jtArray, jtObject);
@@ -47,7 +51,18 @@ type
     jitArray,
     jitObject);
   TJSONFloat = Double;
-  TJSONStringType = {$IFNDEF PAS2JS}UTF8String{$else}string{$ENDIF};
+  TJSONStringType =
+    {$IFDEF PAS2JS}
+      {$IFNDEF PAS2JS}UTF8String{$else}string{$ENDIF}
+    {$ELSE}
+      { With Delphi, let TJSONStringType be UnicodeString
+        (equal to TJSONUnicodeStringType) to map to default "String" in all cases.
+        This makes tricky Spine JSONs in our testcases work both with
+        - CASTLE_ANSISTRING_FORCE_UTF8 and with
+        - CASTLE_ANSISTRING_UNCHANGED . }
+      {$define JSON_STRING_TYPE_IS_UNICODE}
+      UnicodeString
+    {$ENDIF};
   TJSONUnicodeStringType = Unicodestring;
   {$IFNDEF PAS2JS}
   TJSONCharType = AnsiChar;
@@ -104,7 +119,7 @@ Type
   end;
 
   { TJSONData }
-  
+
   TJSONData = class(TObject)
   private
     Const
@@ -157,7 +172,7 @@ Type
     Function FindPath(Const APath : TJSONStringType) : TJSONdata;
     Function GetPath(Const APath : TJSONStringType) : TJSONdata;
     Function Clone : TJSONData; virtual; abstract;
-    Function FormatJSON(Options : TFormatOptions = DefaultFormat; Indentsize : Integer = DefaultIndentSize) : TJSONStringType; 
+    Function FormatJSON(Options : TFormatOptions = DefaultFormat; Indentsize : Integer = DefaultIndentSize) : TJSONStringType;
     property Count: Integer read GetCount;
     property Items[Index: Integer]: TJSONData read GetItem write SetItem;
     property Value: TJSONVariant read GetValue write SetValue;
@@ -390,7 +405,7 @@ Type
     Class var StrictEscaping : Boolean;
   public
     Constructor Create(const AValue : TJSONStringType); reintroduce; overload;
-    {$IFNDEF PAS2JS}
+    {$IFNDEF JSON_STRING_TYPE_IS_UNICODE}
     Constructor Create(const AValue : TJSONUnicodeStringType); reintroduce; overload;
     {$ENDIF}
     class function JSONType: TJSONType; override;
@@ -599,6 +614,71 @@ Type
 
   TJSONObjectIterator = procedure(Const AName : TJSONStringType; Item: TJSONData; Data: TObject; var Continue: Boolean) of object;
 
+  TJSONStringTypeList = {$ifdef FPC}specialize{$endif} TList<TJSONStringType>;
+  TJSONDataList = {$ifdef FPC}specialize{$endif} TList<TJSONData>;
+  TJSONNameToIndex = {$ifdef FPC}specialize{$endif} TDictionary<TJSONStringType, Integer>;
+
+  { Members (name -> value pairs) of a TJSONObject.
+
+    CGE fork notes:
+    This structure replaces TFPHashObjectList that the original FPC fcl-json
+    used. Using this simple structure is simpler than maintaining a copy
+    of TFPHashObjectList, and also it avo ids TFPHashObjectList issues with
+    strings:
+
+    @unorderedList(
+      @item(TFPHashObjectList uses ShortString for names. So the names
+        were converted to / from ShortString, using the system codepage
+        (when CASTLE_ANSISTRING_UNCHANGED).
+        With Delphi this loses non-ASCII characters
+        (e.g. Polish "Kształt" became "Ksztalt"), unless the system codepage
+        happens to be UTF-8.
+
+        Structure below just stores names as TJSONStringType,
+        so they are correct regardless of CASTLE_ANSISTRING_UNCHANGED
+        and system codepage.)
+
+      @item(TFPHashObjectList also limited the names to 255 characters.)
+    )
+
+    We keep the order of the members (as JSON files, and our tests comparing
+    saved JSON files, depend on it) and we keep the lookup by name fast
+    (using a dictionary from a name to an index). }
+  TJSONObjectMembers = class
+  strict private
+    FNames: TJSONStringTypeList;
+    FItems: TJSONDataList;
+    { Maps name -> index, to index (in both FNames and FItems). }
+    FIndexes: TJSONNameToIndex;
+    FOwnsObjects: Boolean;
+    function GetItem(const Index: Integer): TJSONData;
+    procedure SetItem(const Index: Integer; const AValue: TJSONData);
+    { Remove the given index from all our lists, without freeing the object. }
+    procedure RemoveIndex(const Index: Integer);
+  public
+    constructor Create(const AOwnsObjects: Boolean);
+    destructor Destroy; override;
+    function Count: Integer;
+    property Items[const Index: Integer]: TJSONData read GetItem write SetItem; default;
+    function NameOfIndex(const Index: Integer): TJSONStringType;
+    { Index of the given name, -1 if not found. }
+    function FindIndexOf(const AName: TJSONStringType): Integer;
+    { Value with the given name, @nil if not found. }
+    function Find(const AName: TJSONStringType): TJSONData;
+    { Index of the given value, -1 if not found. }
+    function IndexOf(const Item: TJSONData): Integer;
+    { Add new name -> value. Returns the index of the new member.
+      The name must not exist yet (callers check this). }
+    function Add(const AName: TJSONStringType; const AValue: TJSONData): Integer;
+    { Remove the member, freeing the value if we own the objects. }
+    procedure Delete(const Index: Integer);
+    { Remove the member with this value, freeing it if we own the objects. }
+    procedure Remove(const Item: TJSONData);
+    { Remove the member with this value, never freeing it. }
+    procedure Extract(const Item: TJSONData);
+    procedure Clear;
+  end;
+
   { TJSONObject }
 
   TJSONObject = class(TJSONData)
@@ -619,7 +699,7 @@ Type
     FHash: TJSObject;
     FNames: TStringDynArray;
     {$else}
-    FHash: TFPHashObjectList; // Careful : Names limited to 255 chars.
+    FHash: TJSONObjectMembers;
     {$ENDIF}
     function GetArrays(const AName : String): TJSONArray;
     function GetBooleans(const AName : String): Boolean;
@@ -705,7 +785,9 @@ Type
     {$IFNDEF PAS2JS}
     Function Get(Const AName : String; ADefault : Int64) : Int64; overload;
     Function Get(Const AName : String; ADefault : QWord) : QWord; overload;
+    {$IFNDEF JSON_STRING_TYPE_IS_UNICODE}
     Function Get(Const AName : String; ADefault : TJSONUnicodeStringType) : TJSONUnicodeStringType; overload;
+    {$ENDIF}
     {$ENDIF}
     Function Get(Const AName : String; ADefault : Boolean) : Boolean; overload;
     Function Get(Const AName : String; ADefault : TJSONStringType) : TJSONStringType; overload;
@@ -718,7 +800,9 @@ Type
     function Add(const AName: TJSONStringType; AValue: TJSONFloat): Integer; overload;
     function Add(const AName, AValue: TJSONStringType): Integer; overload;
     {$IFNDEF PAS2JS}
+    {$IFNDEF JSON_STRING_TYPE_IS_UNICODE}
     function Add(const AName : String; AValue: TJSONUnicodeStringType): Integer; overload;
+    {$ENDIF}
     function Add(const AName: TJSONStringType; Avalue: Int64): Integer; overload;
     function Add(const AName: TJSONStringType; Avalue: QWord): Integer; overload;
     {$ELSE}
@@ -766,8 +850,14 @@ Type
 Function SetJSONInstanceType(AType : TJSONInstanceType; AClass : TJSONDataClass) : TJSONDataClass;
 Function GetJSONInstanceType(AType : TJSONInstanceType) : TJSONDataClass;
 
+{ CGE note:
+  We removed JSONStringToString (from FPC's FpJson), as the implementation of it
+  assumed 8-bit TJSONStringType, and we change TJSONStringType to be String
+  (16-bit with Delphi), see JSON_STRING_TYPE_IS_UNICODE .
+  We could fix JSONStringToString, but since it's not used -> easier to just
+  not maintain it. }
+
 Function StringToJSONString(const S : TJSONStringType; Strict : Boolean = False) : TJSONStringType;
-Function JSONStringToString(const S : TJSONStringType) : TJSONStringType;
 Function JSONTypeName(JSONType : TJSONType) : String;
 
 // These functions create JSONData structures, taking into account the instance types
@@ -783,7 +873,9 @@ Function CreateJSON(Data : NativeInt) : TJSONNativeIntNumber; overload;
 Function CreateJSON(Data : TJSONFloat) : TJSONFloatNumber; overload;
 Function CreateJSON(const Data : TJSONStringType) : TJSONString; overload;
 {$IFNDEF PAS2JS}
+{$IFNDEF JSON_STRING_TYPE_IS_UNICODE}
 Function CreateJSON(const Data : TJSONUnicodeStringType) : TJSONString; overload;
+{$ENDIF}
 {$ENDIF}
 Function CreateJSONArray(const Data : Array of {$IFDEF PAS2JS}jsvalue{$else}Const{$ENDIF}) : TJSONArray;
 Function CreateJSONObject(const Data : Array of {$IFDEF PAS2JS}jsvalue{$else}Const{$ENDIF}) : TJSONObject;
@@ -882,7 +974,7 @@ function StringToJSONString(const S: TJSONStringType; Strict : Boolean = False):
 
 Var
   I,J,L : Integer;
-  C : AnsiChar;
+  C : Char;
 
 begin
   I:=1;
@@ -916,126 +1008,6 @@ begin
     end;
   Result:=Result+Copy(S,J,I-1);
 end;
-
-function JSONStringToString(const S: TJSONStringType): TJSONStringType;
-
-{$IFDEF PAS2JS}
-Var
-  J : JSValue;
-  OK : Boolean;
-begin
-  OK:=False;
-  try
-    J:=TJSJSON.parse('"'+S+'"');
-    if isString(J) then
-      begin
-      Result:=String(J);
-      OK:=True;
-      end;
-  except
-    OK:=False;
-  end;
-  if not OK then
-    Raise EConvertError.Create('Invalid JSON String:'+S);
-end;
-{$ELSE}
-
-    function BufferHexToInt(P : PAnsiChar): integer;
-    var
-      N, i: integer;
-      ch: Ansichar;
-    begin
-      Result:= 0;
-      for i:= 1 to 4 do
-      begin
-        ch:= p^;
-        case ch of
-          '0'..'9':
-            N:= Ord(ch)-Ord('0');
-          'a'..'f':
-            N:= Ord(ch)-(Ord('a')-10);
-          'A'..'F':
-            N:= Ord(ch)-(Ord('A')-10);
-          else
-            exit(-1);
-        end;
-        Inc(P);
-        Result:= Result*16+N;
-      end;
-    end;
-
-Var
-
-  I,J,L,U1,U2 : Integer;
-  App : String;
-
-  Procedure MaybeAppendUnicode;
-
-  Var
-    U : String;
-
-  begin
-    if (U1<>0) then
-      begin
-      U:={$IFDEF FPC_HAS_CPSTRING}UTF8Encode(WideChar(U1)){$ELSE}widechar(U1){$ENDIF};
-      Result:=Result+U;
-      U1:=0;
-      end;
-  end;
-
-begin
-  I:=1;
-  J:=1;
-  L:=Length(S);
-  Result:='';
-  U1:=0;
-  While (I<=L) do
-    begin
-    if (S[I]='\') then
-      begin
-      Result:=Result+Copy(S,J,I-J);
-      If I<L then
-        begin
-        Inc(I);
-        App:='';
-        Case S[I] of
-          '\','"','/'
-              : App:=S[I];
-          'b' : App:=#8;
-          't' : App:=#9;
-          'n' : App:=#10;
-          'f' : App:=#12;
-          'r' : App:=#13;
-          'u' : begin
-                U2:=BufferHexToInt(PAnsiChar(@S[I+1]));
-                if U2=-1 then
-                   Raise EJSON.Create('Invalid unicode hex code: '+Copy(S,I+1,4));
-                Inc(I,4);
-                if (U1<>0) then
-                  begin
-                  App:={$IFDEF FPC_HAS_CPSTRING}UTF8Encode({$ENDIF}WideChar(U1)+WideChar(U2){$IFDEF FPC_HAS_CPSTRING}){$ENDIF};
-                  U2:=0;
-                  end
-                else
-                  U1:=U2;
-                end;
-        end;
-        if App<>'' then
-          begin
-          MaybeAppendUnicode;
-          Result:=Result+App;
-          end;
-        end;
-      J:=I+1;
-      end
-    else
-      MaybeAppendUnicode;
-    Inc(I);
-    end;
-  MaybeAppendUnicode;
-  Result:=Result+Copy(S,J,I-J+1);
-end;
-{$ENDIF}
 
 function JSONTypeName(JSONType: TJSONType): String;
 begin
@@ -1084,7 +1056,7 @@ begin
   Result:=TJSONStringCLass(DefaultJSONInstanceTypes[jitString]).Create(Data);
 end;
 
-{$IFNDEF PAS2JS}
+{$IFNDEF JSON_STRING_TYPE_IS_UNICODE}
 function CreateJSON(const Data: TJSONUnicodeStringType): TJSONString;
 begin
   Result:=TJSONStringCLass(DefaultJSONInstanceTypes[jitString]).Create(Data);
@@ -1155,23 +1127,23 @@ end;
 Function SetJSONStringParserHandler(AHandler : TJSONStringParserHandler) : TJSONStringParserHandler;
 begin
   Result:=JPSH;
-  @JPSH:=@AHandler;
+  JPSH:=AHandler;
 end;
 
 function SetJSONParserHandler(AHandler: TJSONParserHandler): TJSONParserHandler;
 begin
   Result:=JPH;
-  @JPH:=@AHandler;
+  JPH:=AHandler;
 end;
 
 function GetJSONParserHandler: TJSONParserHandler;
 begin
-  Result:=@JPH;
+  Result:=JPH;
 end;
 
 function GetJSONStringParserHandler: TJSONStringParserHandler;
 begin
-  Result:=@JPSH;
+  Result:=JPSH;
 end;
 {$ENDIF}
 
@@ -1377,12 +1349,12 @@ end;
 { TJSONData }
 
 {$IFNDEF PAS2JS}
-function TJSONData.GetAsUnicodeString: TJSONUnicodeStringType; 
+function TJSONData.GetAsUnicodeString: TJSONUnicodeStringType;
 begin
   Result:=TJSONUnicodeStringType(AsString);
 end;
 
-procedure TJSONData.SetAsUnicodeString(const AValue: TJSONUnicodeStringType); 
+procedure TJSONData.SetAsUnicodeString(const AValue: TJSONUnicodeStringType);
 begin
   AsString:=TJSONStringType(AValue);
 end;
@@ -1684,7 +1656,7 @@ begin
   FValue:=AValue;
 end;
 
-{$IFNDEF PAS2JS}
+{$IFNDEF JSON_STRING_TYPE_IS_UNICODE}
 constructor TJSONString.Create(const AValue: TJSONUnicodeStringType);
 begin
   FValue:= TJSONStringType(AValue);
@@ -2624,7 +2596,7 @@ begin
   If (foUseTabChar in Options) then
     Result:=StringofChar(#9,Indent)
   else
-    Result:=StringOfChar(' ',Indent);  
+    Result:=StringOfChar(' ',Indent);
 end;
 
 function TJSONArray.DoFormatJSON(Options: TFormatOptions; CurrentIndent,
@@ -2635,7 +2607,7 @@ Var
   MultiLine : Boolean;
   SkipWhiteSpace : Boolean;
   Ind : String;
-  
+
 begin
   Result:='[';
   MultiLine:=Not (foSingleLineArray in Options);
@@ -2838,7 +2810,7 @@ procedure TJSONArray.Iterate(Iterator: TJSONArrayIterator; Data: TObject);
 Var
   I : Integer;
   Cont : Boolean;
-  
+
 begin
   I:=0;
   Cont:=True;
@@ -3352,11 +3324,13 @@ begin
 end;
 
 {$IFNDEF PAS2JS}
+{$IFNDEF JSON_STRING_TYPE_IS_UNICODE}
 function TJSONObject.Add(const AName: String; AValue: TJSONUnicodeStringType
   ): Integer;
 begin
   Result:=DoAdd(AName,CreateJSON(AValue));
 end;
+{$ENDIF}
 
 function TJSONObject.Add(const AName: TJSONStringType; Avalue: Int64): Integer;
 begin
@@ -3497,12 +3471,149 @@ begin
   {$ENDIF}
 end;
 
+{ TJSONObjectMembers --------------------------------------------------------- }
+
+constructor TJSONObjectMembers.Create(const AOwnsObjects: Boolean);
+begin
+  inherited Create;
+  FOwnsObjects := AOwnsObjects;
+  FNames := TJSONStringTypeList.Create;
+  FItems := TJSONDataList.Create;
+  FIndexes := TJSONNameToIndex.Create;
+end;
+
+destructor TJSONObjectMembers.Destroy;
+begin
+  { Free the owned values (Clear accounts for a half-initialized state). }
+  Clear;
+  FreeAndNil(FNames);
+  FreeAndNil(FItems);
+  FreeAndNil(FIndexes);
+  inherited;
+end;
+
+function TJSONObjectMembers.Count: Integer;
+begin
+  Result := FNames.Count;
+end;
+
+function TJSONObjectMembers.GetItem(const Index: Integer): TJSONData;
+begin
+  Result := FItems[Index];
+end;
+
+procedure TJSONObjectMembers.SetItem(const Index: Integer; const AValue: TJSONData);
+begin
+  if FItems[Index] <> AValue then
+  begin
+    if FOwnsObjects then
+      FItems[Index].Free;
+    FItems[Index] := AValue;
+  end;
+end;
+
+function TJSONObjectMembers.NameOfIndex(const Index: Integer): TJSONStringType;
+begin
+  Result := FNames[Index];
+end;
+
+function TJSONObjectMembers.FindIndexOf(const AName: TJSONStringType): Integer;
+begin
+  if not FIndexes.TryGetValue(AName, Result) then
+    Result := -1;
+end;
+
+function TJSONObjectMembers.Find(const AName: TJSONStringType): TJSONData;
+var
+  Index: Integer;
+begin
+  Index := FindIndexOf(AName);
+  if Index <> -1 then
+    Result := FItems[Index]
+  else
+    Result := nil;
+end;
+
+function TJSONObjectMembers.IndexOf(const Item: TJSONData): Integer;
+begin
+  Result := FItems.IndexOf(Item);
+end;
+
+function TJSONObjectMembers.Add(const AName: TJSONStringType; const AValue: TJSONData): Integer;
+begin
+  Result := FNames.Count;
+  FNames.Add(AName);
+  FItems.Add(AValue);
+  FIndexes.Add(AName, Result);
+end;
+
+procedure TJSONObjectMembers.RemoveIndex(const Index: Integer);
+var
+  I: Integer;
+begin
+  FIndexes.Remove(FNames[Index]);
+  FNames.Delete(Index);
+  FItems.Delete(Index);
+  { Indexes of the members after Index changed, update them. }
+  for I := Index to FNames.Count - 1 do
+    FIndexes.AddOrSetValue(FNames[I], I);
+end;
+
+procedure TJSONObjectMembers.Delete(const Index: Integer);
+var
+  Item: TJSONData;
+begin
+  Item := FItems[Index];
+  RemoveIndex(Index);
+  if FOwnsObjects then
+    Item.Free;
+end;
+
+procedure TJSONObjectMembers.Remove(const Item: TJSONData);
+var
+  Index: Integer;
+begin
+  Index := IndexOf(Item);
+  if Index <> -1 then
+    Delete(Index);
+end;
+
+procedure TJSONObjectMembers.Extract(const Item: TJSONData);
+var
+  Index: Integer;
+begin
+  Index := IndexOf(Item);
+  if Index <> -1 then
+    RemoveIndex(Index);
+end;
+
+procedure TJSONObjectMembers.Clear;
+var
+  I: Integer;
+begin
+  { Checks <> nil, because this is used from destructor so must account
+    for half-initialized state. }
+  if FItems <> nil then
+  begin
+    if FOwnsObjects then
+      for I := 0 to FItems.Count - 1 do
+        FItems[I].Free;
+    FItems.Clear;
+  end;
+  if FNames <> nil then
+    FNames.Clear;
+  if FIndexes <> nil then
+    FIndexes.Clear;
+end;
+
+{ TJSONObject ---------------------------------------------------------------- }
+
 constructor TJSONObject.Create;
 begin
   {$IFDEF PAS2JS}
   FHash:=TJSObject.new;
   {$else}
-  FHash:=TFPHashObjectList.Create(True);
+  FHash:=TJSONObjectMembers.Create(True);
   {$ENDIF}
 end;
 
@@ -3975,7 +4086,7 @@ begin
     Result:=ADefault;
 end;
 
-{$IFNDEF PAS2JS}
+{$IFNDEF JSON_STRING_TYPE_IS_UNICODE}
 function TJSONObject.Get(const AName: String; ADefault: TJSONUnicodeStringType
   ): TJSONUnicodeStringType;
 Var

@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -227,8 +227,9 @@ begin
   try
     EnumFontFamilies(dc, @LogFont.lfFaceName, @EnumFontFamProc_IsTrueType, PtrUInt(@Result));
   finally
-    ReleaseDC(0, dc);
+    { Restore the previously selected object before releasing the DC. }
     SelectObject(dc, SavedObj);
+    ReleaseDC(0, dc);
   end;
 end;
 

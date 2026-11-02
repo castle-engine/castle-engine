@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -28,6 +28,9 @@ uses DOM, Classes, Generics.Collections,
 
 type
   TCompiler = (coAutodetect, coFpc, coDelphi);
+
+  { Like TCompiler, but never coAutodetect. }
+  TCompilerDetected = coFpc..coDelphi;
 
   TScreenOrientation = (soAny, soLandscape, soPortrait);
 
@@ -113,7 +116,7 @@ type
       OwnerComponent: TComponent;
       FName, FExecutableName, FQualifiedName, FAuthor, FCaption: String;
       FProposedUnitPrefix: String;
-      FIOSOverrideQualifiedName: String;
+      FIOSOverrideQualifiedName, FIOSOverrideIcon: String;
       FIOSOverrideVersion: TProjectVersion; //< nil if not overridden, should use FVersion then
       FUsesNonExemptEncryption: boolean;
       FDataExists: Boolean;
@@ -152,7 +155,7 @@ type
     function DefaultQualifiedName(const AName: String): String;
     procedure CheckMatches(const Name, Value: String; const AllowedChars: TSetOfChars);
     class procedure CheckUnicodeDoesNotContain(
-      const Name, Value: String; const DisallowedChars: TUnicodeCharList);
+      const Name, Value: String; const DisallowedChars: TUnicodeCharSet);
     procedure CheckValidQualifiedName(const OptionName: String; const QualifiedName: String);
     { Change compiler option @xxx to use absolute paths.
       Important for "castle-engine editor" where ExtraCompilerOptionsAbsolute is inserted
@@ -169,7 +172,7 @@ type
     const
       { Android SDK versions.
         See https://castle-engine.io/project_manifest#_android_information . }
-      DefaultAndroidCompileSdkVersion = 34;
+      DefaultAndroidCompileSdkVersion = 36;
       DefaultAndroidTargetSdkVersion = DefaultAndroidCompileSdkVersion;
       { See https://castle-engine.io/android_faq
         for reasons behind this minimal version. }
@@ -261,6 +264,7 @@ type
 
     { iOS-specific things }
     property IOSOverrideQualifiedName: String read FIOSOverrideQualifiedName;
+    property IOSOverrideIcon: String read FIOSOverrideIcon;
     property IOSOverrideVersion: TProjectVersion read FIOSOverrideVersion; //< nil if not overridden, should use FVersion then
     property UsesNonExemptEncryption: boolean read FUsesNonExemptEncryption;
     property IOSServices: TServiceList read FIOSServices;
@@ -730,6 +734,8 @@ begin
       if FIOSOverrideQualifiedName <> '' then
         CheckValidQualifiedName('override_qualified_name', FIOSOverrideQualifiedName);
 
+      FIOSOverrideIcon := Element.AttributeStringDef('override_icon', '');
+
       FIOSOverrideVersion := ReadVersion(Element.Child('override_version', false));
 
       FUsesNonExemptEncryption := Element.AttributeBooleanDef('uses_non_exempt_encryption',
@@ -897,7 +903,7 @@ begin
 end;
 
 class procedure TCastleManifest.CheckUnicodeDoesNotContain(
-  const Name, Value: String; const DisallowedChars: TUnicodeCharList);
+  const Name, Value: String; const DisallowedChars: TUnicodeCharSet);
 var
   Iter: TCastleStringIterator;
 begin
@@ -915,14 +921,14 @@ end;
 
 class procedure TCastleManifest.CheckExecutableName(const AExecutableName: String);
 var
-  DisallowedChars: TUnicodeCharList;
+  DisallowedChars: TUnicodeCharSet;
   DisallowedChar: TUnicodeChar;
 begin
   { Executable name can contain everything that is an allowed filename
     on modern platforms.
     See https://superuser.com/questions/358855/what-characters-are-safe-in-cross-platform-file-names-for-linux-windows-and-os .
     In particular, most local (Chinese, Polish...) characters are OK. }
-  DisallowedChars := TUnicodeCharList.Create;
+  DisallowedChars := TUnicodeCharSet.Create;
   try
     DisallowedChars.Add('\/:*?"<>|');
     for DisallowedChar := 0 to 31 do // disallow null, ASCII control characters

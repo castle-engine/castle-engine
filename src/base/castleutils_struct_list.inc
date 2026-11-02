@@ -1,10 +1,10 @@
 {%MainUnit castleutils.pas}
 {
-  Copyright 2002-2021 Michalis Kamburelis.
+  Copyright 2002-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -108,7 +108,9 @@ type
     function L: PtrT;
 
     {$ifndef FPC}
+    { @exclude }
     function InternalGetItem(const Index: TListSize): T;
+    { @exclude }
     procedure InternalSetItem(const Index: TListSize; const Value: T);
     {$endif}
 

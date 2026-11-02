@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -127,7 +127,7 @@ var
   LanguageJSON: TFileLoaderJSONList;
   i: Integer;
 begin
-  StringStream := TStringStream.Create('');
+  StringStream := TStringStream.Create('', TEncoding.UTF8);
   try
     StringStream.CopyFrom(AFileStream, AFileStream.Size);
 
@@ -161,7 +161,7 @@ var
   i: Integer;
   Key: String;
 begin
-  StringStream := TStringStream.Create('');
+  StringStream := TStringStream.Create('', TEncoding.UTF8);
   try
     StringStream.CopyFrom(AFileStream, AFileStream.Size);
 

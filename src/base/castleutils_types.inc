@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -19,7 +19,9 @@
 {$ifdef read_interface}
 
 type
-  { Floating-point type with best precision. }
+  { Floating-point type with best precision.
+    Prefer to use Single or Double for consistency between platforms,
+    see https://castle-engine.io/coding_conventions#no_extended . }
   Float = {$ifdef FPC} Math.Float {$else} Extended {$endif};
   PFloat = {$ifdef FPC} Math.PFloat {$else} PExtended {$endif};
 

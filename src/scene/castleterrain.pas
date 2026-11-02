@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -1612,15 +1612,6 @@ constructor TCastleTerrain.Create(AOwner: TComponent);
       in this effect do not exist -- because they affect only
       the TPhysicalMaterialNode.BaseTexture, which is meaningless when no light shines. }
     Effect.UniformMissing := umIgnore;
-    { TODO: web: fail to compile with:
-        EGLSLShaderCompileError: Vertex shader not compiled:
-        0(14) : error C1503: undefined variable "_uterrain_normal"
-        0(15) : error C1503: undefined variable "_uterrain_position"
-    }
-    {$ifdef CASTLE_WEBGL}
-    WritelnWarning('WebGL', 'Terrain shader not yet supported on WebGL');
-    Effect.Enabled := false;
-    {$endif}
     Appearance.SetEffects([Effect]);
 
     UvScaleField := TSFVec4f.Create(Effect, true, 'uv_scale', Vector4(

@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -87,7 +87,7 @@ begin
   Result := inherited;
   if Result then Exit; // allow the ancestor to handle keys
 
-  if Event.IsKey(CtrlO) then
+  if Event.IsKey(keyO) then
   begin
     MainViewport.OcclusionCulling := not MainViewport.OcclusionCulling;
     CheckboxOcclusionCulling.Checked := MainViewport.OcclusionCulling;

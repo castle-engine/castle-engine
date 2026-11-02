@@ -15,10 +15,10 @@ set -eu
 
 if [ -z "${CASTLE_ENGINE_PATH:-}" ]; then
   echo "Detecting CASTLE_ENGINE_PATH from current working dir."
-  CASTLE_ENGINE_PATH=`pwd`
-  CASTLE_ENGINE_PATH="`dirname \"${CASTLE_ENGINE_PATH}\"`"
-  CASTLE_ENGINE_PATH="`dirname \"${CASTLE_ENGINE_PATH}\"`"
-  CASTLE_ENGINE_PATH="`dirname \"${CASTLE_ENGINE_PATH}\"`"
+  CASTLE_ENGINE_PATH=$(pwd)
+  CASTLE_ENGINE_PATH="$(dirname "${CASTLE_ENGINE_PATH}")"
+  CASTLE_ENGINE_PATH="$(dirname "${CASTLE_ENGINE_PATH}")"
+  CASTLE_ENGINE_PATH="$(dirname "${CASTLE_ENGINE_PATH}")"
 fi
 
 echo "Setting up desktop file for Castle Game Engine in:"
@@ -30,9 +30,9 @@ if [ ! -f "${DESKTOP_FILE}" ]; then
   exit 1
 fi
 
-desktop-file-install --dir=${HOME}/.local/share/applications ${DESKTOP_FILE}
-sed --in-place "s|Exec=.*|Exec=${CASTLE_ENGINE_PATH}/bin/castle-editor|g" ${HOME}/.local/share/applications/castle-editor.desktop
-sed --in-place "s|Icon=.*|Icon=${CASTLE_ENGINE_PATH}/doc/pasdoc/logo/castle_game_engine_icon.svg|g" ${HOME}/.local/share/applications/castle-editor.desktop
+desktop-file-install --dir="${HOME}"/.local/share/applications "${DESKTOP_FILE}"
+sed --in-place "s|Exec=.*|Exec=${CASTLE_ENGINE_PATH}/bin/castle-editor|g" "${HOME}"/.local/share/applications/castle-editor.desktop
+sed --in-place "s|Icon=.*|Icon=${CASTLE_ENGINE_PATH}/doc/pasdoc/logo/castle_game_engine_icon.svg|g" "${HOME}"/.local/share/applications/castle-editor.desktop
 
 echo "Desktop file installed OK."
 

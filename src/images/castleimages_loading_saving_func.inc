@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -209,7 +209,7 @@ begin
   {$elseif defined(FPC)}
   Save_FpImage(Img, Stream, TFPWriterPNM.Create);
   {$else}
-  raise EImageSaveError.Create('Cannot save BMP (neither FpImage nor Vampyre Imaging Library available at compile-time)');
+  raise EImageSaveError.Create('Cannot save PNM (neither FpImage nor Vampyre Imaging Library available at compile-time)');
   {$endif}
 end;
 

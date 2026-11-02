@@ -1,9 +1,9 @@
 {
-  Copyright 2001-2024 Michalis Kamburelis.
+  Copyright 2001-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -69,9 +69,12 @@
 
   Desktop applications are generally free to create and open
   as many @link(TCastleWindow) instances as they want.
-  Mobile and console applications are limited to a single
+  Mobile, console and web applications are limited to a single
   @link(TCastleWindow) instance which shall be assigned to the
   @link(TCastleApplication.MainWindow Application.MainWindow) property.
+
+  Check the @link(TCastleApplication.MultipleWindowsPossible Application.MultipleWindowsPossible)
+  to know whether the current platform supports multiple windows or not.
 
   @bold(Window features:)
 
@@ -106,7 +109,7 @@
       #)
     )
 
-    @item(Multiple backends are available (WinAPI, GTK 2, Cocoa, LCL, FMX, Xlib...),
+    @item(Multiple backends are available (WinAPI, GTK, Cocoa, LCL, FMX, Xlib...),
       see @url(https://castle-engine.io/castlewindow_backends CastleWindow Backends).
       There's also a special backend CASTLE_WINDOW_LIBRARY that allows to use
       existing OpenGL(ES) context created by some other code
@@ -172,64 +175,62 @@ unit CastleWindow;
 
   If you don't define any such symbol,
   below we automatically choose the best backend for given OS. }
-{$ifndef CASTLE_WINDOW_WINAPI}
- {$ifndef CASTLE_WINDOW_XLIB}
-  {$ifndef CASTLE_WINDOW_GTK_2}
-   {$ifndef CASTLE_WINDOW_TEMPLATE}
-    {$ifndef CASTLE_WINDOW_FORM}
-     {$ifndef CASTLE_WINDOW_ANDROID}
-      {$ifndef CASTLE_WINDOW_LIBRARY}
+{$if not (
+  defined(CASTLE_WINDOW_WINAPI) or
+  defined(CASTLE_WINDOW_XLIB) or
+  defined(CASTLE_WINDOW_GTK_2) or
+  defined(CASTLE_WINDOW_GTK_3) or
+  defined(CASTLE_WINDOW_COCOA) or
+  defined(CASTLE_WINDOW_FORM) or
+  defined(CASTLE_WINDOW_ANDROID) or
+  defined(CASTLE_WINDOW_LIBRARY) or
+  defined(CASTLE_WINDOW_TEMPLATE) or
+  defined(CASTLE_WINDOW_WEBASSEMBLY)
+)}
 
-       // PasDoc cannot handle "$if defined(xxx)" for now, workaround below
-       {$ifdef PASDOC}
-         {$define CASTLE_WINDOW_GTK_2}
-       {$else}
+  // Older PasDoc versions cannot handle "$if defined(xxx)", workarounding below
+  {$ifdef PASDOC}
+    {$define CASTLE_WINDOW_GTK_3}
+  {$else}
 
-         {$if defined(MSWINDOWS)}
-           // various possible backends on Windows:
-           {$define CASTLE_WINDOW_WINAPI} // best (looks native and most functional) on Windows
-           { $define CASTLE_WINDOW_GTK_2}
-           { $define CASTLE_WINDOW_FORM}
-           { $define CASTLE_WINDOW_LIBRARY}
-           { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
-         {$elseif defined(UNIX)}
-           {$if not defined(FPC)}
-             // Delphi on non-Windows supports now only this backend
-             {$define CASTLE_WINDOW_FORM}
-           {$elseif defined(ANDROID)}
-             {$define CASTLE_WINDOW_ANDROID}
-           {$elseif defined(CASTLE_IOS) or defined(CASTLE_NINTENDO_SWITCH)}
-             {$define CASTLE_WINDOW_LIBRARY}
-           {$elseif defined(DARWIN)}
-             // various possible backends on macOS (desktop):
-             {$define CASTLE_WINDOW_COCOA} // best (looks native) on macOS
-             { $define CASTLE_WINDOW_XLIB} // requires Xlib to compile and to work
-             { $define CASTLE_WINDOW_FORM} // looks native, requires LCL (from Lazarus) or FMX (from Delphi) to compile
-             { $define CASTLE_WINDOW_GTK_2}
-             { $define CASTLE_WINDOW_LIBRARY}
-             { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
-           {$else}
-             // various possible backends on traditional Unix (Linux, FreeBSD) desktop:
-             {$define CASTLE_WINDOW_GTK_2} // best (looks native and most functional), supports both OpenGL and OpenGLES
-             { $define CASTLE_WINDOW_XLIB} // supports both OpenGL and OpenGLES
-             { $define CASTLE_WINDOW_FORM}
-             { $define CASTLE_WINDOW_LIBRARY}
-             { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
-           {$endif}
-         // end of UNIX possibilities
-         {$elseif defined(WASI)}
-           {$define CASTLE_WINDOW_WEBASSEMBLY}
-         {$endif}
-
-       {$endif} // end of "not PasDoc"
-
+    {$if defined(MSWINDOWS)}
+      // various possible backends on Windows:
+      {$define CASTLE_WINDOW_WINAPI} // best (looks native and most functional) on Windows
+      { $define CASTLE_WINDOW_FORM}
+      { $define CASTLE_WINDOW_LIBRARY}
+      { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
+    {$elseif defined(UNIX)}
+      {$if not defined(FPC)}
+        // Delphi on non-Windows supports now only this backend
+        {$define CASTLE_WINDOW_FORM}
+      {$elseif defined(ANDROID)}
+        {$define CASTLE_WINDOW_ANDROID}
+      {$elseif defined(CASTLE_IOS) or defined(CASTLE_NINTENDO_SWITCH)}
+        {$define CASTLE_WINDOW_LIBRARY}
+      {$elseif defined(DARWIN)}
+        // various possible backends on macOS (desktop):
+        {$define CASTLE_WINDOW_COCOA} // best (looks native) on macOS
+        { $define CASTLE_WINDOW_XLIB} // requires Xlib to compile and to work
+        { $define CASTLE_WINDOW_FORM} // looks native, requires LCL (from Lazarus) or FMX (from Delphi) to compile
+        { $define CASTLE_WINDOW_LIBRARY}
+        { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
+      {$else}
+        // various possible backends on traditional Unix (Linux, FreeBSD) desktop:
+        {$define CASTLE_WINDOW_GTK_3} // best (looks native and most functional), supports both OpenGL and OpenGLES
+        { $define CASTLE_WINDOW_GTK_2} // older GTK 2 version, works but not recommended (distros may stop shipping GTK 2)
+        { $define CASTLE_WINDOW_XLIB} // supports both OpenGL and OpenGLES
+        { $define CASTLE_WINDOW_FORM}
+        { $define CASTLE_WINDOW_LIBRARY}
+        { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
       {$endif}
-     {$endif}
+    // end of UNIX possibilities
+    {$elseif defined(WASI)}
+      {$define CASTLE_WINDOW_WEBASSEMBLY}
     {$endif}
-   {$endif}
-  {$endif}
- {$endif}
-{$endif}
+
+  {$endif} // end of "not PasDoc"
+
+{$endif} // end of "if not defined(CASTLE_WINDOW_xxx)..."
 
 { Configure some debugging options of CastleWindow ------------------------------- }
 
@@ -244,7 +245,13 @@ unit CastleWindow;
 
 { Configure internal things -------------------------------------------------- }
 
-{$ifdef CASTLE_WINDOW_GTK_2} {$define CASTLE_WINDOW_GTK_ANY} {$endif}
+{$if defined(CASTLE_WINDOW_GTK_2) or defined(CASTLE_WINDOW_GTK_3)}
+  {$define CASTLE_WINDOW_GTK_ANY}
+{$endif}
+
+{$if defined(CASTLE_WINDOW_GTK_2) and defined(CASTLE_WINDOW_GTK_3)}
+  {$error Cannot define both CASTLE_WINDOW_GTK_2 and CASTLE_WINDOW_GTK_3. Define only one of them to use the respective GTK version.}
+{$endif}
 
 { Sometimes GTK backend needs to call some X-specific things:
   1. Implementing TCastleWindow.SystemSetMousePosition.
@@ -254,10 +261,8 @@ unit CastleWindow;
      So we had to bypass GTK and use Xlib's XWarpPointer.
   2. Screen resizing. We have to use for this XF86VidMode extension,
      just like for CASTLE_WINDOW_XLIB backend. }
-{$ifdef CASTLE_WINDOW_GTK_2}
-  {$ifdef UNIX}
-    {$define CASTLE_WINDOW_GTK_WITH_XLIB}
-  {$endif}
+{$if defined(CASTLE_WINDOW_GTK_ANY) and defined(UNIX)}
+  {$define CASTLE_WINDOW_GTK_WITH_XLIB}
 {$endif}
 
 { Define EGL to use EGL, cross-platform library to initialize OpenGL or OpenGLES
@@ -283,10 +288,50 @@ unit CastleWindow;
 {$ifdef OpenGLES}
   {$define USE_EGL}
 {$endif}
-// By default CASTLE_WINDOW_GTK_2 uses glX to initialize OpenGL context,
+// By default CASTLE_WINDOW_GTK_ANY uses glX to initialize OpenGL context,
 // but it's not available on Windows.
-{$if defined(MSWINDOWS) and defined(CASTLE_WINDOW_GTK_2)}
+{$if defined(MSWINDOWS) and defined(CASTLE_WINDOW_GTK_ANY)}
   {$define USE_EGL}
+{$endif}
+
+{ Experimental: enable Wayland support for GTK backend.
+  We use EGL to initialize OpenGL(ES) context and rely on GTK Wayland backend.
+  This will *only* work on Wayland, i.e. there's no run-time fallback to X11.
+
+  TODO:
+
+  - Castle Model Viewer runs in Wayland... but window flickers,
+    and menu bar and window title are not visible. Weird.
+    Alt+f still invokes the menu.
+    Also clicking doesn't register correctly -- looks like mouse position
+    is off by the size of the menu bar?
+
+    Proper solution: give EGL its own wl_surface as a wl_subsurface?
+    We tried a variant of this, see gdk_window_ensure_native in castlewindow_gtk.inc .
+    Other approaches may be possible.
+
+  - Runtime switching between X11 and Wayland should be implemented.
+    We can already detect when running on Wayland with GTK,
+    but right now it only makes an error if it mismatches the definition
+    of CASTLE_WINDOW_GTK_WAYLAND / CASTLE_WINDOW_GTK_WITH_XLIB.
+
+  Note: This symbol is required with EGL (e.g. when using OpenGLES) on
+  Wayland + Niri on PikaOS, it seems.
+
+  - Without CASTLE_WINDOW_GTK_WAYLAND, we get display using
+    eglGetDisplay(EGL_DEFAULT_DISPLAY), which will not work.
+    We have to allocate display using
+    eglGetPlatformDisplay(EGL_PLATFORM_WAYLAND_KHR, WaylandDisplay, nil),
+    passing proper Wayland display pointer.
+
+  - On the user side, this can be workarounded by setting EGL_PLATFORM=x11,
+    which makes eglGetDisplay(EGL_DEFAULT_DISPLAY) correct.
+    Defining CASTLE_WINDOW_GTK_WAYLAND means user doesn't need to do this.
+}
+{.$define CASTLE_WINDOW_GTK_WAYLAND}
+{$ifdef CASTLE_WINDOW_GTK_WAYLAND}
+  {$define USE_EGL}
+  {$undef CASTLE_WINDOW_GTK_WITH_XLIB}
 {$endif}
 
 { Does backend implement TryVideoChange and VideoReset methods?
@@ -328,7 +373,7 @@ interface
 uses {$define read_interface_uses}
   {$I castlewindow_backend.inc}
   {$undef read_interface_uses}
-  { FPC units }
+  { Standard units }
   SysUtils, Classes, Generics.Collections, CustApp, CTypes,
   { Castle Game Engine units }
   {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
@@ -397,6 +442,10 @@ type
   TUIContainer = CastleUIControls.TCastleContainer deprecated 'use TCastleContainer';
   TCastleContainer = CastleUIControls.TCastleContainer;
 
+  { Raised by methods like @link(TCastleWindow.Open) if requested context
+    parameters are not possible. }
+  EGLContextNotPossible = CastleInternalContextBase.EGLContextNotPossible;
+
   {$I castlewindowmenu.inc}
 
   { Type of message box, for TCastleWindow.MessageOK and TCastleWindow.MessageYesNo. }
@@ -410,30 +459,7 @@ type
 
   TResizeAllowed = (raNotAllowed, raOnlyAtOpen, raAllowed);
 
-  EGLContextNotPossible = class(Exception);
-
   TCaptionPart = (cpPublic, cpFps);
-
-  { Container suitable to be used in TCastleWindow.
-    Never create instances of this, just create TCastleWindow,
-    and use container of it (in @link(TCastleWindow.Container)). }
-  TWindowContainer = class(TCastleContainer)
-  private
-    Parent: TCastleWindow;
-  public
-    constructor Create(AParent: TCastleWindow); reintroduce;
-
-    procedure Invalidate; override;
-    function GLInitialized: boolean; override;
-    function PixelsWidth: Integer; override;
-    function PixelsHeight: Integer; override;
-    function PixelsRect: TRectangle; override;
-    function Focused: boolean; override;
-    procedure SetInternalCursor(const Value: TMouseCursor); override;
-    function SaveScreen(const SaveRect: TRectangle): TRGBImage; overload; override;
-    procedure SystemSetMousePosition(const Value: TVector2); override;
-    function SettingMousePositionCausesMotion: Boolean; override;
-  end deprecated 'do not descend from this, instead use custom TCastleView descendants';
 
   {$define read_interface_types}
   {$I castlewindow_backend.inc}
@@ -470,13 +496,6 @@ type
   {$I castlewindow_backend.inc}
   {$undef read_window_interface}
 
-  protected
-    {$warnings off} // using deprecated class in deprecated method
-    { Create a container class for this window.
-      Override this to use a custom container class, e.g. to override
-      some container methods. }
-    function CreateContainer: TWindowContainer; virtual; deprecated 'instead of custom TWindowContainer descendants, use custom TCastleView descendants';
-    {$warnings on}
   private
     FWidth, FHeight, FLeft, FTop: Integer;
     { Window size reported last to DoResize,
@@ -512,6 +531,9 @@ type
     { EventOpenCalled = has OnOpen been called from Open? }
     EventOpenCalled: boolean;
 
+    { Are we are currently inside OpenBackend or CloseBackend calls. }
+    FInOpenBackend, FInCloseBackend: Boolean;
+
     MenuUpdateInside: Cardinal;
     MenuUpdateNeedsInitialize: boolean;
     MenuInitialized: boolean;
@@ -527,12 +549,8 @@ type
     FMinHeight: Integer;
     FMaxWidth: Integer;
     FMaxHeight: Integer;
-    // Using deprecated TWindowContainer - should be internal in the future
-    {$warnings off}
-    FContainer: TWindowContainer;
-    {$warnings on}
+    FContainer: TCastleContainer;
     FCursor: TMouseCursor;
-    FNamedParameters: TCastleStringList;
     { When Open, this says if the window actually has double-buffer. }
     HasDoubleBuffer: Boolean;
     { Ready TGLContextRequirements instance.
@@ -553,6 +571,7 @@ type
     procedure SetLeft(const Value: Integer);
     procedure SetTop(const Value: Integer);
     procedure SetResizeAllowed(const Value: TResizeAllowed);
+    function CreateContainer: TCastleContainer;
 
     { Convert window position from the usual window system convention,
       where (0,0) is left-top, and the window has size FRealWidth/FRealHeight,
@@ -920,6 +939,9 @@ type
 
     { Update FRequirements to reflect current window properties. }
     procedure UpdateRequirements;
+
+    { Sets Focused (and thus, indirectly, Container.Focused) to Value. }
+    procedure SetFocused(const Value: Boolean);
   protected
     procedure DoUpdate; virtual;
   public
@@ -930,11 +952,11 @@ type
     { Instance of the TCastleContainer associated with this window.
 
       Use this to manage everything drawn in the window
-      (all TCatleUserInterface, including @url(https://castle-engine.io/views views),
+      (all TCastleUserInterface, including @url(https://castle-engine.io/views views),
       all 2D controls, including all viewports displaying 3D content),
       some input features (mouse look state, sending fake input events),
       save screen and more. }
-    property Container: TWindowContainer read FContainer;
+    property Container: TCastleContainer read FContainer;
 
     { Is it allowed to suspend (for an indefinite amount of time) waiting
       for user input.
@@ -1326,7 +1348,7 @@ type
     property AlphaBits: Cardinal
       read FAlphaBits write FAlphaBits default 0;
 
-    { Name of the icon for this window used by GTK 2 backend.
+    { Name of the icon for this window used by GTK backend.
 
       This is simply passed to @code(gtk_window_set_icon_name),
       see [http://library.gnome.org/devel/gtk/stable/GtkWindow.html#gtk-window-set-icon-name].
@@ -1335,7 +1357,7 @@ type
       [http://library.gnome.org/devel/integration-guide/stable/icons.html.en]
       for short information how and where to install your icons.
 
-      It's ignored on non-GTK 2 backends. }
+      It's ignored on non-GTK backends. }
     property GtkIconName: String read FGtkIconName write FGtkIconName;
 
     (*Should this window be actually displayed on the desktop.
@@ -1471,39 +1493,74 @@ type
     procedure SetMainMenu(Value: TMenu);
   public
     { Menu bar of this window.
-      When not assigned, we have no menu bar.
+      When not assigned (@nil), this window has no menu bar.
 
-      Note that MainMenu.Caption will be ignored.
+      If you want to use menu bar, assign this property before calling
+      @link(Open). Like this:
 
-      You can change this freely while Closed.
+      @longCode(#
+      function CreateMainMenu: TMenu;
+      var
+        M: TMenu;
+      begin
+        Result := TMenu.Create('Main menu');
 
-      You can change this almost freely while not Closed: you can use
-      various properties of TMenuEntry descendants (adding, deleting items
-      from TMenu, changing Caption, Key, KeyString, Checked properties --
-      anything) and you can change value of MainMenu BUT you must not
-      change MainMenu <> nil state when the window is not Closed.
-      I.e. if you called Open with MainMenu = nil, then MainMenu must stay
-      nil unit Close. If you called Open with MainMenu <> nil, then you
-      can assign other MainMenu values while not Closed, but only values
-      <>nil. I.e. you can't set MainMenu to nil if you called Open
-      with MainMenu <> nil.
-      See @code(examples/window/window_menu/)
-      for demo of changing value of MainMenu while window is not Closed.
+        M := TMenu.Create('_File');
+          M.Append(TMenuItem.Create('_Open ...', 10, CtrlO));
+          M.Append(TMenuItem.Create('_Save ...', 20, CtrlO));
+          M.Append(TMenuSeparator.Create);
+          M.Append(TMenuItem.Create('_Quit',  20, CtrlW));
+          Result.Append(M);
 
-      Note that MainMenu.Enabled is honoured (as well as Enabled
-      for all menu items inside, of course).
-      You can use this to disallow user from clicking on the whole
-      menu. When MainMenu.Enabled = @false then
-      menu click is not called
-      (no MenuItem.DoClick, no OnMenuClick, no OnMenuItemClick)
-      when user presses some menu item.
-      When user presses some keyboard shortcut for some menu item,
-      also no menu click is not called
-      (no MenuItem.DoClick, no OnMenuClick, no OnMenuItemClick)
-      and we make normal EventPress.
+        M := TMenu.Create('_Help');
+          M.Append(TMenuItem.Create('_About', 100));
+          Result.Append(M);
+      end;
 
-      Disabling MainMenu is useful e.g. during modal dialog box, like @link(MessageOk).
-      This way you can force use to interact with the modal box. }
+      // and then before Window.Open:
+      Window.MainMenu := CreateMainMenu;
+      #)
+
+      To handle menu item clicks, assign @link(OnMenuItemClick) event.
+
+      Note that @code(Caption) of the top-level TMenu
+      (@code('Main menu') in the example above) is ignored.
+
+      Use various @link(TMenuEntry) descendants to create menu items,
+      like:
+
+      @unorderedList(
+        @item(TMenuItem for a normal menu item)
+        @item(TMenuItemChecked for a menu item that has a checkbox)
+        @item(TMenuItemRadio with TMenuItemRadioGroup for a group of radio menu items)
+        @item(TMenu for a submenu)
+      )
+
+      The menu items can be modified to a large extent while the window
+      is open. You can add / delete them, change their properties
+      (like @link(TMenuEntryWithCaption.Caption),
+      @link(TMenuEntryWithCaption.Enabled),
+      @link(TMenuItemChecked.Checked)), and the displayed menu will be
+      automatically updated.
+
+      Note: you @italic(cannot) change whether the menu bar
+      exists while the window is open. If you left @name as @nil,
+      it must remain @nil while the window is open.
+      If you set it to some non-nil value, it must remain non-nil
+      while the window is open.
+
+      Note: @link(TMenuEntryWithCaption.Enabled) is honored
+      on all menu items, including on the top-level menu item.
+      Setting @code(Window.MainMenu.Enabled := false)
+      is a quick way to disable all menu items.
+
+      Examples are:
+
+      @unorderedList(
+        @item @url(https://github.com/castle-engine/castle-engine/tree/master/examples/window/window_menu/ examples/window/window_menu/)
+        @item @url(https://github.com/castle-engine/castle-engine/tree/master/examples/images_videos/simple_video_editor/ examples/images_videos/simple_video_editor/)
+      )
+    }
     property MainMenu: TMenu read FMainMenu write SetMainMenu;
 
     { Is MainMenu visible. @false means that we do not show main menu bar,
@@ -1538,7 +1595,28 @@ type
     function MousePressed: TCastleMouseButtons;
 
     { Is the window focused now, which means that keys/mouse events
-      are directed to this window. }
+      are directed to this window.
+
+      This tracks exactly this window being active on the desktop. This means
+      that e.g.:
+
+      @unorderedList(
+        @item(Window may not be focused right when it is open.
+          It may be focused with delay on some backends,
+          to reflect the actual focus state.
+          On other backends, where we don't reliably handle "first focused message"
+          (yet), this property may be immediately @true on open.
+        )
+        @item(When a dialog box appears, this window is not focused anymore temporarily.)
+        @item(Window with @link(Visible) = @false is not focused.
+
+          Note that some backends (like Cocoa) ignore @link(Visible) for now
+          (window is always visible),
+          in which case this property may be @true even when @link(Visible) =
+          @false. This is TODO, ideally all backends should respect @link(Visible).
+        )
+      )
+    }
     property Focused: boolean read FFocused;
 
     { Place for your pointer, for any purposes.
@@ -1553,7 +1631,8 @@ type
 
       Note that this is for internal usage in the engine. In your applications,
       you should set TCastleUserInterface.Cursor on any UI control (including on TCastleView),
-      never set this property directly. }
+      never set this property directly.
+      @exclude }
     property InternalCursor: TMouseCursor read FCursor write SetCursor default mcDefault;
 
     { List of user-interface controls currently active.
@@ -1724,14 +1803,63 @@ type
     { OpenAndRun stuff --------------------------------------------------------- }
 
     { Do @link(Open) (initialize rendering context, show the window)
-      followed by @link(TCastleApplication.Run Application.Run) (run the event loop). }
+      followed by @link(TCastleApplication.Run Application.Run) (run
+      the event loop).
+
+      On most compilers and platforms, this is equivalent to these 2 calls:
+
+      @longCode(
+        Window.Open;
+        Application.Run;
+      )
+
+      But on some compilers and platforms it does something more complicated,
+      to achieve an equivalent effect.
+      Below we describe what happens with Delphi/Android and Delphi/iOS,
+      that use Delphi FMX underneath, and require special treatment
+      due to the specifics of FMX and how Delphi implements
+      program "begin...end." block on these platforms.
+
+      @unorderedList(
+        @item(It schedules @link(Open) for when FMX will do
+          @code(Application.RealCreateForms). We cannot create forms
+          earlier.)
+
+        @item(It calls FMX @code(Application.Run).
+
+          On Delphi/Android, this does almost nothing (see TPlatformAndroid.Run).
+          FMX is prepared that @code(Application.Run) happens inside main program
+          "begin...end.", which is done (in case of Android)
+          in onCreate of Java activity, and it should not really do much.
+
+          On Delphi/iOS, it will do UIApplicationMain and never returns,
+          that's how @url(https://developer.apple.com/documentation/uikit/uiapplicationmain%28_:_:_:_:%29-1yub7
+          UIApplicationMain) works (Apple docs say "this function never returns").
+        )
+
+        @item(On Delphi/Android:
+
+          Once the main program "begin...end." finishes,
+          then actual message loop will be performed (driven by Java activity
+          on Android). It will call at start @code(Application.RealCreateForms)
+          which will allocate our resources.
+
+          So we depend that after calling this method, your
+          main program "begin...end." soon ends.
+
+          In contrast, on Delphi/iOS, the main program "begin...end." never ends,
+          and UIApplicationMain is called inside it, and it will call
+          @code(Application.RealCreateForms).
+        )
+      )
+    }
     procedure OpenAndRun;
 
     { Parsing parameters ------------------------------------------------------- }
 
     { Parse some command-line options and remove them from @link(Parameters)
-      list. See https://castle-engine.io/opengl_options.php for
-      documentaion what these options actually do from user's point of view.
+      list. See https://castle-engine.io/cli_options_window for
+      documentation what these options actually do from user's point of view.
 
       @definitionList(
         @itemLabel @--fullscreen
@@ -1747,11 +1875,6 @@ type
         @itemLabel @--fullscreen-custom WIDTHxHEIGHT
         @item(Change desktop resolution by VideoChange and sets FullScreen to @true.
           Changing desktop resolution is not implemented on all platforms.)
-
-        @itemLabel @--pretend-touch-device
-        @item(Set @link(TCastleApplicationProperties.TouchDevice
-          ApplicationProperties.TouchDevice) to true.
-          See @url(https://castle-engine.io/touch_input touch input documentation).)
       )
 
       @raises(EInvalidParams When some of our options have invalid arguments.) }
@@ -1919,10 +2042,6 @@ type
     { Ask a yes/no question, using native (looks familiar on a given system) dialog box. }
     function MessageYesNo(const S: String;
       const MessageType: TWindowMessageType = mtQuestion): boolean;
-
-    { Named parameters used to initialize this window.
-      Right now not used (were used by NPAPI plugin, may be useful to new web target). }
-    property NamedParameters: TCastleStringList read FNamedParameters;
   private
     LastFpsOutputTime: TTimerResult;
     FFpsShowOnCaption: boolean;
@@ -2018,6 +2137,12 @@ type
     LastLimitFPSTime: TTimerResult;
     FMainWindow: TCastleWindow;
     //FUserAgent: String;
+    { Send this to DoDropFiles when next window is open.
+      Should always be nil or non-nil with non-zero count.
+      Backends should only call Application.DoDropFiles,
+      do not read or write this field directly. }
+    FPendingDropFiles: TCastleStringList;
+    FPageUrlParameters: TStringStringMap;
 
     FOpenWindows: TWindowList;
     function GetOpenWindows(Index: integer): TCastleWindow;
@@ -2103,6 +2228,11 @@ type
     procedure SetLimitFPS(const Value: Single);
     {$endif}
     function GetMainContainer: TCastleContainer;
+
+    { Send given filenames to main currently open window,
+      or (if no such window) store the filenames to send to the first opened
+      window. }
+    procedure DoDropFiles(const Files: array of String);
   protected
     { Override TCustomApplication to pass TCustomApplication.Log
       to CastleLog logger. }
@@ -2393,8 +2523,8 @@ end.
         @itemLabel @--log-file FILE-NAME
         @item(Force log to given file, sets @link(LogFileName).)
 
-        @itemLabel @--display X-DISPLAY-NAME
-        @item(Sets Application.XDisplayName under Unix.)
+        @itemLabel @--display DISPLAY-NAME
+        @item(Sets @link(TCastleApplication.DisplayName Application.DisplayName), useful to set X display on Unix.)
 
         @itemLabel -psvn_x_xxx
         @item(
@@ -2405,13 +2535,21 @@ end.
         )
 
         @itemLabel @--no-limit-fps
-        @item(Allows to disable
+        @item(Disables
           @link(TCastleApplicationProperties.LimitFps ApplicationProperties.LimitFps),
-          to allows to observe maximum FPS, see
-          http://castle-engine.io/manual_optimization.php )
+          to observe maximum possible FPS. See
+          http://castle-engine.io/optimization for more information
+          when this could be useful.)
 
         @itemLabel @--capabilities automatic|force-fixed-function|force-modern
-        @item(Force OpenGL context to have specific capabilities, to test rendering on modern or ancient GPUs.)
+        @item(Force rendering context to have specific capabilities,
+          to test rendering on modern or ancient GPUs.
+          See @link(TGLFeatures.RequestCapabilities) for more information.)
+
+        @itemLabel @--pretend-touch-device
+        @item(Set @link(TCastleApplicationProperties.TouchDevice
+          ApplicationProperties.TouchDevice) to true.
+          See @url(https://castle-engine.io/touch_input touch input documentation).)
       )
 
       Moreover this also handles parameters from @link(TCastleWindow.ParseParameters),
@@ -2427,6 +2565,72 @@ end.
 
     { Are we using OpenGLES for rendering. }
     function OpenGLES: Boolean;
+
+    { When running on the @url(https://castle-engine.io/web web),
+      the full URL of the web page we are hosted on.
+      Example: @code(https://example.com/?model=castle.gltf&quality=high).
+
+      On non-web platforms, returns empty string.
+
+      @seealso PageUrlQuery
+      @seealso PageUrlParameter }
+    function PageUrl: String;
+
+    { When running on the @url(https://castle-engine.io/web web),
+      the URL query string, i.e. everything from '?' onwards (inclusive).
+      Example: @code(?model=castle.gltf&quality=high)
+      when the page URL (see @link(PageUrl)) is
+      @code(https://example.com/?model=castle.gltf&quality=high).
+
+      On non-web platforms (or when no query string present), returns empty string.
+
+      It is usually easier to use @link(PageUrlParameters) to get specific
+      query parameters.
+
+      @seealso PageUrl
+      @seealso PageUrlParameter }
+    function PageUrlQuery: String;
+
+    { Get URL query parameter value by name.
+      Returns the URL-decoded value, or empty string if the parameter is absent
+      or if not running on the web platform.
+
+      Example: for URL '...?model=my%20castle.gltf',
+      PageUrlParameter('model') = 'my castle.gltf'. }
+    function PageUrlParameter(const ParameterName: String): String;
+
+    { Dictionary of URL query parameter names -> values.
+      This is more flexible way of accessing URL query parameters than @link(PageUrlParameter).
+
+      We return @link(TStringStringMap) instance,
+      an ancestor of standard @code(TDictionary), for maximum flexibility.
+      So you can ask about a particular key, or iterate over all keys and values.
+      For example:
+
+      @longCode(#
+      if Application.PageUrlParameters.TryGetValue('model', ModelUrl) then
+        LoadModel(ModelUrl)
+      else
+        WritelnLog('User did not request to load anything');
+      #)
+
+      Getting a value for key that doesn't exist behaves like TDictionary:
+      you will get an exception. Use @code(TryGetValue),
+      as shown above, to get a value for a key that may be absent.
+
+      @italic(Never modify the contents of this dictionary.)
+
+      Parameter names (keys) and values are URL-decoded.
+
+      Example: for @code(https://example.com/?model=my%20castle.gltf&quality=high)
+      the dictionary will contain two entries:
+
+      @unorderedList(
+        @item 'model' -> 'my castle.gltf',
+        @item 'quality' -> 'high'
+      )
+    }
+    function PageUrlParameters: TStringStringMap;
 
     {$ifdef FPC}
     property LimitFPS: Single read GetLimitFPS write SetLimitFPS;
@@ -2472,7 +2676,7 @@ implementation
 
 uses
   CastleLog, CastleGLVersion, CastleUriUtils, CastleControls, CastleMessaging,
-  CastleRenderContext, CastleInternalGLUtils,
+  CastleRenderContext, CastleInternalGLUtils, CastleInternalFileMonitor,
   {$define read_implementation_uses}
   {$I castlewindow_backend.inc}
   {$undef read_implementation_uses}
@@ -2483,69 +2687,9 @@ uses
 var
   UnitFinalization: Boolean;
 
+{$I castlewindow_container.inc}
 {$I castlewindowmenu.inc}
 {$I castlewindow_backend.inc}
-
-{ TWindowContainer ----------------------------------------------------------- }
-
-constructor TWindowContainer.Create(AParent: TCastleWindow);
-begin
-  inherited Create(nil);
-  Parent := AParent;
-end;
-
-procedure TWindowContainer.Invalidate;
-begin
-  Parent.Invalidate;
-end;
-
-function TWindowContainer.GLInitialized: boolean;
-begin
-  Result := Parent.GLInitialized;
-end;
-
-function TWindowContainer.PixelsWidth: Integer;
-begin
-  Result := Parent.Width;
-end;
-
-function TWindowContainer.PixelsHeight: Integer;
-begin
-  Result := Parent.Height;
-end;
-
-function TWindowContainer.PixelsRect: TRectangle;
-begin
-  Result := Parent.Rect;
-end;
-
-function TWindowContainer.Focused: boolean;
-begin
-  Result := Parent.Focused;
-end;
-
-procedure TWindowContainer.SetInternalCursor(const Value: TMouseCursor);
-begin
-  Parent.InternalCursor := Value;
-end;
-
-function TWindowContainer.SaveScreen(const SaveRect: TRectangle): TRGBImage;
-begin
-  { In theory, the single-buffer
-    case could be optimized (do not redraw if not needed, that is:
-    if not invalidated), but it's not worth the complication since noone uses
-    single-buffer for normal applications... And also, there is no reliable
-    way to capture screen contents in case of single-buffer. }
-
-  EventBeforeRender;
-  EventRender;
-  Result := SaveScreen_NoFlush(SaveRect, Parent.SaveScreenBuffer);
-end;
-
-procedure TWindowContainer.SystemSetMousePosition(const Value: TVector2);
-begin
-  Parent.SystemSetMousePosition(Value);
-end;
 
 { TCastleWindow ---------------------------------------------------------- }
 
@@ -2575,16 +2719,12 @@ begin
   FAutoRedisplay := true;
   OwnsMainMenu := true;
   FMainMenuVisible := true;
-  // Using deprecated CreateContainer - should be internal in the future
-  {$warnings off}
   FContainer := CreateContainer;
-  {$warnings on}
   Close_KeyString := '';
   SwapFullScreen_Key := keyNone;
   FpsShowOnCaption := false;
   FFpsCaptionUpdateDelay := DefaultFpsCaptionUpdateDelay;
-  FFocused := true;
-  FNamedParameters := TCastleStringList.Create;
+
   FRequirements := TGLContextRequirements.Create(nil);
 
   CreateBackend;
@@ -2609,19 +2749,12 @@ begin
     Messaging.OnReceive.Remove({$ifdef FPC}@{$endif} MessageReceived);
 
   FreeAndNil(FContainer);
-  FreeAndNil(FNamedParameters);
   FreeAndNil(FRequirements);
   inherited;
 end;
 
-{$warnings off} // using deprecated class in deprecated method
-function TCastleWindow.CreateContainer: TWindowContainer;
-begin
-  Result := TWindowContainer.Create(Self);
-end;
-{$warnings on}
-
 procedure TCastleWindow.OpenCore;
+{$ifndef OpenGLES}
 const
   { Which TAntiAliasing values should cause
     GL_MULTISAMPLE_FILTER_HINT_NV := GL_NICEST.
@@ -2634,6 +2767,7 @@ const
     false, true, // aa8SamplesFaster, aa8SamplesNicer
     false, true // aa16SamplesFaster, aa16SamplesNicer
   );
+{$endif}
 
   procedure RenderLoadingBackground;
   var
@@ -2682,6 +2816,12 @@ const
   { Do the job of OpenCore, do not protect from possible exceptions raised inside. }
   procedure OpenUnprotected;
   begin
+    if (not Application.MultipleWindowsPossible) and
+       (Application.OpenWindowsCount > 0) then
+      raise Exception.CreateFmt('TCastleWindow on "%s" supports only a single window. In your code, check "Application.MultipleWindowsPossible" and if it is "false" -> avoid opening multiple windows.', [
+        Application.BackendName
+      ]);
+
     { Once context is initialized, then Android activity is initialized,
       or iOS called CGEApp_Initialize -> so it's safe to access files. }
     ApplicationProperties._FileAccessSafe := true;
@@ -2738,7 +2878,10 @@ const
 
     { Call OpenBackend. Note that OpenBackend can call DoResize,
       it will still be correctly understood. }
-    OpenBackend;
+    FInOpenBackend := true;
+    try
+      OpenBackend;
+    finally FInOpenBackend := false end;
 
     { Do MakeCurrent before setting RenderContext.Viewport and EventOpen. }
     MakeCurrent;
@@ -2812,6 +2955,13 @@ const
     MakeCurrent;
 
     UpdateFullScreenBackend;
+
+    if Application.FPendingDropFiles <> nil then
+    begin
+      Assert(Application.FPendingDropFiles.Count <> 0);
+      DoDropFiles(Application.FPendingDropFiles.ToArray);
+      FreeAndNil(Application.FPendingDropFiles);
+    end;
   end;
 
 begin
@@ -2887,10 +3037,15 @@ begin
       Container.EventClose(Application.OpenWindowsCount);
     end;
   finally
-    CloseBackend;
 
+    { call CloseBackend, controlling FInCloseBackend around }
+    FInCloseBackend := true;
+    try
+      CloseBackend;
+    finally FInCloseBackend := false end;
+
+    FFocused := false;
     FClosed := true;
-
     Application.Current := nil;
 
     { Note: it is important here that OpenWindowsRemove will not raise any error
@@ -2954,7 +3109,7 @@ begin
     if MouseButton in Container.MousePressed then
       DoMouseUp(Container.MousePosition, MouseButton, 0);
 
-  Container.MouseLookIgnoreNextMotion;
+  Container.PointerLock.InternalIgnoreNextMotion;
 end;
 
 function TCastleWindow.GetColorBits: Cardinal;
@@ -3481,11 +3636,13 @@ end;
 
 { OpenAndRun ----------------------------------------------------------------- }
 
+{$ifndef BACKEND_OVERRIDES_OpenAndRun}
 procedure TCastleWindow.OpenAndRun;
 begin
   Open;
   Application.Run;
 end;
+{$endif}
 
 { TCastleWindow ParseParameters -------------------------------------------------- }
 
@@ -3620,19 +3777,17 @@ begin
     1: Window.FullScreen := false;
     2: ApplyGeometryParam(Argument);
     3: ApplyFullScreenCustomParam(Argument);
-    4: ApplicationProperties.TouchDevice := true;
     else raise EInternalError.CreateFmt('WindowOptionProc: unhandled OptionNum %d', [OptionNum]);
   end;
 end;
 
 procedure TCastleWindow.ParseParameters;
 const
-  Options: array [0..4] of TOption = (
+  Options: array [0..3] of TOption = (
     (Short: #0; Long: 'fullscreen'; Argument: oaNone),
     (Short: #0; Long: 'window'; Argument: oaNone),
     (short: #0; Long: 'geometry'; Argument: oaRequired),
-    (Short: #0; Long: 'fullscreen-custom'; Argument: oaRequired),
-    (Short: #0; Long: 'pretend-touch-device'; Argument: oaNone)
+    (Short: #0; Long: 'fullscreen-custom'; Argument: oaRequired)
   );
 begin
   Parameters.Parse(Options, {$ifdef FPC}@{$endif} WindowOptionProc, Self, true);
@@ -3644,8 +3799,7 @@ begin
     OptionDescription('--fullscreen', 'Set window to full-screen (cover whole screen).') + NL +
     OptionDescription('--window', 'Set window to not be full-screen.') + NL +
     OptionDescription('--geometry WIDTHxHEIGHT<sign>XOFF<sign>YOFF', 'Set window to not be full-screen, and set initial size and/or position.') + NL +
-    OptionDescription('--fullscreen-custom WIDTHxHEIGHT', 'Change desktop resolution and set window to full-screen.') + NL +
-    OptionDescription('--pretend-touch-device', 'Pretend this is a device with a touch screen, for debugging purposes.');
+    OptionDescription('--fullscreen-custom WIDTHxHEIGHT', 'Deprecated. Change desktop resolution and set window to full-screen.');
 end;
 
 { TCastleWindow miscellaneous -------------------------------------------- }
@@ -3950,6 +4104,57 @@ begin
   Result.Y := FRealHeight - 1 - Floor(V.Y);
 end;
 
+procedure TCastleWindow.SetFocused(const Value: Boolean);
+{$ifdef CASTLE_WINDOW_WINAPI}
+var
+  PtrLock: TCastleWindowsPointerLock;
+{$endif CASTLE_WINDOW_WINAPI}
+begin
+  if FFocused <> Value then
+  begin
+    // WritelnLog('TCastleWindow', 'Window focused: %s', [BoolToStr(Value, true)]);
+    FFocused := Value;
+
+    { right after changing Focused, it's safest to consider mouse position
+      not suitable for mouse look }
+    Container.PointerLock.InternalIgnoreNextMotion;
+
+    {$ifdef CASTLE_WINDOW_WINAPI}
+    PtrLock := Container.PointerLock as TCastleWindowsPointerLock;
+    { Redo ClipCursor if pointer lock active. }
+    PtrLock.UpdateClipCursor;
+    { Redo SetCapture / ReleaseCapture if pointer lock active. }
+    PtrLock.UpdateMouseCapture;
+    {$endif CASTLE_WINDOW_WINAPI}
+
+    { We want to execute some additional things when focused changes,
+      but not when it changes during OpenBackend / CloseBackend.
+
+      Reason: We don't want to cause unexpected processing during them
+      (e.g. ReleaseAllKeysAndMouse causes some DoKeyUp/DoMouseUp
+      (and these even cause BackendMakeCurrent),
+      which is not allowed when window is closing and releasing it's resources).
+      We also don't expect these things are necessary when window is
+      opening or closing:
+      - FileMonitor.CheckChanges should be unnecessary (we likely already
+        have the latest file state at this moment loaded)
+      - ReleaseAllKeysAndMouse should be unnecessary (keys state doesn't matter
+        when window is closing)
+    }
+    if (not FInOpenBackend) and (not FInCloseBackend) then
+    begin
+      if Value then
+        FileMonitor.CheckChanges;
+
+      { When user switches to another program, fake that we release all keys/mouse.
+        Otherwise we could miss some key up / mouse up, when user releases it over
+        another program/window. }
+      if not Value then
+        ReleaseAllKeysAndMouse;
+    end;
+  end;
+end;
+
 { TWindowList ------------------------------------------------------------ }
 
 procedure TWindowList.Invalidate;
@@ -3977,6 +4182,7 @@ constructor TCastleApplication.Create(AOwner: TComponent);
 begin
   inherited;
   FOpenWindows := TWindowList.Create(false);
+  FPageUrlParameters := TStringStringMap.Create;
   CreateBackend;
   OnMainContainer := {$ifdef FPC}@{$endif}GetMainContainer;
 end;
@@ -4001,7 +4207,9 @@ begin
 
   VideoReset;
   DestroyBackend;
+  FreeAndNil(FPageUrlParameters);
   FreeAndNil(FOpenWindows);
+  FreeAndNil(FPendingDropFiles);
   inherited;
 end;
 
@@ -4485,7 +4693,8 @@ begin
     OptionDescription('--log-file FILE-NAME', 'Write log to given file.') + NL +
     OptionDescription('--display X-DISPLAY-NAME', '(Unix) Display window on given X display.') + NL +
     OptionDescription('--no-limit-fps', 'Disable FPS limit. (We cap FPS by default, to save CPU and laptop battery.) Use this along with disabled V-Sync to see the maximum possible FPS.') + NL +
-    OptionDescription('--capabilities automatic|force-fixed-function|force-modern', 'Force OpenGL context to have specific capabilities, to test rendering on modern or ancient GPUs.');
+    OptionDescription('--capabilities automatic|force-fixed-function|force-modern', 'Force OpenGL context to have specific capabilities, to test rendering on modern or ancient GPUs.') + NL +
+    OptionDescription('--pretend-touch-device', 'Pretend this is a device with a touch screen, for debugging purposes.');
 end;
 
 // TODO: why this doesn't work as static TCastleApplication.OptionProc ?
@@ -4495,59 +4704,58 @@ var
   HelpString: String;
 begin
   case OptionNum of
-    0: begin
-         HelpString :=
-           ApplicationName + NL+
-           NL+
-           'Available command-line options:' + NL +
-           Application.ParseStandardParametersHelp + NL +
-           SoundEngine.ParseParametersHelp + NL+
-           // do this regardless of MainWindow <> nil, as MainWindow may be assigned later
-           TCastleWindow.ParseParametersHelp + NL +
-           NL +
-           'TCastleWindow backend: ' + Application.BackendName + '.' + NL +
-           NL +
-           ApplicationProperties.Description;
-         InfoWrite(HelpString);
-         Halt;
-       end;
-    1: begin
-         // include ApplicationName in --version output, this is good for help2man
-         Writeln(ApplicationName + ' ' + ApplicationProperties.Version);
-         Halt;
-       end;
-    2: LogFileName := Argument;
-    3: begin
-         {$ifdef CASTLE_WINDOW_XLIB}
-         if Application.FOpenWindows.Count <> 0 then
-           WarningWrite(ApplicationName + ': some windows are already open ' +
-             'so --display option is ignored.') else
-           Application.XDisplayName := Argument;
-         {$else}
-           {$ifdef CASTLE_WINDOW_GTK_2}
-           Application.XDisplayName := Argument;
-           {$else}
-           WarningWrite(ApplicationName + ': warning: --display option is ignored ' +
-             'when we don''t use directly Xlib');
-           {$endif}
-         {$endif}
-       end;
-    4: ApplicationProperties.LimitFps := 0;
-    5: TGLFeatures.RequestCapabilities := StrToCapabilities(Argument);
+    0:begin
+        HelpString :=
+          ApplicationName + NL+
+          NL+
+          'Available command-line options:' + NL +
+          Application.ParseStandardParametersHelp + NL +
+          SoundEngine.ParseParametersHelp + NL+
+          // do this regardless of MainWindow <> nil, as MainWindow may be assigned later
+          TCastleWindow.ParseParametersHelp + NL +
+          NL +
+          'TCastleWindow backend: ' + Application.BackendName + '.' + NL +
+          NL +
+          ApplicationProperties.Description;
+        InfoWrite(HelpString);
+        Halt;
+      end;
+    1:begin
+        // include ApplicationName in --version output, this is good for help2man
+        Writeln(ApplicationName + ' ' + ApplicationProperties.Version);
+        Halt;
+      end;
+    2:LogFileName := Argument;
+    3:begin
+        if Application.FOpenWindows.Count <> 0 then
+          WarningWrite('Some windows are already open so --display option is ignored.')
+        else
+        begin
+          {$if defined(CASTLE_WINDOW_XLIB) or defined(CASTLE_WINDOW_GTK_ANY)}
+          Application.DisplayName := Argument;
+          {$else}
+          WarningWrite('Warning: --display option is ignored when we don''t use Xlib or GTK.');
+          {$endif}
+        end;
+      end;
+    4:ApplicationProperties.LimitFps := 0;
+    5:TGLFeatures.RequestCapabilities := StrToCapabilities(Argument);
+    6:ApplicationProperties.TouchDevice := true;
     else raise EInternalError.Create('ApplicationOptionProc: unhandled OptionNum');
   end;
 end;
 
 procedure TCastleApplication.ParseStandardParameters;
 const
-  Options: array [0..5] of TOption =
+  Options: array [0..6] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: 'v'; Long: 'version'; Argument: oaNone),
     (Short: #0 ; Long: 'log-file'; Argument: oaRequired),
     (Short: #0 ; Long: 'display'; Argument: oaRequired),
     (Short: #0 ; Long: 'no-limit-fps'; Argument: oaNone),
-    (Short: #0 ; Long: 'capabilities'; Argument: oaRequired)
+    (Short: #0 ; Long: 'capabilities'; Argument: oaRequired),
+    (Short: #0 ; Long: 'pretend-touch-device'; Argument: oaNone)
   );
 
   {$ifdef DARWIN}
@@ -4626,6 +4834,65 @@ begin
 
   Result := {$ifdef OpenGLES} true {$else} false {$endif};
 end;
+
+procedure TCastleApplication.DoDropFiles(const Files: array of String);
+begin
+  if (MainWindow <> nil) and
+     { Checking MainWindow.Closed is not strictly necessary
+       here. We could call MainWindow.DoDropFiles even if
+       the window is closed, and e.g. castle-model-viewer would be able to
+       handle it. (As long as we also secure our MakeCurrent to not do
+       anything when window is closed.)
+
+       Still, this could be surprisingly early: On Cocoa,
+       application_openFiles (which calls this) is called
+       from TCastleApplication constructor sometimes (when double-clicking
+       on model from editor), which happens on-demand when accessing Application
+       singleton. Developer may not be aware that Window.OnDropFiles must be
+       assigned earlier, before any usage of Application.
+
+       It's more predictable, and also consistent (with normal OnDropFiles
+       situation, and other OnXxx events that occur only when the window
+       is open) to wait until the window is open. }
+     (not MainWindow.Closed) then
+  begin
+    MainWindow.DoDropFiles(Files);
+  end else
+  begin
+    if FPendingDropFiles <> nil then
+    begin
+      WritelnWarning('TCastleApplication.DoDropFiles', 'Received Application.DoDropFiles when previous drop files operation is stil pending to be reported to TCastleWindow.OnDropFiles. Previous drop filenames will be ignored.');
+      FreeAndNil(FPendingDropFiles);
+    end;
+    FPendingDropFiles := TCastleStringList.Create;
+    FPendingDropFiles.Assign(Files);
+  end;
+end;
+
+function TCastleApplication.PageUrlParameter(const ParameterName: String): String;
+begin
+  if PageUrlParameters.TryGetValue(ParameterName, Result) then
+    Exit
+  else
+    Result := '';
+end;
+
+{$ifndef CASTLE_WINDOW_WEBASSEMBLY}
+function TCastleApplication.PageUrl: String;
+begin
+  Result := '';
+end;
+
+function TCastleApplication.PageUrlQuery: String;
+begin
+  Result := '';
+end;
+
+function TCastleApplication.PageUrlParameters: TStringStringMap;
+begin
+  Result := FPageUrlParameters;
+end;
+{$endif}
 
 {$ifdef FPC}
 

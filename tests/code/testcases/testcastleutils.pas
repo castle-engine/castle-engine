@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -55,6 +55,8 @@ type
     procedure TestDecimalSeparator;
     procedure TestFloatToStrDisplay;
     procedure TestDeg;
+    procedure TestFastList;
+    procedure TestSimpleIntTypes;
   end;
 
 implementation
@@ -729,6 +731,80 @@ begin
   AssertSameValue(0, Deg(0));
   AssertSameValue(pi/2, Deg(90));
   AssertSameValue(-pi/2, Deg(-90));
+end;
+
+type
+  TFastIntegerList = {$ifdef FPC}specialize{$endif} TCastleFastList<Integer>;
+
+procedure TTestCastleUtils.TestFastList;
+var
+  L: TFastIntegerList;
+begin
+  L := TFastIntegerList.Create;
+  try
+    L.Add(1);
+    L.Add(2);
+    L.Add(3);
+    AssertEquals(3, L.Count);
+    AssertEquals(1, L[0]);
+    AssertEquals(2, L[1]);
+    AssertEquals(3, L[2]);
+
+    L.Clear;
+    AssertEquals(0, L.Count);
+
+    L.Add(1);
+    L.Add(2);
+    L.Add(3);
+    AssertEquals(3, L.Count);
+    AssertEquals(1, L[0]);
+    AssertEquals(2, L[1]);
+    AssertEquals(3, L[2]);
+
+    L.ReleaseMemory;
+    AssertEquals(0, L.Count);
+  finally FreeAndNil(L) end;
+end;
+
+procedure TTestCastleUtils.TestSimpleIntTypes;
+var
+  U8: UInt8;
+  U16: UInt16;
+  U32: UInt32;
+  U64: UInt64;
+  I8: Int8;
+  I16: Int16;
+  I32: Int32;
+  I64: Int64;
+begin
+  AssertEquals(SizeOf(Byte), 1);
+  AssertEquals(SizeOf(SmallInt), 2);
+  AssertEquals(SizeOf(Integer), 4);
+  AssertEquals(SizeOf(Int64), 8);
+
+  AssertEquals(SizeOf(UInt8), 1);
+  AssertEquals(SizeOf(UInt16), 2);
+  AssertEquals(SizeOf(UInt32), 4);
+  AssertEquals(SizeOf(UInt64), 8);
+
+  AssertEquals(SizeOf(Int8), 1);
+  AssertEquals(SizeOf(Int16), 2);
+  AssertEquals(SizeOf(Int32), 4);
+  AssertEquals(SizeOf(Int64), 8);
+
+  { Test unsigned integer types allow their maximum values without
+    range/overflow errors.
+    The tests are checked also in -dDEBUG with range+overflow checking. }
+  U8 := 255;
+  U16 := 65535;
+  U32 := 4294967295;
+  U64 := 18446744073709551615;
+
+  { Test signed integer types allow their minimum (negative) values. }
+  I8 := -128;
+  I16 := -32768;
+  I32 := -2147483648;
+  I64 := -9223372036854775808;
 end;
 
 initialization

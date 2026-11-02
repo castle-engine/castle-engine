@@ -74,3 +74,15 @@ interface Document : Node {
 };
 
 Document includes NonElementParentNode;
+
+Document includes DocumentOrShadowRoot;
+
+// https://w3c.github.io/pointerlock/#extensions-to-the-document-interface
+// https://w3c.github.io/pointerlock/#extensions-to-the-documentorshadowroot-mixin
+partial interface Document {
+  undefined exitPointerLock();
+
+  // Event handlers
+  attribute EventHandler onpointerlockchange;
+  attribute EventHandler onpointerlockerror;
+};

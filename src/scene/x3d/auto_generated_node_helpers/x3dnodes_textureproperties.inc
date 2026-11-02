@@ -1,10 +1,10 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2025 Michalis Kamburelis.
+  Copyright 2015-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -116,6 +116,7 @@
     public property FdGuiTexture: TSFBool read FFdGuiTexture;
     {  }
     property GuiTexture: Boolean read GetGuiTexture write SetGuiTexture;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -234,6 +235,7 @@ begin
 
   FFdAnisotropicDegree := TSFFloat.Create(Self, True, 'anisotropicDegree', 1.0);
    FdAnisotropicDegree.ChangeAlways := chTexturePropertiesNode;
+   FdAnisotropicDegree.MustBeNonnegative := true;
   AddField(FFdAnisotropicDegree);
 
   FFdBorderColor := TSFColorRGBA.Create(Self, True, 'borderColor', Vector4(0, 0, 0, 0));
@@ -283,6 +285,13 @@ begin
   AddField(FFdGuiTexture);
 
   DefaultContainerField := 'textureProperties';
+end;
+
+procedure TTexturePropertiesNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  if not FdGuiTexture.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdGuiTexture.X3DName);
 end;
 
 {$endif read_implementation}

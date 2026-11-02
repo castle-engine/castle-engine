@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -74,6 +74,9 @@
       This makes sense to be used when underlying file on disk
       changed, and you want to reload it. }
     procedure ReloadUrl;
+
+    { Root of the loaded components, or @nil if nothing was loaded yet. }
+    property DesignRoot: TCastleUserInterface read FDesign;
   published
     { Load file with the user interface design.
       The file should be in the format created by Castle Game Engine Editor

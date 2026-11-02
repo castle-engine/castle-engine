@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -14,7 +14,7 @@
 }
 
 { Use deprecated units (in src/window/deprecated_units/ in CGE)
-  in a way that doesn't cause warnings when compiling Lazarus castle_window.lpk.
+  in a way that doesn't cause warnings when compiling Lazarus castle_engine_window.lpk.
   The deprecated units are compiled this way,
   but you can uncheck AddToUsesPkgSection in lpk. }
 unit CastleInternalUseWindowDeprecatedUnits;

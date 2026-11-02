@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -67,7 +67,7 @@ type
       @item(Include the necessary integration code in your Android / iOS project.
 
         For Android, add the "google_play_games" service inside CastleEngineManifest.xml.
-        See @url(https://github.com/castle-engine/castle-engine/blob/master/tools/build-tool/data/android/integrated-services/google_play_games/README.adoc
+        See @url(https://github.com/castle-engine/castle-engine/blob/master/tools/build-tool/data/android/services/google_play_games/README.adoc
         Android "google_play_games" service docs).
 
         For iOS, add the "apple_game_center" service inside CastleEngineManifest.xml.
@@ -548,7 +548,7 @@ const
     'Signed Out',
     'Signing In...',
     'Signed In',
-    'Signing Out..'
+    'Signing Out...'
   );
 begin
   Result := Names[Status];

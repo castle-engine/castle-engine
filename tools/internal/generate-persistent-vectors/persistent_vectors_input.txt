@@ -104,6 +104,7 @@
 
 ../../../src/scene/ TCastleViewport BackgroundColor TCastleColor
 ../../../src/scene/ TCastleAbstractPrimitive Color TCastleColor
+../../../src/scene/ TCastleAbstractPrimitive TextureScale TVector2
 ../../../src/scene/ TCastleBox Size TVector3
 ../../../src/scene/ TCastlePlane Size TVector2
 ../../../src/scene/ TCastleThirdPersonNavigation AvatarTarget TVector3

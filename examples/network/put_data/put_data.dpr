@@ -9,7 +9,7 @@ program put_data;
 uses
   {$ifdef UNIX} CThreads, {$endif} // necessary to have asynchronous downloading on Unix
   SysUtils,
-  {$ifdef FPC} OpenSSLSockets, {$endif} // support HTTPS
+  CastleHttps, // support HTTPS
   CastleUtils, CastleDownload, CastleClassUtils;
 
 var

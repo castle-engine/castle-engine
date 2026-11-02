@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -124,7 +124,8 @@
       Useful for
       - Proxy in this class
       - TCastleTerrain which wants direct TIndexedTriangleSetNode
-        (faster to later update than to maintain TElevationGridNode). }
+        (faster to later update than to maintain TElevationGridNode).
+      @exclude }
     class function InternalCreateTriangles(
       const AXDimension, AZDimension: Integer;
       const AXSpacing, AZSpacing: Single;

@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in the "Castle Game Engine" distribution,
   for details about the copyright.
 
@@ -29,6 +29,7 @@ typedef struct TouchInfo {
 
 @interface OpenGLController ()
 {
+    bool m_bInitialized;
     CGFloat m_fScale;
     TouchInfo m_touches[MAX_TOUCHES];
     int m_currentViewWidth;
@@ -47,28 +48,14 @@ typedef struct TouchInfo {
 {
     [super viewDidLoad];
 
+    m_bInitialized = false;
+
     // Try to initialize OpenGLES 3, fallback on version 2
     // (following https://developer.apple.com/library/archive/documentation/3DDrawing/Conceptual/OpenGLES_ProgrammingGuide/WorkingwithOpenGLESContexts/WorkingwithOpenGLESContexts.html )
-    /*
     EAGLContext *context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3];
     if (context == nil) {
         context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
     }
-    */
-    /* TODO: OpenGLES 3 commented out for now.
-       It breaks Unholy rendering of "evil plane".
-       Looks like on iOS, something in OpenGLES3 is subtly broken compared to OpenGLES2,
-       maybe related to ScreenFbo which is already weird (non-zero) in OpenGLES2,
-       see
-       src/images/opengl/castleglimages_rendertotexture.inc
-       https://stackoverflow.com/questions/11617013/why-would-glbindframebuffergl-framebuffer-0-result-in-blank-screen-in-cocos2d)
-
-       Ideally we should just fix it, and work flawlessly in both OpenGLES2 and OpenGLES3 on iOS.
-
-       Eventually we can add a flag, like IOS_ENABLE_ES3, to make it optional decision
-       per-application.
-    */
-    EAGLContext *context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
 
     self.context = context;
 
@@ -108,6 +95,14 @@ typedef struct TouchInfo {
     } else {
         view.drawableMultisample = GLKViewDrawableMultisample4X;
     }
+    self.preferredFramesPerSecond = 60;
+
+    /*
+     We call view.display to reflect the changes in drawable format properties above (buffer format gets changed after next draw, not now).
+     Without this, CGE reads DEPTH_BITS as 32 during initialization, while depth is 24 in normal Draw function.
+     Also fixes error with framebuffer incomplete.
+     */
+    [view display];
 
     // initialize input
 
@@ -118,6 +113,7 @@ typedef struct TouchInfo {
     }
 
     [self setupGL];
+    m_bInitialized = true;
 }
 
 //-----------------------------------------------------------------
@@ -212,12 +208,48 @@ typedef struct TouchInfo {
     m_currentViewHeight = self.view.bounds.size.height * m_fScale;
     m_currentSafeAreaBorders = [self safeAreaBorders];
 
-    // Get a directory where we can write files,
-    // see http://stackoverflow.com/questions/1567134/how-can-i-get-a-writable-path-on-the-iphone/1567147#1567147
-    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES);
-    NSString *libraryDirectory = [paths objectAtIndex:0];
+    // Get a directory where we can write application configuration and savegames.
 
-    CGEApp_Initialize([libraryDirectory fileSystemRepresentation]);
+    // First, get the directory that was default before 2026-10-07,
+    // and provide it to CGEApp_SetFallbackConfigDirectory.
+    {
+        NSArray *pathsFallback = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES);
+        NSString *configDirectoryFallback = [pathsFallback objectAtIndex:0];
+        CGEApp_SetFallbackConfigDirectory([configDirectoryFallback fileSystemRepresentation]);
+    }
+
+    /*
+      We use <sandbox>/Library/Application Support/ , as recommended by Apple,
+      see "Where You Should Put Your App's Files" in
+      https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/FileSystemOverview/FileSystemOverview.html
+      "Put app-created support files in the Library/Application support/ directory.
+      In general, this directory includes files that the app uses to run
+      but that should remain hidden from the user. This directory can also include
+      data files, configuration files, templates (...)".
+
+      Rejected:
+      - not NSDocumentDirectory, as that is for user-visible documents, exposed to the
+        user by file sharing.
+
+      - Not the sandbox root (NSHomeDirectory): not writeable (on new iOS at least).
+
+      - Previously we used just NSLibraryDirectory (<sandbox>/Library/),
+        for this, but "Application Support" better follows recommendations.
+        See above for compatibility with older versions.
+
+      This should stay in sync with
+      - GetAppConfigDir for Delphi, see
+        castle_game_engine/src/base/castleutils_delphi_compatibility.inc
+      - Library sample in
+        examples/deprecated_library/ios_tester/ios_tester/OpenGLController.m
+
+      The directory may not exist yet, it is created when we write the first file
+      there (our writing routines do ForceDirectories).
+    */
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES);
+    NSString *configDirectory = [paths objectAtIndex:0];
+
+    CGEApp_Initialize([configDirectory fileSystemRepresentation]);
     CGEApp_Open(m_currentViewWidth, m_currentViewHeight, (unsigned)m_currentSafeAreaBorders.top, (unsigned)m_currentSafeAreaBorders.right, (unsigned)m_currentSafeAreaBorders.bottom, (unsigned)m_currentSafeAreaBorders.left, (unsigned)(dpi * m_fScale));
 
     [self update];
@@ -251,7 +283,7 @@ typedef struct TouchInfo {
         m_currentViewWidth  = newViewWidth;
         m_currentViewHeight = newViewHeight;
         m_currentSafeAreaBorders = newSafeAreaBorders;
-        
+
         CGEApp_Resize(newViewWidth, newViewHeight, (unsigned)newSafeAreaBorders.top, (unsigned)newSafeAreaBorders.right, (unsigned)newSafeAreaBorders.bottom, (unsigned)newSafeAreaBorders.left);
     }
 
@@ -273,6 +305,8 @@ typedef struct TouchInfo {
 //-----------------------------------------------------------------
 - (void)glkView:(GLKView *)view drawInRect:(CGRect)rect
 {
+    if (!m_bInitialized)
+        return;
     CGEApp_Render();
 }
 

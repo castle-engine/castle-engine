@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -98,9 +98,9 @@ type
         Mesh.Color := Yellow;
         Mesh.ModelViewProjection := RenderContext.ProjectionMatrix * RenderingCamera.CurrentMatrix;
         Mesh.SetVertexes([
-          Vector3(0, 0, 0, 1),
-          Vector3(10, 0, 0, 1),
-          Vector3(0, 10, 0, 1)
+          Vector4(0, 0, 0, 1),
+          Vector4(10, 0, 0, 1),
+          Vector4(0, 10, 0, 1)
         ], false);
         Mesh.Render(pmTriangles);
       finally FreeAndNil(Mesh) end;

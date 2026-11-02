@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -43,7 +43,6 @@
   public
     constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     class function ForVRMLVersion(const Version: TX3DVersion): boolean; override;
-    function TransformationChange: TNodeTransformationChange; override;
   {$I auto_generated_node_helpers/x3dnodes_matrixtransform.inc}
   end;
   TMatrixTransformNode_2 = TMatrixTransformNode;
@@ -67,7 +66,6 @@
     See https://castle-engine.io/x3d_extensions.php#section_ext_logger . }
   TLoggerNode = class(TAbstractChildNode)
   strict private
-    LogFileStream: TStream;
     procedure EventWriteReceive(
       const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   public
@@ -165,6 +163,15 @@
         function Shininess: Single; override;
         function ReflectionColor: TVector3; override;
         function TransmissionColor: TVector3; override;
+
+        function MainTexture(
+          const Appearance: TAppearanceNode;
+          const VRML1State: TVRML1State): TAbstractTextureNode; overload; override;
+        function MainTexture(
+          const Appearance: TAppearanceNode;
+          const VRML1State: TVRML1State;
+          const GeometryForTexCoord: TAbstractGeometryNode;
+          out TexCoordIndex: Integer): TAbstractTextureNode; overload; override;
       end;
     var
       FMaterialInfo: TMaterialInfo;
@@ -265,11 +272,6 @@ begin
   end;
 end;
 
-function TMatrixTransformNode.TransformationChange: TNodeTransformationChange;
-begin
-  Result := ntcTransform;
-end;
-
 constructor TTeapotNode.Create(const AX3DName: string = ''; const ABaseUrl: String = '');
 begin
   inherited;
@@ -358,7 +360,6 @@ end;
 
 destructor TLoggerNode.Destroy;
 begin
-  FreeAndNil(LogFileStream);
   inherited;
 end;
 
@@ -370,7 +371,7 @@ procedure TLoggerNode.EventWriteReceive(
     Writer: TX3DWriterNames;
     StringStream: TStringStream;
   begin
-    StringStream := TStringStream.Create('');
+    StringStream := TStringStream.Create('', TEncoding.UTF8);
     try
       Writer := TX3DWriterNames.Create(StringStream, X3DVersion, xeClassic);
       try
@@ -398,24 +399,13 @@ procedure TLoggerNode.EventWriteReceive(
       end;
 
       S := S + ' Value: ' + FieldValueToString(Value);
-
-      if LogFileStream <> nil then
-        WriteLnStr(LogFileStream, S)
-      else
-        WriteLnLog(S);
+      WriteLnLog(S);
     end;
   end;
 
 begin
   if FdEnabled.Value and (Fdlevel.Value > 0) then
   begin
-    if (LogFileStream = nil) and (FdLogFile.Value <> '') then
-    begin
-      LogFileStream := TFileStream.Create(
-        FileNameAutoInc(ApplicationName + '_logger_' +
-          DeleteURIExt(ExtractURIName(FdLogFile.Value)) + '_%d.log'), fmCreate);
-    end;
-
     WritelnLogMessage;
   end;
 end;
@@ -620,6 +610,39 @@ end;
 procedure TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.SetTransparency(const Value: Single);
 begin
   FNode.Transparency := Value;
+end;
+
+function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.MainTexture(
+  const Appearance: TAppearanceNode;
+  const VRML1State: TVRML1State): TAbstractTextureNode;
+begin
+  if FNode.MultiDiffuseAlphaTexture <> nil then
+    Exit(FNode.MultiDiffuseAlphaTexture);
+  if FNode.DiffuseTexture <> nil then
+    Exit(FNode.DiffuseTexture);
+  // fallback result
+  Result := nil;
+end;
+
+function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.MainTexture(
+  const Appearance: TAppearanceNode;
+  const VRML1State: TVRML1State;
+  const GeometryForTexCoord: TAbstractGeometryNode;
+  out TexCoordIndex: Integer): TAbstractTextureNode;
+begin
+  if FNode.MultiDiffuseAlphaTexture <> nil then
+  begin
+    TexCoordIndex := FNode.DiffuseTextureCoordinatesId; // TODO: is this what X3DOM/InstantReality are doing? test.
+    Exit(FNode.MultiDiffuseAlphaTexture);
+  end;
+  if FNode.DiffuseTexture <> nil then
+  begin
+    TexCoordIndex := FNode.DiffuseTextureCoordinatesId;
+    Exit(FNode.DiffuseTexture);
+  end;
+  // fallback result
+  Result := nil;
+  TexCoordIndex := -1;
 end;
 
 { TCommonSurfaceShaderNode ----------------------------------------------------- }

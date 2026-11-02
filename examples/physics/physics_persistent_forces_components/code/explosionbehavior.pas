@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -18,9 +18,10 @@ unit ExplosionBehavior;
 
 interface
 
-uses
-  Classes, SysUtils, CastleTransform, CastleBehaviors, CastleVectors,
-  CastleComponentSerialize, CastleClassUtils, AbstractIterateRigidBodyBehavior;
+uses Classes, SysUtils,
+  CastleTransform, CastleBehaviors, CastleVectors,
+  CastleComponentSerialize, CastleClassUtils, CastleUtils,
+  AbstractIterateRigidBodyBehavior;
 
 type
   { Add this behavior to CastleTransform }
@@ -64,7 +65,9 @@ end;
 function TExplosionBehavior.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
-  if PropertyName = 'Value' then
+  if ArrayContainsString(PropertyName, [
+       'Value'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);

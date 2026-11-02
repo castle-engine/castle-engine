@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -46,8 +46,8 @@ const
 
 function SimpleHtmlQuote(const S: String): String;
 const
-  Patterns: array [0..4] of String = ('&amp;', '&lt;', '&gt;', '&apos;', '&quot;');
-  Replacements: array [0..4] of String = ('&', '<', '>', '''', '"');
+  Patterns: array [0..4] of String = ('&', '<', '>', '''', '"');
+  Replacements: array [0..4] of String = ('&amp;', '&lt;', '&gt;', '&apos;', '&quot;');
 begin
   Result := SReplacePatterns(S, Patterns, Replacements, false);
 end;

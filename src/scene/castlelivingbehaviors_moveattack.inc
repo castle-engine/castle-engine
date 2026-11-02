@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -234,7 +234,7 @@ type
       To play a sound when the actual hit happens (at AttackTime)
       see SoundAttackHit.
 
-      This is a sound name from sound repository (see https://castle-engine.io/manual_sound.php).
+      This is a sound name from sound repository (see https://castle-engine.io/sound).
       None by default. }
     property SoundAttackStart: TCastleSound read FSoundAttackStart write SetSoundAttackStart;
 

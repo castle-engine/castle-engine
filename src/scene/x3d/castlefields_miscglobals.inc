@@ -1,10 +1,10 @@
 {%MainUnit x3dfields.pas}
 {
-  Copyright 2002-2023 Michalis Kamburelis.
+  Copyright 2002-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -73,7 +73,8 @@ const
     'Wireframe',
     'Children',
     'Children added',
-    'BBox'
+    'BBox',
+    'Shapes Tree Visible'
   );
 
 function X3DChangesToStr(const Changes: TX3DChanges): string;

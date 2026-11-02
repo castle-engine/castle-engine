@@ -1,10 +1,10 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2025 Michalis Kamburelis.
+  Copyright 2015-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -56,6 +56,7 @@
     public property FdTexCoord: TSFNode read FFdTexCoord;
     {  }
     property TexCoord: TX3DNode read GetTexCoord write SetTexCoord;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -120,6 +121,12 @@ begin
   FFdTexCoord := TSFNode.Create(Self, True, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiGeneratedTextureCoordinateNode]);
    FdTexCoord.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdTexCoord);
+end;
+
+procedure TTeapotNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  ExtensionNames.Add(X3DType);
 end;
 
 {$endif read_implementation}

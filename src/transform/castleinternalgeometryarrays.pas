@@ -1,9 +1,9 @@
 {
-  Copyright 2010-2023 Michalis Kamburelis.
+  Copyright 2010-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -87,8 +87,15 @@ type
     { Dimensions, only for Generation = tgExplicit. }
     Dimensions: TTexCoordDimensions;
 
-    { Offset, only for Generation = tgExplicit. }
-    Offset: Integer;
+    { Offset, only for Generation = tgExplicit.
+
+      Note for this and other offsets in this unit:
+      it's important that they are declared as unsigned.
+      Reason: They are used with additions to PtrUInt,
+      and otherwise (if signed) Delphi could implement the + using signed Int64
+      and make range check errors when pointer is > High(Int64)
+      (quite possible on Android/Aarch64). }
+    Offset: Cardinal;
   end;
   TGeometryTexCoordList = {$ifdef FPC}specialize{$endif} TObjectList<TGeometryTexCoord>;
 
@@ -104,7 +111,8 @@ type
       This is only used to change warnings related to this attribute. }
     Internal: boolean;
     AType: TGeometryAttribType;
-    Offset: Integer;
+    { Unsigned, for reason see TGeometryTexCoord.Offset comments. }
+    Offset: Cardinal;
   end;
   TGeometryAttribList = class({$ifdef FPC}specialize{$endif} TObjectList<TGeometryAttrib>)
   public
@@ -144,17 +152,22 @@ type
     FCoordinatePreserveGeometryOrder: Boolean;
 
     FHasTangent: Boolean;
-    FTangentOffset: Integer;
+    FTangentOffset: Cardinal; //< Unsigned, for reason see TGeometryTexCoord.Offset comments.
 
     FColorType: TColorPerVertexType;
     FColorMode: TColorMode;
-    ColorOffset: Integer;
+    ColorOffset: Cardinal;
     FForceUnlit: boolean;
     FForcedUnlitColor: TVector4;
 
     FHasFogCoord: boolean;
-    FogCoordOffset: Integer;
+    FogCoordOffset: Cardinal;
     FFogDirectValues: boolean;
+
+    FHasSkinWeights0: Boolean;
+    FSkinWeights0Offset: Cardinal;
+    FHasSkinJoints0: Boolean;
+    FSkinJoints0Offset: Cardinal;
 
     FTexCoords: TGeometryTexCoordList;
     FAttribs: TGeometryAttribList;
@@ -276,7 +289,7 @@ type
     { Was AddTangent used. }
     property HasTangent: Boolean read FHasTangent;
     { Access tangent information per-vertex. }
-    function Tangent(const Index: Cardinal = 0): PVector3;
+    function Tangent(const Index: Cardinal = 0): PVector4;
 
     { Add color-per-vertex attribute.
       @param AMode Rendering mode, determines what shader does.
@@ -311,6 +324,14 @@ type
       before being used to blend pixel colors. }
     property FogDirectValues: boolean
       read FFogDirectValues write FFogDirectValues default false;
+
+    procedure AddSkinWeights0;
+    function SkinWeights0(const Index: Cardinal = 0): PVector4;
+    property HasSkinWeights0: Boolean read FHasSkinWeights0;
+
+    procedure AddSkinJoints0;
+    function SkinJoints0(const Index: Cardinal = 0): PVector4;
+    property HasSkinJoints0: Boolean read FHasSkinJoints0;
 
     { Allocated in AttributeArray texture coords.
       Index is texture unit (counted from renderer first available texture
@@ -489,14 +510,14 @@ begin
   begin
     FHasTangent := true;
     FTangentOffset := FCoordinateSize;
-    FCoordinateSize := FCoordinateSize + SizeOf(TVector3);
+    FCoordinateSize := FCoordinateSize + SizeOf(TVector4);
   end;
 end;
 
-function TGeometryArrays.Tangent(const Index: Cardinal = 0): PVector3;
+function TGeometryArrays.Tangent(const Index: Cardinal = 0): PVector4;
 begin
   { When DataFreed, FCoordinateArray is already nil }
-  Result := PVector3(PtrUInt(PtrUInt(FCoordinateArray) +
+  Result := PVector4(PtrUInt(PtrUInt(FCoordinateArray) +
     FTangentOffset + CoordinateSize * Index));
 end;
 
@@ -551,6 +572,44 @@ begin
     { When DataFreed, FAttributeArray is already nil }
     Result := PSingle(PtrUInt(PtrUInt(FAttributeArray) +
       FogCoordOffset + Index * AttributeSize)) else
+    Result := nil;
+end;
+
+procedure TGeometryArrays.AddSkinWeights0;
+begin
+  if not FHasSkinWeights0 then
+  begin
+    FHasSkinWeights0 := true;
+    FSkinWeights0Offset := AttributeSize;
+    FAttributeSize := FAttributeSize + SizeOf(TVector4);
+  end;
+end;
+
+function TGeometryArrays.SkinWeights0(const Index: Cardinal = 0): PVector4;
+begin
+  if HasSkinWeights0 then
+    { When DataFreed, FAttributeArray is already nil }
+    Result := PVector4(PtrUInt(PtrUInt(FAttributeArray) +
+      FSkinWeights0Offset + Index * AttributeSize)) else
+    Result := nil;
+end;
+
+procedure TGeometryArrays.AddSkinJoints0;
+begin
+  if not FHasSkinJoints0 then
+  begin
+    FHasSkinJoints0 := true;
+    FSkinJoints0Offset := AttributeSize;
+    FAttributeSize := FAttributeSize + SizeOf(TVector4);
+  end;
+end;
+
+function TGeometryArrays.SkinJoints0(const Index: Cardinal = 0): PVector4;
+begin
+  if HasSkinJoints0 then
+    { When DataFreed, FAttributeArray is already nil }
+    Result := PVector4(PtrUInt(PtrUInt(FAttributeArray) +
+      FSkinJoints0Offset + Index * AttributeSize)) else
     Result := nil;
 end;
 

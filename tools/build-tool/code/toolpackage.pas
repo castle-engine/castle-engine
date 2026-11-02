@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -83,9 +83,10 @@ procedure GenerateDataInformation(const CurrentDataPath: String);
 
 implementation
 
-uses SysUtils, Process,
+uses SysUtils,
   CastleFilesUtils, CastleLog, CastleFindFiles, CastleUriUtils,
   CastleStringUtils, CastleInternalDirectoryInformation,
+  CastleInternalProcess,
   ToolCommonUtils, ToolUtils, ToolDebian, ToolProcessRun;
 
 { TPackageDirectory ---------------------------------------------------------- }
@@ -129,7 +130,7 @@ var
       raise Exception.CreateFmt('Cannot find "%s" program on $PATH. Make sure it is installed, and available on $PATH', [
         PackagingExeName
       ]);
-    MyRunCommandIndir(TemporaryDir, CommandExe,
+    ExecuteCommandCapture(TemporaryDir, CommandExe,
       PackagingParameters,
       ProcessOutput, ProcessExitStatus);
 

@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -38,7 +38,7 @@ procedure PackageDebian(const PackagedPath: String;
 implementation
 
 uses
-  SysUtils, Process, {$ifdef UNIX} BaseUnix, {$endif}
+  SysUtils, {$ifdef UNIX} BaseUnix, {$endif}
   CastleUtils, CastleFilesUtils, CastleDownload, CastleImages, CastleLog,
   CastleStringUtils,
   ToolCommonUtils, ToolUtils, ToolProcessRun;
@@ -188,7 +188,7 @@ begin
     begin
       WritelnVerbose('Converting PNG icon to XPM using ImageMagick.');
       // 96 colors in XPM still produces 1 symbol per color, larger values double the file size
-      RunCommandSimple(ImageMagickExe, ['-colors', '96', PngIcon, PackageDirLocal + PathToIconFileLocal])
+      ExecuteCommandSimple(ImageMagickExe, ['-colors', '96', PngIcon, PackageDirLocal + PathToIconFileLocal])
     end else
     begin
       WritelnVerbose('Using default XPM icon.' + NL +
@@ -256,12 +256,12 @@ begin
 
   // Calculate MD5 checksums
 
-  RunCommandSimple(TempPath + PackageDirBaseName, 'bash', ['-c',
+  ExecuteCommandSimple(TempPath + PackageDirBaseName, 'bash', ['-c',
     'find -type f | egrep -v ''^\./DEBIAN'' | xargs --replace=hh -n1 md5sum "hh" | sed ''s/\ \.\///'' > DEBIAN/md5sums']);
 
   // Package DEB
 
-  RunCommandSimple(TempPath, 'dpkg-deb', ['--build', PackageDirBaseName]);
+  ExecuteCommandSimple(TempPath, 'dpkg-deb', ['--build', PackageDirBaseName]);
 
   CheckRenameFile(TempPath + PackageDirBaseName + '.deb', CombinePaths(PackageOutputPath, PackageFileName));
 

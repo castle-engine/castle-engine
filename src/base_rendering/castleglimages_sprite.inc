@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -470,6 +470,8 @@ begin
     FFrame := Anim.Frames[FCustomFrame].Frame;
     while (FTime - FCustomAnimTimestamp) >= Anim.Frames[FCustomFrame].Duration do
     begin
+      // account for frame duration before increasing FCustomFrame
+      FCustomAnimTimestamp := FCustomAnimTimestamp + Anim.Frames[FCustomFrame].Duration;
       // todo: custom animation loops
       if FCustomFrame = High(Anim.Frames) then
       begin
@@ -479,7 +481,6 @@ begin
           Stop;
       end else
         Inc(FCustomFrame);
-      FCustomAnimTimestamp := FCustomAnimTimestamp + Anim.Frames[FCustomFrame].Duration;
       FFrame := Anim.Frames[FCustomFrame].Frame;
     end;
   end else

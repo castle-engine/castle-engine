@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -18,7 +18,7 @@
 
   TNodeDestructionNotification = procedure (const Node: TX3DNode) of object;
 
-  TNodeDestructionNotificationList = class({$ifdef FPC}specialize{$endif} TList<TNodeDestructionNotification>)
+  TNodeDestructionNotificationList = class({$ifdef FPC}specialize{$endif} TMethodList<TNodeDestructionNotification>)
   public
     { Call all functions. }
     procedure ExecuteAll(const Node: TX3DNode);

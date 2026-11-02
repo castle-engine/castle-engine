@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -102,7 +102,10 @@ const
   VRML1Version: TX3DVersion = (Major: 1; Minor: 0);
   VRML2Version: TX3DVersion = (Major: 2; Minor: 0);
   { Latest X3D version supported. }
-  X3DVersion: TX3DVersion = (Major: 4; Minor: 0);
+  X3DVersion: TX3DVersion = (
+    Major: TX3DRootNode.DefaultX3DSaveVersionMajor;
+    Minor: TX3DRootNode.DefaultX3DSaveVersionMinor
+  );
 
   xeClassic = CastleInternalX3DLexer.xeClassic;
   xeXML = CastleInternalX3DLexer.xeXML;
@@ -302,8 +305,7 @@ begin
   if List <> nil then
   begin
     for I := 0 to List.Count - 1 do
-      if (List.Items[I] <> nil) and
-         (List.Items[I].VRML1ParentsCount + List.Items[I].ParentFieldsCount = 0) then
+      if (List.Items[I] <> nil) and List.Items[I].Unused then
         List.Items[I].Free;
     FreeAndNil(List);
   end;

@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -1315,7 +1315,7 @@ begin
   begin
     {$ifdef GLIndexesShort}
     if Integer(Count - 1) * IndexesPerQuad + IndexesPerQuad - 1 > High(Word) then
-      raise Exception.CreateFmt('Maximum index value is larger than %d (max 16-bit unsigned integer). Split your rendering into more shapes (draw calls). Or undefine GLIndexesShort in castleconf.inc to be able to render your data (but beware that it may fail on some buggy Android devices).', [High(Word)]);
+      raise Exception.CreateFmt('Maximum index value is larger than %d (max 16-bit unsigned integer). ' + 'Split your rendering into more shapes (draw calls). Or undefine GLIndexesShort in castleconf.inc to be able to render your data (but beware that it may fail on some buggy Android devices).', [High(Word)]);
     {$endif}
     SetLength(Indexes, Count * IndexesPerQuad);
     for I := 0 to Count - 1 do
@@ -1513,11 +1513,14 @@ var
       A := 1/11, B = 10/11
   }
   procedure FitWithin(var A, B: Single; const Max: Single);
+  var
+    Sum: Single;
   begin
-    if A + B > Max then
+    Sum := A + B;
+    if Sum > Max then
     begin
-      A := Max * A / (A + B);
-      B := Max * B / (A + B);
+      A := Max * A / Sum;
+      B := Max * B / Sum;
     end;
   end;
 

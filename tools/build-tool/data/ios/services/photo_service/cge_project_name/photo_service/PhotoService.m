@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in the "Castle Game Engine" distribution,
   for details about the copyright.
 
@@ -27,10 +27,12 @@
 
 - (bool)messageReceived:(NSArray* )message
 {
-    if (message.count == 2 &&
+    if (message.count == 3 &&
         [[message objectAtIndex: 0] isEqualToString:@"photoservice-store-image"])
     {
         NSString* sFileUrl = [message objectAtIndex: 1];
+        // NSString* mimeType = [message objectAtIndex: 2]; // ignored by iOS service
+
         NSURL *urlFile = [NSURL URLWithString:sFileUrl];
         UIImage *img = [UIImage imageWithContentsOfFile:[urlFile path]];
         if (img!=nil)

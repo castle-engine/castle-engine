@@ -2,7 +2,7 @@
 
 <!--
 Specify runtime settings of this project, like UI scaling and default font.
-See https://castle-engine.io/manual_castle_settings.php for documentation of this file.
+See https://castle-engine.io/data_settings for documentation of this file.
 -->
 
 <castle_settings>

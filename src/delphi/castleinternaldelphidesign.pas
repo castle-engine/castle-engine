@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -20,6 +20,8 @@
 
   - Sets up Delphi IDE menu items to configure project for Castle Game Engine. }
 unit CastleInternalDelphiDesign;
+
+{$I castleconf.inc}
 
 interface
 
@@ -618,7 +620,7 @@ begin
 
     // auto-create simple manifest, just like https://castle-engine.io/control_on_form#_opening_the_project_in_cge_editor proposes
     ManifestContents := StringReplace(ManifestTemplate, '${PROJECT_NAME}', ProposedProjectName, [rfReplaceAll]);
-    StringToFile(FilenameToUriSafe(ProjManifest), AnsiString(ManifestContents));
+    StringToFile(FilenameToUriSafe(ProjManifest), ManifestContents);
   end;
 
   ExeName := InclPathDelim(EnginePath) + 'bin' + PathDelim + 'castle-editor' + ExeExtension;

@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -181,7 +181,10 @@
       Note: you can adjust InitialOffset to determine the offset for starting new sound.
       It is deliberately a separate property from current @link(Offset),
       otherwise it would be too easy to accidentally start playing in the middle when
-      you wanted to play from the start. }
+      you wanted to play from the start.
+
+      TODO: Setting offset for streaming sounds (@link(TCastleSound.Stream))
+      is not yet implemented on some backends (like OpenAL). }
     property Offset: Single read GetOffset write SetOffset;
 
     { Initial position, in seconds, within the sound when we start playing it.

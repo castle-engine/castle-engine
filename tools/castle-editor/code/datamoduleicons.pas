@@ -8,9 +8,18 @@ uses
   Classes, SysUtils, Controls;
 
 type
+  { Icons for various forms, collected in TImageList components. }
   TIcons = class(TDataModule)
-    ToolbarSpriteSheet: TImageList;
+    { Toolbar of FrameDesign form. }
     ToolbarIcons: TImageList;
+    { Alt version of ToolbarIcons, for dark theme, used when button inactive (but enabled). }
+    ToolbarIconsDarkInactive: TImageList;
+    { Alt version of ToolbarIcons, for dark theme, used when button active (and enabled). }
+    ToolbarIconsDarkActive: TImageList;
+    { Alt version of ToolbarIcons, for dark theme, used when button disabled. }
+    ToolbarIconsDarkDisabled: TImageList;
+
+    ToolbarSpriteSheet: TImageList;
     MenuSpriteSheet: TImageList;
   private
   public

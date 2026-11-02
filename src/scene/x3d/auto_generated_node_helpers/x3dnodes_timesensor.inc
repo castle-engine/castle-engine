@@ -1,10 +1,10 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2025 Michalis Kamburelis.
+  Copyright 2015-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -28,8 +28,6 @@
     procedure SetCycleInterval(const Value: TFloatTime);
     function GetEnabled: Boolean;
     procedure SetEnabled(const Value: Boolean);
-    function GetDescription: String;
-    procedure SetDescription(const Value: String);
     function GetFractionIncreasing: Boolean;
     procedure SetFractionIncreasing(const Value: Boolean);
     function GetDetectAffectedFields: Boolean;
@@ -63,12 +61,6 @@
     {  }
     property Enabled: Boolean read GetEnabled write SetEnabled;
 
-    strict private FFdDescription: TSFString;
-    { Internal wrapper for property @code(Description). This wrapper API may change, we advise to access simpler @code(Description) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdDescription: TSFString read FFdDescription;
-    {  }
-    property Description: String read GetDescription write SetDescription;
-
     strict private FFdFractionIncreasing: TSFBool;
     { Internal wrapper for property @code(FractionIncreasing). This wrapper API may change, we advise to access simpler @code(FractionIncreasing) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdFractionIncreasing: TSFBool read FFdFractionIncreasing;
@@ -80,6 +72,7 @@
     public property FdDetectAffectedFields: TSFBool read FFdDetectAffectedFields;
     {  }
     property DetectAffectedFields: Boolean read GetDetectAffectedFields write SetDetectAffectedFields;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -105,16 +98,6 @@ end;
 procedure TTimeSensorNode.SetEnabled(const Value: Boolean);
 begin
   FdEnabled.Send(Value);
-end;
-
-function TTimeSensorNode.GetDescription: String;
-begin
-  Result := FdDescription.Value;
-end;
-
-procedure TTimeSensorNode.SetDescription(const Value: String);
-begin
-  FdDescription.Send(Value);
 end;
 
 function TTimeSensorNode.GetFractionIncreasing: Boolean;
@@ -163,10 +146,6 @@ begin
    FdEnabled.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdEnabled);
 
-  FFdDescription := TSFString.Create(Self, True, 'description', '');
-   FdDescription.ChangeAlways := chNone;
-  AddField(FFdDescription);
-
   FFdFractionIncreasing := TSFBool.Create(Self, True, 'fractionIncreasing', true);
    FdFractionIncreasing.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdFractionIncreasing);
@@ -174,6 +153,15 @@ begin
   FFdDetectAffectedFields := TSFBool.Create(Self, False, 'detectAffectedFields', true);
    FdDetectAffectedFields.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdDetectAffectedFields);
+end;
+
+procedure TTimeSensorNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  if not FdFractionIncreasing.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdFractionIncreasing.X3DName);
+  if not FdDetectAffectedFields.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdDetectAffectedFields.X3DName);
 end;
 
 {$endif read_implementation}

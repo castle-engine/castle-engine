@@ -10,7 +10,7 @@ uses
   athreads,
   {$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  Forms, FormMain, castle_components
+  Forms, FormMain, castle_engine_lcl
   { you can add units after this };
 
 {$R *.res}

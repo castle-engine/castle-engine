@@ -1,4 +1,5 @@
 #!/bin/bash
+set -eu
 
 cd ../../vrml/
 gen_light_map base.wrl /tmp/base_shadowed.rgbe \

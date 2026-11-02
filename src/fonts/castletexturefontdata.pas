@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -203,7 +203,7 @@ type
       @raises EFreeTypeLibraryNotFound If the freetype library is not installed. }
     constructor Create(const AUrl: String;
       const ASize: Cardinal; const AnAntiAliased: Boolean;
-      ACharacters: TUnicodeCharList = nil; const ADistanceField: Boolean = false);
+      ACharacters: TUnicodeCharSet = nil; const ADistanceField: Boolean = false);
 
     { Create from a ready data for glyphs and image.
       Useful when font data is embedded inside the Pascal source code.
@@ -268,7 +268,7 @@ type
     { List all characters for which glyphs are actually loaded.
       @link(Glyph) will answer non-nil exactly for these characters.
       The resulting list instance is owned by caller, so take care to free it. }
-    function LoadedGlyphs: TUnicodeCharList;
+    function LoadedGlyphs: TUnicodeCharSet;
 
     function TextWidth(const S: string): Integer;
     function TextHeight(const S: string): Integer;
@@ -314,7 +314,7 @@ implementation
 
 uses Classes, SysUtils, Character,
   CastleLog, CastleUtils, CastleUriUtils, CastleFilesUtils, CastleDownload,
-  CastleInternalFreeTypeH;
+  CastleInternalFreeTypeH, CastleApplicationProperties;
 
 { TUnicodeCharEqualityComparer ----------------------------------------------- }
 
@@ -392,7 +392,7 @@ end;
 
 constructor TTextureFontData.Create(const AUrl: String;
   const ASize: Cardinal; const AnAntiAliased: Boolean;
-  ACharacters: TUnicodeCharList; const ADistanceField: Boolean);
+  ACharacters: TUnicodeCharSet; const ADistanceField: Boolean);
 var
   FontId: Integer;
 
@@ -499,8 +499,8 @@ var
       MaxB := 0;
       for RY := 0 to Bitmap^.Height - 1 do
         for RX := 0 to Bitmap^.Width - 1 do
-          if Bitmap^.Data^[RY + RY * Bitmap^.Pitch] > MaxB then
-            MaxB := Bitmap^.Data^[RY + RY * Bitmap^.Pitch];
+          if Bitmap^.Data^[RX + RY * Bitmap^.Pitch] > MaxB then
+            MaxB := Bitmap^.Data^[RX + RY * Bitmap^.Pitch];
       if MaxB = 0 then
         MaxB := 255; //doesn't matter in this case, the glyph doesn't have a single opaque pixel
 
@@ -619,25 +619,31 @@ begin
   FAntiAliased := AnAntiAliased;
   FUseFallbackGlyph := true;
 
+  {$ifdef WASI}
+  { On the web, we don't have FreeType library.
+    Also, CanCatchExceptions=false is possible (with older FPC) and then
+    raising an exception about FreeType (which InitFontMgr does)
+    would crash the application. }
+  if not ApplicationProperties.CanCatchExceptions then
+  begin
+    WritelnWarning('TCastleFont', 'Cannot load font "%s", WASI does not support FreeType library. Expect further problems after this warning -- TTextureFontData is not fully functional and not ready for this. We recommend to use web with a newer FPC version, that can handle exceptions and will recover from this situation gracefully.', [
+      UriDisplay(Url)
+    ]);
+    Exit;
+  end;
+  {$endif}
+
   InitFontMgr;
   FontId := FontMgr.RequestFont(Url);
 
   TemporaryCharacters := ACharacters = nil;
   if TemporaryCharacters then
   begin
-    ACharacters := TUnicodeCharList.Create;
+    ACharacters := TUnicodeCharSet.Create;
     ACharacters.Add(SimpleAsciiCharacters);
   end;
 
   ReadFontMetadata;
-
-  {$ifdef WASI}
-  // TODO: web: WASI does not support FreeType library, also we fail without exceptions because WASI doesn't have longjmp
-  WritelnWarning('TCastleFont', 'Cannot load font "%s", WASI does not support FreeType library', [
-    UriDisplay(Url)
-  ]);
-  Exit;
-  {$endif}
 
   try
     FGlyphsExtra := TGlyphDictionary.Create;
@@ -847,11 +853,11 @@ begin
   end;
 end;
 
-function TTextureFontData.LoadedGlyphs: TUnicodeCharList;
+function TTextureFontData.LoadedGlyphs: TUnicodeCharSet;
 var
   C: TUnicodeChar;
 begin
-  Result := TUnicodeCharList.Create;
+  Result := TUnicodeCharSet.Create;
   for C := 0 to High(FGlyphsByte) do
     if FGlyphsByte[C] <> nil then
       Result.Add(C);
@@ -976,6 +982,18 @@ begin
     Index := FEmbeddedFonts.IndexOf(FontUrl);
     if Index <> -1 then
       Result := FEmbeddedFonts.Objects[Index] as TTextureFontData;
+
+    if Index = -1 then
+    begin
+      Index := FEmbeddedFonts.IndexOf(UrlEncode(FontUrl));
+      if Index <> -1 then
+      begin
+        WritelnWarning('GetEmbeddedFont', 'Provided not escaped font URL "%s". We handle it for now (by searching for UrlEscape(FontUrl) instead of FontUrl) but this is an invalid URL, please fix your code to avoid this warning. Process things with UrlEncode to turn e.g. spaces into %20 in URL.', [
+          FontUrl
+        ]);
+        Result := FEmbeddedFonts.Objects[Index] as TTextureFontData;
+      end;
+    end;
   end;
 end;
 

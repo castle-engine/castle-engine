@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -222,14 +222,19 @@ type
       This is often used together with the
       @link(TCastleRenderOptions.Mode RenderOptions.Mode)
       set to rmSolidColor. In such case,
-      Then @link(TCastleRenderOptions.SolidColor) determinesthe fill color. }
+      Then @link(TCastleRenderOptions.SolidColor) determines the fill color.
+
+      Control the depth offset using
+      @link(TCastleRenderOptions.SolidWireframeScale) and
+      @link(TCastleRenderOptions.SolidWireframeBias). }
     weSolidWireframe,
 
     { The model is rendered as normal, with silhouette outlined around it.
-      This works quite like weSolidWireframe, except that weSolidWireframe
-      makes the wireframe mesh slightly in front the model, while weSilhouette
-      makes the wireframe mesh slightly at the back of the model. This way
-      only the silhouette is visible from the wireframe rendering.
+
+      This works similar to weSolidWireframe, but in weSolidWireframe
+      we render the wireframe slightly in front the model (to show all the lines),
+      while in weSilhouette we render the wireframe slightly behind the model.
+      This way only the silhouette lines should be visible.
 
       @link(TCastleRenderOptions.WireframeColor Scene.RenderOptions.WireframeColor) and
       @link(TCastleRenderOptions.LineWidth Scene.RenderOptions.LineWidth) determine the color and width
@@ -238,7 +243,11 @@ type
       This is often used together with the
       @link(TCastleRenderOptions.Mode RenderOptions.Mode)
       set to rmSolidColor. In such case,
-      Then @link(TCastleRenderOptions.SolidColor) determinesthe fill color. }
+      Then @link(TCastleRenderOptions.SolidColor) determines the fill color.
+
+      Control the depth offset using
+      @link(TCastleRenderOptions.SilhouetteScale) and
+      @link(TCastleRenderOptions.SilhouetteBias). }
     weSilhouette
   );
 
@@ -489,6 +498,11 @@ type
 
     @exclude }
   TDepthRange = (drFull, drNear, drFar);
+
+  { Primitive material type, used by
+    @link(TCastleAbstractPrimitive.Material) and
+    @link(TCastleImageTransform.Material). }
+  TPrimitiveMaterial = (pmPhysical, pmPhong, pmUnlit);
 
 const
   ShadowSamplingNames: array [TShadowSampling] of string =

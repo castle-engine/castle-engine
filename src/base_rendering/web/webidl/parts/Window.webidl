@@ -37,6 +37,9 @@ interface nsIDOMWindowUtils;
 interface nsIPrintSettings;
 
 interface Window : EventTarget {
+  [PutForwards=href, LegacyUnforgeable, CrossOriginReadable,
+   CrossOriginWritable] readonly attribute Location location;
+
   [Throws] WindowProxy? open(optional USVString url = "", optional DOMString target = "", optional [LegacyNullToEmptyString] DOMString features = "");
 };
 

@@ -1,10 +1,10 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2025 Michalis Kamburelis.
+  Copyright 2015-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -92,7 +92,11 @@
     strict private FFdVisible: TSFBool;
     { Internal wrapper for property @code(Visible). This wrapper API may change, we advise to access simpler @code(Visible) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdVisible: TSFBool read FFdVisible;
-    { Not implemented. Whether or not the content within a node is visually displayed. The value of this field has no effect on animation behaviors, collision behaviors, event passing, or other non-visual characteristics. }
+    { Are shapes inside this group displayed.
+
+    The value of this field has no effect on animation behaviors, collision behaviors, event passing, lighting, or other non-visual characteristics. When this is @false, we merely do not render the @link(TAbstractShapeNode shapes) inside the group. Everything else works as usual.
+
+    @seealso TAbstractGroupingNode.Visible }
     property Visible: Boolean read GetVisible write SetVisible;
 
     strict private FFdBboxCenter: TSFVec3f;
@@ -243,7 +247,7 @@ begin
   AddField(FFdUrl);
 
   FFdVisible := TSFBool.Create(Self, True, 'visible', true);
-   FdVisible.ChangeAlways := chVisibleNonGeometry;
+   FdVisible.ChangeAlways := chShapeTreeVisible;
   AddField(FFdVisible);
 
   FFdBboxCenter := TSFVec3f.Create(Self, False, 'bboxCenter', Vector3(0, 0, 0));

@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -59,7 +59,6 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
-    function TransformationChange: TNodeTransformationChange; override;
   {$I auto_generated_node_helpers/x3dnodes_cadpart.inc}
   end;
 
@@ -90,7 +89,8 @@
       TIndexedTriangleSetNode. That is, these indexes have 3 items for each triangle,
       6 items for each quad. You can use them to index all the vertex coordinates
       and per-vertex attributes, and thus render TQuadSetNode just like you would render
-      TIndexedTriangleSetNode. }
+      TIndexedTriangleSetNode.
+      @exclude }
     function InternalTrianglesCoordIndex: TMFLong;
 
     procedure InternalCoordPolygons(
@@ -164,11 +164,6 @@ function TCADPartNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): P
 begin
   Result := FdChildren.Enumerate(Func);
   if Result <> nil then Exit;
-end;
-
-function TCADPartNode.TransformationChange: TNodeTransformationChange;
-begin
-  Result := ntcTransform;
 end;
 
 function TIndexedQuadSetNode.CoordIndexField: TMFLong;

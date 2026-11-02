@@ -1,9 +1,9 @@
 {
-  Copyright 2018-2024 Michalis Kamburelis.
+  Copyright 2018-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -75,7 +75,8 @@ implementation
 
 {$R *.lfm}
 
-uses CastleConfig, CastleLCLUtils, CastleUriUtils, CastleUtils, CastleOpenDocument,
+uses Math,
+  CastleConfig, CastleLCLUtils, CastleUriUtils, CastleUtils, CastleOpenDocument,
   CastleFilesUtils, CastleParameters, CastleLog, CastleStringUtils, CastleGLUtils,
   CastleApplicationProperties, CastleInternalTools,
   ProjectUtils, EditorUtils, FormNewProject, FormPreferences, DesignSteam,
@@ -252,10 +253,33 @@ procedure TChooseProjectForm.FormCreate(Sender: TObject);
     MuteOnRun := UserConfig.GetValue('sound/mute_on_run', DefaultMuteOnRun);
     EditorVolume := UserConfig.GetFloat('sound/editor_volume', DefaultEditorVolume);
     Compiler := StringToCompiler(UserConfig.GetValue('compiler', CompilerToString(DefaultCompiler)));
+    MSBuildDontPassEnginePaths := UserConfig.GetValue('msbuild_dont_pass_engine_paths', false);
     AndroidHome := UserConfig.GetValue('android_home', '');
     JavaHome := UserConfig.GetValue('java_home', '');
     SoundEngineSetVolume;
   end;
+
+  {$ifdef LCLGTK3}
+  { With LCL GTK3, InnerBorder seems to be additionally scaled, so limit it. }
+  procedure FixGtk3Layout;
+  const
+    MaxInnerBorder = 8;
+  begin
+    ButtonOpen.BorderSpacing.InnerBorder :=
+      Min(MaxInnerBorder, ButtonOpen.BorderSpacing.InnerBorder);
+    ButtonOpenRecent.BorderSpacing.InnerBorder :=
+      Min(MaxInnerBorder, ButtonOpenRecent.BorderSpacing.InnerBorder);
+    ButtonOpenExample.BorderSpacing.InnerBorder :=
+      Min(MaxInnerBorder, ButtonOpenExample.BorderSpacing.InnerBorder);
+    ButtonNew.BorderSpacing.InnerBorder :=
+      Min(MaxInnerBorder, ButtonNew.BorderSpacing.InnerBorder);
+    ButtonPreferences.BorderSpacing.InnerBorder :=
+      Min(MaxInnerBorder, ButtonPreferences.BorderSpacing.InnerBorder);
+    ButtonSupportUs.BorderSpacing.InnerBorder :=
+      Min(MaxInnerBorder, ButtonSupportUs.BorderSpacing.InnerBorder);
+  end;
+
+  {$endif}
 
 begin
   UserConfig.Load;
@@ -266,6 +290,10 @@ begin
 
   UseEditorApplicationData;
   InternalCastleDesignData := ResolveCastleDataUrl('castle-data:/');
+
+  {$ifdef LCLGTK3}
+  FixGtk3Layout;
+  {$endif}
 end;
 
 procedure TChooseProjectForm.FormDestroy(Sender: TObject);
@@ -282,6 +310,7 @@ procedure TChooseProjectForm.FormDestroy(Sender: TObject);
     UserConfig.SetDeleteValue('sound/mute_on_run', MuteOnRun, DefaultMuteOnRun);
     UserConfig.SetDeleteFloat('sound/editor_volume', EditorVolume, DefaultEditorVolume);
     UserConfig.SetDeleteValue('compiler', CompilerToString(Compiler), CompilerToString(DefaultCompiler));
+    UserConfig.SetDeleteValue('msbuild_dont_pass_engine_paths', MSBuildDontPassEnginePaths, false);
     UserConfig.SetDeleteValue('android_home', AndroidHome, '');
     UserConfig.SetDeleteValue('java_home', JavaHome, '');
   end;

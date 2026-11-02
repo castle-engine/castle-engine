@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -53,7 +53,7 @@ end;
   FCenterPersistent := TCastleVector3Persistent.Create(nil);
   { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
     on themselves, for backward compatibility. But we should not depend on it,
-    some classes (like TFloatRectanglePersisten) may not call it.
+    some classes (like TFloatRectanglePersistent) may not call it.
     The responsibility of calling "SetSubComponent(true)" should be on the owner
     in general (this is more functional, and more standard too). }
   FCenterPersistent.SetSubComponent(true);
@@ -72,7 +72,7 @@ end;
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -121,7 +121,7 @@ end;
   FRotationPersistent := TCastleVector4RotationPersistent.Create(nil);
   { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
     on themselves, for backward compatibility. But we should not depend on it,
-    some classes (like TFloatRectanglePersisten) may not call it.
+    some classes (like TFloatRectanglePersistent) may not call it.
     The responsibility of calling "SetSubComponent(true)" should be on the owner
     in general (this is more functional, and more standard too). }
   FRotationPersistent.SetSubComponent(true);
@@ -140,7 +140,7 @@ end;
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -189,7 +189,7 @@ end;
   FScalePersistent := TCastleVector3Persistent.Create(nil);
   { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
     on themselves, for backward compatibility. But we should not depend on it,
-    some classes (like TFloatRectanglePersisten) may not call it.
+    some classes (like TFloatRectanglePersistent) may not call it.
     The responsibility of calling "SetSubComponent(true)" should be on the owner
     in general (this is more functional, and more standard too). }
   FScalePersistent.SetSubComponent(true);
@@ -208,7 +208,7 @@ end;
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -257,7 +257,7 @@ end;
   FScaleOrientationPersistent := TCastleVector4Persistent.Create(nil);
   { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
     on themselves, for backward compatibility. But we should not depend on it,
-    some classes (like TFloatRectanglePersisten) may not call it.
+    some classes (like TFloatRectanglePersistent) may not call it.
     The responsibility of calling "SetSubComponent(true)" should be on the owner
     in general (this is more functional, and more standard too). }
   FScaleOrientationPersistent.SetSubComponent(true);
@@ -276,7 +276,7 @@ end;
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -325,7 +325,7 @@ end;
   FTranslationPersistent := TCastleVector3Persistent.Create(nil);
   { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
     on themselves, for backward compatibility. But we should not depend on it,
-    some classes (like TFloatRectanglePersisten) may not call it.
+    some classes (like TFloatRectanglePersistent) may not call it.
     The responsibility of calling "SetSubComponent(true)" should be on the owner
     in general (this is more functional, and more standard too). }
   FTranslationPersistent.SetSubComponent(true);
@@ -344,7 +344,7 @@ end;
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -393,7 +393,7 @@ end;
   FDirectionPersistent := TCastleVector3Persistent.Create(nil);
   { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
     on themselves, for backward compatibility. But we should not depend on it,
-    some classes (like TFloatRectanglePersisten) may not call it.
+    some classes (like TFloatRectanglePersistent) may not call it.
     The responsibility of calling "SetSubComponent(true)" should be on the owner
     in general (this is more functional, and more standard too). }
   FDirectionPersistent.SetSubComponent(true);
@@ -412,7 +412,7 @@ end;
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -461,7 +461,7 @@ end;
   FUpPersistent := TCastleVector3Persistent.Create(nil);
   { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
     on themselves, for backward compatibility. But we should not depend on it,
-    some classes (like TFloatRectanglePersisten) may not call it.
+    some classes (like TFloatRectanglePersistent) may not call it.
     The responsibility of calling "SetSubComponent(true)" should be on the owner
     in general (this is more functional, and more standard too). }
   FUpPersistent.SetSubComponent(true);

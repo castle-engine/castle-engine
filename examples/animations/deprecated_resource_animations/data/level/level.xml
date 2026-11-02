@@ -1,8 +1,0 @@
-<?xml version="1.0"?>
-<level
-  name="main_level"
-  type="Level"
-  scene="base.gltf"
-  placeholders="blender"
-  title="Main Level"
-/>

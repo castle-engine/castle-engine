@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -527,6 +527,14 @@ var
 begin
   Assert(Source is TSFNode);
   GoodCopyState := CopyState as TX3DNodeDeepCopyState;
+
+  { Copy also WeakLink state from Source, to not create cycles in
+    DirectEnumerateAll that have been broken by WeakLink=true in the original.
+    Also set Value to nil before changing WeakLink, this is required by
+    TSFNode.SetWeakLink.
+    Testcase: tests/data/proto_reuse_first_node/full_connectors.x3d }
+  Value := nil;
+  WeakLink := TSFNode(Source).WeakLink;
 
   { Similar to TSFNode.Assign }
   Value              := DeepCopyNode(TSFNode(Source).Value);

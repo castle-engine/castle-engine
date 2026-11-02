@@ -14,4 +14,5 @@ JSON=IJSJSON
 Error=IJSError
 TextEncoder=IJSTextEncode
 TextDecoder=IJSTextDecoder
+Float32Array=IJSFloat32Array
 

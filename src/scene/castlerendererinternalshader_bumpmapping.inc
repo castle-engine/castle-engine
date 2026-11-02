@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -85,15 +85,6 @@ begin
   HasBumpMappingUniform_HeightMapScale := false;
 
   if BumpMapping = bmNone then Exit;
-
-  {$ifdef CASTLE_WEBGL}
-  { TODO: web: this fails with GLSL compilation error:
-      EGLSLShaderCompileError: Vertex shader not compiled:
-      0(16) : error C1503: undefined variable "_ucastle_tangent_to_eye_space"
-    in Vivaldi. In FireFox, the variable name is more cryptic. }
-  WritelnWarning('WebGL', 'Bump Mapping not supported on WebGL for now');
-  Exit;
-  {$endif}
 
   // add basic bump mapping code
   VertexShader   := {$I bump_mapping.vs.inc};

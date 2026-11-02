@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -58,6 +58,9 @@
       if no declaration "precision mediump/lowp/highp float;" is found in the code.
       This is practically universally needed for OpenGLES fragment shader,
       that have no default precision.
+
+      See also WebGL recommendations:
+      https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/WebGL_best_practices#be_precise_with_glsl_precision_annotations
     )
 
     @item(
@@ -640,7 +643,7 @@ property CurrentProgram: TGLSLProgram
   read GetCurrentProgram write SetCurrentProgram;
 {$endif FPC}
 
-// @exclude User by RenderContext.SetCurrentProgram
+{ Used by RenderContext.SetCurrentProgram. @exclude }
 procedure InternalSetCurrentProgram(const Value: TGLSLProgram);
 
 var
@@ -672,23 +675,17 @@ begin
   and our CastleGL header). }
 var
   Len, Len2: TGLint;
-{$ifndef FPC}
-  AnsiResult: AnsiString;
-{$endif}
+  { We assume the driver returns UTF-8 (though it is usually ASCII in practice). }
+  Result8: Utf8String;
 begin
   glGetShaderiv(ShaderId, GL_INFO_LOG_LENGTH, @Len);
 
   if Len <> 0 then
   begin
-    {$ifdef FPC}
-      SetLength(Result, Len);
-      glGetShaderInfoLog(ShaderId, Len, @Len2, PChar(Result));
-    {$else}
-      SetLength(AnsiResult, Len);
-      glGetShaderInfoLog(ShaderId, Len, @Len2, PAnsiChar(AnsiResult));
-      Result := String(AnsiResult);
-    {$endif}
-    StringReplaceAllVar(Result, #0, NL);
+    SetLength(Result8, Len);
+    glGetShaderInfoLog(ShaderId, Len, @Len2, PAnsiChar(Result8));
+    SetLength(Result8, Len2); // trim to Len2, as GL_INFO_LOG_LENGTH included size with null terminator
+    Result := Result8;
   end else
     Result := '';
 {$endif}
@@ -702,23 +699,17 @@ begin
 {$else}
 var
   Len, Len2: TGLint;
-{$ifndef FPC}
-  AnsiResult: AnsiString;
-{$endif}
+  { We assume the driver returns UTF-8 (though it is usually ASCII in practice). }
+  Result8: Utf8String;
 begin
   glGetProgramiv(ProgramId, GL_INFO_LOG_LENGTH, @Len);
 
   if Len <> 0 then
   begin
-    {$ifdef FPC}
-      SetLength(Result, Len);
-      glGetProgramInfoLog(ProgramId, Len, @Len2, PChar(Result));
-    {$else}
-      SetLength(AnsiResult, Len);
-      glGetProgramInfoLog(ProgramId, Len, @Len2, PAnsiChar(AnsiResult));
-      Result := String(AnsiResult);
-    {$endif}
-    StringReplaceAllVar(Result, #0, NL);
+    SetLength(Result8, Len);
+    glGetProgramInfoLog(ProgramId, Len, @Len2, PAnsiChar(Result8));
+    SetLength(Result8, Len2); // trim to Len2, as GL_INFO_LOG_LENGTH included size with null terminator
+    Result := Result8;
   end else
     Result := '';
 {$endif}
@@ -1402,9 +1393,9 @@ begin
       GL_SAMPLER_2D: Result := 'SAMPLER_2D';
       {$ifndef OpenGLES} GL_SAMPLER_3D: Result := 'SAMPLER_3D'; {$endif}
       GL_SAMPLER_CUBE: Result := 'SAMPLER_CUBE';
-      {$ifndef OpenGLES}
-      GL_SAMPLER_1D_SHADOW: Result := 'SAMPLER_1D_SHADOW';
+      {$ifndef OpenGLES} GL_SAMPLER_1D_SHADOW: Result := 'SAMPLER_1D_SHADOW'; {$endif}
       GL_SAMPLER_2D_SHADOW: Result := 'SAMPLER_2D_SHADOW';
+      {$ifndef OpenGLES}
       GL_SAMPLER_2D_RECT: Result := 'SAMPLER_2D_RECT';
       GL_SAMPLER_2D_RECT_SHADOW: Result := 'SAMPLER_2D_RECT_SHADOW';
       GL_INT_SAMPLER_2D_RECT: Result := 'INT_SAMPLER_2D_RECT';
@@ -1440,7 +1431,7 @@ begin
     ReturnedLength: TGLsizei;
     Size: TGLint;
     AType: TGLEnum;
-    Name: AnsiString;
+    Name: Utf8String;
     ErrorCode: TGLenum;
   begin
     if GLFeatures.Shaders then
@@ -1491,7 +1482,7 @@ begin
     ReturnedLength: TGLsizei;
     Size: TGLint;
     AType: TGLEnum;
-    Name: AnsiString;
+    Name: Utf8String;
     ErrorCode: TGLenum;
   begin
     if GLFeatures.Shaders then
@@ -1624,9 +1615,7 @@ var
     {$ifndef CASTLE_WEBGL}
     SrcPtr: PGLChar;
     SrcLength: Cardinal;
-    {$ifndef FPC}
-    AnsiS: AnsiString;
-    {$endif}
+    Source8: Utf8String;
     CompiledInt: TGLint;
     {$endif not CASTLE_WEBGL}
     Compiled: Boolean;
@@ -1635,19 +1624,15 @@ var
 
     { Call glShaderSource to pass source code S to shader.
       This is trivial in WebGL, but requires some work for OpenGL / OpenGLES
-      to express string data as needed (and for Delphi, extra work needed
-      to convert UnicodeString to 8-bit AnsiString). }
+      to express string data as needed.
+      To work with both String=AnsiString and String=UnicodeString,
+      we use Utf8String to communicate with the OpenGL API. }
     {$ifdef CASTLE_WEBGL}
     glShaderSource(Result, S);
     {$else}
-    {$ifdef FPC}
-    SrcPtr := PGLChar(S);
-    SrcLength := Length(S);
-    {$else}
-    AnsiS := AnsiString(S);
-    SrcPtr := PGLChar(AnsiS);
-    SrcLength := Length(AnsiS);
-    {$endif}
+    Source8 := S;
+    SrcPtr := PGLChar(Source8);
+    SrcLength := Length(Source8);
     glShaderSource(Result, 1, @SrcPtr, @SrcLength);
     {$endif}
 
@@ -1709,6 +1694,10 @@ const
     '#define texture3DProj textureProj' + NL +
     '#define gl_FragColor castle_FragColor' + NL +
     'out mediump vec4 castle_FragColor;' + NL +
+    { We need to use highp for shadow maps processing on mobile,
+      to make the shadows look good,
+      see https://github.com/castle-engine/castle-engine/pull/674 }
+    '#define shadowsPrecision highp' + NL +
     'precision lowp sampler2DShadow;' + NL +
     'precision lowp sampler3D;' + NL
   );
@@ -1739,7 +1728,8 @@ const
     '#define texture2DProj textureProj' + NL +
     '#define texture3DProj textureProj' + NL +
     '#define gl_FragColor castle_FragColor' + NL +
-    'out mediump vec4 castle_FragColor;' + NL
+    'out mediump vec4 castle_FragColor;' + NL +
+    '#define shadowsPrecision' + NL
   );
   {$endif}
 
@@ -1750,6 +1740,47 @@ const
       (Pos(#13 + LinePrefix, S) <> 0) or
       (Pos(#10 + LinePrefix, S) <> 0) or
       IsPrefix(LinePrefix, S, false);
+  end;
+
+  { Workaround bug of old ANGLE version in Firefox,
+    that requires main() to be after all "varying" declarations.
+    See
+    https://bugzilla.mozilla.org/show_bug.cgi?id=2039887
+    https://github.com/michaliskambi/firefox-webgl-angle-varying-bug
+
+    Shaders where this is necessary (only vertex shaders
+    are affected by this bug, and only if we'll generate
+    there code using our "plugs" system) should have markers
+    "/* CASTLE-MAIN-BEGIN */" and "/* CASTLE-MAIN-END */.
+    Example: src/scene/glsl/source/main_shading_phong.vs .
+
+    Not doing this would break many features of our engine shaders
+    using "varying" variables, like
+    - clip planes (to implement X3D ClipPlane node) (testcase: pope call in Unholy)
+    - bump mapping
+    - fog
+    - water in examples/terrain/
+    - time to shader (in castle-model-viewer-mobile demo)
+  }
+  procedure WebGLMoveMainBlockToEnd;
+  {$ifdef CASTLE_WEBGL}
+  const
+    SMarkerBegin = '/* CASTLE-MAIN-BEGIN */';
+    SMarkerEnd = '/* CASTLE-MAIN-END */';
+  var
+    MarkerBegin, MarkerEnd: Integer;
+    Main: String;
+  begin
+    MarkerBegin := Pos(SMarkerBegin, S);
+    if MarkerBegin = 0 then Exit;
+    MarkerEnd := Pos(SMarkerEnd, S);
+    if MarkerEnd = 0 then Exit;
+    Main := CopyPos(S, MarkerBegin, MarkerEnd + Length(SMarkerEnd) - 1);
+    Delete(S, MarkerBegin, MarkerEnd + Length(SMarkerEnd) - MarkerBegin);
+    S := S + NL + Main;
+  {$else}
+  begin
+  {$endif}
   end;
 
 const
@@ -1800,6 +1831,8 @@ begin
      (not HasLine('#version ', S)) then
     S := {$ifdef OpenGLES} GLES30CoreHeader {$else} GL31CoreHeader {$endif}
       [ShaderType] + S;
+
+  WebGLMoveMainBlockToEnd;
 
   ShaderId := CreateShader(S);
 
@@ -1858,8 +1891,8 @@ var
   VaryingLength: Cardinal;
   {$ifndef CASTLE_WEBGL}
   I: Integer;
-  VaryingsAnsi: array of AnsiString;
-  VaryingsAnsiPtr: array of PAnsiChar;
+  Varyings8: array of Utf8String;
+  Varyings8Ptr: array of PAnsiChar;
   {$endif}
 begin;
   VaryingLength := Length(Varyings);
@@ -1876,14 +1909,14 @@ begin;
     {$ifdef CASTLE_WEBGL}
     GL2.transformFeedbackVaryings(ProgramId, ListToWebGL(Varyings), TransformFeedbackBufferMode);
     {$else}
-    SetLength(VaryingsAnsi, VaryingLength);
-    SetLength(VaryingsAnsiPtr, VaryingLength);
+    SetLength(Varyings8, VaryingLength);
+    SetLength(Varyings8Ptr, VaryingLength);
     for I := 0 to VaryingLength - 1 do
     begin
-      VaryingsAnsi[I] := Varyings[I];
-      VaryingsAnsiPtr[I] := PAnsiChar(VaryingsAnsi[I]);
+      Varyings8[I] := Varyings[I];
+      Varyings8Ptr[I] := PAnsiChar(Varyings8[I]);
     end;
-    glTransformFeedbackVaryings(ProgramId, VaryingLength, @VaryingsAnsiPtr[0], TransformFeedbackBufferMode);
+    glTransformFeedbackVaryings(ProgramId, VaryingLength, @Varyings8Ptr[0], TransformFeedbackBufferMode);
     {$endif}
 
     ErrorCode := glGetError();

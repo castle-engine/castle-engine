@@ -62,11 +62,11 @@ Which package is run-time, which is design-time?
 
 Platforms:
 
-- `castle_engine_design.bpl` has to be for Win32 only, as it depends on `designide` package which is only for Win32.
+- `castle_engine_design.bpl` is only for platforms where Delphi IDE runs, as it depends on `designide` package. This means Win32 and Win64 now.
 
 - `castle_engine_vcl.bpl` can be only for platforms supported by VCL, which means Win32 and Win64.
 
-- Other packages are for all platforms supported by CGE (with Delphi), which right now means Win32, Win64, Linux 64-bit.
+- Other packages are for all platforms supported by CGE (with Delphi), which right now means Win32, Win64, [Linux](https://castle-engine.io/delphi_linux), [Android and iOS](https://castle-engine.io/delphi_mobile), [macOS](https://castle-engine.io/delphi_macos).
 
 ## Various notes about why packages are configured like this
 
@@ -76,13 +76,15 @@ Platforms:
 
     As Delphi IDE is 32-bit right now, note that you can use _"Install"_ on any package (regardless of target platforms it supports) only when the platform is set to _"Windows 32-bit"_.
 
-    NOTE: Your applications can target all platforms supported by CGE with Delphi: _"Windows 32-bit"_, _"Windows 64-bit"_, _"Linux 64-bit"_. Here you select _"Windows 32-bit"_ just because Delphi IDE is Win32 application.
+    NOTE: Your applications can target all platforms supported by CGE with Delphi: _"Windows 32-bit"_, _"Windows 64-bit"_, _"Linux 64-bit"_, Android, iOS, macOS. Here you select _"Windows 32-bit"_ just because Delphi IDE is Win32 application.
+
+    NOTE: Newer Delphi versions have also 64-bit IDE. If you have such Delphi, you can also _"Install"_ for _"Windows 64-bit"_.
 
 - The packages that register components (`TCastleControl` for both VCL and FMX) and their dependencies must include all platforms supported by Castle Game Engine with Delphi.
 
     This means _"Windows 32-bit"_, _"Windows 64-bit"_, _"Linux 64-bit"_. This allows to drop `TCastleControl` on a form when your application platform is set to any platform supported by CGE.
 
-- The `castle_engine_design` package _"Target platforms"_ must be only Win32. Because `designide` package is only for Windows 32-bit, just like Delphi IDE.
+- The `castle_engine_design` package _"Target platforms"_ must be only Win32 or Win64. Because `designide` package is only for Windows 32-bit and Windows 64-bit, just like Delphi IDE.
 
     And `designide` includes unit `ToolsAPI` which is in turn used by `CastleInternalDelphiDesign` unit.
 
@@ -150,4 +152,4 @@ Platforms:
 
     Therefore, we disable generation of these warnings on all CGE packages (to not miss other warnings).
 
-    Note that Castle Game Engine units should not cause these warnings, and CGE is supported with C++ Builder: https://castle-engine.io/delphi#cpp_builder . These warnings only mean you cannot use some Kraft API directly from C++ Builder , but this should not matter: when using Castle Game Engine, all the physics API should be done using CGE API.
+    Note that Castle Game Engine units should not cause these warnings, and CGE is supported with C++ Builder: https://castle-engine.io/cpp_builder . These warnings only mean you cannot use some Kraft API directly from C++ Builder , but this should not matter: when using Castle Game Engine, all the physics API should be done using CGE API.

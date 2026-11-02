@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -128,9 +128,9 @@ end;
 
 function TCastleFog.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'ColorPersistent') or
-     (PropertyName = 'FogType') or
-     (PropertyName = 'VisibilityRange') then
+  if ArrayContainsString(PropertyName, [
+       'ColorPersistent', 'FogType', 'VisibilityRange'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);

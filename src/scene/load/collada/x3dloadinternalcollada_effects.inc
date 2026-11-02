@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -147,7 +147,7 @@ begin
     { Collada 1.4 spefication about A_ONE:
       Takes the transparency information from the color’s
       alpha channel, where the value 1.0 is opaque. }
-    Result := 1 - Color.W;
+    Result := OpacityToTransparency(Color.W);
   end else
   if OpaqueMode = 'RGB_ZERO' then
   begin

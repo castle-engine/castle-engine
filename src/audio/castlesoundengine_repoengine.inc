@@ -1,10 +1,10 @@
 {%MainUnit castlesoundengine.pas}
 {
-  Copyright 2010-2024 Michalis Kamburelis.
+  Copyright 2010-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -30,10 +30,9 @@
     This class extends TSoundEngine. So using the sounds defined in the XML file
     is completely optional. You can also create instances of TCastleSound
     and use them through any other means -- by code, by setting them up in editor,
-    see https://castle-engine.io/manual_sound.php . }
+    see https://castle-engine.io/sound . }
   TRepoSoundEngine = class(TSoundEngine)
   private
-    {$ifndef PASDOC} // PasDoc cannot parse the private section of this correctly yet
     type
       TSoundInfoBuffer = class;
       TSoundInfoList = class;
@@ -139,7 +138,6 @@
       FSoundGroups: TSoundGroupList;
       FRepositoryUrl: String;
       FLoopingChannels: TLoopingChannelList;
-    {$endif PASDOC}
 
     procedure SetRepositoryUrl(const Value: String);
     { Reinitialize looping channels sounds.
@@ -531,6 +529,10 @@ end;
 
 destructor TRepoSoundEngine.Destroy;
 begin
+  // Avoid FSoundEngine being a dangling pointer
+  if FSoundEngine = Self then
+    FSoundEngine := nil;
+
   FreeAndNil(FSoundImportanceNames);
   FreeAndNil(FSounds);
   FreeAndNil(FSoundGroups);
@@ -689,7 +691,7 @@ begin
       absolute (to not depend on the current dir when loading sound files. }
     BaseUrl := AbsoluteURI(FRepositoryUrl);
 
-    Stream := Download(BaseUrl);
+    Stream := Download(BaseUrl, XmlReadingOptions);
     try
       ReadXMLFile(SoundConfig, Stream, BaseUrl);
     finally FreeAndNil(Stream) end;

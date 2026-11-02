@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -100,55 +100,55 @@ end;
 procedure Register;
 begin
   { URL properties }
-  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleSceneCore,
+  RegisterPropertyEditor(TypeInfo(String), TCastleSceneCore,
     'URL', TSceneUrlPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleImageControl,
+  RegisterPropertyEditor(TypeInfo(String), TCastleImageControl,
     'URL', TImageUrlPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleImagePersistent,
+  RegisterPropertyEditor(TypeInfo(String), TCastleImagePersistent,
     'URL', TImageUrlPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleAbstractPrimitive,
+  RegisterPropertyEditor(TypeInfo(String), TCastleAbstractPrimitive,
     'Texture', TImageUrlPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleAbstractPrimitive,
+  RegisterPropertyEditor(TypeInfo(String), TCastleAbstractPrimitive,
     'TextureNormalMap', TImageUrlPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleBitmapFont,
+  RegisterPropertyEditor(TypeInfo(String), TCastleBitmapFont,
     'ImageUrl', TImageUrlPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleImageTransform,
+  RegisterPropertyEditor(TypeInfo(String), TCastleImageTransform,
     'Url', TImageUrlPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleImageTransform,
+  RegisterPropertyEditor(TypeInfo(String), TCastleImageTransform,
     'UrlNormalMap', TImageUrlPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTerrainImage,
+  RegisterPropertyEditor(TypeInfo(String), TCastleTerrainImage,
     'Url', TImageUrlPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTerrainLayer,
+  RegisterPropertyEditor(TypeInfo(String), TCastleTerrainLayer,
     'Texture', TImageUrlPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleDesign,
+  RegisterPropertyEditor(TypeInfo(String), TCastleDesign,
     'URL', TUiDesignUrlPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTransformDesign,
+  RegisterPropertyEditor(TypeInfo(String), TCastleTransformDesign,
     'URL', TTransformDesignUrlPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleComponentFactory,
+  RegisterPropertyEditor(TypeInfo(String), TCastleComponentFactory,
     'Url', TAnyDesignUrlPropertyEditor);
   {$warnings off} // define to support deprecated, for now
-  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTiledMapControl,
+  RegisterPropertyEditor(TypeInfo(String), TCastleTiledMapControl,
     'URL', TTiledMapUrlPropertyEditor);
   {$warnings on}
-  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTiledMap,
+  RegisterPropertyEditor(TypeInfo(String), TCastleTiledMap,
     'URL', TTiledMapUrlPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleSound,
+  RegisterPropertyEditor(TypeInfo(String), TCastleSound,
     'URL', TSoundUrlPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleFont,
+  RegisterPropertyEditor(TypeInfo(String), TCastleFont,
     'URL', TFontUrlPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleBackground,
+  RegisterPropertyEditor(TypeInfo(String), TCastleBackground,
     'TextureNegativeX', TImageUrlPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleBackground,
+  RegisterPropertyEditor(TypeInfo(String), TCastleBackground,
     'TextureNegativeY', TImageUrlPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleBackground,
+  RegisterPropertyEditor(TypeInfo(String), TCastleBackground,
     'TextureNegativeZ', TImageUrlPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleBackground,
+  RegisterPropertyEditor(TypeInfo(String), TCastleBackground,
     'TexturePositiveX', TImageUrlPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleBackground,
+  RegisterPropertyEditor(TypeInfo(String), TCastleBackground,
     'TexturePositiveY', TImageUrlPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleBackground,
+  RegisterPropertyEditor(TypeInfo(String), TCastleBackground,
     'TexturePositiveZ', TImageUrlPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleControl,
+  RegisterPropertyEditor(TypeInfo(String), TCastleControl,
     'DesignUrl', TUiDesignUrlPropertyEditor);
 
   { Improved numeric properties }
@@ -207,13 +207,15 @@ begin
     TSize2DPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleVector2Persistent), TCastleImageTransform, 'SizePersistent',
     TSize2DPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TCastleVector2Persistent), TCastleAbstractPrimitive, 'TextureScalePersistent',
+    TSize2DPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleVector3Persistent), nil, '',
     TCastleVector3PropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleVector4Persistent), nil, '',
     TCastleVector4PropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleVector4RotationPersistent), nil, '',
     TCastleVectorRotationPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleSceneCore, 'AutoAnimation',
+  RegisterPropertyEditor(TypeInfo(String), TCastleSceneCore, 'AutoAnimation',
     TSceneAutoAnimationPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TStrings), TCastleSceneCore, 'ExposeTransforms',
     TExposeTransformsPropertyEditor);
@@ -233,23 +235,23 @@ begin
     TColorChannelsRangeSetPropertyEditor);
 
   { animations on TCastleThirdPersonNavigation }
-  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleThirdPersonNavigation, 'AnimationIdle',
+  RegisterPropertyEditor(TypeInfo(String), TCastleThirdPersonNavigation, 'AnimationIdle',
     TThirdPersonAnimationPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleThirdPersonNavigation, 'AnimationWalk',
+  RegisterPropertyEditor(TypeInfo(String), TCastleThirdPersonNavigation, 'AnimationWalk',
     TThirdPersonAnimationPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleThirdPersonNavigation, 'AnimationRun',
+  RegisterPropertyEditor(TypeInfo(String), TCastleThirdPersonNavigation, 'AnimationRun',
     TThirdPersonAnimationPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleThirdPersonNavigation, 'AnimationJump',
+  RegisterPropertyEditor(TypeInfo(String), TCastleThirdPersonNavigation, 'AnimationJump',
     TThirdPersonAnimationPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleThirdPersonNavigation, 'AnimationRotate',
+  RegisterPropertyEditor(TypeInfo(String), TCastleThirdPersonNavigation, 'AnimationRotate',
     TThirdPersonAnimationPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleThirdPersonNavigation, 'AnimationCrouch',
+  RegisterPropertyEditor(TypeInfo(String), TCastleThirdPersonNavigation, 'AnimationCrouch',
     TThirdPersonAnimationPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleThirdPersonNavigation, 'AnimationCrouchIdle',
+  RegisterPropertyEditor(TypeInfo(String), TCastleThirdPersonNavigation, 'AnimationCrouchIdle',
     TThirdPersonAnimationPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleThirdPersonNavigation, 'AnimationCrouchRotate',
+  RegisterPropertyEditor(TypeInfo(String), TCastleThirdPersonNavigation, 'AnimationCrouchRotate',
     TThirdPersonAnimationPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleThirdPersonNavigation, 'AnimationFall',
+  RegisterPropertyEditor(TypeInfo(String), TCastleThirdPersonNavigation, 'AnimationFall',
     TThirdPersonAnimationPropertyEditor);
 
   // various RegisterComponentEditor

@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -17,6 +17,8 @@
   In practice, for now, these are fixes specific for Delphi on non-Windows
   platforms. }
 unit CastleInternalKraftOverrides;
+
+{$I castleconf.inc}
 
 interface
 
@@ -39,7 +41,7 @@ const
     Define tpHigher as 0 (seems to work OK, or should we bump it?)
     to compile. }
   tpHigher = 0;
-{$ifend}
+{$endif}
 
 { Delphi on Linux doesn't define
   - TFPUPrecisionMode and setter/getter
@@ -47,7 +49,8 @@ const
   Define dummy "stubs" to compile Kraft. }
 {$if defined(FPC) or defined(MSWINDOWS)}
   {$define HAS_FPU_TYPES}
-{$ifend}
+{$endif}
+
 {$ifndef HAS_FPU_TYPES}
 type
   TFPUPrecisionMode = (pmSingle, pmReserved, pmDouble, pmExtended);

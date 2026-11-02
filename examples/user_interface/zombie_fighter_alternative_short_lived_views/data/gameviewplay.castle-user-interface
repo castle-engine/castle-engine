@@ -100,7 +100,7 @@
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent"
                 },
-                "Url" : "castle-data:/level/level1.x3d"
+                "Url" : "castle-data:/level/level1.gltf"
               },
               {
                 "$$ClassName" : "TCastleCamera",

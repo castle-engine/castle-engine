@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -49,7 +49,8 @@ uses SysUtils, Classes, Math,
   CastleUIControls, CastleRectangles, CastleOnScreenMenu, CastleComponentSerialize,
   CastleCameras, {$ifdef FPC}CastleSceneManager,{$endif} CastleVectors,
   CastleTransform, CastleScene, CastleApplicationProperties, X3DCameraUtils,
-  CastleViewport, CastleInternalRenderer, CastleInternalShapesRenderer;
+  CastleViewport, CastleInternalRenderer, CastleInternalShapesRenderer,
+  CastleRenderOptions;
 
 procedure TTestCastleWindow.Test1;
 var
@@ -481,7 +482,6 @@ begin
     Window.Open;
     SomeState := TCastleView.Create(Window);
     Window.Container.View := SomeState;
-    AssertTrue(TCastleView.Current = SomeState); // deprecated
     AssertTrue(Window.Container.View = SomeState);
   finally
     { let freeing Window cause everything else:
@@ -558,7 +558,7 @@ begin
       SameValue(StateTesting.EffectiveRect.Width, 160) or
       SameValue(StateTesting.EffectiveRect.Height, 90));
 
-    TCastleView.Current := StateTesting;
+    Window.Container.View := StateTesting;
   finally
     DestroyWindowForTest(Window);
   end;
@@ -629,7 +629,7 @@ begin
       SameValue(StateTesting.EffectiveRect.Width, 200) or
       SameValue(StateTesting.EffectiveRect.Height, 400));
 
-    TCastleView.Current := StateTesting;
+    Window.Container.View := StateTesting;
   finally
     DestroyWindowForTest(Window);
   end;

@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -15,7 +15,7 @@
 
 { On-screen menu displayed in OpenGL (TCastleOnScreenMenu). }
 unit CastleOnScreenMenu
-  deprecated 'use TCastleVerticalGroup with buttons, sliders inside to desing on-screen menus';
+  deprecated 'use TCastleVerticalGroup with buttons, sliders inside to design on-screen menus';
 
 {$I castleconf.inc}
 
@@ -371,7 +371,8 @@ type
 implementation
 
 uses SysUtils, CastleUtils, CastleImages, CastleFilesUtils,
-  CastleStringUtils, CastleGLImages, CastleComponentSerialize;
+  CastleStringUtils, CastleGLImages, CastleComponentSerialize,
+  CastleRenderOptions;
 
 { TCastleMenuButton ---------------------------------------------------------- }
 
@@ -617,7 +618,7 @@ begin
   if Menu <> nil then
     Menu.Click; // keep deprecated Menu.Click working
   {$warnings on}
-  if Menu.SoundClick <> nil then
+  if (Menu <> nil) and (Menu.SoundClick <> nil) then
     SoundEngine.Play(Menu.SoundClick)
   else
     {$warnings off} // keep deprecated working

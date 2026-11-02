@@ -1,10 +1,10 @@
 {%MainUnit castledownload.pas}
 {
-  Copyright 2013-2025 Michalis Kamburelis.
+  Copyright 2013-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -91,6 +91,17 @@ type
       (so it is not some bug in code), this method should set Status to dsError
       and not raise an exception. }
     procedure Update; virtual;
+
+    { Called continuously to push the download further
+      only when we're doing synchronous download and waiting
+      in @link(TCastleDownload.WaitForFinish).
+
+      This allows to do additional tasks, before what @link(Update)
+      is doing, to push the download. For example, if you rely on
+      CastleMessaging processing, you can call @code(ApplicationProperties._Update)
+      from here, as it will happen automatically during
+      @link(TCastleDownload.WaitForFinish). }
+    procedure UpdateOnlySynchronous; virtual;
   end;
 
   TUrlAsynchronousReaderClass = class of TUrlAsynchronousReader;
@@ -287,12 +298,16 @@ begin
   if ForceSynchronous and (not EnableBlockingDownloads) then
   begin
     Status := dsError;
-    ErrorMessage := 'Downloading network resources (from "http" or "https"  protocols) is not enabled. Set global EnableBlockingDownloads:=true to enable.';
+    ErrorMessage := 'Downloading network resources (from "http" or "https"  protocols) synchronously is not enabled. Set global EnableBlockingDownloads:=true to enable it or use asynchronous TCastleDownload.';
     Exit(false);
   end;
 end;
 
 procedure TUrlAsynchronousReader.Update;
+begin
+end;
+
+procedure TUrlAsynchronousReader.UpdateOnlySynchronous;
 begin
 end;
 
@@ -369,7 +384,7 @@ begin
 
     // register default protocols handled in this unit
 
-    {$if defined(ANDROID)}
+    {$if defined(ANDROID) and defined(FPC)}
     // http(s) using Android service
     P := FRegisteredProtocols.Add('http');
     P.AsynchronousReader := THttpAndroidReader;
@@ -397,6 +412,16 @@ begin
 
     P := FRegisteredProtocols.Add('https');
     P.AsynchronousReader := TDelphiHttpReader;
+    P.DetectMimeTypeFromExtension := true;
+
+    {$elseif defined(WASI)}
+    // http(s) using XMLHttpRequest from WebAssembly
+    P := FRegisteredProtocols.Add('http');
+    P.AsynchronousReader := THttpWebReader;
+    P.DetectMimeTypeFromExtension := true;
+
+    P := FRegisteredProtocols.Add('https');
+    P.AsynchronousReader := THttpWebReader;
     P.DetectMimeTypeFromExtension := true;
 
     {$else}
@@ -428,10 +453,14 @@ begin
     // handle Android-specific assets
     P := FRegisteredProtocols.Add('assets');
     P.ReadEvent := {$ifdef FPC}@{$endif} TUrlCastleAndroidAssets{$ifdef FPC}(nil){$endif}.Read;
+    P.ExistsEvent := {$ifdef FPC}@{$endif} TUrlCastleAndroidAssets{$ifdef FPC}(nil){$endif}.Exists;
+    P.FindFilesEvent := {$ifdef FPC}@{$endif} TUrlCastleAndroidAssets{$ifdef FPC}(nil){$endif}.FindFiles;
     P.DetectMimeTypeFromExtension := true;
 
     P := FRegisteredProtocols.Add('castle-android-assets');
     P.ReadEvent := {$ifdef FPC}@{$endif} TUrlCastleAndroidAssets{$ifdef FPC}(nil){$endif}.Read;
+    P.ExistsEvent := {$ifdef FPC}@{$endif} TUrlCastleAndroidAssets{$ifdef FPC}(nil){$endif}.Exists;
+    P.FindFilesEvent := {$ifdef FPC}@{$endif} TUrlCastleAndroidAssets{$ifdef FPC}(nil){$endif}.FindFiles;
     P.DetectMimeTypeFromExtension := true;
     {$endif}
 
@@ -460,6 +489,11 @@ begin
     P.FMimeTypeEvent := {$ifdef FPC}@{$endif} TUrlEcmaScript{$ifdef FPC}(nil){$endif}.MimeType;
 
     P := FRegisteredProtocols.Add('javascript');
+    P.ReadEvent := {$ifdef FPC}@{$endif} TUrlEcmaScript{$ifdef FPC}(nil){$endif}.Read;
+    P.FMimeTypeEvent := {$ifdef FPC}@{$endif} TUrlEcmaScript{$ifdef FPC}(nil){$endif}.MimeType;
+
+    // vrmlscript: found in https://github.com/create3000/Library/blob/main/Tests/Components/Shape/Connectors.x3d
+    P := FRegisteredProtocols.Add('vrmlscript');
     P.ReadEvent := {$ifdef FPC}@{$endif} TUrlEcmaScript{$ifdef FPC}(nil){$endif}.Read;
     P.FMimeTypeEvent := {$ifdef FPC}@{$endif} TUrlEcmaScript{$ifdef FPC}(nil){$endif}.MimeType;
 

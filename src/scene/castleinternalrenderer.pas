@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -166,6 +166,8 @@ unit CastleInternalRenderer;
 interface
 
 uses Classes, SysUtils, Generics.Collections,
+  // Note that this redefines TInt32List, so keep these FPC web units before CGE units.
+  {$ifdef WASI} Job.Js, CastleInternalJobWeb, {$endif}
   {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleUtils, CastleVectors, X3DFields, X3DNodes, CastleColors,
   CastleInternalX3DLexer, CastleImages, CastleGLUtils, CastleRendererInternalLights,
@@ -199,7 +201,7 @@ uses Math,
   CastleStringUtils, CastleGLVersion, CastleLog, CastleInternalGLCubeMaps,
   X3DCameraUtils, CastleProjection, CastleRectangles, CastleTriangles,
   CastleCameras, CastleSceneInternalShape, CastleApplicationProperties,
-  CastleRenderContext, CastleInternalGLUtils, CastleTimeUtils;
+  CastleRenderContext, CastleInternalGLUtils, CastleTimeUtils, CastleUriUtils;
 
 {$define read_implementation}
 

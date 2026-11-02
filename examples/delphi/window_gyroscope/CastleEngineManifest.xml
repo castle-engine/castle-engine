@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+Specify basic information about the project, including how this project is build.
+See https://castle-engine.io/project_manifest for documentation of this file.
+-->
+
+<project name="window_gyroscope"
+  standalone_source="window_gyroscope_standalone.dpr"
+  game_units="GameInitialize"
+  qualified_name="io.castleengine.delphi.window.gyroscope"
+  caption="Gyroscope in TCastleWindow"
+  compiler="delphi"
+>
+  <compiler_options>
+    <search_paths>
+      <path value="code/" />
+    </search_paths>
+  </compiler_options>
+</project>

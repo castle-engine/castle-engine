@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -227,7 +227,7 @@ const
   GoodVersion = 15;
 type
   TMd3Header = record
-    Ident: array [0..3] of AnsiChar;
+    Ident: TMd3Ident;
     Version: Int32;
     Name: array [0..Md3MaxQPath - 1] of AnsiChar;
     Flags: Int32;
@@ -264,9 +264,7 @@ begin
 
   Stream.ReadBuffer(Header, SizeOf(TMd3Header));
 
-  if not CompareMem(@Header.Ident[0], @GoodIdent[1], Length(GoodIdent)) then
-    raise EInvalidMD3.CreateFmt('Identifier of MD3 file must be "%s"',
-      [GoodIdent]);
+  CheckMd3Ident(Header.Ident);
 
   if Header.Version <> GoodVersion then
     raise EInvalidMD3.CreateFmt('Only supported version of MD3 file is "%d"',

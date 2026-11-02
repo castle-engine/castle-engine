@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -19,8 +19,10 @@ unit ApplyImpulseBehavior;
 interface
 
 uses
-  Classes, SysUtils, CastleTransform, CastleBehaviors, CastleVectors,
-  CastleComponentSerialize, CastleClassUtils, AbstractTimeDurationBehavior;
+  Classes, SysUtils,
+  CastleTransform, CastleBehaviors, CastleVectors, CastleUtils,
+  CastleComponentSerialize, CastleClassUtils,
+  AbstractTimeDurationBehavior;
 
 type
   TApplyImpulseBehavior = class(TAbstractTimeDurationBehavior)
@@ -117,16 +119,15 @@ end;
 function TApplyImpulseBehavior.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
-  if (PropertyName = 'Impulse') or
-     (PropertyName = 'Position') then
+  if ArrayContainsString(PropertyName, [
+       'ImpulsePersistent', 'PositionPersistent'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
 end;
 
 initialization
-
-RegisterSerializableComponent(TApplyImpulseBehavior, 'Apply Impulse Behavior');
-
+  RegisterSerializableComponent(TApplyImpulseBehavior, 'Apply Impulse Behavior');
 end.
 

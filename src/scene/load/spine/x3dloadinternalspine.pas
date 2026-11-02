@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -89,7 +89,8 @@ type
 
 { Main loading function ------------------------------------------------------ }
 
-function LoadSpine(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
+function LoadSpine(const Stream: TStream; const BaseUrl: String;
+  const LoadOptions: TCastleSceneLoadOptions): TX3DRootNode;
 
   function CreateTextureLoader(const CustomAtlasName: String): TTextureLoader;
 
@@ -164,15 +165,9 @@ begin
 
   TextureLoader := CreateTextureLoader(CustomAtlasName);
   try
-    { Should we add joUTF8?
-      - Long time ago, it failed to work on
-        tests/data/escape_from_the_universe_boss/boss.json
-        with FPC 3.1.1-r36683 [2017/07/08] for Linux x86_64.
-      - TODO: Needs retest.
-        It may have been some error on our side?
-        Later note reported joUTF8 is OK with FPC 3.0.2. }
-
-    P := TJSONParser.Create(Stream, [joComments]);
+    { See doc/miscellaneous_notes/ansistring_encoding.md about the joUTF8
+      option with TJSONParser. }
+    P := TJSONParser.Create(Stream, [joComments, joUTF8]);
     try
       Json := P.Parse;
       try

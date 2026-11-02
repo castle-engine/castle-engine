@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -41,7 +41,7 @@ implementation
 
 uses SysUtils, Generics.Collections,
   CastleFindFiles, CastleFileFilters, CastleTextureFontData, CastleUtils,
-  CastleUnicode,
+  CastleUnicode, CastleDynLib, CastleInternalFreeTypeH,
   CastleStringUtils, CastleFontToPascal, CastleUriUtils, CastleFilesUtils,
   ToolCommonUtils, ToolUtils;
 
@@ -86,7 +86,7 @@ end;
 procedure TGenerateEmbeddedFontsHelper.ProcessFile(const FileInfo: TFileInfo;
   var StopSearch: Boolean);
 
-  function CreateFontCharacters: TUnicodeCharList;
+  function CreateFontCharacters: TUnicodeCharSet;
   var
     CgePath, CharsFile: String;
   begin
@@ -98,7 +98,7 @@ procedure TGenerateEmbeddedFontsHelper.ProcessFile(const FileInfo: TFileInfo;
     if not FileExists(CharsFile) then
       raise Exception.CreateFmt('Cannot find file with common Unicode characters: %s', [CharsFile]);
 
-    Result := TUnicodeCharList.Create;
+    Result := TUnicodeCharSet.Create;
     Result.Add(SimpleAsciiCharacters);
     Result.Add(FileToString(CharsFile));
   end;
@@ -115,7 +115,7 @@ var
   FontUnit: TFontUnit;
   Font: TTextureFontData;
   FontUnitName, FontFunctionName, FontRelativeUrl, FontUnitFileName: String;
-  Characters: TUnicodeCharList;
+  Characters: TUnicodeCharSet;
 begin
   if FontFilters.Matches(FileInfo.Url) then
   begin
@@ -134,6 +134,7 @@ begin
         FontRelativeUrl := ExtractRelativePath(InclPathDelim(DataPath), FileInfo.AbsoluteName);
         // simple way to turn relative path into a relative URL
         FontRelativeUrl := SReplaceChars(FontRelativeUrl, PathDelim, '/');
+        FontRelativeUrl := UrlEncode(FontRelativeUrl); // convert spaces to %20 etc.
         FontRelativeUrl := 'castle-data:/' + FontRelativeUrl;
 
         // generate font file
@@ -164,6 +165,14 @@ var
   AllFontsUnit: String;
   FontUnit: TFontUnit;
 begin
+  { Revert InternalDisableDynamicLibraries, as it's not necessary
+    when building for web, and we need InternalDisableDynamicLibraries=false
+    to use FreeType to open fonts. }
+  {$ifdef MSWINDOWS}
+  InternalDisableDynamicLibraries := false;
+  LoadFreeTypeLibrary; // reload DLL now
+  {$endif}
+
   Helper := TGenerateEmbeddedFontsHelper.Create;
   try
     Helper.FontUnitsOutputPath := FontUnitsOutputPath;

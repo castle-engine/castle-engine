@@ -12,15 +12,24 @@ See https://castle-engine.io/project_manifest for documentation of this file.
   caption="Castle Tester"
 >
   <compiler_options detect_memory_leaks="true">
-    <defines>
-      <!-- nothing necessary now -->
-      <!--define>....</define-->
-    </defines>
     <search_paths>
       <path value="code/" />
       <path value="code/testcases/" />
       <path value="code/tester-castle/" />
       <path value="../tools/common-code/" />
+
+      <!--
+        Define this path only temporarily (do not commit),
+        to test that our FpJson and friends (JsonScanner, JsonReader)
+        compile with FPC. This is useful just to test
+        they compile/work, on machines where FPC is available but not Delphi.
+
+        In normal usage, this path should remain commented out,
+        as with FPC we use FPC's built-in FpJson and friends.
+        This path should only be used with Delphi (and our build tool
+        already passes this path when building with Delphi).
+      -->
+      <!-- <path value="../src/compatibility/delphi-only/fcl-json/" /> -->
     </search_paths>
     <custom_options>
       <!--
@@ -32,5 +41,28 @@ See https://castle-engine.io/project_manifest for documentation of this file.
       <option>-vm5074</option> <!-- Unit "$1" is deprecated -->
       <option>-vm5075</option> <!-- Unit "$1" is deprecated: "$2" -->
     </custom_options>
+    <defines>
+      <define>CASTLE_STRICT</define>
+
+      <!--
+        See ../doc/miscellaneous_notes/ansistring_encoding.md
+        about the 2 symbols below.
+
+        The scary symbol I_UNDERSTAND_THAT_NON_ASCII_CHARACTERS_ARE_BROKEN
+        is needed to make CASTLE_ANSISTRING_UNCHANGED compile with FPC,
+        and yes, in effect non-ASCII characters are broken in some cases.
+        See above mentioned document for details.
+      -->
+      <!--define>CASTLE_ANSISTRING_UNCHANGED</define-->
+      <!--define>I_UNDERSTAND_THAT_NON_ASCII_CHARACTERS_ARE_BROKEN</define-->
+
+      <!--
+        Define this to test our Pascal implementation of FreeType API,
+        see src/fonts/castleinternalfreetypeh_pascal.inc .
+        By default, we use the default FreeType approach,
+        which on most platforms means using the actual FreeType library.
+      -->
+      <!--define>CASTLE_FREETYPE_PASCAL</define-->
+    </defines>
   </compiler_options>
 </project>

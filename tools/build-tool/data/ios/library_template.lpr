@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in the "Castle Game Engine" distribution,
   for details about the copyright.
 
@@ -31,6 +31,7 @@ uses
 exports
   CastleWindow.CGEApp_Initialize,
   CastleWindow.CGEApp_Finalize,
+  CastleWindow.CGEApp_SetFallbackConfigDirectory,
   CastleWindow.CGEApp_Open,
   CastleWindow.CGEApp_Close,
   CastleWindow.CGEApp_Render,

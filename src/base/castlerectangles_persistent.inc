@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -223,10 +223,9 @@ end;
 
 function TFloatRectanglePersistent.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'Left') or
-     (PropertyName = 'Bottom') or
-     (PropertyName = 'Width') or
-     (PropertyName = 'Height') then
+  if ArrayContainsString(PropertyName, [
+       'Left', 'Bottom', 'Width', 'Height'
+       ]) then
     Result := [psBasic, psLayout]
   else
     Result := inherited PropertySections(PropertyName);

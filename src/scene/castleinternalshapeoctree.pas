@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -208,11 +208,6 @@ type
       const TriangleToIgnore: PTriangle;
       const IgnoreMarginAtStart: boolean;
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; override;
-
-  public
-    { For Hierarchical Occlusion Culling }
-    LastVisitedFrameId: Cardinal;
-    Visible: boolean;
   end;
 
   TShapeOctree = class(TBaseTrianglesOctree)
@@ -791,7 +786,7 @@ constructor TShapeOctree.Create(const ALimits: TOctreeLimits;
 begin
   inherited Create(ALimits, ARootBox, TShapeOctreeNode, true);
 
-  FShapesList := TShapeList.Create(false);
+  FShapesList := TShapeList.Create;
   FShapesList.AddRange(AShapesList);
   FOwnsShapesList := true; // for now always true
 end;

@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -44,8 +44,7 @@ type
 
 implementation
 
-uses CastleUtils, CastleFindFiles, CastleFilesUtils, CastleTimeUtils, CastleLog
-  {$ifdef UNIX}, BaseUnix {$endif};
+uses CastleUtils, CastleFindFiles, CastleFilesUtils, CastleTimeUtils, CastleLog;
 
 procedure TTestCastleFilesUtils.TestPathDelim;
 begin

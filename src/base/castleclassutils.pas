@@ -1,9 +1,9 @@
 {
-  Copyright 2000-2025 Michalis Kamburelis.
+  Copyright 2000-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -43,7 +43,7 @@ unit CastleClassUtils;
 
 interface
 
-uses Classes, SysUtils, Contnrs, Generics.Collections,
+uses Classes, SysUtils, Contnrs, Generics.Collections, Generics.Defaults,
   CastleUtils, CastleStringUtils;
 
 { ---------------------------------------------------------------------------- }
@@ -111,15 +111,15 @@ type
   Versions without Stream parameter write to StdOutStream.
 
   Note: When compiled with Delphi, overloaded versions that take
-  Delphi 16-bit String convert it to 8-bit AnsiString,
+  Delphi 16-bit String convert it to 8-bit Utf8String,
   and still write 8-bit. So the output stream contents are the same,
   in both FPC and Delphi.
 
   @groupBegin }
-procedure WriteStr(const Stream: TStream; const S: AnsiString); overload;
-procedure WritelnStr(const Stream: TStream; const S: AnsiString); overload;
-procedure WriteStr(const S: AnsiString); overload;
-procedure WritelnStr(const S: AnsiString); overload;
+procedure WriteStr(const Stream: TStream; const S: Utf8String); overload;
+procedure WritelnStr(const Stream: TStream; const S: Utf8String); overload;
+procedure WriteStr(const S: Utf8String); overload;
+procedure WritelnStr(const S: Utf8String); overload;
 
 {$ifndef FPC}
 procedure WriteStr(const Stream: TStream; const S: String); overload;
@@ -133,10 +133,16 @@ procedure WritelnStr(const S: String); overload;
   @raises EReadError If end of stream. }
 function StreamReadChar(Stream: TStream): AnsiChar;
 
-function StreamReadZeroEndString(Stream: TStream): AnsiString;
+{ Read characters until a zero byte is encountered, treat as UTF-8 string. }
+function StreamReadZeroEndString(Stream: TStream): Utf8String;
 
 { Read stream, until you find some character in EndingChars.
   Returns read contents, without final character (the one in EndingChars set).
+
+  Returns 8-bit string (Utf8String) and assumes the stream contains UTF-8,
+  which is the encoding we assume for all text files throughout Castle Game Engine.
+  The resulting @code(Utf8String) can be assigned to a @code(String)
+  (or any other string type) and the encoding will be correct.
 
   If you use a version with BackEndingChar parameter and pass
   BackEndingChar = @true, then the ending character will be returned back to
@@ -152,12 +158,12 @@ function StreamReadZeroEndString(Stream: TStream): AnsiString;
   @raises EReadError If the stream will end before encountering one of EndingChars.
   @groupBegin }
 function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: boolean; out endingChar: AnsiChar): AnsiString; overload;
+  backEndingChar: boolean; out endingChar: AnsiChar): Utf8String; overload;
 function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: boolean): AnsiString; overload;
+  backEndingChar: boolean): Utf8String; overload;
 function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars;
-  out endingChar: AnsiChar): AnsiString; overload;
-function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars): AnsiString; overload;
+  out endingChar: AnsiChar): Utf8String; overload;
+function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars): Utf8String; overload;
 { @groupEnd }
 
 { Read stream, until you find some character in EndingChars, or end of stream.
@@ -170,12 +176,12 @@ function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars):
   Everything else works like with StreamReadUpto_NotEOS.
   @groupBegin }
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: boolean; out endingChar: integer): AnsiString; overload;
+  backEndingChar: boolean; out endingChar: integer): Utf8String; overload;
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: boolean): AnsiString; overload;
+  backEndingChar: boolean): Utf8String; overload;
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
-  out endingChar: integer): AnsiString; overload;
-function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars): AnsiString; overload;
+  out endingChar: integer): Utf8String; overload;
+function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars): Utf8String; overload;
 { @groupEnd }
 
 { Read a growing stream, and append it to another destination stream.
@@ -197,8 +203,14 @@ procedure ReadGrowingStream(const GrowingStream, DestStream: TStream;
   A "growing stream" is a stream that we can only read
   sequentially, no seeks allowed, and size is unknown until we hit the end.
 
-  Works on 8-bit strings, i.e. AnsiStrings. }
-function ReadGrowingStreamToString(const GrowingStream: TStream): AnsiString;
+  Returns 8-bit string (Utf8String) and assumes the stream contains UTF-8,
+  which is the encoding we assume for all text files in Castle Game Engine.
+  The resulting @code(Utf8String) can be assigned to a @code(String)
+  (or any other string type) and the encoding will be correct.
+  See @url(https://castle-engine.io/coding_conventions#strings_unicode String encoding in Castle Game Engine)
+  and @url(https://github.com/castle-engine/castle-engine/blob/master/doc/miscellaneous_notes/ansistring_encoding.md AnsiString encoding)
+  for details what happens. }
+function ReadGrowingStreamToString(const GrowingStream: TStream): Utf8String;
 
 { Read a growing stream, and returns it's contents as a string.
   A "growing stream" is a stream that we can only read
@@ -209,10 +221,10 @@ function ReadGrowingStreamToDefaultString(const GrowingStream: TStream): String;
 
 { Encode / decode a string in a binary stream. Records string length (4 bytes),
   then the string contents (Length(S) bytes).
-  Works on 8-bit strings, i.e. AnsiStrings.
+  Works on 8-bit strings, assuming they are UTF-8 encoded in stream.
   @groupBegin }
-procedure StreamWriteString(const Stream: TStream; const S: AnsiString);
-function StreamReadString(const Stream: TStream): AnsiString;
+procedure StreamWriteString(const Stream: TStream; const S: Utf8String);
+function StreamReadString(const Stream: TStream): Utf8String;
 { @groupEnd }
 
 { Convert whole Stream to a string.
@@ -222,26 +234,46 @@ function StreamReadString(const Stream: TStream): AnsiString;
   Use @link(ReadGrowingStreamToString) if you want to read a stream where
   setting Position / reading Size are not reliable.
 
-  Works on 8-bit strings, i.e. AnsiStrings. }
-function StreamToString(const Stream: TStream): AnsiString;
+  Returns 8-bit string (Utf8String) and assumes the stream contains UTF-8,
+  which is the encoding we assume for all text files in Castle Game Engine.
+  The resulting @code(Utf8String) can be assigned to a @code(String)
+  (or any other string type) and the encoding will be correct.
+  See @url(https://castle-engine.io/coding_conventions#strings_unicode String encoding in Castle Game Engine)
+  and @url(https://github.com/castle-engine/castle-engine/blob/master/doc/miscellaneous_notes/ansistring_encoding.md AnsiString encoding)
+  for details what happens. }
+function StreamToString(const Stream: TStream): Utf8String;
 
 { Set contents of TMemoryStream to given string, in UTF-8 encoding.
   If Rewind then the position is reset to the beginning,
   otherwise it stays at the end.
 
-  Works on 8-bit strings, i.e. AnsiStrings. }
+  Takes 8-bit string (Utf8String) and makes the stream contain UTF-8,
+  which is the encoding we assume for all text files in Castle Game Engine.
+  The @code(Utf8String) can be assigned from / to a @code(String)
+  (or any other string type) and the encoding will be correct.
+  See @url(https://castle-engine.io/coding_conventions#strings_unicode String encoding in Castle Game Engine)
+  and @url(https://github.com/castle-engine/castle-engine/blob/master/doc/miscellaneous_notes/ansistring_encoding.md AnsiString encoding)
+  for details what happens. }
 procedure MemoryStreamLoadFromString(const Stream: TMemoryStream;
-  const S: AnsiString; const Rewind: boolean = true); overload;
+  const S: Utf8String; const Rewind: boolean = true); overload;
 function MemoryStreamLoadFromString(
-  const S: AnsiString; const Rewind: boolean = true): TMemoryStream; overload;
+  const S: Utf8String; const Rewind: boolean = true): TMemoryStream; overload;
 
 { Set contents of TMemoryStream to given string,
   in UTF-8 or UTF-16 (matching default String) encoding.
   If Rewind then the position is reset to the beginning,
   otherwise it stays at the end.
 
-  On FPC, works with 8-bit strings (AnsiStrings) and is equivalent to MemoryStreamLoadFromString8.
-  On Delphi, works with 16-bit strings (UnicodeString), so the resulting stream size is 2x larger. }
+  On FPC (without Unicode RTL),
+  this works with 8-bit strings (AnsiStrings) and is equivalent to
+  @link(MemoryStreamLoadFromString).
+  ( Note: If one day CASTLE_ANSISTRING_UNCHANGED is supported with
+  FPC (without Unicode RTL),
+  this will still take native encoding while @link(MemoryStreamLoadFromString)
+  will always take UTF-8 encoding. So it will not be equivalent anymore. )
+
+  On Delphi, this works with 16-bit strings (UnicodeString), so the resulting
+  stream size is 2x larger. }
 procedure MemoryStreamLoadFromDefaultString(const Stream: TMemoryStream;
   const S: String; const Rewind: boolean = true); overload;
 function MemoryStreamLoadFromDefaultString(
@@ -339,8 +371,13 @@ type
 
     { Read characters, until one of EndingChars (or end of stream) is found.
       The ending character is not "consumed" from the stream.
-      The Result is guaranteed to not contain any char from EndingChars. }
-    function ReadUpto(const EndingChars: TSetOfChars): AnsiString; virtual;
+      The Result is guaranteed to not contain any char from EndingChars.
+
+      Returns 8-bit string (Utf8String) and assumes the stream contains UTF-8,
+      which is the encoding we assume for all text files in Castle Game Engine.
+      The resulting @code(Utf8String) can be assigned to a @code(String)
+      (or any other string type) and the encoding will be correct. }
+    function ReadUpto(const EndingChars: TSetOfChars): Utf8String; virtual;
 
     {$ifndef FPC}
     property Position: Int64 read GetPosition;
@@ -414,7 +451,7 @@ type
     function Read(var LocalBuffer; Count: Longint): Longint; override;
     function PeekChar: Integer; override;
     function ReadChar: Integer; override;
-    function ReadUpto(const EndingChars: TSetOfChars): AnsiString; override;
+    function ReadUpto(const EndingChars: TSetOfChars): Utf8String; override;
 
     property BufferSize: Cardinal read FBufferSize;
   end;
@@ -773,6 +810,30 @@ type
 procedure TranslateProperties(const C: TComponent;
   const TranslatePropertyEvent: TTranslatePropertyEvent);
 
+type
+  { Used by @link(TCastleComponentFactory.ComponentLoadWithMap)
+    to return names of the loaded components.
+    This is a simple String -> TComponent dictionary.
+
+    The dictionary keys cannot be '' (an empty string).
+    The dictionary keys ignore case, just like Pascal identifiers.
+
+    The values can never be @nil.
+
+    The case-insensitivity is achieved by using a case-insensitive comparer
+    for the dictionary keys. This means the original case of the keys is
+    preserved (we don't lowercase them), and case-insensitive matching is done
+    by the (still hashed, so fast) ancestor methods. }
+  TComponentMap = class({$ifdef FPC}specialize{$endif} TDictionary<String, TComponent>)
+  strict private
+    function GetItem(const Key: String): TComponent;
+  public
+    constructor Create; {$ifdef FPC} override; {$else} reintroduce; {$endif}
+    procedure Add(const Key: String; const Value: TComponent);
+    procedure AddOrSetValue(const Key: String; const Value: TComponent);
+    property Items[const Key: String]: TComponent read GetItem write AddOrSetValue; default;
+  end;
+
 { ---------------------------------------------------------------------------- }
 { @section(Variables to read/write standard input/output using TStream classes.
   Initialized and finalized in this unit.) }
@@ -865,25 +926,27 @@ var
 
 type
   { Extended TObjectStack for Castle Game Engine. }
-  TCastleObjectStack = class({$ifndef PASDOC}Contnrs.{$endif}TObjectStack)
+  TCastleObjectStack = class(Contnrs.TObjectStack)
   private
     function GetCapacity: TListSize;
     procedure SetCapacity(const Value: TListSize);
   public
+    { How many items can this hold without reallocating memory. }
     property Capacity: TListSize read GetCapacity write SetCapacity;
   end;
 
   { Extended TObjectQueue for Castle Game Engine. }
-  TCastleObjectQueue = class({$ifndef PASDOC}Contnrs.{$endif}TObjectQueue)
+  TCastleObjectQueue = class(Contnrs.TObjectQueue)
   private
     function GetCapacity: TListSize;
     procedure SetCapacity(const Value: TListSize);
   public
+    { How many items can this hold without reallocating memory. }
     property Capacity: TListSize read GetCapacity write SetCapacity;
   end;
 
   { Extended TObjectList for Castle Game Engine. }
-  TCastleObjectList = class({$ifndef PASDOC}Contnrs.{$endif}TObjectList)
+  TCastleObjectList = class(Contnrs.TObjectList)
   public
     { Create and fill with the contents of given array.
 
@@ -951,7 +1014,9 @@ type
     procedure AddIfNotExists(Value: TObject);
   end;
 
-  TNotifyEventList = class({$ifdef FPC}specialize{$endif} TList<TNotifyEvent>)
+  { List of @code(TNotifyEvent), standard type that defines a callback
+    that can be any method with a "Sender: TObject" parameter. }
+  TNotifyEventList = class({$ifdef FPC}specialize{$endif} TMethodList<TNotifyEvent>)
   public
     { Call all (assigned) Items, from first to last. }
     procedure ExecuteAll(Sender: TObject);
@@ -963,7 +1028,9 @@ type
     procedure ExecuteBackward(Sender: TObject);
   end;
 
-  TSimpleNotifyEventList = class({$ifdef FPC}specialize{$endif} TList<TSimpleNotifyEvent>)
+  { List of @link(TSimpleNotifyEvent), a callback
+    that can be any method that doesn't take any parameters. }
+  TSimpleNotifyEventList = class({$ifdef FPC}specialize{$endif} TMethodList<TSimpleNotifyEvent>)
   public
     { Call all (assigned) Items, from first to last. }
     procedure ExecuteAll;
@@ -979,6 +1046,9 @@ type
     procedure Unassign(const Event: TSimpleNotifyEvent);
   end;
 
+  { List of @code(TProcedure), a standard callback
+    that can be any procedure (not a method of object)
+    that doesn't take any parameters. }
   TProcedureList = class({$ifdef FPC}specialize{$endif} TList<TProcedure>)
   public
     { Call all (assigned) Items, from first to last. }
@@ -1004,6 +1074,7 @@ function ProposeComponentName(const ComponentClass: TComponentClass;
   const ComponentsOwner: TComponent;
   BaseName: String = ''): String;
 
+{ @exclude }
 function InternalProposeName(const ComponentClass: TComponentClass;
   const ComponentsOwner: TComponent): String;
   deprecated 'use ProposeComponentName';
@@ -1107,8 +1178,13 @@ type
   TFreeNotificationObserver = class(TComponent)
   strict private
     FObserved: TComponent;
+    { Are we inside OnFreeNotification event handler.
+      Updated only when FEnableFreeingFromNotification = @false. }
+    FDuringOnFreeNotification: Boolean;
     FOnFreeNotification: TFreeNotificationEvent;
+    FEnableFreeingFromNotification: Boolean;
     procedure SetObserved(const Value: TComponent);
+    procedure SetEnableFreeingFromNotification(const Value: Boolean);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -1126,6 +1202,26 @@ type
       our "free notification" from a component that will be freed) and makes it safer
       (we will not expose dangling pointer). }
     property Observed: TComponent read FObserved write SetObserved;
+
+    { If @true, you can free the instane of this TFreeNotificationObserver
+      from inside its own OnFreeNotification event handler.
+      This is sometimes useful, but in this case the OnFreeNotification handler
+      must @italic(guarantee) that it will always either free this TFreeNotificationObserver
+      instance, or change its @link(Observed) to @nil.
+
+      By default, this is @false, and the event handler of this TFreeNotificationObserver
+      cannot free this TFreeNotificationObserver instance.
+      This is standard for all event handlers.
+      Trying to free this instance from inside OnFreeNotification when
+      EnableFreeingFromNotification is @false
+      will make a clear warning + followed by undefined behavior (usually,
+      but this is never guaranteed, EAccessViolation).
+
+      Changing this property is allowed only when we're not inside
+      OnFreeNotification. }
+    property EnableFreeingFromNotification: Boolean
+      read FEnableFreeingFromNotification
+      write SetEnableFreeingFromNotification default false;
   end;
 
 implementation
@@ -1211,23 +1307,23 @@ begin
 end;
 }
 
-procedure WriteStr(const Stream: TStream; const S: AnsiString);
+procedure WriteStr(const Stream: TStream; const S: Utf8String);
 begin
   Stream.WriteBuffer(Pointer(S)^, Length(S));
 end;
 
-procedure WritelnStr(const Stream: TStream; const S: AnsiString);
+procedure WritelnStr(const Stream: TStream; const S: Utf8String);
 begin
   WriteStr(Stream, S);
   WriteStr(Stream, nl);
 end;
 
-procedure WriteStr(const S: AnsiString);
+procedure WriteStr(const S: Utf8String);
 begin
   WriteStr(StdOutStream, S);
 end;
 
-procedure WritelnStr(const S: AnsiString);
+procedure WritelnStr(const S: Utf8String);
 begin
   WritelnStr(StdOutStream, S);
 end;
@@ -1237,22 +1333,22 @@ end;
 
 procedure WriteStr(const Stream: TStream; const S: String);
 begin
-  WriteStr(Stream, AnsiString(S));
+  WriteStr(Stream, Utf8String(S));
 end;
 
 procedure WritelnStr(const Stream: TStream; const S: String);
 begin
-  WritelnStr(Stream, AnsiString(S));
+  WritelnStr(Stream, Utf8String(S));
 end;
 
 procedure WriteStr(const S: String);
 begin
-  WriteStr(AnsiString(S));
+  WriteStr(Utf8String(S));
 end;
 
 procedure WritelnStr(const S: String);
 begin
-  WritelnStr(AnsiString(S));
+  WritelnStr(Utf8String(S));
 end;
 
 {$warnings on}
@@ -1263,13 +1359,13 @@ begin
   Stream.ReadBuffer(result, SizeOf(result));
 end;
 
-function StreamReadZeroEndString(Stream: TStream): AnsiString;
+function StreamReadZeroEndString(Stream: TStream): Utf8String;
 begin
   result := StreamReadUpto_NotEOS(Stream, [#0], false);
 end;
 
 function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: boolean; out endingChar: AnsiChar): AnsiString; overload;
+  backEndingChar: boolean; out endingChar: AnsiChar): Utf8String; overload;
 var
   readLen: integer; { how many characters read }
   ch: AnsiChar;
@@ -1297,7 +1393,7 @@ begin
 end;
 
 function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: boolean):AnsiString; overload;
+  backEndingChar: boolean): Utf8String; overload;
 var
   dummy: AnsiChar;
 begin
@@ -1305,18 +1401,18 @@ begin
 end;
 
 function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars;
-  out endingChar: AnsiChar): AnsiString;
+  out endingChar: AnsiChar): Utf8String;
 begin
   result := StreamReadUpto_NotEOS(Stream, endingChars, false, endingChar);
 end;
 
-function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars): AnsiString;
+function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars): Utf8String;
 begin
   result := StreamReadUpto_NotEOS(Stream, endingChars, false);
 end;
 
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: boolean; out endingChar: integer): AnsiString; overload;
+  backEndingChar: boolean; out endingChar: integer): Utf8String; overload;
 var readLen: integer; { how many characters read }
     ch: AnsiChar;
 begin
@@ -1348,7 +1444,7 @@ begin
 end;
 
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: boolean): AnsiString; overload;
+  backEndingChar: boolean): Utf8String; overload;
 var
   dummy: integer;
 begin
@@ -1356,12 +1452,12 @@ begin
 end;
 
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
-  out endingChar: integer): AnsiString;
+  out endingChar: integer): Utf8String;
 begin
   result := StreamReadUpto_EOS(Stream, endingChars, false, endingChar);
 end;
 
-function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars): AnsiString;
+function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars): Utf8String;
 begin
   result := StreamReadUpto_EOS(Stream, endingChars, false);
 end;
@@ -1412,7 +1508,7 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function ReadGrowingStreamToString(const GrowingStream: TStream): AnsiString;
+function ReadGrowingStreamToString(const GrowingStream: TStream): Utf8String;
 var
   Memory: TMemoryStream;
 begin
@@ -1444,7 +1540,7 @@ begin
   finally FreeAndNil(Memory) end;
 end;
 
-procedure StreamWriteString(const Stream: TStream; const S: AnsiString);
+procedure StreamWriteString(const Stream: TStream; const S: Utf8String);
 var
   L: Integer;
 begin
@@ -1454,7 +1550,7 @@ begin
   if L > 0 then Stream.WriteBuffer(S[1], L);
 end;
 
-function StreamReadString(const Stream: TStream): AnsiString;
+function StreamReadString(const Stream: TStream): Utf8String;
 var
   L: Integer;
 begin
@@ -1464,7 +1560,7 @@ begin
   if L > 0 then Stream.ReadBuffer(Result[1], L);
 end;
 
-function StreamToString(const Stream: TStream): AnsiString;
+function StreamToString(const Stream: TStream): Utf8String;
 begin
   SetLength(Result, Stream.Size);
   Stream.Position := 0;
@@ -1472,7 +1568,7 @@ begin
 end;
 
 procedure MemoryStreamLoadFromString(const Stream: TMemoryStream;
-  const S: AnsiString; const Rewind: boolean);
+  const S: Utf8String; const Rewind: boolean);
 begin
   Stream.Size := Length(S);
   if S <> '' then
@@ -1482,7 +1578,7 @@ begin
   end;
 end;
 
-function MemoryStreamLoadFromString(const S: AnsiString; const Rewind: boolean): TMemoryStream;
+function MemoryStreamLoadFromString(const S: Utf8String; const Rewind: boolean): TMemoryStream;
 begin
   Result := TMemoryStream.Create;
   try
@@ -1575,18 +1671,40 @@ begin
     UpdateLineColumn(PAnsiChar(@Buffer)[I]);
 end;
 
-function TPeekCharStream.ReadUpto(const EndingChars: TSetOfChars): AnsiString;
+function TPeekCharStream.ReadUpto(const EndingChars: TSetOfChars): Utf8String;
 var
-  Peeked: Integer;
+  Peeked, ResultLength: Integer;
 begin
   Result := '';
+  ResultLength := 0;
   while true do
   begin
     Peeked := PeekChar;
     if (Peeked = -1) or (AnsiChar(Peeked) in EndingChars) then
+    begin
+      SetLength(Result, ResultLength);
       Exit;
+    end;
+
+    { Append the char by SetLength + writing a byte, not by "Result := Result +
+      AnsiChar(...)". The latter would make the compiler convert the AnsiChar
+      (which has the default 8-bit encoding) to UTF-8 string, potentially
+      mangling multibyte UTF-8 characters.
+      See TTestCompiler.TestAddingIncompleteUtf8 test and comments
+      for proof that this is necessary.
+      We want to just copy the raw bytes from the stream, as we assume
+      the stream already contains UTF-8. }
+    Inc(ResultLength);
+
+    { Since we track ResultLength anyway (see above, to add characters in valid
+      way) -> let's also use this for optimization.
+      We grow Result length in blocks, to not waste time on many small
+      reallocations. }
+    if ResultLength > Length(Result) then
+      SetLength(Result, ResultLength + 100);
+
     { ReadChar will return the same thing as Peeked now. }
-    Result := Result + AnsiChar(ReadChar);
+    Result[ResultLength] := AnsiChar(ReadChar);
   end;
 end;
 
@@ -1775,7 +1893,7 @@ begin
     UpdateLineColumn(AnsiChar(Result));
 end;
 
-function TBufferedReadStream.ReadUpto(const EndingChars: TSetOfChars): AnsiString;
+function TBufferedReadStream.ReadUpto(const EndingChars: TSetOfChars): Utf8String;
 var
   Peeked: Integer;
   BufferBeginPos, OldResultLength, ReadCount: Cardinal;
@@ -1947,7 +2065,9 @@ end;
 
 function TCastleComponent.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'Name') then
+  if ArrayContainsString(PropertyName, [
+       'Name'
+     ]) then
     Result := [psBasic]
   else
     Result := [];
@@ -2187,6 +2307,104 @@ begin
 begin
   WritelnWarning('Localization (TranslateProperties) not implemented for Delphi yet.');
 {$endif}
+end;
+
+{ TComponentMap ------------------------------------------------------------- }
+
+{ The ready-made case-insensitive comparer TIStringComparer.Ordinal (from
+  Generics.Defaults) is broken with FPC 3.2.x: it raises an access violation
+  on the very first dictionary lookup. Mechanism:
+
+  - TIStringComparer.Ordinal returns a comparer whose GetHashCode and Equals
+    delegate to an inherited @italic(class variable) FEqualityComparer
+    (TOrdinalComparer.FEqualityComparer), which holds the default ordinal
+    comparer used to hash/compare the lowercased key.
+
+  - That class variable is set by the TOrdinalComparer class constructor, which
+    obtains the default comparer via THashService.LookupEqualityComparer. That
+    lookup reads instance tables that are themselves filled by @italic(another)
+    class's class constructor (THashService.Create / TExtendedHashService.Create).
+
+  - The order in which FPC runs class constructors of generic specializations is
+    not guaranteed. So TOrdinalComparer's class constructor can run before the
+    hash-service tables are initialized; the lookup then returns nil, leaving
+    FEqualityComparer = nil. The first Add/TryGetValue calls GetHashCode through
+    this nil interface -> EAccessViolation.
+
+  This is fixed in FPC 3.3.1 by commit 2e9a84654368830ccbca0c687e248352e0e3fb70
+  ( https://gitlab.com/freepascal.org/fpc/source/-/commit/2e9a846543 ).
+
+  So only for FPC 3.2.x (VER3_2) we avoid TIStringComparer.Ordinal and instead
+  construct a comparer from these explicit equality + hash functions.
+  Later FPC and Delphi use TIStringComparer.Ordinal directly
+  (see TComponentMap.Create). }
+{$if defined(FPC) and defined(VER3_2)}
+function ComponentMapKeyEquals(
+  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif}
+  ALeft, ARight: String): Boolean;
+begin
+  Result := SameText(ALeft, ARight);
+end;
+
+{ FNV-1a hash of the lowercased key, so that keys equal by SameText
+  (which ignores ASCII case, just like Pascal identifiers) hash equally. }
+{$I norqcheckbegin.inc}
+function ComponentMapKeyHash(
+  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif}
+  AValue: String): UInt32;
+var
+  S: String;
+  I: Integer;
+begin
+  S := LowerCase(AValue);
+  Result := 2166136261;
+  for I := 1 to Length(S) do
+  begin
+    Result := Result xor Ord(S[I]);
+    Result := Result * 16777619;
+  end;
+end;
+{$I norqcheckend.inc}
+{$endif}
+
+constructor TComponentMap.Create;
+begin
+  { Use a case-insensitive comparer for the keys.
+    This way the keys are matched ignoring case, but their original case
+    is preserved (we don't lowercase the keys we store). }
+  inherited Create(
+    {$if defined(FPC) and defined(VER3_2)}
+    { Workaround broken TIStringComparer.Ordinal on FPC 3.2.x, see comment above. }
+    specialize TEqualityComparer<String>.Construct(
+      @ComponentMapKeyEquals, @ComponentMapKeyHash)
+    {$else}
+    TIStringComparer.Ordinal
+    {$endif}
+  );
+end;
+
+function TComponentMap.GetItem(const Key: String): TComponent;
+begin
+  if not TryGetValue(Key, Result) then
+    raise EListError.Create('Dictionary key does not exist');
+end;
+
+procedure TComponentMap.Add(const Key: String; const Value: TComponent);
+begin
+  if Key = '' then
+    raise EListError.Create('Cannot add empty key to TComponentMap');
+  if Value = nil then
+    raise EListError.Create('Cannot add nil value to TComponentMap');
+  inherited Add(Key, Value);
+end;
+
+procedure TComponentMap.AddOrSetValue(const Key: String; const Value: TComponent);
+begin
+  if Key = '' then
+    raise EListError.Create('Cannot add empty key to TComponentMap');
+  if Value = nil then
+    raise EListError.Create('Cannot add nil value to TComponentMap');
+  inherited AddOrSetValue(Key, Value);
 end;
 
 { initialization / finalization ---------------------------------------------- }
@@ -2639,6 +2857,11 @@ end;
 
 destructor TFreeNotificationObserver.Destroy;
 begin
+  if FDuringOnFreeNotification then
+    WritelnWarning('TFreeNotificationObserver is being freed while processing OnFreeNotification. ' +
+      'This will lead to undefined behavior later, as our instance will be invalid when OnFreeNotification ends. ' +
+      'To fix this, either change TFreeNotificationObserver.EnableFreeingFromNotification to true, or make sure to not free this instance from inside OnFreeNotification.');
+
   { detach free notification, if any remains }
   Observed := nil;
   inherited;
@@ -2667,13 +2890,31 @@ begin
      (AComponent = FObserved) and
      Assigned(OnFreeNotification) then
   begin
-    OnFreeNotification(Self);
+    if FDuringOnFreeNotification then
+      raise EInternalError.Create('We got TFreeNotificationObserver.Notification during OnFreeNotification on the same instance. This is invalid, as it could cause infinite recursion in event processing.');
 
-    { Possibly OnFreeNotification already changed Observed, and we no longer observe it.
-      But if it didn't... then let's fix it.
-      We know FObserved will be freed, so we can stop watching. }
-    if AComponent = FObserved then
-      Observed := nil;
+    if FEnableFreeingFromNotification then
+    begin
+      OnFreeNotification(Self);
+      { And we really cannot do anything more here when FEnableFreeingFromNotification.
+        We cannot update FDuringOnFreeNotification, we cannot look
+        (even read) our FObserved, as Self may be already freed so accessing
+        any field in a potential EAccessViolation. }
+    end else
+    begin
+      FDuringOnFreeNotification := true;
+      try
+        OnFreeNotification(Self);
+      finally
+        FDuringOnFreeNotification := false;
+      end;
+
+      { Possibly OnFreeNotification already changed Observed, and we no longer observe it.
+        But if it didn't... then let's fix it.
+        We know FObserved will be freed, so we can stop watching. }
+      if AComponent = FObserved then
+        Observed := nil;
+    end;
   end;
 end;
 
@@ -2686,6 +2927,16 @@ begin
     FObserved := Value;
     if FObserved <> nil then
       FObserved.FreeNotification(Self);
+  end;
+end;
+
+procedure TFreeNotificationObserver.SetEnableFreeingFromNotification(const Value: Boolean);
+begin
+  if FEnableFreeingFromNotification <> Value then
+  begin
+    if FDuringOnFreeNotification then
+      raise EInternalError.Create('Cannot change TFreeNotificationObserver.EnableFreeingFromNotification from inside OnFreeNotification event handler.');
+    FEnableFreeingFromNotification := Value;
   end;
 end;
 

@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -199,18 +199,13 @@ end;
 
 function TCastleBackground.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'SkyTopColorPersistent') or
-     (PropertyName = 'SkyEquatorColorPersistent') or
-     (PropertyName = 'GroundBottomColorPersistent') or
-     (PropertyName = 'GroundEquatorColorPersistent') or
-     (PropertyName = 'RotationPersistent') or
-     (PropertyName = 'TextureNegativeZ') or
-     (PropertyName = 'TexturePositiveZ') or
-     (PropertyName = 'TextureNegativeX') or
-     (PropertyName = 'TexturePositiveX') or
-     (PropertyName = 'TextureNegativeY') or
-     (PropertyName = 'TexturePositiveY') or
-     (PropertyName = 'SmoothEquator') then
+  if ArrayContainsString(PropertyName, [
+      'SkyTopColorPersistent', 'SkyEquatorColorPersistent',
+      'GroundBottomColorPersistent', 'GroundEquatorColorPersistent',
+      'RotationPersistent', 'TextureNegativeZ', 'TexturePositiveZ',
+      'TextureNegativeX', 'TexturePositiveX', 'TextureNegativeY',
+      'TexturePositiveY', 'SmoothEquator'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);

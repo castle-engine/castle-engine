@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -49,8 +49,8 @@
     ReferenceDistance: Single;
     { See @link(TCastleSound.MaxDistance), by default 10000. }
     MaxDistance: Single;
-    { Offset is a position in time of the sound. }
-    Offset: Single;
+    { InitialOffset is a position in time of the sound when it starts playing. }
+    InitialOffset: Single;
 
     { See TCastleSound.Priority for range and meaning. }
     property Priority: Single read FPriority write SetPriority {$ifdef FPC}default 0.5{$endif};

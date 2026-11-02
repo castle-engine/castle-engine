@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -731,7 +731,8 @@ end;
 
 { LoadWavefrontOBJ ----------------------------------------------------------- }
 
-function LoadWavefrontOBJ(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
+function LoadWavefrontOBJ(const Stream: TStream; const BaseUrl: String;
+  const LoadOptions: TCastleSceneLoadOptions): TX3DRootNode;
 const
   { When constructing large index arrays, we use larger Capacity
     to make them faster.
@@ -760,7 +761,7 @@ const
         Material.AmbientColor, Material.DiffuseColor);
       MatPhong.DiffuseColor := Material.DiffuseColor;
       MatPhong.SpecularColor := Material.SpecularColor;
-      MatPhong.Transparency := 1 - Material.Opacity;
+      MatPhong.Transparency := OpacityToTransparency(Material.Opacity);
       MatPhong.Shininess := Material.SpecularExponent / 128.0;
 
       MatPhong.DiffuseTexture := Material.DiffuseTexture.CreateNode(BaseUrl);
@@ -772,7 +773,7 @@ const
       MatPhysical := TPhysicalMaterialNode.Create;
       Result.Material := MatPhysical;
       MatPhysical.BaseColor := Material.DiffuseColor;
-      MatPhysical.Transparency := 1 - Material.Opacity;
+      MatPhysical.Transparency := OpacityToTransparency(Material.Opacity);
 
       MatPhysical.BaseTexture := Material.DiffuseTexture.CreateNode(BaseUrl);
       MatPhysical.NormalTexture := Material.NormalTexture.CreateNode(BaseUrl);

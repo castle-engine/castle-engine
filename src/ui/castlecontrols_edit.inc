@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -151,7 +151,7 @@
       See example
       @url(https://github.com/castle-engine/castle-engine/tree/master/examples/mobile/on_screen_keyboard examples/mobile/on_screen_keyboard)
       and the @url(https://castle-engine.io/android_services Android service) documentation
-      for @url(https://github.com/castle-engine/castle-engine/tree/master/tools/build-tool/data/android/integrated-services/keyboard/README.adoc keyboard)
+      for @url(https://github.com/castle-engine/castle-engine/tree/master/tools/build-tool/data/android/services/keyboard/README.adoc keyboard)
       service. }
     property AutoOnScreenKeyboard: Boolean
       read FAutoOnScreenKeyboard write FAutoOnScreenKeyboard

@@ -1,0 +1,49 @@
+## local_notifications
+
+Show a notification at a chosen time, even when the application is no longer running. Use the https://castle-engine.io/apidoc/html/CastleLocalNotifications.TLocalNotifications.html[TLocalNotifications] class from the https://castle-engine.io/apidoc/html/CastleLocalNotifications.html[CastleLocalNotifications] unit to schedule and cancel them from your Object Pascal code:
+
+[source,pascal]
+----
+TLocalNotifications.Schedule('merchant', 60 * 30, 'The merchant is here', 'He leaves in an hour.');
+...
+TLocalNotifications.Cancel('merchant');
+----
+
+This is for telling the player about something that happens in your game while they are not looking: a building that is finished, a daily reward that is ready. Tapping the notification opens the application.
+
+These are _local_ notifications: the application schedules them itself, nothing is sent over the network. Push notifications (sent from your own server) are a different mechanism, not implemented by this service.
+
+### Details
+
+* Scheduling again with the same id replaces the notification scheduled before.
+
+* The system may show the notification somewhat later than requested. We use `AlarmManager.setAndAllowWhileIdle`, which wakes a dozing device but is allowed to be late (usually not much, but it may be even an hour or more), and which (unlike exact alarms) requires no additional permission.
+
+* Pending notifications are scheduled again after a device reboot (and after an update of the application). One whose time passed while the device was off is shown right after the reboot. For this, Android starts the application briefly after a reboot (using the `RECEIVE_BOOT_COMPLETED` permission, which the user is not asked about), but only when some notification is pending.
+
+* Pending notifications are also scheduled again each time the application starts. This matters when the user chose "Force stop" on the application in the system settings: Android forgets the pending notifications then, and they arrive only once the application is started again (immediately, if their time has passed).
+
+* Since Android 13, showing a notification requires the `POST_NOTIFICATIONS` permission. This service asks for it when your application schedules its first notification. If the user refuses, notifications are silently not shown -- nothing fails and nothing crashes.
+
+* Schedule (and cancel) the notifications when the application is active, not when it is being paused or closed: such request is processed only when the application is active again, which is too late.
+
+* The application icon is shown in color inside the notification (as its _large icon_), so the player sees at once which game it comes from.
+
+* The _small icon_, in the status bar and in the notification header, is drawn by Android as a silhouette: only its transparency matters, the color is chosen by the system. So it cannot simply be the colorful application icon. By default this service uses a simple bell. To use your own, provide a white PNG image on a transparent background (for example your logo's outline), 96x96 pixels is enough, and point to it from `CastleEngineManifest.xml`:
+
+[source,xml]
+----
+<service name="local_notifications">
+  <parameter key="small_icon" value="android/notification_icon.png" />
+</service>
+----
+
+The path is relative to the project directory. Keep the file outside of the `data` directory, it is not needed by the game itself.
+
+### Attribution
+
+During the development, we looked at other notification plugins and used some ideas from them. We didn't copy code directly from them.
+
+- Cordova, https://github.com/katzer/cordova-plugin-local-notifications (Apache License 2.0)
+
+- Godot, https://github.com/godot-mobile-plugins/godot-notification-scheduler (MIT License)

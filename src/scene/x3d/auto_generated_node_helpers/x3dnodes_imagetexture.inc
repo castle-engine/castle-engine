@@ -1,10 +1,10 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2025 Michalis Kamburelis.
+  Copyright 2015-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -42,8 +42,9 @@
     strict private FFdFlipVertically: TSFBool;
     { Internal wrapper for property @code(FlipVertically). This wrapper API may change, we advise to access simpler @code(FlipVertically) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdFlipVertically: TSFBool read FFdFlipVertically;
-    {  }
+    { Flip the texture contents vertically. Allows to use unchanged WebGL/glTF texture coordinates, where (0,0) is top-left, with this texture. See @url(https://castle-engine.io/x3d_implementation_texturing_extensions.php#section_flip_vertically flipVertically docs) for more details. }
     property FlipVertically: Boolean read GetFlipVertically write SetFlipVertically;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -87,6 +88,13 @@ begin
   FFdFlipVertically := TSFBool.Create(Self, False, 'flipVertically', false);
    FdFlipVertically.ChangeAlways := chTextureImage;
   AddField(FFdFlipVertically);
+end;
+
+procedure TImageTextureNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  if not FdFlipVertically.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdFlipVertically.X3DName);
 end;
 
 {$endif read_implementation}

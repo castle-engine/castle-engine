@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -54,7 +54,7 @@ type
     @orderedList(
       @item(Include the necessary integration code in your Android / iOS project.
 
-        For iOS, add the "activity_regonition" service inside CastleEngineManifest.xml.
+        For iOS, add the "activity_recognition" service inside CastleEngineManifest.xml.
         See https://castle-engine.io/ios-Services
         and https://github.com/castle-engine/castle-engine/blob/master/tools/build-tool/data/ios/services/activity_recognition/README.md .
 

@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -30,7 +30,10 @@ uses
     {$ifdef FPC} BaseUnix, Unix, Dl,
     {$else} Posix.SysTypes, Posix.SysTime, Posix.SysTimes, {$endif}
   {$endif}
-  {$ifdef ANDROID} Linux, {$endif}
+  // for clock_gettime used by Timer
+  {$if defined(ANDROID) and defined(FPC)} Linux, {$endif}
+  // for clock_gettime used by Timer
+  {$if defined(ANDROID) and defined(DELPHI)} Posix.Time, {$endif}
   SysUtils, Classes, Math, Generics.Collections,
   CastleUtils;
 

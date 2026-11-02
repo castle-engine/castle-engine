@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -15,8 +15,6 @@
 
 { Project-related castle-editor utilities. }
 unit ProjectUtils;
-
-{$mode objfpc}{$H+}
 
 interface
 
@@ -54,7 +52,7 @@ implementation
 
 uses Forms,
   CastleUriUtils, CastleStringUtils, CastleFindFiles, CastleUtils,
-  CastleFilesUtils,
+  CastleFilesUtils, CastleInternalProcess,
   ToolCommonUtils, ToolProcessRun,
   EditorUtils, FormProject;
 
@@ -83,10 +81,10 @@ begin
     NewEnvironment.Values['CASTLE_ENGINE_PATH'] := CastleEnginePath;
   end;
 
-  MyRunCommandIndir(UriToFilenameSafe(ProjectDirUrl), BuildToolExe,
+  ExecuteCommandCapture(UriToFilenameSafe(ProjectDirUrl), BuildToolExe,
     ['generate-program'], BuildToolOutput, BuildToolStatus, nil, nil,
     // prevent from blinking console on Windows
-    [rcNoConsole],
+    [ecNoConsole],
     NewEnvironment);
   if BuildToolStatus <> 0 then
   begin

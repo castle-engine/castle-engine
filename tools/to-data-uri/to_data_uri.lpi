@@ -26,7 +26,7 @@
     </PublishOptions>
     <RequiredPackages Count="1">
       <Item1>
-        <PackageName Value="castle_base"/>
+        <PackageName Value="castle_engine_base"/>
       </Item1>
     </RequiredPackages>
     <Units Count="1">

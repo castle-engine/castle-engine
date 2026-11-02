@@ -22,7 +22,7 @@ uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
   ApplicationProperties.ApplicationName := 'image_decompose';
-  ApplicationProperties.Caption := 'image_decompose';
+  ApplicationProperties.Caption := 'Read KTX or DDS and decompose into a number of simple images (PNG)';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then

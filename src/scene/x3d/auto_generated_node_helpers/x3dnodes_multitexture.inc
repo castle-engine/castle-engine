@@ -1,10 +1,10 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2025 Michalis Kamburelis.
+  Copyright 2015-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -42,14 +42,13 @@
     strict private FFdColor: TSFColor;
     { Internal wrapper for property @code(Color). This wrapper API may change, we advise to access simpler @code(Color) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdColor: TSFColor read FFdColor;
-    { Avoid Delphi warning that this hides ancestor Color.
-      We don't care about it now -- because ancestor's Color
-      method is not very useful on TMultiTextureNode anyway.
-      TODO: Make this persistent across regenerations of this include. }
-    {$warnings off}
+      { Avoid Delphi warning that this hides ancestor Color.
+        We don't care about it now -- because ancestor's Color
+        method is not very useful on TMultiTextureNode anyway. }
+      {$warnings off}
     {  }
     property Color: TCastleColorRGB read GetColor write SetColor;
-    {$warnings on}
+      {$warnings on}
 
     strict private FFdFunction: TMFString;
     { Internal wrapper for property @code(Function). This wrapper API may change, we advise to access simpler @code(Function) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }

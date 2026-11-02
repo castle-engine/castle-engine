@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -216,21 +216,38 @@ type
     keyNumpadEnter,
     keyNumpadMultiply,
     keyNumpadDivide,
-    { Keys on Nintendo Switch pad. }
-    keyPadA,
-    keyPadB,
-    keyPadX,
-    keyPadY,
-    keyPadL,
-    keyPadR,
-    keyPadZL,
-    keyPadZR,
-    keyPadPlus,
-    keyPadMinus,
-    keyPadLeft,
-    keyPadUp,
-    keyPadRight,
-    keyPadDown,
+    (* Old: Buttons on Nintendo Switch pad were expressed as this enum.
+       Now they are expressed as TGameControllerButton.
+    // keyPadA, // new gbEast
+    // keyPadB, // new gbSouth
+    // keyPadX, // new gbNorth
+    // keyPadY, // new gbWest
+    // keyPadL, // new gbLeftBumper
+    // keyPadR, // new gbRightBumper
+    // keyPadZL, // new TGameConroller.AxisLeftTrigger (this is digital on Nintendo Switch pads, but analog on Xbox controllers)
+    // keyPadZR, // new TGameConroller.AxisRightTrigger (this is digital on Nintendo Switch pads, but analog on Xbox controllers)
+    // keyPadPlus, // new gbMenu
+    // keyPadMinus, // new gbView
+    // keyPadLeft, // new gbDPadLeft
+    // keyPadUp, // new gbDPadUp
+    // keyPadRight, // new gbDPadRight
+    // keyPadDown, // new gbDPadDown
+    home key on Nintendo Switch -> gbGuide, in cases we can handle it in API
+    *)
+    keyReserved_164,
+    keyReserved_165,
+    keyReserved_166,
+    keyReserved_167,
+    keyReserved_168,
+    keyReserved_169,
+    keyReserved_170,
+    keyReserved_171,
+    keyReserved_172,
+    keyReserved_173,
+    keyReserved_174,
+    keyReserved_175,
+    keyReserved_176,
+    keyReserved_177,
     keyReserved_178,
     keyReserved_179,
     keyReserved_180,
@@ -592,23 +609,70 @@ type
 
   { Possible game controlers (gamepad, joystick) buttons. }
   TGameControllerButton = (
-    { gbNorth, gbEast, gbSouth, gbWest are universal names for 4 buttons
-      on the "button pad"
-      (see @url(https://partner.steamgames.com/doc/features/steam_controller/input_source
+    { gbNorth, gbEast, gbSouth, gbWest are universal names for 4 "face buttons"
+      on the "button pad".
+      See @url(https://partner.steamgames.com/doc/features/steam_controller/input_source
       Steam "button pad" description).
 
-      They can be labeled A B X Y (and have different order between
+      They can be labeled A B X Y (in a different order between
       e.g. Xbox and Nintendo Switch controllers), or square triangle circle cross
-      (e.g. PlayStation controllers). }
+      (e.g. PlayStation controllers), or even 1 2 3 4 on some gamepads. }
     gbNorth,
     gbEast,
     gbSouth,
     gbWest,
 
-    gbLeftTrigger,
-    gbRightTrigger,
+    { Trigger buttons. Triggers are underneath the "bumpers".
 
+      On @url(https://www.nintendo.com/en-gb/Support/Nintendo-Switch/Joy-Con-Controller-Diagram-1518877.html
+      Nintendo Switch controllers, they are called ZL and ZR).
+
+      Note that on some controllers, the triggers are analog
+      (report as axis: amount of pressure),
+      and on some -- digital (report only press / release).
+
+      @unorderedList(
+        @item(Nintendo Switch controllers have digital triggers.)
+        @item(In contrast, Xbox Controllers have analog triggers.
+          Observe them using @link(TGameController.AxisLeftTrigger) and
+          @link(TGameController.AxisRightTrigger).
+        )
+      )
+
+      The buttons gbLeft/RightTrigger are now commented out, this was confusing
+      to expose them as both buttons and axes.
+      Use only axis now:
+
+      - TGameController.AxisLeftTrigger
+      - TGameController.AxisRightTrigger
+
+      On devices when this is digital (Nintendo Switch controller),
+      the axis will be just 0.0 or 1.0.
+
+      If you want to treat trigger axis as "digital", just add simple code on the
+      application side to check when the trigger passes a certian "threshold".
+      For example, when TGameController.AxisLeftTrigger > 0.5 then
+      treat it as "pressed". See https://castle-engine.io/controllers
+      for pointers.
+
+      If we ever restore gbLeft/RightTrigger as buttons, we have to make it
+      easy to use, so both
+
+      - digital API (gbLeft/RightTrigger)
+      - and analog API (TGameController.AxisLeft/RightTrigger)
+
+      ... would have to work with all gamepads.
+      So the type of event not really supported by the gemapd (analog or digital)
+      would have to be simulated.
+    }
+    // gbLeftTrigger,
+    // gbRightTrigger,
+
+    { Left bumper button.
+      This is often used (together with gbRightBumper) to allow user to
+      cycle left / right through some choice, like a car color, weapon, UI tab. }
     gbLeftBumper,
+    // Right bumper button.
     gbRightBumper,
 
     // Pressing down on the left stick.
@@ -616,32 +680,69 @@ type
     // Pressing down on the right stick.
     gbRightStickClick,
 
+    { Directional buttons on the D-Pad (digital pad).
+      Remember that the D-pad generally has hardware mechanism that
+      prevents the user from pressing opposite buttons at the same time.
+      So it may not be physically possible to have e.g. both
+      gbDPadUp and gbDPadDown pressed at the same time. }
     gbDPadUp,
     gbDPadRight,
     gbDPadDown,
     gbDPadLeft,
 
-    { Button with 2 rectantgles on the
-      @url(https://en.wikipedia.org/wiki/Xbox_Wireless_Controller Xbox Wireless Controller).
-      Position matches "Back" on the
-      @url(https://en.wikipedia.org/wiki/Xbox_360_controller Xbox 360 controller). }
+    { Button in the middle-left of the gamepad.
+
+      @unorderedList(
+        @item(This is button with 2 rectangles called "View" on the
+          @url(https://en.wikipedia.org/wiki/Xbox_Wireless_Controller Xbox Wireless Controller).)
+        @item(This is called "Back" on the
+          @url(https://en.wikipedia.org/wiki/Xbox_360_controller Xbox 360 controller).)
+        @item(This is called "Minus" or "Select" on the
+          @url(https://www.nintendo.com/en-gb/Support/Nintendo-Switch/Joy-Con-Controller-Diagram-1518877.html Nintendo Switch controllers).)
+      )
+    }
     gbView,
 
-    { Button with 3 horizontal lines on the
-      @url(https://en.wikipedia.org/wiki/Xbox_Wireless_Controller Xbox Wireless Controller).
-      Position matches "Start" on the
-      @url(https://en.wikipedia.org/wiki/Xbox_360_controller Xbox 360 controller). }
+    { Button in the middle-right of the gamepad.
+
+      @unorderedList(
+        @item(This is button with 3 horizontal lines called "Menu" on the
+          @url(https://en.wikipedia.org/wiki/Xbox_Wireless_Controller Xbox Wireless Controller).)
+        @item(This is called "Start" on the
+          @url(https://en.wikipedia.org/wiki/Xbox_360_controller Xbox 360 controller).)
+        @item(This is called "Plus" or "Start" on the
+          @url(https://www.nintendo.com/en-gb/Support/Nintendo-Switch/Joy-Con-Controller-Diagram-1518877.html Nintendo Switch controllers).)
+      )
+    }
     gbMenu,
 
-    { Main button with XBox logo on the
-      @url(https://en.wikipedia.org/wiki/Xbox_Wireless_Controller Xbox Wireless Controller).
-      and
-      @url(https://en.wikipedia.org/wiki/Xbox_360_controller Xbox 360 controller). }
+    { Buton in the center of the gamepad.
+      Intention is to invoke a menu with available games.
+
+      This button is sometimes not available to reliably handle in games,
+      even if the device has it. The system, like Nintendo Switch or the Xbox console,
+      has a hardcoded handling of it, with which you should not conflict
+      (or you may not even get report about this being pressed).
+      On Windows "game mode" is activated by this by default (user can disable
+      it in Windows settings). Also on Windows, Steam "big picture" handles it.
+
+      @unorderedList(
+        @item(This button shows the Xbox logo on the
+          @url(https://en.wikipedia.org/wiki/Xbox_Wireless_Controller Xbox Wireless Controller)
+          and
+          @url(https://en.wikipedia.org/wiki/Xbox_360_controller Xbox 360 controller).)
+        @item(This is called "Home" on the
+          @url(https://www.nintendo.com/en-gb/Support/Nintendo-Switch/Joy-Con-Controller-Diagram-1518877.html Nintendo Switch controllers).)
+      ) }
     gbGuide,
 
-    { Share button with up arrow available in the
+    { Share button with up arrow available on the
       @url(https://en.wikipedia.org/wiki/Xbox_Wireless_Controller 3rd revision
-      of the Xbox Wireless Controller). }
+      of the Xbox Wireless Controller).
+
+      Note that on Windows, this automatically takes a screenshot of the
+      current window. You should probably not try to handle this button
+      in your games, to not conflict with what Windows is doing. }
     gbShare
   );
 
@@ -679,17 +780,32 @@ type
     Caption: String;
 
     { Controller on which this button was pressed or released.
-      This is an index to @link(GameControllers) array. }
+      This is an index to the @link(Controllers) array. }
     ControllerIndex: Integer;
   end;
 
   TFingerIndex = Cardinal;
 
   { Input press or release event.
-    Either key press/release or mouse button press/release or
-    mouse wheel action.
+    Depending on @link(EventType), this may represent either:
+
+    @unorderedList(
+      @item(key press/release)
+      @item(mouse button press/release)
+      @item(mouse wheel being used to scroll)
+      @item(game controller button press/release)
+    )
+
     This is nicely matching with TInputShortcut processing in CastleInputs,
-    so it allows to easily store and check for user actions. }
+    so it allows to easily store and check for user actions.
+
+    In most cases, you should consider this record as read-only and use only
+    the values provided by the engine, without modifying them.
+    Modifying / constructing TInputPressRelease manually is possible
+    for certain tricks, e.g. to simulate user input.
+    Be sure in such cases to construct values using provided
+    constructors in this unit: @link(InputKey), @link(InputMouseButton),
+    @link(InputMouseWheel). }
   TInputPressRelease = record
   public
     EventType: TInputPressReleaseType;
@@ -850,11 +966,60 @@ type
     function Description: string; deprecated;
   end;
 
-  { Motion (movement) of mouse or a finger on a touch device. }
+  { Motion (movement) of mouse or a finger on a touch device.
+
+    In most cases, you should consider this record as read-only and use only
+    the values provided by the engine, without modifying them.
+    Modifying / constructing TInputMotion manually is possible
+    for certain tricks, e.g. to simulate user input.
+    Be sure in such cases to construct values using @link(InputMotion) function. }
   TInputMotion = record
     { Old and new positions of the mouse or finger.
       In the same coordinate system as @link(TInputPressRelease.Position). }
     OldPosition, Position: TVector2;
+
+    { Change of movement, internal for web.
+
+      Applications should use @link(Delta) instead.
+
+      This contains now:
+
+      On platforms other than web,
+      or when the web platform is used without pointer lock,
+      this is just zero.
+
+      On the web platform, when pointer lock is used,
+      this is the change in position reported by the browser pointer lock API.
+      Doing @code(Event.Position - Event.OldPosition) is not useful on the
+      web platform when pointer lock is used,
+      as the "pointer lock API" pretends that mouse didn't move at all.
+
+      @exclude }
+    InternalWebDelta: TVector2;
+
+    { Delta of movement, in the same coordinate system as
+      @link(TInputPressRelease.Position).
+
+      @unorderedList(
+        @item(When pointer lock is not used, i.e. when
+          @link(TCastleAbstractPointerLock.Active MyContainer.PointerLock.Active)
+          is @false:
+
+          This is equal to @code(Event.Position - Event.OldPosition).
+        )
+
+        @item(When pointer lock is used, i.e. when
+          @link(TCastleAbstractPointerLock.Active MyContainer.PointerLock.Active)
+          is @true:
+
+          This is calculated in more complicated, and internal, way,
+          using best "pointer lock" logic for the given platform.
+          See @link(TCastleContainer.PointerLock)
+          and @link(TCastleAbstractPointerLock) for more information.
+        )
+      )
+    }
+    Delta: TVector2;
 
     { Currently pressed mouse buttons.
       On touch devices, this is always just [buttonLeft]. }
@@ -1477,6 +1642,10 @@ begin
   FillChar(Result, SizeOf(Result), 0);
   Result.OldPosition := OldPosition;
   Result.Position := Position;
+  { Set Delta here to something reasonable just in case something will use this
+    prematurely. In normal situation, TCastleContainer.EventMotionNoCollect
+    should set Delta, accounting also for possible pointer lock. }
+  Result.Delta := Position - OldPosition;
   Result.Pressed := Pressed;
   Result.FingerIndex := FingerIndex;
 end;

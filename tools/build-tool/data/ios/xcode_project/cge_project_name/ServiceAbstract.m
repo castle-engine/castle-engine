@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in the "Castle Game Engine" distribution,
   for details about the copyright.
 
@@ -35,6 +35,11 @@
 - (BOOL)application:(UIApplication *)app
     openURL:(NSURL *)url
     options:(NSDictionary<UIApplicationOpenURLOptionsKey, id> *)options
+{
+    return NO;
+}
+
+- (BOOL)openURLContexts:(NSSet<UIOpenURLContext *> *)URLContexts
 {
     return NO;
 }

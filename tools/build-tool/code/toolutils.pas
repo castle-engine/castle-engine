@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -141,7 +141,7 @@ implementation
 
 uses {$ifdef UNIX} BaseUnix, {$endif}
   {$ifdef MSWINDOWS} Windows, {$endif}
-  Classes, Process, SysUtils,
+  Classes, SysUtils,
   CastleFilesUtils, CastleUriUtils, CastleLog, CastleXmlUtils, CastleFindFiles,
   CastleZip,
   ToolCommonUtils, ToolProcessRun;
@@ -173,11 +173,14 @@ var
   OutputNote: String;
 begin
   if (FOutputPath = '') or
-     { Do not reuse cached FOutputPath for different WorkingDirectory,
-       otherwise doing DoCompile for different projects in same run would accidentally
-       reuse output.
-       Testcase: "castle-engine cache", each mode (release valgrind debug)
-       must build new files. }
+     { Do not reuse cached FOutputPath for different WorkingDirectory.
+       This would break:
+       - doing DoCompile for different projects in same run
+         (they would accidentally reuse output.)
+         Testcase: "castle-engine cache", each mode (release valgrind debug)
+         must build new files.
+       - TCastleProject.DelphiAndroidOutputPath calls this with
+         DelphiWorkingPath as WorkingDirectory. }
      (FOutputPathForWorkingDirectory <> WorkingDirectory) then
   begin
     if OutputPathBase = '' then
@@ -326,7 +329,7 @@ begin
   {$ifdef MSWINDOWS}
   WindowsErrorBox(Message);
   {$else}
-  RunCommandSimple('zenity', ['--error', '--no-markup', '--text=' + Message]);
+  ExecuteCommandSimple('zenity', ['--error', '--no-markup', '--text=' + Message]);
   {$endif}
 end;
 
@@ -417,7 +420,7 @@ procedure ZipDirectoryTool(const ZipFileName: String; Directory: String;
     if FileExists(ZipFileName) then
       CheckDeleteFile(ZipFileName);
 
-    RunCommandSimple(WorkingDirectory, 'zip',
+    ExecuteCommandSimple(WorkingDirectory, 'zip',
       ['-q', '-r', ZipFileName, NameToIncludeInZip]);
   end;
 

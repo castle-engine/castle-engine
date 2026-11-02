@@ -1,2 +1,5 @@
 # Delphi for Linux temp
 *.bpi
+# temp output, like files for C++ Builder
+/Android64/
+/OSXARM64/

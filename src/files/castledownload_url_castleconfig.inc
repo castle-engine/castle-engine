@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -35,7 +35,7 @@ type
 class function TUrlCastleConfig.Exists(const Url: String): TUriExists;
 begin
   { Recursively call UriExists, on URL that is no longer castle-config. }
-  Result := UriExists(ResolveCastleConfigUrl(Url));
+  Result := UriExists(ResolveCastleConfigUrl(Url, true));
 end;
 
 {$endif}

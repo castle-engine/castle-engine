@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -24,7 +24,7 @@ uses Classes;
 
 type
   { TestFairy integration.
-    On Android ( https://github.com/castle-engine/castle-engine/blob/master/tools/build-tool/data/android/integrated-services/test_fairy/README.md )
+    On Android ( https://github.com/castle-engine/castle-engine/blob/master/tools/build-tool/data/android/services/test_fairy/README.md )
     and on iOS ( https://github.com/castle-engine/castle-engine/blob/master/tools/build-tool/data/ios/services/test_fairy/README.md ).
   }
   TTestFairy = class(TComponent)
@@ -33,7 +33,7 @@ type
     class procedure FinalizeRemoteLogging;
   public
     { Send CGE logs to TestFairy.
-      This is onlly necessary on iOS, on Android all the logs are automatically send to TestFairy.
+      This is only necessary on iOS, on Android all the logs are automatically send to TestFairy.
       It does nothing in case TestFairy service is not used. }
     class procedure InitializeRemoteLogging;
   end;

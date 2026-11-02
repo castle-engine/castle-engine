@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -55,7 +55,7 @@ implementation
 uses SysUtils,
   CastleComponentSerialize, CastleImages, CastleRectangles, CastleStringUtils,
   CastleUtils, CastleLog, CastleUriUtils
-  { Use CastlePropEdits, and thus LCL and castle_components, only when part of the editor. }
+  { Use CastlePropEdits, and thus LCL and castle_engine_lcl, only when part of the editor. }
   {$ifdef CASTLE_DESIGN_MODE} , PropEdits, ComponentEditors, CastlePropEdits {$endif};
 
 { TImageGrid ----------------------------------------------------------------- }
@@ -90,9 +90,9 @@ end;
 
 function TImageGrid.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'Rows') or
-     (PropertyName = 'Columns') or
-     (PropertyName = 'Url') then
+  if ArrayContainsString(PropertyName, [
+    'Rows', 'Columns', 'Url'
+    ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
@@ -212,7 +212,7 @@ end;
 initialization
   RegisterSerializableComponent(TImageGrid, 'Image Grid');
   {$ifdef CASTLE_DESIGN_MODE}
-  RegisterPropertyEditor(TypeInfo(AnsiString), TImageGrid, 'Url', TImageUrlPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(String), TImageGrid, 'Url', TImageUrlPropertyEditor);
   RegisterComponentEditor(TImageGrid, TImageGridEditor);
   {$endif}
 end.

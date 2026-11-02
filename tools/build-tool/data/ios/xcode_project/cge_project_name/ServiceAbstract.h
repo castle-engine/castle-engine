@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in the "Castle Game Engine" distribution,
   for details about the copyright.
 
@@ -30,10 +30,14 @@
 /* Called when AppDelegate receives applicationDidBecomeActive: message. */
 - (void)applicationDidBecomeActive:(UIApplication *)application;
 
-/* Called when AppDelegate receives application:openURL:options message. */
+/* Called when AppDelegate receives application:openURL:options message.
+   For opening URLs in iOS 13 and later, you have to implement openURLContexts: too. */
 - (BOOL)application:(UIApplication *)app
     openURL:(NSURL *)url
     options:(NSDictionary<UIApplicationOpenURLOptionsKey, id> *)options;
+
+/* Called when SceneDelegate receives scene:openURLContexts:options message. */
+- (BOOL)openURLContexts:(NSSet<UIOpenURLContext *> *)URLContexts  API_AVAILABLE(ios(13.0));
 
 /* Try handling this message. Returns TRUE if handled. */
 - (bool)messageReceived:(NSArray* )message;

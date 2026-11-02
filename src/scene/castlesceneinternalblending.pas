@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -168,10 +168,10 @@ var
 begin
   FrameProfiler.Start(fmRenderShapesFilter);
 
-  { Use "Count := 0" instead of Clear, this way previous Capacity remains }
-  FilteredShapes.Count := 0;
+  { Use Clear, not ReleaseMemory, for speed. }
+  FilteredShapes.Clear;
   { Set Capacity to max value at the beginning, to speed adding items later. }
-  FilteredShapes.Capacity := Tree.MaxShapesCount;
+  FilteredShapes.AllocateAtLeast(Tree.MaxShapesCount);
 
   List := Tree.TraverseList(OnlyActive, OnlyVisible, OnlyCollidable);
 

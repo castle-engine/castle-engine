@@ -7,10 +7,12 @@ Box : X3DGeometryNode {
   # CASTLE GAME ENGINE EXTENSIONS:
   SFBool     []            ccw         TRUE
     change: chGeometry
+    is-extension: true
   SFNode     [in,out]      texCoord    NULL
     range: TextureCoordinateGenerator, ProjectedTextureCoordinate, MultiGeneratedTextureCoordinate
     change: chGeometry
     setter-before: MoveShapeAssociations
+    is-extension: true
 }
 
 Cone : X3DGeometryNode {
@@ -31,14 +33,17 @@ Cone : X3DGeometryNode {
     range: TextureCoordinateGenerator, ProjectedTextureCoordinate, MultiGeneratedTextureCoordinate
     change: chGeometry
     setter-before: MoveShapeAssociations
+    is-extension: true
   SFInt32    [in,out]      slices      0
     range: {0} + [3, infinity)
     change: chGeometry
     doc: How many "slices" to use to approximate the cone. The cone is rendered using polygons (triangles and quads) that approximate the cone shape. The more slices, the more the cone will look like a cone. Slices divide the objects like slices of a pizza. The default value of 0 means to follow global variable @link(DefaultTriangulationSlices).
+    is-extension: true
   SFInt32    [in,out]      stacks      0
     range: {0} + [2, infinity)
     change: chGeometry
     doc: How many "stacks" to use to approximate the cone. The cone is rendered using polygons (triangles and quads) that approximate the cone shape. The more stacks, the more the cone will look like a cone. Stacks divide the objects like stacks of a tower. The default value of 0 means to follow global variable @link(DefaultTriangulationStacks).
+    is-extension: true
 }
 
 Cylinder : X3DGeometryNode {
@@ -61,10 +66,12 @@ Cylinder : X3DGeometryNode {
     range: TextureCoordinateGenerator, ProjectedTextureCoordinate, MultiGeneratedTextureCoordinate
     change: chGeometry
     setter-before: MoveShapeAssociations
+    is-extension: true
   SFInt32    [in,out]      slices      0
     range: {0} + [3, infinity)
     change: chGeometry
     doc: How many "slices" to use to approximate the cylinder. The cylinder is rendered using polygons (triangles and quads) that approximate the cylinder shape. The more slices, the more the cylinder will look like a cylinder. Slices divide the objects like slices of a pizza. The default value of 0 means to follow global variable @link(DefaultTriangulationSlices).
+    is-extension: true
   # Cylinder.stacks removed: pointless for Phong shading.
   # SFInt32    [in,out]      stacks      0
   #   range: {0} + [2, infinity)
@@ -161,6 +168,7 @@ Extrusion : X3DGeometryNode {
     range: TextureCoordinateGenerator, ProjectedTextureCoordinate, MultiGeneratedTextureCoordinate
     change: chGeometry
     setter-before: MoveShapeAssociations
+    is-extension: true
 }
 
 IndexedFaceSet : X3DComposedGeometryNode {
@@ -202,17 +210,21 @@ Sphere : X3DGeometryNode {
     change: chGeometry
   SFBool  []       solid    TRUE
     change: chGeometry
+
   # CASTLE GAME ENGINE EXTENSIONS:
   SFNode     [in,out]      texCoord    NULL
     range: TextureCoordinateGenerator, ProjectedTextureCoordinate, MultiGeneratedTextureCoordinate
     change: chGeometry
     setter-before: MoveShapeAssociations
+    is-extension: true
   SFInt32    [in,out]      slices      0
     range: {0} + [3, infinity)
     change: chGeometry
     doc: How many "slices" to use to approximate the sphere. The sphere is rendered using polygons (triangles and quads) that approximate the sphere shape. The more slices, the more the sphere will look like a sphere. Slices divide the objects like slices of a pizza. The default value of 0 means to follow global variable @link(DefaultTriangulationSlices).
+    is-extension: true
   SFInt32    [in,out]      stacks      0
     range: {0} + [2, infinity)
     change: chGeometry
     doc: How many "stacks" to use to approximate the sphere. The sphere is rendered using polygons (triangles and quads) that approximate the sphere shape. The more stacks, the more the sphere will look like a sphere. Stacks divide the objects like stacks of a tower. The default value of 0 means to follow global variable @link(DefaultTriangulationStacks).
+    is-extension: true
 }

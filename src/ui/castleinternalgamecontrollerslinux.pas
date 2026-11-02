@@ -8,7 +8,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
   This file is based on ZenGL, with "zlib" license
   ( http://www.zengl.org/license.html ) which is fully compatible with
@@ -87,12 +87,7 @@ type
     { Axes mapping from JSIOCGAXMAP call. }
     AxesMap : array[0..ABS_MAX - 1] of Byte;
 
-    { Axes count available in this controller.
-      Warning: This doesn't imply the number of axes that are available in
-      InternalAxis, it talks about internal axes (backend-specific) that
-      are mapped to real axes in TInternalGameControllerAxis.
-      So *do not* use this to iterate over InternalAxis.
-      @exclude }
+    { Axes count available in this controller. }
     AxesCount: Integer;
 
     { Buttons count reported to be supported. }
@@ -272,7 +267,7 @@ var
   ControllerIndex, j : Integer;
   NewController: TGameController;
   NewControllerBackend: TLinuxControllerBackend;
-  NewName: AnsiString;
+  NewName: Utf8String;
 begin
   for ControllerIndex := 0 to 15 do
   begin

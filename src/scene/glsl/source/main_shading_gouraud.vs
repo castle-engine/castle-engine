@@ -16,8 +16,11 @@ attribute vec3 castle_Normal;
 
 /* PLUG-DECLARATIONS */
 
+/* VARYING-PASSTHROUGH-GEOMETRY-SHADERS */
 varying vec4 castle_vertex_eye;
+/* VARYING-PASSTHROUGH-GEOMETRY-SHADERS */
 varying vec3 castle_normal_eye;
+/* VARYING-PASSTHROUGH-GEOMETRY-SHADERS */
 varying vec4 castle_Color;
 
 #if defined(COLOR_PER_VERTEX_RGB)
@@ -52,6 +55,7 @@ vec4 castle_apply_color_per_vertex(vec4 color)
 
 /* CASTLE-LIGHTING-MODEL */
 
+/* CASTLE-MAIN-BEGIN */
 void main(void)
 {
   vec4 vertex_object = castle_Vertex;
@@ -93,6 +97,7 @@ void main(void)
     #endif
 
   /* PLUG: vertex_eye_space (castle_vertex_eye, castle_normal_eye) */
+  /* PLUG: vertex_eye_space_extended (castle_vertex_eye, castle_normal_eye, normal_object) */
 
   calculate_lighting(castle_Color, castle_vertex_eye, castle_normal_eye);
 
@@ -109,3 +114,4 @@ void main(void)
   castle_Color      = temp_castle_Color;
   #endif
 }
+/* CASTLE-MAIN-END */

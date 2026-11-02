@@ -14,7 +14,7 @@ uses SysUtils, Job.JS;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {
-  Automatically generated file by TWebIDLToPasWasmJob on 2025-05-16 12:13:41
+  Automatically generated file by TWebIDLToPasWasmJob on 2026-06-10 20:19:26
   
   Used command-line options: 
   --input=castleinternaljobweb.webidl
@@ -52,16 +52,59 @@ uses SysUtils, Job.JS;
   Error=IJSError
   TextEncoder=IJSTextEncode
   TextDecoder=IJSTextDecoder
+  Float32Array=IJSFloat32Array
   
   Dictionary class parent: 
   Base Options: [AddOptionsToHeader,ExpandUnionTypeArgs,DictionaryAsClass]
 }
 Type
   // Forward class definitions
+  IJSAbortSignal = interface;
+  TJSAbortSignal = class;
+  IJSAnalyserNode = interface;
+  TJSAnalyserNode = class;
   IJSAnimationFrameProvider = interface;
   TJSAnimationFrameProvider = class;
+  IJSAudioBufferSourceNode = interface;
+  TJSAudioBufferSourceNode = class;
+  IJSAudioBuffer = interface;
+  TJSAudioBuffer = class;
+  IJSAudioContext = interface;
+  TJSAudioContext = class;
+  IJSAudioDestinationNode = interface;
+  TJSAudioDestinationNode = class;
+  IJSAudioListener = interface;
+  TJSAudioListener = class;
+  IJSAudioNode = interface;
+  TJSAudioNode = class;
+  IJSAudioNodePassThrough = interface;
+  TJSAudioNodePassThrough = class;
+  IJSAudioParam = interface;
+  TJSAudioParam = class;
+  IJSAudioScheduledSourceNode = interface;
+  TJSAudioScheduledSourceNode = class;
+  IJSAudioWorklet = interface;
+  TJSAudioWorklet = class;
+  IJSBaseAudioContext = interface;
+  TJSBaseAudioContext = class;
+  IJSBiquadFilterNode = interface;
+  TJSBiquadFilterNode = class;
+  IJSBlob = interface;
+  TJSBlob = class;
+  IJSChannelMergerNode = interface;
+  TJSChannelMergerNode = class;
+  IJSChannelSplitterNode = interface;
+  TJSChannelSplitterNode = class;
+  IJSConstantSourceNode = interface;
+  TJSConstantSourceNode = class;
+  IJSConvolverNode = interface;
+  TJSConvolverNode = class;
   IJSCSSStyleDeclaration = interface;
   TJSCSSStyleDeclaration = class;
+  IJSDelayNode = interface;
+  TJSDelayNode = class;
+  IJSDocumentOrShadowRoot = interface;
+  TJSDocumentOrShadowRoot = class;
   IJSContentSecurityPolicy = interface;
   TJSContentSecurityPolicy = class;
   IJSPrincipal = interface;
@@ -86,10 +129,22 @@ Type
   TJSXULCommandDispatcher = class;
   IJSDocument = interface;
   TJSDocument = class;
+  IJSStackFrame = interface;
+  TJSStackFrame = class;
+  IJSExceptionMembers = interface;
+  TJSExceptionMembers = class;
+  IJSException = interface;
+  TJSException = class;
+  IJSDOMException = interface;
+  TJSDOMException = class;
   IJSDOMRect = interface;
   TJSDOMRect = class;
   IJSDOMRectReadOnly = interface;
   TJSDOMRectReadOnly = class;
+  IJSDOMStringList = interface;
+  TJSDOMStringList = class;
+  IJSDynamicsCompressorNode = interface;
+  TJSDynamicsCompressorNode = class;
   IJSnsIScreen = interface;
   TJSnsIScreen = class;
   IJSElement = interface;
@@ -108,6 +163,12 @@ Type
   TJSEventTarget = class;
   IJSEvent = interface;
   TJSEvent = class;
+  IJSBody = interface;
+  TJSBody = class;
+  IJSFormData = interface;
+  TJSFormData = class;
+  IJSGainNode = interface;
+  TJSGainNode = class;
   IJSHTMLCanvasElement = interface;
   TJSHTMLCanvasElement = class;
   IJSHTMLDivElement = interface;
@@ -130,12 +191,16 @@ Type
   TJSHTMLSpanElement = class;
   IJSHTMLVideoElement = interface;
   TJSHTMLVideoElement = class;
+  IJSIIRFilterNode = interface;
+  TJSIIRFilterNode = class;
   IJSImageBitmap = interface;
   TJSImageBitmap = class;
   IJSImageData = interface;
   TJSImageData = class;
   IJSKeyboardEvent = interface;
   TJSKeyboardEvent = class;
+  IJSLocation = interface;
+  TJSLocation = class;
   IJSMouseEvent = interface;
   TJSMouseEvent = class;
   IJSNode = interface;
@@ -144,12 +209,36 @@ Type
   TJSNonElementParentNode = class;
   IJSOffscreenCanvas = interface;
   TJSOffscreenCanvas = class;
+  IJSOscillatorNode = interface;
+  TJSOscillatorNode = class;
+  IJSPannerNode = interface;
+  TJSPannerNode = class;
+  IJSPeriodicWave = interface;
+  TJSPeriodicWave = class;
   IJSPointerEvent = interface;
   TJSPointerEvent = class;
+  IJSProgressEvent = interface;
+  TJSProgressEvent = class;
+  IJSCountQueuingStrategy = interface;
+  TJSCountQueuingStrategy = class;
+  IJSByteLengthQueuingStrategy = interface;
+  TJSByteLengthQueuingStrategy = class;
+  IJSReadableStreamGenericReader = interface;
+  TJSReadableStreamGenericReader = class;
+  IJSReadableStreamDefaultReader = interface;
+  TJSReadableStreamDefaultReader = class;
+  IJSReadableStream = interface;
+  TJSReadableStream = class;
+  IJSScriptProcessorNode = interface;
+  TJSScriptProcessorNode = class;
+  IJSStereoPannerNode = interface;
+  TJSStereoPannerNode = class;
   IJSUIEvent = interface;
   TJSUIEvent = class;
   IJSVideoFrame = interface;
   TJSVideoFrame = class;
+  IJSWaveShaperNode = interface;
+  TJSWaveShaperNode = class;
   IJSWebGLSampler = interface;
   TJSWebGLSampler = class;
   IJSWebGLSync = interface;
@@ -276,22 +365,96 @@ Type
   TJSnsIPrintSettings = class;
   IJSWindow = interface;
   TJSWindow = class;
+  IJSXMLHttpRequestEventTarget = interface;
+  TJSXMLHttpRequestEventTarget = class;
+  IJSXMLHttpRequestUpload = interface;
+  TJSXMLHttpRequestUpload = class;
+  IJSInputStream = interface;
+  TJSInputStream = class;
+  IJSMozChannel = interface;
+  TJSMozChannel = class;
+  IJSXMLHttpRequest = interface;
+  TJSXMLHttpRequest = class;
+  IJSAnalyserOptions = interface;
+  TJSAnalyserOptions = class;
+  IJSAudioBufferSourceOptions = interface;
+  TJSAudioBufferSourceOptions = class;
+  IJSAudioBufferOptions = interface;
+  TJSAudioBufferOptions = class;
+  IJSAudioContextOptions = interface;
+  TJSAudioContextOptions = class;
+  IJSAudioTimestamp = interface;
+  TJSAudioTimestamp = class;
+  IJSAudioNodeOptions = interface;
+  TJSAudioNodeOptions = class;
+  IJSBiquadFilterOptions = interface;
+  TJSBiquadFilterOptions = class;
+  IJSBlobPropertyBag = interface;
+  TJSBlobPropertyBag = class;
+  IJSChannelMergerOptions = interface;
+  TJSChannelMergerOptions = class;
+  IJSChannelSplitterOptions = interface;
+  TJSChannelSplitterOptions = class;
+  IJSConstantSourceOptions = interface;
+  TJSConstantSourceOptions = class;
+  IJSConvolverOptions = interface;
+  TJSConvolverOptions = class;
+  IJSDelayOptions = interface;
+  TJSDelayOptions = class;
   IJSDOMRectInit = interface;
   TJSDOMRectInit = class;
+  IJSDynamicsCompressorOptions = interface;
+  TJSDynamicsCompressorOptions = class;
+  IJSPointerLockOptions = interface;
+  TJSPointerLockOptions = class;
   IJSEventListenerOptions = interface;
   TJSEventListenerOptions = class;
   IJSAddEventListenerOptions = interface;
   TJSAddEventListenerOptions = class;
   IJSEventInit = interface;
   TJSEventInit = class;
+  IJSFetchReadableStreamReadDataDone = interface;
+  TJSFetchReadableStreamReadDataDone = class;
+  IJSFetchReadableStreamReadDataArray = interface;
+  TJSFetchReadableStreamReadDataArray = class;
+  IJSGainOptions = interface;
+  TJSGainOptions = class;
+  IJSIIRFilterOptions = interface;
+  TJSIIRFilterOptions = class;
   IJSKeyboardEventInit = interface;
   TJSKeyboardEventInit = class;
   IJSMouseEventInit = interface;
   TJSMouseEventInit = class;
   IJSImageEncodeOptions = interface;
   TJSImageEncodeOptions = class;
+  IJSOscillatorOptions = interface;
+  TJSOscillatorOptions = class;
+  IJSPannerOptions = interface;
+  TJSPannerOptions = class;
+  IJSPeriodicWaveConstraints = interface;
+  TJSPeriodicWaveConstraints = class;
+  IJSPeriodicWaveOptions = interface;
+  TJSPeriodicWaveOptions = class;
   IJSPointerEventInit = interface;
   TJSPointerEventInit = class;
+  IJSProgressEventInit = interface;
+  TJSProgressEventInit = class;
+  IJSQueuingStrategy = interface;
+  TJSQueuingStrategy = class;
+  IJSQueuingStrategyInit = interface;
+  TJSQueuingStrategyInit = class;
+  IJSReadableStreamReadResult = interface;
+  TJSReadableStreamReadResult = class;
+  IJSReadableStreamGetReaderOptions = interface;
+  TJSReadableStreamGetReaderOptions = class;
+  IJSReadableStreamIteratorOptions = interface;
+  TJSReadableStreamIteratorOptions = class;
+  IJSReadableWritablePair = interface;
+  TJSReadableWritablePair = class;
+  IJSStreamPipeOptions = interface;
+  TJSStreamPipeOptions = class;
+  IJSStereoPannerOptions = interface;
+  TJSStereoPannerOptions = class;
   IJSUIEventInit = interface;
   TJSUIEventInit = class;
   IJSEventModifierInit = interface;
@@ -304,18 +467,42 @@ Type
   TJSVideoFrameCopyToOptions = class;
   IJSPlaneLayout = interface;
   TJSPlaneLayout = class;
+  IJSWaveShaperOptions = interface;
+  TJSWaveShaperOptions = class;
   IJSWebGLContextEventInit = interface;
   TJSWebGLContextEventInit = class;
   IJSWebGLContextAttributes = interface;
   TJSWebGLContextAttributes = class;
+  IJSMozXMLHttpRequestParameters = interface;
+  TJSMozXMLHttpRequestParameters = class;
+  TChannelCountMode = UnicodeString;
+  TChannelInterpretation = UnicodeString;
+  TAutomationRate = UnicodeString;
+  TAudioContextState = UnicodeString;
+  TBiquadFilterType = UnicodeString;
+  TEndingType = UnicodeString;
   TVisibilityState = UnicodeString;
   TOffscreenRenderingContextId = UnicodeString;
+  TOscillatorType = UnicodeString;
+  TPanningModelType = UnicodeString;
+  TDistanceModelType = UnicodeString;
+  TReadableStreamType = UnicodeString;
+  TReadableStreamReaderMode = UnicodeString;
   TAlphaOption = UnicodeString;
   TVideoPixelFormat = UnicodeString;
+  TOverSampleType = UnicodeString;
   TWebGLPowerPreference = UnicodeString;
   TPredefinedColorSpace = UnicodeString;
+  TXMLHttpRequestResponseType = UnicodeString;
   // Union of Event, DOMString
   TOnErrorEventHandlerNonNull_event_Type = Variant;
+  // Union of BufferSource, Blob, UTF8String
+  TBlobPart = Variant;
+  // Union of Blob, BufferSource, FormData, URLSearchParams, USVString
+  TXMLHttpRequestBodyInit = Variant;
+  TBodyInit = TXMLHttpRequestBodyInit;
+  // Union of Blob, Directory, USVString
+  TFormDataEntryValue = Variant;
   // Union of HTMLCanvasElement, OffscreenCanvas
   TCanvasSource = Variant;
   // Union of OffscreenCanvasRenderingContext2D, ImageBitmapRenderingContext, WebGLRenderingContext, WebGL2RenderingContext, GPUCanvasContext
@@ -323,6 +510,8 @@ Type
   TDOMTimeStamp = QWord;
   TEpochTimeStamp = QWord;
   TDOMHighResTimeStamp = Double;
+  // Union of ReadableStreamDefaultReader, ReadableStreamBYOBReader
+  TReadableStreamReader = Variant;
   TGLint64 = Int64;
   TGLuint64 = QWord;
   // Union of Uint32Array, sequence
@@ -347,6 +536,8 @@ Type
   // Union of Int32Array, sequence
   TInt32List = Variant;
   TFrameRequestCallback = procedure (time: TDOMHighResTimeStamp) of object;
+  TDecodeSuccessCallback = procedure (decodedData: IJSAudioBuffer) of object;
+  TDecodeErrorCallback = procedure (error: IJSDOMException) of object;
   TEventHandlerNonNull = function (event: IJSEvent): Variant of object;
   TEventHandler = TEventHandlerNonNull;
   TOnBeforeUnloadEventHandlerNonNull = function (event: IJSEvent): UnicodeString of object;
@@ -354,6 +545,273 @@ Type
   TOnErrorEventHandlerNonNull = function (const event: TOnErrorEventHandlerNonNull_event_Type; const source: UTF8String; lineno: Cardinal; column: Cardinal; const error: Variant): Variant of object;
   TOnErrorEventHandler = TOnErrorEventHandlerNonNull;
   TEventListener = function (event: IJSEvent): Boolean of object;
+  TQueuingStrategySize = function (const chunk: Variant): Double of object;
+  
+  { --------------------------------------------------------------------
+    TJSAudioBufferSourceOptions
+    --------------------------------------------------------------------}
+  
+  TJSAudioBufferSourceOptionsRec = record
+    buffer: TJSAudioBuffer;
+    detune: Single;
+    loop: Boolean;
+    loopEnd: Double;
+    loopStart: Double;
+    playbackRate: Single;
+  end;
+  
+  IJSAudioBufferSourceOptions = interface(IJSObject)
+    ['{48151194-905C-3634-AB55-2A35842EAA35}']
+    function _Getbuffer: IJSAudioBuffer; 
+    function _Getdetune: Single; 
+    function _Getloop: Boolean; 
+    function _GetloopEnd: Double; 
+    function _GetloopStart: Double; 
+    function _GetplaybackRate: Single; 
+    procedure _Setbuffer(const aValue: IJSAudioBuffer);
+    procedure _Setdetune(const aValue: Single);
+    procedure _Setloop(const aValue: Boolean);
+    procedure _SetloopEnd(const aValue: Double);
+    procedure _SetloopStart(const aValue: Double);
+    procedure _SetplaybackRate(const aValue: Single);
+    property buffer: IJSAudioBuffer read _Getbuffer write _Setbuffer;
+    property detune: Single read _Getdetune write _Setdetune;
+    property loop: Boolean read _Getloop write _Setloop;
+    property loopEnd: Double read _GetloopEnd write _SetloopEnd;
+    property loopStart: Double read _GetloopStart write _SetloopStart;
+    property playbackRate: Single read _GetplaybackRate write _SetplaybackRate;
+  end;
+  
+  TJSAudioBufferSourceOptions = class(TJSObject,IJSAudioBufferSourceOptions)
+  Private
+  Protected
+    function _Getbuffer: IJSAudioBuffer; 
+    function _Getdetune: Single; 
+    function _Getloop: Boolean; 
+    function _GetloopEnd: Double; 
+    function _GetloopStart: Double; 
+    function _GetplaybackRate: Single; 
+    procedure _Setbuffer(const aValue: IJSAudioBuffer);
+    procedure _Setdetune(const aValue: Single);
+    procedure _Setloop(const aValue: Boolean);
+    procedure _SetloopEnd(const aValue: Double);
+    procedure _SetloopStart(const aValue: Double);
+    procedure _SetplaybackRate(const aValue: Single);
+  Public
+    constructor create(const aDict : TJSAudioBufferSourceOptionsRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSAudioBufferSourceOptions;
+    property buffer: IJSAudioBuffer read _Getbuffer write _Setbuffer;
+    property detune: Single read _Getdetune write _Setdetune;
+    property loop: Boolean read _Getloop write _Setloop;
+    property loopEnd: Double read _GetloopEnd write _SetloopEnd;
+    property loopStart: Double read _GetloopStart write _SetloopStart;
+    property playbackRate: Single read _GetplaybackRate write _SetplaybackRate;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSAudioBufferOptions
+    --------------------------------------------------------------------}
+  
+  TJSAudioBufferOptionsRec = record
+    numberOfChannels: Cardinal;
+    length_: Cardinal; // required
+    sampleRate: Single; // required
+  end;
+  
+  IJSAudioBufferOptions = interface(IJSObject)
+    ['{F05FFBCA-EAE6-35BB-87E2-5E099770288B}']
+    function _GetnumberOfChannels: Cardinal; 
+    function _Getlength_: Cardinal; 
+    function _GetsampleRate: Single; 
+    procedure _SetnumberOfChannels(const aValue: Cardinal);
+    procedure _Setlength_(const aValue: Cardinal);
+    procedure _SetsampleRate(const aValue: Single);
+    property numberOfChannels: Cardinal read _GetnumberOfChannels write _SetnumberOfChannels;
+    property length_: Cardinal read _Getlength_ write _Setlength_; // required
+    property sampleRate: Single read _GetsampleRate write _SetsampleRate; // required
+  end;
+  
+  TJSAudioBufferOptions = class(TJSObject,IJSAudioBufferOptions)
+  Private
+  Protected
+    function _GetnumberOfChannels: Cardinal; 
+    function _Getlength_: Cardinal; 
+    function _GetsampleRate: Single; 
+    procedure _SetnumberOfChannels(const aValue: Cardinal);
+    procedure _Setlength_(const aValue: Cardinal);
+    procedure _SetsampleRate(const aValue: Single);
+  Public
+    constructor create(const aDict : TJSAudioBufferOptionsRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSAudioBufferOptions;
+    property numberOfChannels: Cardinal read _GetnumberOfChannels write _SetnumberOfChannels;
+    property length_: Cardinal read _Getlength_ write _Setlength_; // required
+    property sampleRate: Single read _GetsampleRate write _SetsampleRate; // required
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSAudioContextOptions
+    --------------------------------------------------------------------}
+  
+  TJSAudioContextOptionsRec = record
+    sampleRate: Single;
+  end;
+  
+  IJSAudioContextOptions = interface(IJSObject)
+    ['{70703266-C0C8-38C8-B038-AB2C5DC36041}']
+    function _GetsampleRate: Single; 
+    procedure _SetsampleRate(const aValue: Single);
+    property sampleRate: Single read _GetsampleRate write _SetsampleRate;
+  end;
+  
+  TJSAudioContextOptions = class(TJSObject,IJSAudioContextOptions)
+  Private
+  Protected
+    function _GetsampleRate: Single; 
+    procedure _SetsampleRate(const aValue: Single);
+  Public
+    constructor create(const aDict : TJSAudioContextOptionsRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSAudioContextOptions;
+    property sampleRate: Single read _GetsampleRate write _SetsampleRate;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSAudioTimestamp
+    --------------------------------------------------------------------}
+  
+  TJSAudioTimestampRec = record
+    contextTime: Double;
+    performanceTime: TDOMHighResTimeStamp;
+  end;
+  
+  IJSAudioTimestamp = interface(IJSObject)
+    ['{A5CAD830-A09B-35C6-82D1-5823105E9A82}']
+    function _GetcontextTime: Double; 
+    function _GetperformanceTime: TDOMHighResTimeStamp; 
+    procedure _SetcontextTime(const aValue: Double);
+    procedure _SetperformanceTime(const aValue: TDOMHighResTimeStamp);
+    property contextTime: Double read _GetcontextTime write _SetcontextTime;
+    property performanceTime: TDOMHighResTimeStamp read _GetperformanceTime write _SetperformanceTime;
+  end;
+  
+  TJSAudioTimestamp = class(TJSObject,IJSAudioTimestamp)
+  Private
+  Protected
+    function _GetcontextTime: Double; 
+    function _GetperformanceTime: TDOMHighResTimeStamp; 
+    procedure _SetcontextTime(const aValue: Double);
+    procedure _SetperformanceTime(const aValue: TDOMHighResTimeStamp);
+  Public
+    constructor create(const aDict : TJSAudioTimestampRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSAudioTimestamp;
+    property contextTime: Double read _GetcontextTime write _SetcontextTime;
+    property performanceTime: TDOMHighResTimeStamp read _GetperformanceTime write _SetperformanceTime;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSAudioNodeOptions
+    --------------------------------------------------------------------}
+  
+  TJSAudioNodeOptionsRec = record
+    channelCount: Cardinal;
+    channelCountMode: TChannelCountMode;
+    channelInterpretation: TChannelInterpretation;
+  end;
+  
+  IJSAudioNodeOptions = interface(IJSObject)
+    ['{31410881-F353-357C-8EB8-925B8ECEE486}']
+    function _GetchannelCount: Cardinal; 
+    function _GetchannelCountMode: TChannelCountMode; 
+    function _GetchannelInterpretation: TChannelInterpretation; 
+    procedure _SetchannelCount(const aValue: Cardinal);
+    procedure _SetchannelCountMode(const aValue: TChannelCountMode);
+    procedure _SetchannelInterpretation(const aValue: TChannelInterpretation);
+    property channelCount: Cardinal read _GetchannelCount write _SetchannelCount;
+    property channelCountMode: TChannelCountMode read _GetchannelCountMode write _SetchannelCountMode;
+    property channelInterpretation: TChannelInterpretation read _GetchannelInterpretation write _SetchannelInterpretation;
+  end;
+  
+  TJSAudioNodeOptions = class(TJSObject,IJSAudioNodeOptions)
+  Private
+  Protected
+    function _GetchannelCount: Cardinal; 
+    function _GetchannelCountMode: TChannelCountMode; 
+    function _GetchannelInterpretation: TChannelInterpretation; 
+    procedure _SetchannelCount(const aValue: Cardinal);
+    procedure _SetchannelCountMode(const aValue: TChannelCountMode);
+    procedure _SetchannelInterpretation(const aValue: TChannelInterpretation);
+  Public
+    constructor create(const aDict : TJSAudioNodeOptionsRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSAudioNodeOptions;
+    property channelCount: Cardinal read _GetchannelCount write _SetchannelCount;
+    property channelCountMode: TChannelCountMode read _GetchannelCountMode write _SetchannelCountMode;
+    property channelInterpretation: TChannelInterpretation read _GetchannelInterpretation write _SetchannelInterpretation;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSBlobPropertyBag
+    --------------------------------------------------------------------}
+  
+  TJSBlobPropertyBagRec = record
+    type_: UnicodeString;
+    endings: TEndingType;
+  end;
+  
+  IJSBlobPropertyBag = interface(IJSObject)
+    ['{28B80F11-F50F-3B2A-B3B5-7F8A7D3F8963}']
+    function _Gettype_: UnicodeString; 
+    function _Getendings: TEndingType; 
+    procedure _Settype_(const aValue: UnicodeString);
+    procedure _Setendings(const aValue: TEndingType);
+    property type_: UnicodeString read _Gettype_ write _Settype_;
+    property endings: TEndingType read _Getendings write _Setendings;
+  end;
+  
+  TJSBlobPropertyBag = class(TJSObject,IJSBlobPropertyBag)
+  Private
+  Protected
+    function _Gettype_: UnicodeString; 
+    function _Getendings: TEndingType; 
+    procedure _Settype_(const aValue: UnicodeString);
+    procedure _Setendings(const aValue: TEndingType);
+  Public
+    constructor create(const aDict : TJSBlobPropertyBagRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSBlobPropertyBag;
+    property type_: UnicodeString read _Gettype_ write _Settype_;
+    property endings: TEndingType read _Getendings write _Setendings;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSConstantSourceOptions
+    --------------------------------------------------------------------}
+  
+  TJSConstantSourceOptionsRec = record
+    offset: Single;
+  end;
+  
+  IJSConstantSourceOptions = interface(IJSObject)
+    ['{7A13C358-1C2F-3194-B533-9528C995AEA2}']
+    function _Getoffset: Single; 
+    procedure _Setoffset(const aValue: Single);
+    property offset: Single read _Getoffset write _Setoffset;
+  end;
+  
+  TJSConstantSourceOptions = class(TJSObject,IJSConstantSourceOptions)
+  Private
+  Protected
+    function _Getoffset: Single; 
+    procedure _Setoffset(const aValue: Single);
+  Public
+    constructor create(const aDict : TJSConstantSourceOptionsRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSConstantSourceOptions;
+    property offset: Single read _Getoffset write _Setoffset;
+  end;
   
   { --------------------------------------------------------------------
     TJSDOMRectInit
@@ -401,6 +859,33 @@ Type
     property y: Double read _Gety write _Sety;
     property width: Double read _Getwidth write _Setwidth;
     property height: Double read _Getheight write _Setheight;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSPointerLockOptions
+    --------------------------------------------------------------------}
+  
+  TJSPointerLockOptionsRec = record
+    unadjustedMovement: Boolean;
+  end;
+  
+  IJSPointerLockOptions = interface(IJSObject)
+    ['{5211DF38-1961-391D-9F91-64CAD715E13F}']
+    function _GetunadjustedMovement: Boolean; 
+    procedure _SetunadjustedMovement(const aValue: Boolean);
+    property unadjustedMovement: Boolean read _GetunadjustedMovement write _SetunadjustedMovement;
+  end;
+  
+  TJSPointerLockOptions = class(TJSObject,IJSPointerLockOptions)
+  Private
+  Protected
+    function _GetunadjustedMovement: Boolean; 
+    procedure _SetunadjustedMovement(const aValue: Boolean);
+  Public
+    constructor create(const aDict : TJSPointerLockOptionsRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSPointerLockOptions;
+    property unadjustedMovement: Boolean read _GetunadjustedMovement write _SetunadjustedMovement;
   end;
   
   { --------------------------------------------------------------------
@@ -479,6 +964,60 @@ Type
   end;
   
   { --------------------------------------------------------------------
+    TJSFetchReadableStreamReadDataDone
+    --------------------------------------------------------------------}
+  
+  TJSFetchReadableStreamReadDataDoneRec = record
+    done: Boolean;
+  end;
+  
+  IJSFetchReadableStreamReadDataDone = interface(IJSObject)
+    ['{3D14F29E-AFA4-3CC1-892A-072C99870986}']
+    function _Getdone: Boolean; 
+    procedure _Setdone(const aValue: Boolean);
+    property done: Boolean read _Getdone write _Setdone;
+  end;
+  
+  TJSFetchReadableStreamReadDataDone = class(TJSObject,IJSFetchReadableStreamReadDataDone)
+  Private
+  Protected
+    function _Getdone: Boolean; 
+    procedure _Setdone(const aValue: Boolean);
+  Public
+    constructor create(const aDict : TJSFetchReadableStreamReadDataDoneRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSFetchReadableStreamReadDataDone;
+    property done: Boolean read _Getdone write _Setdone;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSFetchReadableStreamReadDataArray
+    --------------------------------------------------------------------}
+  
+  TJSFetchReadableStreamReadDataArrayRec = record
+    value: IJSUint8Array;
+  end;
+  
+  IJSFetchReadableStreamReadDataArray = interface(IJSObject)
+    ['{09282198-0BD8-3772-8B9E-E07B9806FF4C}']
+    function _Getvalue: IJSUint8Array; 
+    procedure _Setvalue(const aValue: IJSUint8Array);
+    property value: IJSUint8Array read _Getvalue write _Setvalue;
+  end;
+  
+  TJSFetchReadableStreamReadDataArray = class(TJSObject,IJSFetchReadableStreamReadDataArray)
+  Private
+  Protected
+    function _Getvalue: IJSUint8Array; 
+    procedure _Setvalue(const aValue: IJSUint8Array);
+  Public
+    constructor create(const aDict : TJSFetchReadableStreamReadDataArrayRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSFetchReadableStreamReadDataArray;
+    property value: IJSUint8Array read _Getvalue write _Setvalue;
+  end;
+  
+  { --------------------------------------------------------------------
     TJSImageEncodeOptions
     --------------------------------------------------------------------}
   
@@ -510,6 +1049,257 @@ Type
     class function Cast(const Intf: IJSObject): IJSImageEncodeOptions;
     property type_: UnicodeString read _Gettype_ write _Settype_;
     property quality: Double read _Getquality write _Setquality;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSPeriodicWaveConstraints
+    --------------------------------------------------------------------}
+  
+  TJSPeriodicWaveConstraintsRec = record
+    disableNormalization: Boolean;
+  end;
+  
+  IJSPeriodicWaveConstraints = interface(IJSObject)
+    ['{D1646603-B6B5-3D45-9392-6C0BD965E11B}']
+    function _GetdisableNormalization: Boolean; 
+    procedure _SetdisableNormalization(const aValue: Boolean);
+    property disableNormalization: Boolean read _GetdisableNormalization write _SetdisableNormalization;
+  end;
+  
+  TJSPeriodicWaveConstraints = class(TJSObject,IJSPeriodicWaveConstraints)
+  Private
+  Protected
+    function _GetdisableNormalization: Boolean; 
+    procedure _SetdisableNormalization(const aValue: Boolean);
+  Public
+    constructor create(const aDict : TJSPeriodicWaveConstraintsRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSPeriodicWaveConstraints;
+    property disableNormalization: Boolean read _GetdisableNormalization write _SetdisableNormalization;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSQueuingStrategy
+    --------------------------------------------------------------------}
+  
+  TJSQueuingStrategyRec = record
+    highWaterMark: Double;
+    size: TQueuingStrategySize;
+  end;
+  
+  IJSQueuingStrategy = interface(IJSObject)
+    ['{F27E0EE8-08C0-3219-A638-B53809085915}']
+    function _GethighWaterMark: Double; 
+    function _Getsize: TQueuingStrategySize; 
+    procedure _SethighWaterMark(const aValue: Double);
+    procedure _Setsize(const aValue: TQueuingStrategySize);
+    property highWaterMark: Double read _GethighWaterMark write _SethighWaterMark;
+    property size: TQueuingStrategySize read _Getsize write _Setsize;
+  end;
+  
+  TJSQueuingStrategy = class(TJSObject,IJSQueuingStrategy)
+  Private
+  Protected
+    function _GethighWaterMark: Double; 
+    function _Getsize: TQueuingStrategySize; 
+    procedure _SethighWaterMark(const aValue: Double);
+    procedure _Setsize(const aValue: TQueuingStrategySize);
+  Public
+    constructor create(const aDict : TJSQueuingStrategyRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSQueuingStrategy;
+    property highWaterMark: Double read _GethighWaterMark write _SethighWaterMark;
+    property size: TQueuingStrategySize read _Getsize write _Setsize;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSQueuingStrategyInit
+    --------------------------------------------------------------------}
+  
+  TJSQueuingStrategyInitRec = record
+    highWaterMark: Double; // required
+  end;
+  
+  IJSQueuingStrategyInit = interface(IJSObject)
+    ['{1EFAB0C3-64CD-32CF-944E-642C493C9EAF}']
+    function _GethighWaterMark: Double; 
+    procedure _SethighWaterMark(const aValue: Double);
+    property highWaterMark: Double read _GethighWaterMark write _SethighWaterMark; // required
+  end;
+  
+  TJSQueuingStrategyInit = class(TJSObject,IJSQueuingStrategyInit)
+  Private
+  Protected
+    function _GethighWaterMark: Double; 
+    procedure _SethighWaterMark(const aValue: Double);
+  Public
+    constructor create(const aDict : TJSQueuingStrategyInitRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSQueuingStrategyInit;
+    property highWaterMark: Double read _GethighWaterMark write _SethighWaterMark; // required
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSReadableStreamReadResult
+    --------------------------------------------------------------------}
+  
+  TJSReadableStreamReadResultRec = record
+    value: Variant;
+    done: Boolean;
+  end;
+  
+  IJSReadableStreamReadResult = interface(IJSObject)
+    ['{3613841C-E350-3383-9C5B-A771F657BE5E}']
+    function _Getvalue: Variant; 
+    function _Getdone: Boolean; 
+    procedure _Setvalue(const aValue: Variant);
+    procedure _Setdone(const aValue: Boolean);
+    property value: Variant read _Getvalue write _Setvalue;
+    property done: Boolean read _Getdone write _Setdone;
+  end;
+  
+  TJSReadableStreamReadResult = class(TJSObject,IJSReadableStreamReadResult)
+  Private
+  Protected
+    function _Getvalue: Variant; 
+    function _Getdone: Boolean; 
+    procedure _Setvalue(const aValue: Variant);
+    procedure _Setdone(const aValue: Boolean);
+  Public
+    constructor create(const aDict : TJSReadableStreamReadResultRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSReadableStreamReadResult;
+    property value: Variant read _Getvalue write _Setvalue;
+    property done: Boolean read _Getdone write _Setdone;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSReadableStreamGetReaderOptions
+    --------------------------------------------------------------------}
+  
+  TJSReadableStreamGetReaderOptionsRec = record
+    mode: TReadableStreamReaderMode;
+  end;
+  
+  IJSReadableStreamGetReaderOptions = interface(IJSObject)
+    ['{517FACC9-62C9-37B1-B9AA-C1F3920A30CF}']
+    function _Getmode: TReadableStreamReaderMode; 
+    procedure _Setmode(const aValue: TReadableStreamReaderMode);
+    property mode: TReadableStreamReaderMode read _Getmode write _Setmode;
+  end;
+  
+  TJSReadableStreamGetReaderOptions = class(TJSObject,IJSReadableStreamGetReaderOptions)
+  Private
+  Protected
+    function _Getmode: TReadableStreamReaderMode; 
+    procedure _Setmode(const aValue: TReadableStreamReaderMode);
+  Public
+    constructor create(const aDict : TJSReadableStreamGetReaderOptionsRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSReadableStreamGetReaderOptions;
+    property mode: TReadableStreamReaderMode read _Getmode write _Setmode;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSReadableStreamIteratorOptions
+    --------------------------------------------------------------------}
+  
+  TJSReadableStreamIteratorOptionsRec = record
+    preventCancel: Boolean;
+  end;
+  
+  IJSReadableStreamIteratorOptions = interface(IJSObject)
+    ['{83F4E7BF-DB3D-387B-966B-E9C2B62580FE}']
+    function _GetpreventCancel: Boolean; 
+    procedure _SetpreventCancel(const aValue: Boolean);
+    property preventCancel: Boolean read _GetpreventCancel write _SetpreventCancel;
+  end;
+  
+  TJSReadableStreamIteratorOptions = class(TJSObject,IJSReadableStreamIteratorOptions)
+  Private
+  Protected
+    function _GetpreventCancel: Boolean; 
+    procedure _SetpreventCancel(const aValue: Boolean);
+  Public
+    constructor create(const aDict : TJSReadableStreamIteratorOptionsRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSReadableStreamIteratorOptions;
+    property preventCancel: Boolean read _GetpreventCancel write _SetpreventCancel;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSReadableWritablePair
+    --------------------------------------------------------------------}
+  
+  TJSReadableWritablePairRec = record
+    readable: TJSReadableStream; // required
+  end;
+  
+  IJSReadableWritablePair = interface(IJSObject)
+    ['{A35BD9B6-01B8-345C-A10B-7B39D9DE0AF8}']
+    function _Getreadable: IJSReadableStream; 
+    procedure _Setreadable(const aValue: IJSReadableStream);
+    property readable: IJSReadableStream read _Getreadable write _Setreadable; // required
+  end;
+  
+  TJSReadableWritablePair = class(TJSObject,IJSReadableWritablePair)
+  Private
+  Protected
+    function _Getreadable: IJSReadableStream; 
+    procedure _Setreadable(const aValue: IJSReadableStream);
+  Public
+    constructor create(const aDict : TJSReadableWritablePairRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSReadableWritablePair;
+    property readable: IJSReadableStream read _Getreadable write _Setreadable; // required
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSStreamPipeOptions
+    --------------------------------------------------------------------}
+  
+  TJSStreamPipeOptionsRec = record
+    preventClose: Boolean;
+    preventAbort: Boolean;
+    preventCancel: Boolean;
+    signal: TJSAbortSignal;
+  end;
+  
+  IJSStreamPipeOptions = interface(IJSObject)
+    ['{D257C9F0-A081-3BDE-B832-C99ABB398443}']
+    function _GetpreventClose: Boolean; 
+    function _GetpreventAbort: Boolean; 
+    function _GetpreventCancel: Boolean; 
+    function _Getsignal: IJSAbortSignal; 
+    procedure _SetpreventClose(const aValue: Boolean);
+    procedure _SetpreventAbort(const aValue: Boolean);
+    procedure _SetpreventCancel(const aValue: Boolean);
+    procedure _Setsignal(const aValue: IJSAbortSignal);
+    property preventClose: Boolean read _GetpreventClose write _SetpreventClose;
+    property preventAbort: Boolean read _GetpreventAbort write _SetpreventAbort;
+    property preventCancel: Boolean read _GetpreventCancel write _SetpreventCancel;
+    property signal: IJSAbortSignal read _Getsignal write _Setsignal;
+  end;
+  
+  TJSStreamPipeOptions = class(TJSObject,IJSStreamPipeOptions)
+  Private
+  Protected
+    function _GetpreventClose: Boolean; 
+    function _GetpreventAbort: Boolean; 
+    function _GetpreventCancel: Boolean; 
+    function _Getsignal: IJSAbortSignal; 
+    procedure _SetpreventClose(const aValue: Boolean);
+    procedure _SetpreventAbort(const aValue: Boolean);
+    procedure _SetpreventCancel(const aValue: Boolean);
+    procedure _Setsignal(const aValue: IJSAbortSignal);
+  Public
+    constructor create(const aDict : TJSStreamPipeOptionsRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSStreamPipeOptions;
+    property preventClose: Boolean read _GetpreventClose write _SetpreventClose;
+    property preventAbort: Boolean read _GetpreventAbort write _SetpreventAbort;
+    property preventCancel: Boolean read _GetpreventCancel write _SetpreventCancel;
+    property signal: IJSAbortSignal read _Getsignal write _Setsignal;
   end;
   
   { --------------------------------------------------------------------
@@ -810,6 +1600,341 @@ Type
   end;
   
   { --------------------------------------------------------------------
+    TJSMozXMLHttpRequestParameters
+    --------------------------------------------------------------------}
+  
+  TJSMozXMLHttpRequestParametersRec = record
+    mozAnon: Boolean;
+    mozSystem: Boolean;
+  end;
+  
+  IJSMozXMLHttpRequestParameters = interface(IJSObject)
+    ['{DDE9C446-70AD-3FBA-8B70-1F3FCBD40A8E}']
+    function _GetmozAnon: Boolean; 
+    function _GetmozSystem: Boolean; 
+    procedure _SetmozAnon(const aValue: Boolean);
+    procedure _SetmozSystem(const aValue: Boolean);
+    property mozAnon: Boolean read _GetmozAnon write _SetmozAnon;
+    property mozSystem: Boolean read _GetmozSystem write _SetmozSystem;
+  end;
+  
+  TJSMozXMLHttpRequestParameters = class(TJSObject,IJSMozXMLHttpRequestParameters)
+  Private
+  Protected
+    function _GetmozAnon: Boolean; 
+    function _GetmozSystem: Boolean; 
+    procedure _SetmozAnon(const aValue: Boolean);
+    procedure _SetmozSystem(const aValue: Boolean);
+  Public
+    constructor create(const aDict : TJSMozXMLHttpRequestParametersRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSMozXMLHttpRequestParameters;
+    property mozAnon: Boolean read _GetmozAnon write _SetmozAnon;
+    property mozSystem: Boolean read _GetmozSystem write _SetmozSystem;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSAnalyserOptions
+    --------------------------------------------------------------------}
+  
+  TJSAnalyserOptionsRec = record
+    fftSize: Cardinal;
+    maxDecibels: Double;
+    minDecibels: Double;
+    smoothingTimeConstant: Double;
+    channelCount: Cardinal;
+    channelCountMode: TChannelCountMode;
+    channelInterpretation: TChannelInterpretation;
+  end;
+  
+  IJSAnalyserOptions = interface(IJSAudioNodeOptions)
+    ['{0366BDAB-DF3A-3907-9AF3-C2B631890135}']
+    function _GetfftSize: Cardinal; 
+    function _GetmaxDecibels: Double; 
+    function _GetminDecibels: Double; 
+    function _GetsmoothingTimeConstant: Double; 
+    procedure _SetfftSize(const aValue: Cardinal);
+    procedure _SetmaxDecibels(const aValue: Double);
+    procedure _SetminDecibels(const aValue: Double);
+    procedure _SetsmoothingTimeConstant(const aValue: Double);
+    property fftSize: Cardinal read _GetfftSize write _SetfftSize;
+    property maxDecibels: Double read _GetmaxDecibels write _SetmaxDecibels;
+    property minDecibels: Double read _GetminDecibels write _SetminDecibels;
+    property smoothingTimeConstant: Double read _GetsmoothingTimeConstant write _SetsmoothingTimeConstant;
+  end;
+  
+  TJSAnalyserOptions = class(TJSAudioNodeOptions,IJSAnalyserOptions)
+  Private
+  Protected
+    function _GetfftSize: Cardinal; 
+    function _GetmaxDecibels: Double; 
+    function _GetminDecibels: Double; 
+    function _GetsmoothingTimeConstant: Double; 
+    procedure _SetfftSize(const aValue: Cardinal);
+    procedure _SetmaxDecibels(const aValue: Double);
+    procedure _SetminDecibels(const aValue: Double);
+    procedure _SetsmoothingTimeConstant(const aValue: Double);
+  Public
+    constructor create(const aDict : TJSAnalyserOptionsRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSAnalyserOptions;
+    property fftSize: Cardinal read _GetfftSize write _SetfftSize;
+    property maxDecibels: Double read _GetmaxDecibels write _SetmaxDecibels;
+    property minDecibels: Double read _GetminDecibels write _SetminDecibels;
+    property smoothingTimeConstant: Double read _GetsmoothingTimeConstant write _SetsmoothingTimeConstant;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSBiquadFilterOptions
+    --------------------------------------------------------------------}
+  
+  TJSBiquadFilterOptionsRec = record
+    type_: TBiquadFilterType;
+    Q: Single;
+    detune: Single;
+    frequency: Single;
+    gain: Single;
+    channelCount: Cardinal;
+    channelCountMode: TChannelCountMode;
+    channelInterpretation: TChannelInterpretation;
+  end;
+  
+  IJSBiquadFilterOptions = interface(IJSAudioNodeOptions)
+    ['{E13E72E5-36BF-311A-841A-0B116792AF38}']
+    function _Gettype_: TBiquadFilterType; 
+    function _GetQ: Single; 
+    function _Getdetune: Single; 
+    function _Getfrequency: Single; 
+    function _Getgain: Single; 
+    procedure _Settype_(const aValue: TBiquadFilterType);
+    procedure _SetQ(const aValue: Single);
+    procedure _Setdetune(const aValue: Single);
+    procedure _Setfrequency(const aValue: Single);
+    procedure _Setgain(const aValue: Single);
+    property type_: TBiquadFilterType read _Gettype_ write _Settype_;
+    property Q: Single read _GetQ write _SetQ;
+    property detune: Single read _Getdetune write _Setdetune;
+    property frequency: Single read _Getfrequency write _Setfrequency;
+    property gain: Single read _Getgain write _Setgain;
+  end;
+  
+  TJSBiquadFilterOptions = class(TJSAudioNodeOptions,IJSBiquadFilterOptions)
+  Private
+  Protected
+    function _Gettype_: TBiquadFilterType; 
+    function _GetQ: Single; 
+    function _Getdetune: Single; 
+    function _Getfrequency: Single; 
+    function _Getgain: Single; 
+    procedure _Settype_(const aValue: TBiquadFilterType);
+    procedure _SetQ(const aValue: Single);
+    procedure _Setdetune(const aValue: Single);
+    procedure _Setfrequency(const aValue: Single);
+    procedure _Setgain(const aValue: Single);
+  Public
+    constructor create(const aDict : TJSBiquadFilterOptionsRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSBiquadFilterOptions;
+    property type_: TBiquadFilterType read _Gettype_ write _Settype_;
+    property Q: Single read _GetQ write _SetQ;
+    property detune: Single read _Getdetune write _Setdetune;
+    property frequency: Single read _Getfrequency write _Setfrequency;
+    property gain: Single read _Getgain write _Setgain;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSChannelMergerOptions
+    --------------------------------------------------------------------}
+  
+  TJSChannelMergerOptionsRec = record
+    numberOfInputs: Cardinal;
+    channelCount: Cardinal;
+    channelCountMode: TChannelCountMode;
+    channelInterpretation: TChannelInterpretation;
+  end;
+  
+  IJSChannelMergerOptions = interface(IJSAudioNodeOptions)
+    ['{FA8A8FA2-3356-394E-9BEC-85E8822B14DE}']
+    function _GetnumberOfInputs: Cardinal; 
+    procedure _SetnumberOfInputs(const aValue: Cardinal);
+    property numberOfInputs: Cardinal read _GetnumberOfInputs write _SetnumberOfInputs;
+  end;
+  
+  TJSChannelMergerOptions = class(TJSAudioNodeOptions,IJSChannelMergerOptions)
+  Private
+  Protected
+    function _GetnumberOfInputs: Cardinal; 
+    procedure _SetnumberOfInputs(const aValue: Cardinal);
+  Public
+    constructor create(const aDict : TJSChannelMergerOptionsRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSChannelMergerOptions;
+    property numberOfInputs: Cardinal read _GetnumberOfInputs write _SetnumberOfInputs;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSChannelSplitterOptions
+    --------------------------------------------------------------------}
+  
+  TJSChannelSplitterOptionsRec = record
+    numberOfOutputs: Cardinal;
+    channelCount: Cardinal;
+    channelCountMode: TChannelCountMode;
+    channelInterpretation: TChannelInterpretation;
+  end;
+  
+  IJSChannelSplitterOptions = interface(IJSAudioNodeOptions)
+    ['{1010F919-7282-3061-A1C0-FCFC70A56D85}']
+    function _GetnumberOfOutputs: Cardinal; 
+    procedure _SetnumberOfOutputs(const aValue: Cardinal);
+    property numberOfOutputs: Cardinal read _GetnumberOfOutputs write _SetnumberOfOutputs;
+  end;
+  
+  TJSChannelSplitterOptions = class(TJSAudioNodeOptions,IJSChannelSplitterOptions)
+  Private
+  Protected
+    function _GetnumberOfOutputs: Cardinal; 
+    procedure _SetnumberOfOutputs(const aValue: Cardinal);
+  Public
+    constructor create(const aDict : TJSChannelSplitterOptionsRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSChannelSplitterOptions;
+    property numberOfOutputs: Cardinal read _GetnumberOfOutputs write _SetnumberOfOutputs;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSConvolverOptions
+    --------------------------------------------------------------------}
+  
+  TJSConvolverOptionsRec = record
+    buffer: TJSAudioBuffer;
+    disableNormalization: Boolean;
+    channelCount: Cardinal;
+    channelCountMode: TChannelCountMode;
+    channelInterpretation: TChannelInterpretation;
+  end;
+  
+  IJSConvolverOptions = interface(IJSAudioNodeOptions)
+    ['{8705A458-DADD-38F7-BDD3-98A91919FBF2}']
+    function _Getbuffer: IJSAudioBuffer; 
+    function _GetdisableNormalization: Boolean; 
+    procedure _Setbuffer(const aValue: IJSAudioBuffer);
+    procedure _SetdisableNormalization(const aValue: Boolean);
+    property buffer: IJSAudioBuffer read _Getbuffer write _Setbuffer;
+    property disableNormalization: Boolean read _GetdisableNormalization write _SetdisableNormalization;
+  end;
+  
+  TJSConvolverOptions = class(TJSAudioNodeOptions,IJSConvolverOptions)
+  Private
+  Protected
+    function _Getbuffer: IJSAudioBuffer; 
+    function _GetdisableNormalization: Boolean; 
+    procedure _Setbuffer(const aValue: IJSAudioBuffer);
+    procedure _SetdisableNormalization(const aValue: Boolean);
+  Public
+    constructor create(const aDict : TJSConvolverOptionsRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSConvolverOptions;
+    property buffer: IJSAudioBuffer read _Getbuffer write _Setbuffer;
+    property disableNormalization: Boolean read _GetdisableNormalization write _SetdisableNormalization;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSDelayOptions
+    --------------------------------------------------------------------}
+  
+  TJSDelayOptionsRec = record
+    maxDelayTime: Double;
+    delayTime: Double;
+    channelCount: Cardinal;
+    channelCountMode: TChannelCountMode;
+    channelInterpretation: TChannelInterpretation;
+  end;
+  
+  IJSDelayOptions = interface(IJSAudioNodeOptions)
+    ['{6C619840-6763-38D3-AEDE-9951662B11F0}']
+    function _GetmaxDelayTime: Double; 
+    function _GetdelayTime: Double; 
+    procedure _SetmaxDelayTime(const aValue: Double);
+    procedure _SetdelayTime(const aValue: Double);
+    property maxDelayTime: Double read _GetmaxDelayTime write _SetmaxDelayTime;
+    property delayTime: Double read _GetdelayTime write _SetdelayTime;
+  end;
+  
+  TJSDelayOptions = class(TJSAudioNodeOptions,IJSDelayOptions)
+  Private
+  Protected
+    function _GetmaxDelayTime: Double; 
+    function _GetdelayTime: Double; 
+    procedure _SetmaxDelayTime(const aValue: Double);
+    procedure _SetdelayTime(const aValue: Double);
+  Public
+    constructor create(const aDict : TJSDelayOptionsRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSDelayOptions;
+    property maxDelayTime: Double read _GetmaxDelayTime write _SetmaxDelayTime;
+    property delayTime: Double read _GetdelayTime write _SetdelayTime;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSDynamicsCompressorOptions
+    --------------------------------------------------------------------}
+  
+  TJSDynamicsCompressorOptionsRec = record
+    attack: Single;
+    knee: Single;
+    ratio: Single;
+    release: Single;
+    threshold: Single;
+    channelCount: Cardinal;
+    channelCountMode: TChannelCountMode;
+    channelInterpretation: TChannelInterpretation;
+  end;
+  
+  IJSDynamicsCompressorOptions = interface(IJSAudioNodeOptions)
+    ['{CCC36461-AF88-3855-9BDF-DCA8D0759E19}']
+    function _Getattack: Single; 
+    function _Getknee: Single; 
+    function _Getratio: Single; 
+    function _Getrelease: Single; 
+    function _Getthreshold: Single; 
+    procedure _Setattack(const aValue: Single);
+    procedure _Setknee(const aValue: Single);
+    procedure _Setratio(const aValue: Single);
+    procedure _Setrelease(const aValue: Single);
+    procedure _Setthreshold(const aValue: Single);
+    property attack: Single read _Getattack write _Setattack;
+    property knee: Single read _Getknee write _Setknee;
+    property ratio: Single read _Getratio write _Setratio;
+    property release: Single read _Getrelease write _Setrelease;
+    property threshold: Single read _Getthreshold write _Setthreshold;
+  end;
+  
+  TJSDynamicsCompressorOptions = class(TJSAudioNodeOptions,IJSDynamicsCompressorOptions)
+  Private
+  Protected
+    function _Getattack: Single; 
+    function _Getknee: Single; 
+    function _Getratio: Single; 
+    function _Getrelease: Single; 
+    function _Getthreshold: Single; 
+    procedure _Setattack(const aValue: Single);
+    procedure _Setknee(const aValue: Single);
+    procedure _Setratio(const aValue: Single);
+    procedure _Setrelease(const aValue: Single);
+    procedure _Setthreshold(const aValue: Single);
+  Public
+    constructor create(const aDict : TJSDynamicsCompressorOptionsRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSDynamicsCompressorOptions;
+    property attack: Single read _Getattack write _Setattack;
+    property knee: Single read _Getknee write _Setknee;
+    property ratio: Single read _Getratio write _Setratio;
+    property release: Single read _Getrelease write _Setrelease;
+    property threshold: Single read _Getthreshold write _Setthreshold;
+  end;
+  
+  { --------------------------------------------------------------------
     TJSAddEventListenerOptions
     --------------------------------------------------------------------}
   
@@ -843,6 +1968,356 @@ Type
     class function Cast(const Intf: IJSObject): IJSAddEventListenerOptions;
     property passive: Boolean read _Getpassive write _Setpassive;
     property once: Boolean read _Getonce write _Setonce;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSGainOptions
+    --------------------------------------------------------------------}
+  
+  TJSGainOptionsRec = record
+    gain: Single;
+    channelCount: Cardinal;
+    channelCountMode: TChannelCountMode;
+    channelInterpretation: TChannelInterpretation;
+  end;
+  
+  IJSGainOptions = interface(IJSAudioNodeOptions)
+    ['{B5DFF4C6-49C0-3F44-BFDA-F34A43A09ABA}']
+    function _Getgain: Single; 
+    procedure _Setgain(const aValue: Single);
+    property gain: Single read _Getgain write _Setgain;
+  end;
+  
+  TJSGainOptions = class(TJSAudioNodeOptions,IJSGainOptions)
+  Private
+  Protected
+    function _Getgain: Single; 
+    procedure _Setgain(const aValue: Single);
+  Public
+    constructor create(const aDict : TJSGainOptionsRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSGainOptions;
+    property gain: Single read _Getgain write _Setgain;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSIIRFilterOptions
+    --------------------------------------------------------------------}
+  
+  TDoubleDynArray = IJSArray; // array of double
+  TJSIIRFilterOptionsRec = record
+    feedforward: TDoubleDynArray; // required
+    feedback: TDoubleDynArray; // required
+    channelCount: Cardinal;
+    channelCountMode: TChannelCountMode;
+    channelInterpretation: TChannelInterpretation;
+  end;
+  
+  IJSIIRFilterOptions = interface(IJSAudioNodeOptions)
+    ['{2A78F2D9-4DE8-3C4A-9E83-B936AD9F2222}']
+    function _Getfeedforward: TDoubleDynArray; 
+    function _Getfeedback: TDoubleDynArray; 
+    procedure _Setfeedforward(const aValue: TDoubleDynArray);
+    procedure _Setfeedback(const aValue: TDoubleDynArray);
+    property feedforward: TDoubleDynArray read _Getfeedforward write _Setfeedforward; // required
+    property feedback: TDoubleDynArray read _Getfeedback write _Setfeedback; // required
+  end;
+  
+  TJSIIRFilterOptions = class(TJSAudioNodeOptions,IJSIIRFilterOptions)
+  Private
+  Protected
+    function _Getfeedforward: TDoubleDynArray; 
+    function _Getfeedback: TDoubleDynArray; 
+    procedure _Setfeedforward(const aValue: TDoubleDynArray);
+    procedure _Setfeedback(const aValue: TDoubleDynArray);
+  Public
+    constructor create(const aDict : TJSIIRFilterOptionsRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSIIRFilterOptions;
+    property feedforward: TDoubleDynArray read _Getfeedforward write _Setfeedforward; // required
+    property feedback: TDoubleDynArray read _Getfeedback write _Setfeedback; // required
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSOscillatorOptions
+    --------------------------------------------------------------------}
+  
+  TJSOscillatorOptionsRec = record
+    type_: TOscillatorType;
+    frequency: Single;
+    detune: Single;
+    periodicWave: TJSPeriodicWave;
+    channelCount: Cardinal;
+    channelCountMode: TChannelCountMode;
+    channelInterpretation: TChannelInterpretation;
+  end;
+  
+  IJSOscillatorOptions = interface(IJSAudioNodeOptions)
+    ['{8C366D56-3542-3BE3-B830-4EB05606F7F7}']
+    function _Gettype_: TOscillatorType; 
+    function _Getfrequency: Single; 
+    function _Getdetune: Single; 
+    function _GetperiodicWave: IJSPeriodicWave; 
+    procedure _Settype_(const aValue: TOscillatorType);
+    procedure _Setfrequency(const aValue: Single);
+    procedure _Setdetune(const aValue: Single);
+    procedure _SetperiodicWave(const aValue: IJSPeriodicWave);
+    property type_: TOscillatorType read _Gettype_ write _Settype_;
+    property frequency: Single read _Getfrequency write _Setfrequency;
+    property detune: Single read _Getdetune write _Setdetune;
+    property periodicWave: IJSPeriodicWave read _GetperiodicWave write _SetperiodicWave;
+  end;
+  
+  TJSOscillatorOptions = class(TJSAudioNodeOptions,IJSOscillatorOptions)
+  Private
+  Protected
+    function _Gettype_: TOscillatorType; 
+    function _Getfrequency: Single; 
+    function _Getdetune: Single; 
+    function _GetperiodicWave: IJSPeriodicWave; 
+    procedure _Settype_(const aValue: TOscillatorType);
+    procedure _Setfrequency(const aValue: Single);
+    procedure _Setdetune(const aValue: Single);
+    procedure _SetperiodicWave(const aValue: IJSPeriodicWave);
+  Public
+    constructor create(const aDict : TJSOscillatorOptionsRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSOscillatorOptions;
+    property type_: TOscillatorType read _Gettype_ write _Settype_;
+    property frequency: Single read _Getfrequency write _Setfrequency;
+    property detune: Single read _Getdetune write _Setdetune;
+    property periodicWave: IJSPeriodicWave read _GetperiodicWave write _SetperiodicWave;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSPannerOptions
+    --------------------------------------------------------------------}
+  
+  TJSPannerOptionsRec = record
+    panningModel: TPanningModelType;
+    distanceModel: TDistanceModelType;
+    positionX: Single;
+    positionY: Single;
+    positionZ: Single;
+    orientationX: Single;
+    orientationY: Single;
+    orientationZ: Single;
+    refDistance: Double;
+    maxDistance: Double;
+    rolloffFactor: Double;
+    coneInnerAngle: Double;
+    coneOuterAngle: Double;
+    coneOuterGain: Double;
+    channelCount: Cardinal;
+    channelCountMode: TChannelCountMode;
+    channelInterpretation: TChannelInterpretation;
+  end;
+  
+  IJSPannerOptions = interface(IJSAudioNodeOptions)
+    ['{95858366-0367-365A-AAEC-3DEB31A88E4A}']
+    function _GetpanningModel: TPanningModelType; 
+    function _GetdistanceModel: TDistanceModelType; 
+    function _GetpositionX: Single; 
+    function _GetpositionY: Single; 
+    function _GetpositionZ: Single; 
+    function _GetorientationX: Single; 
+    function _GetorientationY: Single; 
+    function _GetorientationZ: Single; 
+    function _GetrefDistance: Double; 
+    function _GetmaxDistance: Double; 
+    function _GetrolloffFactor: Double; 
+    function _GetconeInnerAngle: Double; 
+    function _GetconeOuterAngle: Double; 
+    function _GetconeOuterGain: Double; 
+    procedure _SetpanningModel(const aValue: TPanningModelType);
+    procedure _SetdistanceModel(const aValue: TDistanceModelType);
+    procedure _SetpositionX(const aValue: Single);
+    procedure _SetpositionY(const aValue: Single);
+    procedure _SetpositionZ(const aValue: Single);
+    procedure _SetorientationX(const aValue: Single);
+    procedure _SetorientationY(const aValue: Single);
+    procedure _SetorientationZ(const aValue: Single);
+    procedure _SetrefDistance(const aValue: Double);
+    procedure _SetmaxDistance(const aValue: Double);
+    procedure _SetrolloffFactor(const aValue: Double);
+    procedure _SetconeInnerAngle(const aValue: Double);
+    procedure _SetconeOuterAngle(const aValue: Double);
+    procedure _SetconeOuterGain(const aValue: Double);
+    property panningModel: TPanningModelType read _GetpanningModel write _SetpanningModel;
+    property distanceModel: TDistanceModelType read _GetdistanceModel write _SetdistanceModel;
+    property positionX: Single read _GetpositionX write _SetpositionX;
+    property positionY: Single read _GetpositionY write _SetpositionY;
+    property positionZ: Single read _GetpositionZ write _SetpositionZ;
+    property orientationX: Single read _GetorientationX write _SetorientationX;
+    property orientationY: Single read _GetorientationY write _SetorientationY;
+    property orientationZ: Single read _GetorientationZ write _SetorientationZ;
+    property refDistance: Double read _GetrefDistance write _SetrefDistance;
+    property maxDistance: Double read _GetmaxDistance write _SetmaxDistance;
+    property rolloffFactor: Double read _GetrolloffFactor write _SetrolloffFactor;
+    property coneInnerAngle: Double read _GetconeInnerAngle write _SetconeInnerAngle;
+    property coneOuterAngle: Double read _GetconeOuterAngle write _SetconeOuterAngle;
+    property coneOuterGain: Double read _GetconeOuterGain write _SetconeOuterGain;
+  end;
+  
+  TJSPannerOptions = class(TJSAudioNodeOptions,IJSPannerOptions)
+  Private
+  Protected
+    function _GetpanningModel: TPanningModelType; 
+    function _GetdistanceModel: TDistanceModelType; 
+    function _GetpositionX: Single; 
+    function _GetpositionY: Single; 
+    function _GetpositionZ: Single; 
+    function _GetorientationX: Single; 
+    function _GetorientationY: Single; 
+    function _GetorientationZ: Single; 
+    function _GetrefDistance: Double; 
+    function _GetmaxDistance: Double; 
+    function _GetrolloffFactor: Double; 
+    function _GetconeInnerAngle: Double; 
+    function _GetconeOuterAngle: Double; 
+    function _GetconeOuterGain: Double; 
+    procedure _SetpanningModel(const aValue: TPanningModelType);
+    procedure _SetdistanceModel(const aValue: TDistanceModelType);
+    procedure _SetpositionX(const aValue: Single);
+    procedure _SetpositionY(const aValue: Single);
+    procedure _SetpositionZ(const aValue: Single);
+    procedure _SetorientationX(const aValue: Single);
+    procedure _SetorientationY(const aValue: Single);
+    procedure _SetorientationZ(const aValue: Single);
+    procedure _SetrefDistance(const aValue: Double);
+    procedure _SetmaxDistance(const aValue: Double);
+    procedure _SetrolloffFactor(const aValue: Double);
+    procedure _SetconeInnerAngle(const aValue: Double);
+    procedure _SetconeOuterAngle(const aValue: Double);
+    procedure _SetconeOuterGain(const aValue: Double);
+  Public
+    constructor create(const aDict : TJSPannerOptionsRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSPannerOptions;
+    property panningModel: TPanningModelType read _GetpanningModel write _SetpanningModel;
+    property distanceModel: TDistanceModelType read _GetdistanceModel write _SetdistanceModel;
+    property positionX: Single read _GetpositionX write _SetpositionX;
+    property positionY: Single read _GetpositionY write _SetpositionY;
+    property positionZ: Single read _GetpositionZ write _SetpositionZ;
+    property orientationX: Single read _GetorientationX write _SetorientationX;
+    property orientationY: Single read _GetorientationY write _SetorientationY;
+    property orientationZ: Single read _GetorientationZ write _SetorientationZ;
+    property refDistance: Double read _GetrefDistance write _SetrefDistance;
+    property maxDistance: Double read _GetmaxDistance write _SetmaxDistance;
+    property rolloffFactor: Double read _GetrolloffFactor write _SetrolloffFactor;
+    property coneInnerAngle: Double read _GetconeInnerAngle write _SetconeInnerAngle;
+    property coneOuterAngle: Double read _GetconeOuterAngle write _SetconeOuterAngle;
+    property coneOuterGain: Double read _GetconeOuterGain write _SetconeOuterGain;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSPeriodicWaveOptions
+    --------------------------------------------------------------------}
+  
+  TSingleDynArray = IJSArray; // array of float
+  TJSPeriodicWaveOptionsRec = record
+    real: TSingleDynArray;
+    imag: TSingleDynArray;
+    disableNormalization: Boolean;
+  end;
+  
+  IJSPeriodicWaveOptions = interface(IJSPeriodicWaveConstraints)
+    ['{A4787999-E448-3AA2-ACA2-48203F7106E7}']
+    function _Getreal: TSingleDynArray; 
+    function _Getimag: TSingleDynArray; 
+    procedure _Setreal(const aValue: TSingleDynArray);
+    procedure _Setimag(const aValue: TSingleDynArray);
+    property real: TSingleDynArray read _Getreal write _Setreal;
+    property imag: TSingleDynArray read _Getimag write _Setimag;
+  end;
+  
+  TJSPeriodicWaveOptions = class(TJSPeriodicWaveConstraints,IJSPeriodicWaveOptions)
+  Private
+  Protected
+    function _Getreal: TSingleDynArray; 
+    function _Getimag: TSingleDynArray; 
+    procedure _Setreal(const aValue: TSingleDynArray);
+    procedure _Setimag(const aValue: TSingleDynArray);
+  Public
+    constructor create(const aDict : TJSPeriodicWaveOptionsRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSPeriodicWaveOptions;
+    property real: TSingleDynArray read _Getreal write _Setreal;
+    property imag: TSingleDynArray read _Getimag write _Setimag;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSProgressEventInit
+    --------------------------------------------------------------------}
+  
+  TJSProgressEventInitRec = record
+    lengthComputable: Boolean;
+    loaded: Double;
+    total: Double;
+    bubbles: Boolean;
+    cancelable: Boolean;
+    composed: Boolean;
+  end;
+  
+  IJSProgressEventInit = interface(IJSEventInit)
+    ['{D5279911-958E-33D5-AACA-C7C4A66090F5}']
+    function _GetlengthComputable: Boolean; 
+    function _Getloaded: Double; 
+    function _Gettotal: Double; 
+    procedure _SetlengthComputable(const aValue: Boolean);
+    procedure _Setloaded(const aValue: Double);
+    procedure _Settotal(const aValue: Double);
+    property lengthComputable: Boolean read _GetlengthComputable write _SetlengthComputable;
+    property loaded: Double read _Getloaded write _Setloaded;
+    property total: Double read _Gettotal write _Settotal;
+  end;
+  
+  TJSProgressEventInit = class(TJSEventInit,IJSProgressEventInit)
+  Private
+  Protected
+    function _GetlengthComputable: Boolean; 
+    function _Getloaded: Double; 
+    function _Gettotal: Double; 
+    procedure _SetlengthComputable(const aValue: Boolean);
+    procedure _Setloaded(const aValue: Double);
+    procedure _Settotal(const aValue: Double);
+  Public
+    constructor create(const aDict : TJSProgressEventInitRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSProgressEventInit;
+    property lengthComputable: Boolean read _GetlengthComputable write _SetlengthComputable;
+    property loaded: Double read _Getloaded write _Setloaded;
+    property total: Double read _Gettotal write _Settotal;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSStereoPannerOptions
+    --------------------------------------------------------------------}
+  
+  TJSStereoPannerOptionsRec = record
+    pan: Single;
+    channelCount: Cardinal;
+    channelCountMode: TChannelCountMode;
+    channelInterpretation: TChannelInterpretation;
+  end;
+  
+  IJSStereoPannerOptions = interface(IJSAudioNodeOptions)
+    ['{A46E0B3F-9F01-3D6B-B7C9-C0EF44BFDAF3}']
+    function _Getpan: Single; 
+    procedure _Setpan(const aValue: Single);
+    property pan: Single read _Getpan write _Setpan;
+  end;
+  
+  TJSStereoPannerOptions = class(TJSAudioNodeOptions,IJSStereoPannerOptions)
+  Private
+  Protected
+    function _Getpan: Single; 
+    procedure _Setpan(const aValue: Single);
+  Public
+    constructor create(const aDict : TJSStereoPannerOptionsRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSStereoPannerOptions;
+    property pan: Single read _Getpan write _Setpan;
   end;
   
   { --------------------------------------------------------------------
@@ -880,6 +2355,43 @@ Type
     class function Cast(const Intf: IJSObject): IJSUIEventInit;
     property view: IJSWindow read _Getview write _Setview;
     property detail: LongInt read _Getdetail write _Setdetail;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSWaveShaperOptions
+    --------------------------------------------------------------------}
+  
+  TJSWaveShaperOptionsRec = record
+    curve: TSingleDynArray;
+    oversample: TOverSampleType;
+    channelCount: Cardinal;
+    channelCountMode: TChannelCountMode;
+    channelInterpretation: TChannelInterpretation;
+  end;
+  
+  IJSWaveShaperOptions = interface(IJSAudioNodeOptions)
+    ['{6FB313ED-B797-320E-A088-CFD1AA6CCD30}']
+    function _Getcurve: TSingleDynArray; 
+    function _Getoversample: TOverSampleType; 
+    procedure _Setcurve(const aValue: TSingleDynArray);
+    procedure _Setoversample(const aValue: TOverSampleType);
+    property curve: TSingleDynArray read _Getcurve write _Setcurve;
+    property oversample: TOverSampleType read _Getoversample write _Setoversample;
+  end;
+  
+  TJSWaveShaperOptions = class(TJSAudioNodeOptions,IJSWaveShaperOptions)
+  Private
+  Protected
+    function _Getcurve: TSingleDynArray; 
+    function _Getoversample: TOverSampleType; 
+    procedure _Setcurve(const aValue: TSingleDynArray);
+    procedure _Setoversample(const aValue: TOverSampleType);
+  Public
+    constructor create(const aDict : TJSWaveShaperOptionsRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSWaveShaperOptions;
+    property curve: TSingleDynArray read _Getcurve write _Setcurve;
+    property oversample: TOverSampleType read _Getoversample write _Setoversample;
   end;
   
   { --------------------------------------------------------------------
@@ -1390,6 +2902,191 @@ Type
   end;
   
   { --------------------------------------------------------------------
+    TJSAudioBuffer
+    --------------------------------------------------------------------}
+  
+  IJSAudioBuffer = interface(IJSObject)
+    ['{96E1F302-0856-38F9-968C-E9E6D6BB7ABD}']
+    function _GetsampleRate: Single; 
+    function _Getlength_: Cardinal; 
+    function _Getduration: Double; 
+    function _GetnumberOfChannels: Cardinal; 
+    function getChannelData(aChannel: Cardinal): IJSFloat32Array;
+    procedure copyFromChannel(aDestination: IJSFloat32Array; aChannelNumber: Cardinal; aStartInChannel: Cardinal);
+    procedure copyFromChannel(aDestination: IJSFloat32Array; aChannelNumber: Cardinal);
+    procedure copyToChannel(aSource: IJSFloat32Array; aChannelNumber: Cardinal; aStartInChannel: Cardinal);
+    procedure copyToChannel(aSource: IJSFloat32Array; aChannelNumber: Cardinal);
+    property sampleRate: Single read _GetsampleRate;
+    property length_: Cardinal read _Getlength_;
+    property duration: Double read _Getduration;
+    property numberOfChannels: Cardinal read _GetnumberOfChannels;
+  end;
+  
+  TJSAudioBuffer = class(TJSObject,IJSAudioBuffer)
+  Private
+  Protected
+    function _GetsampleRate: Single; 
+    function _Getlength_: Cardinal; 
+    function _Getduration: Double; 
+    function _GetnumberOfChannels: Cardinal; 
+  Public
+    constructor Create(const aOptions: IJSAudioBufferOptions); overload;
+    function getChannelData(aChannel: Cardinal): IJSFloat32Array; overload;
+    procedure copyFromChannel(aDestination: IJSFloat32Array; aChannelNumber: Cardinal; aStartInChannel: Cardinal); overload;
+    procedure copyFromChannel(aDestination: IJSFloat32Array; aChannelNumber: Cardinal); overload;
+    procedure copyToChannel(aSource: IJSFloat32Array; aChannelNumber: Cardinal; aStartInChannel: Cardinal); overload;
+    procedure copyToChannel(aSource: IJSFloat32Array; aChannelNumber: Cardinal); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSAudioBuffer;
+    property sampleRate: Single read _GetsampleRate;
+    property length_: Cardinal read _Getlength_;
+    property duration: Double read _Getduration;
+    property numberOfChannels: Cardinal read _GetnumberOfChannels;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSAudioListener
+    --------------------------------------------------------------------}
+  
+  IJSAudioListener = interface(IJSObject)
+    ['{DBD86361-4C0C-375B-B42A-A0EE1C619F11}']
+    procedure setPosition(aX: Double; aY: Double; aZ: Double);
+    procedure setOrientation(aX: Double; aY: Double; aZ: Double; aXUp: Double; aYUp: Double; aZUp: Double);
+  end;
+  
+  TJSAudioListener = class(TJSObject,IJSAudioListener)
+  Private
+  Protected
+  Public
+    procedure setPosition(aX: Double; aY: Double; aZ: Double); overload;
+    procedure setOrientation(aX: Double; aY: Double; aZ: Double; aXUp: Double; aYUp: Double; aZUp: Double); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSAudioListener;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSAudioNodePassThrough
+    --------------------------------------------------------------------}
+  
+  IJSAudioNodePassThrough = interface(IJSObject)
+    ['{8DF39B85-43E9-3C76-821A-0B54D3D5B91D}']
+  end;
+  
+  TJSAudioNodePassThrough = class(TJSObject,IJSAudioNodePassThrough)
+  Private
+  Protected
+  Public
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSAudioNodePassThrough;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSAudioParam
+    --------------------------------------------------------------------}
+  
+  IJSAudioParam = interface(IJSObject)
+    ['{D92F4F5C-4AD1-36A0-A153-42B8094AB8BA}']
+    function _Getvalue: Single; 
+    function _GetdefaultValue: Single; 
+    function _GetminValue: Single; 
+    function _GetmaxValue: Single; 
+    procedure _Setvalue(const aValue: Single);
+    function setValueAtTime(aValue: Single; aStartTime: Double): IJSAudioParam;
+    function linearRampToValueAtTime(aValue: Single; aEndTime: Double): IJSAudioParam;
+    function exponentialRampToValueAtTime(aValue: Single; aEndTime: Double): IJSAudioParam;
+    function setTargetAtTime(aTarget: Single; aStartTime: Double; aTimeConstant: Double): IJSAudioParam;
+    function setValueCurveAtTime(const aValues: TSingleDynArray; aStartTime: Double; aDuration: Double): IJSAudioParam;
+    function cancelScheduledValues(aStartTime: Double): IJSAudioParam;
+    property value: Single read _Getvalue write _Setvalue;
+    property defaultValue: Single read _GetdefaultValue;
+    property minValue: Single read _GetminValue;
+    property maxValue: Single read _GetmaxValue;
+  end;
+  
+  TJSAudioParam = class(TJSObject,IJSAudioParam)
+  Private
+  Protected
+    function _Getvalue: Single; 
+    function _GetdefaultValue: Single; 
+    function _GetminValue: Single; 
+    function _GetmaxValue: Single; 
+    procedure _Setvalue(const aValue: Single);
+  Public
+    function setValueAtTime(aValue: Single; aStartTime: Double): IJSAudioParam; overload;
+    function linearRampToValueAtTime(aValue: Single; aEndTime: Double): IJSAudioParam; overload;
+    function exponentialRampToValueAtTime(aValue: Single; aEndTime: Double): IJSAudioParam; overload;
+    function setTargetAtTime(aTarget: Single; aStartTime: Double; aTimeConstant: Double): IJSAudioParam; overload;
+    function setValueCurveAtTime(const aValues: TSingleDynArray; aStartTime: Double; aDuration: Double): IJSAudioParam; overload;
+    function cancelScheduledValues(aStartTime: Double): IJSAudioParam; overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSAudioParam;
+    property value: Single read _Getvalue write _Setvalue;
+    property defaultValue: Single read _GetdefaultValue;
+    property minValue: Single read _GetminValue;
+    property maxValue: Single read _GetmaxValue;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSAudioWorklet
+    --------------------------------------------------------------------}
+  
+  IJSAudioWorklet = interface(IJSObject)
+    ['{E6CEFCCC-BA23-3490-A2A0-F0D81AA2A621}']
+  end;
+  
+  TJSAudioWorklet = class(TJSObject,IJSAudioWorklet)
+  Private
+  Protected
+  Public
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSAudioWorklet;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSBlob
+    --------------------------------------------------------------------}
+  
+  TBlobPartDynArray = IJSArray; // array of BlobPart
+  IJSBlob = interface(IJSObject)
+    ['{12AA4DB0-1685-3389-84DB-DCBEBECB2FA3}']
+    function _Getsize: QWord; 
+    function _Gettype_: UnicodeString; 
+    function slice(aStart: Int64; aEnd_: Int64; const aContentType: UnicodeString): IJSBlob;
+    function slice: IJSBlob;
+    function slice(aStart: Int64): IJSBlob;
+    function slice(aStart: Int64; aEnd_: Int64): IJSBlob;
+    function stream: IJSReadableStream;
+    function text: IJSPromise; // Promise<USVString>
+    function arrayBuffer: IJSPromise; // Promise<ArrayBuffer>
+    function bytes: IJSPromise; // Promise<Uint8Array>
+    property size: QWord read _Getsize;
+    property type_: UnicodeString read _Gettype_;
+  end;
+  
+  TJSBlob = class(TJSObject,IJSBlob)
+  Private
+  Protected
+    function _Getsize: QWord; 
+    function _Gettype_: UnicodeString; 
+  Public
+    constructor Create(const aBlobParts: TBlobPartDynArray; const aOptions: IJSBlobPropertyBag); overload;
+    constructor Create; overload;
+    constructor Create(const aBlobParts: TBlobPartDynArray); overload;
+    function slice(aStart: Int64; aEnd_: Int64; const aContentType: UnicodeString): IJSBlob; overload;
+    function slice: IJSBlob; overload;
+    function slice(aStart: Int64): IJSBlob; overload;
+    function slice(aStart: Int64; aEnd_: Int64): IJSBlob; overload;
+    function stream: IJSReadableStream; overload;
+    function text: IJSPromise; overload; // Promise<USVString>
+    function arrayBuffer: IJSPromise; overload; // Promise<ArrayBuffer>
+    function bytes: IJSPromise; overload; // Promise<Uint8Array>
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSBlob;
+    property size: QWord read _Getsize;
+    property type_: UnicodeString read _Gettype_;
+  end;
+  
+  { --------------------------------------------------------------------
     TJSCSSStyleDeclaration
     --------------------------------------------------------------------}
   
@@ -1425,6 +3122,26 @@ Type
     class function Cast(const Intf: IJSObject): IJSCSSStyleDeclaration;
     property cssText: UTF8String read _GetcssText write _SetcssText;
     property length_: Cardinal read _Getlength_;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSDocumentOrShadowRoot
+    --------------------------------------------------------------------}
+  
+  IJSDocumentOrShadowRoot = interface(IJSObject)
+    ['{4DE6A550-C955-32E0-9503-11BE05833C89}']
+    function _GetpointerLockElement: IJSElement; 
+    property pointerLockElement: IJSElement read _GetpointerLockElement;
+  end;
+  
+  TJSDocumentOrShadowRoot = class(TJSObject,IJSDocumentOrShadowRoot)
+  Private
+  Protected
+    function _GetpointerLockElement: IJSElement; 
+  Public
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSDocumentOrShadowRoot;
+    property pointerLockElement: IJSElement read _GetpointerLockElement;
   end;
   
   { --------------------------------------------------------------------
@@ -1604,6 +3321,62 @@ Type
   end;
   
   { --------------------------------------------------------------------
+    TJSStackFrame
+    --------------------------------------------------------------------}
+  
+  IJSStackFrame = interface(IJSObject)
+    ['{F0F4323A-0CF6-3E02-87C0-636E89A48332}']
+  end;
+  
+  TJSStackFrame = class(TJSObject,IJSStackFrame)
+  Private
+  Protected
+  Public
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSStackFrame;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSExceptionMembers
+    --------------------------------------------------------------------}
+  
+  IJSExceptionMembers = interface(IJSObject)
+    ['{B2623B51-6CD8-3AD0-AD66-7B8A6CFFE45F}']
+    function _Getresult: Cardinal; 
+    function _Getfilename: UnicodeString; 
+    function _GetlineNumber: Cardinal; 
+    function _GetcolumnNumber: Cardinal; 
+    function _Getdata: IJSnsISupports; 
+    function _Getstack: UnicodeString; 
+    property result: Cardinal read _Getresult;
+    property filename: UnicodeString read _Getfilename;
+    property lineNumber: Cardinal read _GetlineNumber;
+    property columnNumber: Cardinal read _GetcolumnNumber;
+    property data: IJSnsISupports read _Getdata;
+    property stack: UnicodeString read _Getstack;
+  end;
+  
+  TJSExceptionMembers = class(TJSObject,IJSExceptionMembers)
+  Private
+  Protected
+    function _Getresult: Cardinal; 
+    function _Getfilename: UnicodeString; 
+    function _GetlineNumber: Cardinal; 
+    function _GetcolumnNumber: Cardinal; 
+    function _Getdata: IJSnsISupports; 
+    function _Getstack: UnicodeString; 
+  Public
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSExceptionMembers;
+    property result: Cardinal read _Getresult;
+    property filename: UnicodeString read _Getfilename;
+    property lineNumber: Cardinal read _GetlineNumber;
+    property columnNumber: Cardinal read _GetcolumnNumber;
+    property data: IJSnsISupports read _Getdata;
+    property stack: UnicodeString read _Getstack;
+  end;
+  
+  { --------------------------------------------------------------------
     TJSDOMRectReadOnly
     --------------------------------------------------------------------}
   
@@ -1658,6 +3431,30 @@ Type
     property right: Double read _Getright;
     property bottom: Double read _Getbottom;
     property left: Double read _Getleft;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSDOMStringList
+    --------------------------------------------------------------------}
+  
+  IJSDOMStringList = interface(IJSObject)
+    ['{D9C88094-BA78-3BF9-B061-C7B4C4FE0321}']
+    function _Getlength_: Cardinal; 
+    function item(aIndex: Cardinal): UnicodeString;
+    function contains(const aString_: UnicodeString): Boolean;
+    property length_: Cardinal read _Getlength_;
+  end;
+  
+  TJSDOMStringList = class(TJSObject,IJSDOMStringList)
+  Private
+  Protected
+    function _Getlength_: Cardinal; 
+  Public
+    function item(aIndex: Cardinal): UnicodeString; overload;
+    function contains(const aString_: UnicodeString): Boolean; overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSDOMStringList;
+    property length_: Cardinal read _Getlength_;
   end;
   
   { --------------------------------------------------------------------
@@ -2606,6 +4403,54 @@ Type
   end;
   
   { --------------------------------------------------------------------
+    TJSBody
+    --------------------------------------------------------------------}
+  
+  IJSBody = interface(IJSObject)
+    ['{B9574066-D73F-368F-A3BA-111FEE3FD280}']
+    function _GetbodyUsed: Boolean; 
+    function arrayBuffer: IJSPromise; // Promise<ArrayBuffer>
+    function blob: IJSPromise; // Promise<Blob>
+    function bytes: IJSPromise; // Promise<Uint8Array>
+    function formData: IJSPromise; // Promise<FormData>
+    function json: IJSPromise; // Promise<JSON>
+    function text: IJSPromise; // Promise<USVString>
+    property bodyUsed: Boolean read _GetbodyUsed;
+  end;
+  
+  TJSBody = class(TJSObject,IJSBody)
+  Private
+  Protected
+    function _GetbodyUsed: Boolean; 
+  Public
+    function arrayBuffer: IJSPromise; overload; // Promise<ArrayBuffer>
+    function blob: IJSPromise; overload; // Promise<Blob>
+    function bytes: IJSPromise; overload; // Promise<Uint8Array>
+    function formData: IJSPromise; overload; // Promise<FormData>
+    function json: IJSPromise; overload; // Promise<JSON>
+    function text: IJSPromise; overload; // Promise<USVString>
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSBody;
+    property bodyUsed: Boolean read _GetbodyUsed;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSFormData
+    --------------------------------------------------------------------}
+  
+  IJSFormData = interface(IJSObject)
+    ['{854B4B58-8EBD-341E-8D8E-B92A9018C85A}']
+  end;
+  
+  TJSFormData = class(TJSObject,IJSFormData)
+  Private
+  Protected
+  Public
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSFormData;
+  end;
+  
+  { --------------------------------------------------------------------
     TJSimgINotificationObserver
     --------------------------------------------------------------------}
   
@@ -2725,6 +4570,84 @@ Type
   end;
   
   { --------------------------------------------------------------------
+    TJSLocation
+    --------------------------------------------------------------------}
+  
+  IJSLocation = interface(IJSObject)
+    ['{6069810D-82E3-3000-AB6D-877A46CA9A5B}']
+    function _Gethref: UTF8String; 
+    function _Getorigin: UTF8String; 
+    function _Getprotocol: UTF8String; 
+    function _Gethost: UTF8String; 
+    function _Gethostname: UTF8String; 
+    function _Getport: UTF8String; 
+    function _Getpathname: UTF8String; 
+    function _Getsearch: UTF8String; 
+    function _Gethash: UTF8String; 
+    function _GetancestorOrigins: IJSDOMStringList; 
+    procedure _Setprotocol(const aValue: UTF8String);
+    procedure _Sethost(const aValue: UTF8String);
+    procedure _Sethostname(const aValue: UTF8String);
+    procedure _Setport(const aValue: UTF8String);
+    procedure _Setpathname(const aValue: UTF8String);
+    procedure _Setsearch(const aValue: UTF8String);
+    procedure _Sethash(const aValue: UTF8String);
+    procedure assign(const aUrl: UTF8String);
+    procedure replace(const aUrl: UTF8String);
+    procedure reload(aForceget: Boolean);
+    procedure reload;
+    property href: UTF8String read _Gethref;
+    property origin: UTF8String read _Getorigin;
+    property protocol: UTF8String read _Getprotocol write _Setprotocol;
+    property host: UTF8String read _Gethost write _Sethost;
+    property hostname: UTF8String read _Gethostname write _Sethostname;
+    property port: UTF8String read _Getport write _Setport;
+    property pathname: UTF8String read _Getpathname write _Setpathname;
+    property search: UTF8String read _Getsearch write _Setsearch;
+    property hash: UTF8String read _Gethash write _Sethash;
+    property ancestorOrigins: IJSDOMStringList read _GetancestorOrigins;
+  end;
+  
+  TJSLocation = class(TJSObject,IJSLocation)
+  Private
+  Protected
+    function _Gethref: UTF8String; 
+    function _Getorigin: UTF8String; 
+    function _Getprotocol: UTF8String; 
+    function _Gethost: UTF8String; 
+    function _Gethostname: UTF8String; 
+    function _Getport: UTF8String; 
+    function _Getpathname: UTF8String; 
+    function _Getsearch: UTF8String; 
+    function _Gethash: UTF8String; 
+    function _GetancestorOrigins: IJSDOMStringList; 
+    procedure _Setprotocol(const aValue: UTF8String);
+    procedure _Sethost(const aValue: UTF8String);
+    procedure _Sethostname(const aValue: UTF8String);
+    procedure _Setport(const aValue: UTF8String);
+    procedure _Setpathname(const aValue: UTF8String);
+    procedure _Setsearch(const aValue: UTF8String);
+    procedure _Sethash(const aValue: UTF8String);
+  Public
+    procedure assign(const aUrl: UTF8String); overload;
+    procedure replace(const aUrl: UTF8String); overload;
+    procedure reload(aForceget: Boolean); overload;
+    procedure reload; overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSLocation;
+    property href: UTF8String read _Gethref;
+    property origin: UTF8String read _Getorigin;
+    property protocol: UTF8String read _Getprotocol write _Setprotocol;
+    property host: UTF8String read _Gethost write _Sethost;
+    property hostname: UTF8String read _Gethostname write _Sethostname;
+    property port: UTF8String read _Getport write _Setport;
+    property pathname: UTF8String read _Getpathname write _Setpathname;
+    property search: UTF8String read _Getsearch write _Setsearch;
+    property hash: UTF8String read _Gethash write _Sethash;
+    property ancestorOrigins: IJSDOMStringList read _GetancestorOrigins;
+  end;
+  
+  { --------------------------------------------------------------------
     TJSNonElementParentNode
     --------------------------------------------------------------------}
   
@@ -2740,6 +4663,138 @@ Type
     function getElementById(const aElementId: UnicodeString): IJSElement; overload;
     class function JSClassName: UnicodeString; override;
     class function Cast(const Intf: IJSObject): IJSNonElementParentNode;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSPeriodicWave
+    --------------------------------------------------------------------}
+  
+  IJSPeriodicWave = interface(IJSObject)
+    ['{E6CFE404-B98A-3549-904A-1ED81AA2A621}']
+  end;
+  
+  TJSPeriodicWave = class(TJSObject,IJSPeriodicWave)
+  Private
+  Protected
+  Public
+    constructor Create(aContext: IJSBaseAudioContext; const aOptions: IJSPeriodicWaveOptions); overload;
+    constructor Create(aContext: IJSBaseAudioContext); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSPeriodicWave;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSCountQueuingStrategy
+    --------------------------------------------------------------------}
+  
+  IJSCountQueuingStrategy = interface(IJSObject)
+    ['{3E02214C-EAC5-352D-9426-C93752B4E17C}']
+    function _GethighWaterMark: Double; 
+    function _Getsize: IJSFunction; 
+    property highWaterMark: Double read _GethighWaterMark;
+    property size: IJSFunction read _Getsize;
+  end;
+  
+  TJSCountQueuingStrategy = class(TJSObject,IJSCountQueuingStrategy)
+  Private
+  Protected
+    function _GethighWaterMark: Double; 
+    function _Getsize: IJSFunction; 
+  Public
+    constructor Create(const aInit: IJSQueuingStrategyInit); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSCountQueuingStrategy;
+    property highWaterMark: Double read _GethighWaterMark;
+    property size: IJSFunction read _Getsize;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSByteLengthQueuingStrategy
+    --------------------------------------------------------------------}
+  
+  IJSByteLengthQueuingStrategy = interface(IJSObject)
+    ['{331716CB-5821-374B-A1F7-96290FE2982A}']
+    function _GethighWaterMark: Double; 
+    function _Getsize: IJSFunction; 
+    property highWaterMark: Double read _GethighWaterMark;
+    property size: IJSFunction read _Getsize;
+  end;
+  
+  TJSByteLengthQueuingStrategy = class(TJSObject,IJSByteLengthQueuingStrategy)
+  Private
+  Protected
+    function _GethighWaterMark: Double; 
+    function _Getsize: IJSFunction; 
+  Public
+    constructor Create(const aInit: IJSQueuingStrategyInit); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSByteLengthQueuingStrategy;
+    property highWaterMark: Double read _GethighWaterMark;
+    property size: IJSFunction read _Getsize;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSReadableStreamGenericReader
+    --------------------------------------------------------------------}
+  
+  IJSReadableStreamGenericReader = interface(IJSObject)
+    ['{B7D38171-47D5-3E8B-89C2-6B93171A1906}']
+    function _Getclosed: IJSPromise; 
+    function cancel(const aReason: Variant): IJSPromise; // Promise<undefined>
+    function cancel: IJSPromise; // Promise<undefined>
+    property closed: IJSPromise read _Getclosed;
+  end;
+  
+  TJSReadableStreamGenericReader = class(TJSObject,IJSReadableStreamGenericReader)
+  Private
+  Protected
+    function _Getclosed: IJSPromise; 
+  Public
+    function cancel(const aReason: Variant): IJSPromise; overload; // Promise<undefined>
+    function cancel: IJSPromise; overload; // Promise<undefined>
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSReadableStreamGenericReader;
+    property closed: IJSPromise read _Getclosed;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSReadableStream
+    --------------------------------------------------------------------}
+  
+  TJSReadableStreamDynArray = IJSArray; // array of ReadableStream
+  
+  IJSReadableStream = interface(IJSObject)
+    ['{0798054E-1144-374E-9F7B-45CFB026FD95}']
+    function _Getlocked: Boolean; 
+    function cancel(const aReason: Variant): IJSPromise; // Promise<undefined>
+    function cancel: IJSPromise; // Promise<undefined>
+    function getReader(const aOptions: IJSReadableStreamGetReaderOptions): TReadableStreamReader;
+    function getReader: TReadableStreamReader;
+    function pipeThrough(const aTransform: IJSReadableWritablePair; const aOptions: IJSStreamPipeOptions): IJSReadableStream;
+    function pipeThrough(const aTransform: IJSReadableWritablePair): IJSReadableStream;
+    function tee: TJSReadableStreamDynArray;
+    property locked: Boolean read _Getlocked;
+  end;
+  
+  TJSReadableStream = class(TJSObject,IJSReadableStream)
+  Private
+  Protected
+    function _Getlocked: Boolean; 
+  Public
+    constructor Create(aUnderlyingSource: IJSObject; const aStrategy: IJSQueuingStrategy); overload;
+    constructor Create; overload;
+    constructor Create(aUnderlyingSource: IJSObject); overload;
+    function from(const aAsyncIterable: Variant): IJSReadableStream; overload;
+    function cancel(const aReason: Variant): IJSPromise; overload; // Promise<undefined>
+    function cancel: IJSPromise; overload; // Promise<undefined>
+    function getReader(const aOptions: IJSReadableStreamGetReaderOptions): TReadableStreamReader; overload;
+    function getReader: TReadableStreamReader; overload;
+    function pipeThrough(const aTransform: IJSReadableWritablePair; const aOptions: IJSStreamPipeOptions): IJSReadableStream; overload;
+    function pipeThrough(const aTransform: IJSReadableWritablePair): IJSReadableStream; overload;
+    function tee: TJSReadableStreamDynArray; overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSReadableStream;
+    property locked: Boolean read _Getlocked;
   end;
   
   { --------------------------------------------------------------------
@@ -2878,7 +4933,7 @@ Type
   TGLuintDynArray = IJSArray; // array of GLuint
   
   IJSWebGL2RenderingContext = interface(IJSObject)
-    ['{9A4F888B-DEE7-3133-8675-4203EDB67B9A}']
+    ['{052CB39C-14E1-3833-8712-ECD6E64054FD}']
     function _Getcanvas: TCanvasSource; 
     function _GetdrawingBufferWidth: TGLsizei; 
     function _GetdrawingBufferHeight: TGLsizei; 
@@ -3048,13 +5103,6 @@ Type
     procedure texSubImage2D(aTarget: TGLenum; aLevel: TGLint; aXoffset: TGLint; aYoffset: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSOffscreenCanvas);
     procedure texSubImage2D(aTarget: TGLenum; aLevel: TGLint; aXoffset: TGLint; aYoffset: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSVideoFrame);
     procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aPboOffset: TGLintptr);
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSHTMLCanvasElement);
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSHTMLImageElement);
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSHTMLVideoElement);
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSImageBitmap);
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSImageData);
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSOffscreenCanvas);
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSVideoFrame);
     procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSrcData: IJSArrayBufferView; aSrcOffset: TGLuint);
     procedure texImage3D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aDepth: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aPboOffset: TGLintptr);
     procedure texImage3D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aDepth: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSHTMLCanvasElement);
@@ -4045,13 +6093,6 @@ Type
     procedure texSubImage2D(aTarget: TGLenum; aLevel: TGLint; aXoffset: TGLint; aYoffset: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSOffscreenCanvas); overload;
     procedure texSubImage2D(aTarget: TGLenum; aLevel: TGLint; aXoffset: TGLint; aYoffset: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSVideoFrame); overload;
     procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aPboOffset: TGLintptr); overload;
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSHTMLCanvasElement); overload;
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSHTMLImageElement); overload;
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSHTMLVideoElement); overload;
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSImageBitmap); overload;
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSImageData); overload;
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSOffscreenCanvas); overload;
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSVideoFrame); overload;
     procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSrcData: IJSArrayBufferView; aSrcOffset: TGLuint); overload;
     procedure texImage3D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aDepth: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aPboOffset: TGLintptr); overload;
     procedure texImage3D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aDepth: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSHTMLCanvasElement); overload;
@@ -4315,7 +6356,7 @@ Type
     --------------------------------------------------------------------}
   
   IJSWebGL2RenderingContextBase = interface(IJSObject)
-    ['{F6E20F6C-0549-3256-854A-F1323ACC369C}']
+    ['{D408F550-97B4-3B8A-BE72-9AE6F80F11D7}']
     procedure bufferData(aTarget: TGLenum; aSize: TGLsizeiptr; aUsage: TGLenum);
     procedure bufferData(aTarget: TGLenum; aSrcData: IJSArrayBuffer; aUsage: TGLenum);
     procedure bufferData(aTarget: TGLenum; aSrcData: IJSArrayBufferView; aUsage: TGLenum);
@@ -4355,13 +6396,6 @@ Type
     procedure texSubImage2D(aTarget: TGLenum; aLevel: TGLint; aXoffset: TGLint; aYoffset: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSOffscreenCanvas);
     procedure texSubImage2D(aTarget: TGLenum; aLevel: TGLint; aXoffset: TGLint; aYoffset: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSVideoFrame);
     procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aPboOffset: TGLintptr);
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSHTMLCanvasElement);
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSHTMLImageElement);
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSHTMLVideoElement);
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSImageBitmap);
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSImageData);
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSOffscreenCanvas);
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSVideoFrame);
     procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSrcData: IJSArrayBufferView; aSrcOffset: TGLuint);
     procedure texImage3D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aDepth: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aPboOffset: TGLintptr);
     procedure texImage3D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aDepth: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSHTMLCanvasElement);
@@ -4921,13 +6955,6 @@ Type
     procedure texSubImage2D(aTarget: TGLenum; aLevel: TGLint; aXoffset: TGLint; aYoffset: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSOffscreenCanvas); overload;
     procedure texSubImage2D(aTarget: TGLenum; aLevel: TGLint; aXoffset: TGLint; aYoffset: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSVideoFrame); overload;
     procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aPboOffset: TGLintptr); overload;
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSHTMLCanvasElement); overload;
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSHTMLImageElement); overload;
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSHTMLVideoElement); overload;
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSImageBitmap); overload;
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSImageData); overload;
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSOffscreenCanvas); overload;
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSVideoFrame); overload;
     procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSrcData: IJSArrayBufferView; aSrcOffset: TGLuint); overload;
     procedure texImage3D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aDepth: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aPboOffset: TGLintptr); overload;
     procedure texImage3D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aDepth: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSHTMLCanvasElement); overload;
@@ -6912,6 +8939,331 @@ Type
   end;
   
   { --------------------------------------------------------------------
+    TJSInputStream
+    --------------------------------------------------------------------}
+  
+  IJSInputStream = interface(IJSObject)
+    ['{EEDF1D10-7DC3-3FB0-B83D-1A2372542131}']
+  end;
+  
+  TJSInputStream = class(TJSObject,IJSInputStream)
+  Private
+  Protected
+  Public
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSInputStream;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSMozChannel
+    --------------------------------------------------------------------}
+  
+  IJSMozChannel = interface(IJSObject)
+    ['{F0F3CF1A-08CD-3886-87C0-636E89A48332}']
+  end;
+  
+  TJSMozChannel = class(TJSObject,IJSMozChannel)
+  Private
+  Protected
+  Public
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSMozChannel;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSAbortSignal
+    --------------------------------------------------------------------}
+  
+  TJSAbortSignalDynArray = IJSArray; // array of AbortSignal
+  IJSAbortSignal = interface(IJSEventTarget)
+    ['{1EF8713E-033B-3A7C-A9E1-6F6406504E92}']
+    function _Getaborted: Boolean; 
+    function _Getreason: Variant; 
+    function _Getonabort: TEventHandler; 
+    procedure _Setonabort(const aValue: TEventHandler);
+    procedure throwIfAborted;
+    property aborted: Boolean read _Getaborted;
+    property reason: Variant read _Getreason;
+    property onabort: TEventHandler read _Getonabort write _Setonabort;
+  end;
+  
+  TJSAbortSignal = class(TJSEventTarget,IJSAbortSignal)
+  Private
+  Protected
+    function _Getaborted: Boolean; 
+    function _Getreason: Variant; 
+    function _Getonabort: TEventHandler; 
+    procedure _Setonabort(const aValue: TEventHandler);
+  Public
+    function abort(const aReason: Variant): IJSAbortSignal; overload;
+    function abort: IJSAbortSignal; overload;
+    function timeout(aMilliseconds: QWord): IJSAbortSignal; overload;
+    function any(const aSignals: TJSAbortSignalDynArray): IJSAbortSignal; overload;
+    procedure throwIfAborted; overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSAbortSignal;
+    property aborted: Boolean read _Getaborted;
+    property reason: Variant read _Getreason;
+    property onabort: TEventHandler read _Getonabort write _Setonabort;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSAudioNode
+    --------------------------------------------------------------------}
+  
+  IJSAudioNode = interface(IJSEventTarget)
+    ['{AF6504EE-7C50-37B9-8313-D35302E611D5}']
+    function _Getcontext: IJSBaseAudioContext; 
+    function _GetnumberOfInputs: Cardinal; 
+    function _GetnumberOfOutputs: Cardinal; 
+    function _GetchannelCount: Cardinal; 
+    function _GetchannelCountMode: TChannelCountMode; 
+    function _GetchannelInterpretation: TChannelInterpretation; 
+    procedure _SetchannelCount(const aValue: Cardinal);
+    procedure _SetchannelCountMode(const aValue: TChannelCountMode);
+    procedure _SetchannelInterpretation(const aValue: TChannelInterpretation);
+    function connect(aDestination: IJSAudioNode; aOutput: Cardinal; aInput: Cardinal): IJSAudioNode;
+    function connect(aDestination: IJSAudioNode): IJSAudioNode;
+    function connect(aDestination: IJSAudioNode; aOutput: Cardinal): IJSAudioNode;
+    procedure connect(aDestination: IJSAudioParam; aOutput: Cardinal);
+    procedure connect(aDestination: IJSAudioParam);
+    procedure disconnect;
+    procedure disconnect(aOutput: Cardinal);
+    procedure disconnect(aDestination: IJSAudioNode);
+    procedure disconnect(aDestination: IJSAudioNode; aOutput: Cardinal);
+    procedure disconnect(aDestination: IJSAudioNode; aOutput: Cardinal; aInput: Cardinal);
+    procedure disconnect(aDestination: IJSAudioParam);
+    procedure disconnect(aDestination: IJSAudioParam; aOutput: Cardinal);
+    property context: IJSBaseAudioContext read _Getcontext;
+    property numberOfInputs: Cardinal read _GetnumberOfInputs;
+    property numberOfOutputs: Cardinal read _GetnumberOfOutputs;
+    property channelCount: Cardinal read _GetchannelCount write _SetchannelCount;
+    property channelCountMode: TChannelCountMode read _GetchannelCountMode write _SetchannelCountMode;
+    property channelInterpretation: TChannelInterpretation read _GetchannelInterpretation write _SetchannelInterpretation;
+  end;
+  
+  TJSAudioNode = class(TJSEventTarget,IJSAudioNode)
+  Private
+  Protected
+    function _Getcontext: IJSBaseAudioContext; 
+    function _GetnumberOfInputs: Cardinal; 
+    function _GetnumberOfOutputs: Cardinal; 
+    function _GetchannelCount: Cardinal; 
+    function _GetchannelCountMode: TChannelCountMode; 
+    function _GetchannelInterpretation: TChannelInterpretation; 
+    procedure _SetchannelCount(const aValue: Cardinal);
+    procedure _SetchannelCountMode(const aValue: TChannelCountMode);
+    procedure _SetchannelInterpretation(const aValue: TChannelInterpretation);
+  Public
+    function connect(aDestination: IJSAudioNode; aOutput: Cardinal; aInput: Cardinal): IJSAudioNode; overload;
+    function connect(aDestination: IJSAudioNode): IJSAudioNode; overload;
+    function connect(aDestination: IJSAudioNode; aOutput: Cardinal): IJSAudioNode; overload;
+    procedure connect(aDestination: IJSAudioParam; aOutput: Cardinal); overload;
+    procedure connect(aDestination: IJSAudioParam); overload;
+    procedure disconnect; overload;
+    procedure disconnect(aOutput: Cardinal); overload;
+    procedure disconnect(aDestination: IJSAudioNode); overload;
+    procedure disconnect(aDestination: IJSAudioNode; aOutput: Cardinal); overload;
+    procedure disconnect(aDestination: IJSAudioNode; aOutput: Cardinal; aInput: Cardinal); overload;
+    procedure disconnect(aDestination: IJSAudioParam); overload;
+    procedure disconnect(aDestination: IJSAudioParam; aOutput: Cardinal); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSAudioNode;
+    property context: IJSBaseAudioContext read _Getcontext;
+    property numberOfInputs: Cardinal read _GetnumberOfInputs;
+    property numberOfOutputs: Cardinal read _GetnumberOfOutputs;
+    property channelCount: Cardinal read _GetchannelCount write _SetchannelCount;
+    property channelCountMode: TChannelCountMode read _GetchannelCountMode write _SetchannelCountMode;
+    property channelInterpretation: TChannelInterpretation read _GetchannelInterpretation write _SetchannelInterpretation;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSBaseAudioContext
+    --------------------------------------------------------------------}
+  
+  IJSBaseAudioContext = interface(IJSEventTarget)
+    ['{B2AEFD13-1847-376A-A0E0-231D2C8EA974}']
+    function _Getdestination: IJSAudioDestinationNode; 
+    function _GetsampleRate: Single; 
+    function _GetcurrentTime: Double; 
+    function _Getlistener: IJSAudioListener; 
+    function _Getstate: TAudioContextState; 
+    function _GetaudioWorklet: IJSAudioWorklet; 
+    function _Getonstatechange: TEventHandler; 
+    procedure _Setonstatechange(const aValue: TEventHandler);
+    function resume: IJSPromise; // Promise<undefined>
+    function createBuffer(aNumberOfChannels: Cardinal; aLength_: Cardinal; aSampleRate: Single): IJSAudioBuffer;
+    function decodeAudioData(aAudioData: IJSArrayBuffer; const aSuccessCallback: TDecodeSuccessCallback; const aErrorCallback: TDecodeErrorCallback): IJSPromise; // Promise<AudioBuffer>
+    function decodeAudioData(aAudioData: IJSArrayBuffer): IJSPromise; // Promise<AudioBuffer>
+    function decodeAudioData(aAudioData: IJSArrayBuffer; const aSuccessCallback: TDecodeSuccessCallback): IJSPromise; // Promise<AudioBuffer>
+    function createBufferSource: IJSAudioBufferSourceNode;
+    function createConstantSource: IJSConstantSourceNode;
+    function createScriptProcessor(aBufferSize: Cardinal; aNumberOfInputChannels: Cardinal; aNumberOfOutputChannels: Cardinal): IJSScriptProcessorNode;
+    function createScriptProcessor: IJSScriptProcessorNode;
+    function createScriptProcessor(aBufferSize: Cardinal): IJSScriptProcessorNode;
+    function createScriptProcessor(aBufferSize: Cardinal; aNumberOfInputChannels: Cardinal): IJSScriptProcessorNode;
+    function createAnalyser: IJSAnalyserNode;
+    function createGain: IJSGainNode;
+    function createDelay(aMaxDelayTime: Double): IJSDelayNode;
+    function createDelay: IJSDelayNode;
+    function createBiquadFilter: IJSBiquadFilterNode;
+    function createIIRFilter(const aFeedforward: TDoubleDynArray; const aFeedback: TDoubleDynArray): IJSIIRFilterNode;
+    function createWaveShaper: IJSWaveShaperNode;
+    function createPanner: IJSPannerNode;
+    function createStereoPanner: IJSStereoPannerNode;
+    function createConvolver: IJSConvolverNode;
+    function createChannelSplitter(aNumberOfOutputs: Cardinal): IJSChannelSplitterNode;
+    function createChannelSplitter: IJSChannelSplitterNode;
+    function createChannelMerger(aNumberOfInputs: Cardinal): IJSChannelMergerNode;
+    function createChannelMerger: IJSChannelMergerNode;
+    function createDynamicsCompressor: IJSDynamicsCompressorNode;
+    function createOscillator: IJSOscillatorNode;
+    function createPeriodicWave(const aReal: TSingleDynArray; const aImag: TSingleDynArray; const aConstraints: IJSPeriodicWaveConstraints): IJSPeriodicWave;
+    function createPeriodicWave(const aReal: TSingleDynArray; const aImag: TSingleDynArray): IJSPeriodicWave;
+    property destination: IJSAudioDestinationNode read _Getdestination;
+    property sampleRate: Single read _GetsampleRate;
+    property currentTime: Double read _GetcurrentTime;
+    property listener: IJSAudioListener read _Getlistener;
+    property state: TAudioContextState read _Getstate;
+    property audioWorklet: IJSAudioWorklet read _GetaudioWorklet;
+    property onstatechange: TEventHandler read _Getonstatechange write _Setonstatechange;
+  end;
+  
+  TJSBaseAudioContext = class(TJSEventTarget,IJSBaseAudioContext)
+  Private
+  Protected
+    function _Getdestination: IJSAudioDestinationNode; 
+    function _GetsampleRate: Single; 
+    function _GetcurrentTime: Double; 
+    function _Getlistener: IJSAudioListener; 
+    function _Getstate: TAudioContextState; 
+    function _GetaudioWorklet: IJSAudioWorklet; 
+    function _Getonstatechange: TEventHandler; 
+    procedure _Setonstatechange(const aValue: TEventHandler);
+  Public
+    function resume: IJSPromise; overload; // Promise<undefined>
+    function createBuffer(aNumberOfChannels: Cardinal; aLength_: Cardinal; aSampleRate: Single): IJSAudioBuffer; overload;
+    function decodeAudioData(aAudioData: IJSArrayBuffer; const aSuccessCallback: TDecodeSuccessCallback; const aErrorCallback: TDecodeErrorCallback): IJSPromise; overload; // Promise<AudioBuffer>
+    function decodeAudioData(aAudioData: IJSArrayBuffer): IJSPromise; overload; // Promise<AudioBuffer>
+    function decodeAudioData(aAudioData: IJSArrayBuffer; const aSuccessCallback: TDecodeSuccessCallback): IJSPromise; overload; // Promise<AudioBuffer>
+    function createBufferSource: IJSAudioBufferSourceNode; overload;
+    function createConstantSource: IJSConstantSourceNode; overload;
+    function createScriptProcessor(aBufferSize: Cardinal; aNumberOfInputChannels: Cardinal; aNumberOfOutputChannels: Cardinal): IJSScriptProcessorNode; overload;
+    function createScriptProcessor: IJSScriptProcessorNode; overload;
+    function createScriptProcessor(aBufferSize: Cardinal): IJSScriptProcessorNode; overload;
+    function createScriptProcessor(aBufferSize: Cardinal; aNumberOfInputChannels: Cardinal): IJSScriptProcessorNode; overload;
+    function createAnalyser: IJSAnalyserNode; overload;
+    function createGain: IJSGainNode; overload;
+    function createDelay(aMaxDelayTime: Double): IJSDelayNode; overload;
+    function createDelay: IJSDelayNode; overload;
+    function createBiquadFilter: IJSBiquadFilterNode; overload;
+    function createIIRFilter(const aFeedforward: TDoubleDynArray; const aFeedback: TDoubleDynArray): IJSIIRFilterNode; overload;
+    function createWaveShaper: IJSWaveShaperNode; overload;
+    function createPanner: IJSPannerNode; overload;
+    function createStereoPanner: IJSStereoPannerNode; overload;
+    function createConvolver: IJSConvolverNode; overload;
+    function createChannelSplitter(aNumberOfOutputs: Cardinal): IJSChannelSplitterNode; overload;
+    function createChannelSplitter: IJSChannelSplitterNode; overload;
+    function createChannelMerger(aNumberOfInputs: Cardinal): IJSChannelMergerNode; overload;
+    function createChannelMerger: IJSChannelMergerNode; overload;
+    function createDynamicsCompressor: IJSDynamicsCompressorNode; overload;
+    function createOscillator: IJSOscillatorNode; overload;
+    function createPeriodicWave(const aReal: TSingleDynArray; const aImag: TSingleDynArray; const aConstraints: IJSPeriodicWaveConstraints): IJSPeriodicWave; overload;
+    function createPeriodicWave(const aReal: TSingleDynArray; const aImag: TSingleDynArray): IJSPeriodicWave; overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSBaseAudioContext;
+    property destination: IJSAudioDestinationNode read _Getdestination;
+    property sampleRate: Single read _GetsampleRate;
+    property currentTime: Double read _GetcurrentTime;
+    property listener: IJSAudioListener read _Getlistener;
+    property state: TAudioContextState read _Getstate;
+    property audioWorklet: IJSAudioWorklet read _GetaudioWorklet;
+    property onstatechange: TEventHandler read _Getonstatechange write _Setonstatechange;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSException
+    --------------------------------------------------------------------}
+  
+  IJSException = interface(IJSExceptionMembers)
+    ['{BB797CE8-9A0C-3C58-81DB-BB8658F9BA52}']
+    function _Getname: UnicodeString; 
+    function _Getmessage: UnicodeString; 
+    property name: UnicodeString read _Getname;
+    property message: UnicodeString read _Getmessage;
+  end;
+  
+  TJSException = class(TJSExceptionMembers,IJSException)
+  Private
+  Protected
+    function _Getname: UnicodeString; 
+    function _Getmessage: UnicodeString; 
+  Public
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSException;
+    property name: UnicodeString read _Getname;
+    property message: UnicodeString read _Getmessage;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSDOMException
+    --------------------------------------------------------------------}
+  
+  IJSDOMException = interface(IJSExceptionMembers)
+    ['{2C6C3F00-89B2-35A4-9A7A-4447C02EEAAA}']
+    function _Getname: UnicodeString; 
+    function _Getmessage: UnicodeString; 
+    function _Getcode: Word; 
+    property name: UnicodeString read _Getname;
+    property message: UnicodeString read _Getmessage;
+    property code: Word read _Getcode;
+  end;
+  
+  TJSDOMException = class(TJSExceptionMembers,IJSDOMException)
+  Private
+  Protected
+    function _Getname: UnicodeString; 
+    function _Getmessage: UnicodeString; 
+    function _Getcode: Word; 
+  Public
+    Const
+      INDEX_SIZE_ERR = 1;
+      DOMSTRING_SIZE_ERR = 2;
+      HIERARCHY_REQUEST_ERR = 3;
+      WRONG_DOCUMENT_ERR = 4;
+      INVALID_CHARACTER_ERR = 5;
+      NO_DATA_ALLOWED_ERR = 6;
+      NO_MODIFICATION_ALLOWED_ERR = 7;
+      NOT_FOUND_ERR = 8;
+      NOT_SUPPORTED_ERR = 9;
+      INUSE_ATTRIBUTE_ERR = 10;
+      INVALID_STATE_ERR = 11;
+      SYNTAX_ERR = 12;
+      INVALID_MODIFICATION_ERR = 13;
+      NAMESPACE_ERR = 14;
+      INVALID_ACCESS_ERR = 15;
+      VALIDATION_ERR = 16;
+      TYPE_MISMATCH_ERR = 17;
+      SECURITY_ERR = 18;
+      NETWORK_ERR = 19;
+      ABORT_ERR = 20;
+      URL_MISMATCH_ERR = 21;
+      QUOTA_EXCEEDED_ERR = 22;
+      TIMEOUT_ERR = 23;
+      INVALID_NODE_TYPE_ERR = 24;
+      DATA_CLONE_ERR = 25;
+  Public
+    constructor Create(const aMessage: UnicodeString; const aName: UnicodeString); overload;
+    constructor Create; overload;
+    constructor Create(const aMessage: UnicodeString); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSDOMException;
+    property name: UnicodeString read _Getname;
+    property message: UnicodeString read _Getmessage;
+    property code: Word read _Getcode;
+  end;
+  
+  { --------------------------------------------------------------------
     TJSDOMRect
     --------------------------------------------------------------------}
   
@@ -7128,6 +9480,57 @@ Type
   end;
   
   { --------------------------------------------------------------------
+    TJSProgressEvent
+    --------------------------------------------------------------------}
+  
+  IJSProgressEvent = interface(IJSEvent)
+    ['{71729264-7417-30AC-AD12-30702AE7468F}']
+    function _GetlengthComputable: Boolean; 
+    function _Getloaded: Double; 
+    function _Gettotal: Double; 
+    property lengthComputable: Boolean read _GetlengthComputable;
+    property loaded: Double read _Getloaded;
+    property total: Double read _Gettotal;
+  end;
+  
+  TJSProgressEvent = class(TJSEvent,IJSProgressEvent)
+  Private
+  Protected
+    function _GetlengthComputable: Boolean; 
+    function _Getloaded: Double; 
+    function _Gettotal: Double; 
+  Public
+    constructor Create(const aType_: UnicodeString; const aEventInitDict: IJSProgressEventInit); overload;
+    constructor Create(const aType_: UnicodeString); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSProgressEvent;
+    property lengthComputable: Boolean read _GetlengthComputable;
+    property loaded: Double read _Getloaded;
+    property total: Double read _Gettotal;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSReadableStreamDefaultReader
+    --------------------------------------------------------------------}
+  
+  IJSReadableStreamDefaultReader = interface(IJSReadableStreamGenericReader)
+    ['{5B471CFF-5A17-3F24-8BB3-2961CBA0B058}']
+    function read: IJSPromise; // Promise<ReadableStreamReadResult>
+    procedure releaseLock;
+  end;
+  
+  TJSReadableStreamDefaultReader = class(TJSReadableStreamGenericReader,IJSReadableStreamDefaultReader)
+  Private
+  Protected
+  Public
+    constructor Create(aStream: IJSReadableStream); overload;
+    function read: IJSPromise; overload; // Promise<ReadableStreamReadResult>
+    procedure releaseLock; overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSReadableStreamDefaultReader;
+  end;
+  
+  { --------------------------------------------------------------------
     TJSUIEvent
     --------------------------------------------------------------------}
   
@@ -7322,7 +9725,8 @@ Type
     --------------------------------------------------------------------}
   
   IJSWindow = interface(IJSEventTarget)
-    ['{81CA455C-B190-310E-AC3B-E34368D0C443}']
+    ['{428CBA68-EE10-39D5-942E-93160AE97CA8}']
+    function _Getlocation: IJSLocation; 
     function _GetdevicePixelRatio: Double; 
     function open(const aUrl: UnicodeString; const aTarget: UnicodeString; const aFeatures: UnicodeString): IJSWindowProxy;
     function open: IJSWindowProxy;
@@ -7330,12 +9734,14 @@ Type
     function open(const aUrl: UnicodeString; const aTarget: UnicodeString): IJSWindowProxy;
     function requestAnimationFrame(const aCallback: TFrameRequestCallback): LongInt;
     procedure cancelAnimationFrame(aHandle: LongInt);
+    property location: IJSLocation read _Getlocation;
     property devicePixelRatio: Double read _GetdevicePixelRatio;
   end;
   
   TJSWindow = class(TJSEventTarget,IJSWindow)
   Private
   Protected
+    function _Getlocation: IJSLocation; 
     function _GetdevicePixelRatio: Double; 
   Public
     function open(const aUrl: UnicodeString; const aTarget: UnicodeString; const aFeatures: UnicodeString): IJSWindowProxy; overload;
@@ -7346,7 +9752,332 @@ Type
     procedure cancelAnimationFrame(aHandle: LongInt); overload;
     class function JSClassName: UnicodeString; override;
     class function Cast(const Intf: IJSObject): IJSWindow;
+    property location: IJSLocation read _Getlocation;
     property devicePixelRatio: Double read _GetdevicePixelRatio;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSXMLHttpRequestEventTarget
+    --------------------------------------------------------------------}
+  
+  IJSXMLHttpRequestEventTarget = interface(IJSEventTarget)
+    ['{F5B4D465-1525-3757-B96D-D4E14D83A032}']
+    function _Getonloadstart: TEventHandler; 
+    function _Getonprogress: TEventHandler; 
+    function _Getonabort: TEventHandler; 
+    function _Getonerror: TEventHandler; 
+    function _Getonload: TEventHandler; 
+    function _Getontimeout: TEventHandler; 
+    function _Getonloadend: TEventHandler; 
+    procedure _Setonloadstart(const aValue: TEventHandler);
+    procedure _Setonprogress(const aValue: TEventHandler);
+    procedure _Setonabort(const aValue: TEventHandler);
+    procedure _Setonerror(const aValue: TEventHandler);
+    procedure _Setonload(const aValue: TEventHandler);
+    procedure _Setontimeout(const aValue: TEventHandler);
+    procedure _Setonloadend(const aValue: TEventHandler);
+    property onloadstart: TEventHandler read _Getonloadstart write _Setonloadstart;
+    property onprogress: TEventHandler read _Getonprogress write _Setonprogress;
+    property onabort: TEventHandler read _Getonabort write _Setonabort;
+    property onerror: TEventHandler read _Getonerror write _Setonerror;
+    property onload: TEventHandler read _Getonload write _Setonload;
+    property ontimeout: TEventHandler read _Getontimeout write _Setontimeout;
+    property onloadend: TEventHandler read _Getonloadend write _Setonloadend;
+  end;
+  
+  TJSXMLHttpRequestEventTarget = class(TJSEventTarget,IJSXMLHttpRequestEventTarget)
+  Private
+  Protected
+    function _Getonloadstart: TEventHandler; 
+    function _Getonprogress: TEventHandler; 
+    function _Getonabort: TEventHandler; 
+    function _Getonerror: TEventHandler; 
+    function _Getonload: TEventHandler; 
+    function _Getontimeout: TEventHandler; 
+    function _Getonloadend: TEventHandler; 
+    procedure _Setonloadstart(const aValue: TEventHandler);
+    procedure _Setonprogress(const aValue: TEventHandler);
+    procedure _Setonabort(const aValue: TEventHandler);
+    procedure _Setonerror(const aValue: TEventHandler);
+    procedure _Setonload(const aValue: TEventHandler);
+    procedure _Setontimeout(const aValue: TEventHandler);
+    procedure _Setonloadend(const aValue: TEventHandler);
+  Public
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSXMLHttpRequestEventTarget;
+    property onloadstart: TEventHandler read _Getonloadstart write _Setonloadstart;
+    property onprogress: TEventHandler read _Getonprogress write _Setonprogress;
+    property onabort: TEventHandler read _Getonabort write _Setonabort;
+    property onerror: TEventHandler read _Getonerror write _Setonerror;
+    property onload: TEventHandler read _Getonload write _Setonload;
+    property ontimeout: TEventHandler read _Getontimeout write _Setontimeout;
+    property onloadend: TEventHandler read _Getonloadend write _Setonloadend;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSAnalyserNode
+    --------------------------------------------------------------------}
+  
+  IJSAnalyserNode = interface(IJSAudioNode)
+    ['{68ADF427-3AEF-3971-80E3-15ACB527DA77}']
+    function _GetfftSize: Cardinal; 
+    function _GetfrequencyBinCount: Cardinal; 
+    function _GetminDecibels: Double; 
+    function _GetmaxDecibels: Double; 
+    function _GetsmoothingTimeConstant: Double; 
+    procedure _SetfftSize(const aValue: Cardinal);
+    procedure _SetminDecibels(const aValue: Double);
+    procedure _SetmaxDecibels(const aValue: Double);
+    procedure _SetsmoothingTimeConstant(const aValue: Double);
+    procedure getFloatFrequencyData(aArray_: IJSFloat32Array);
+    procedure getByteFrequencyData(aArray_: IJSUint8Array);
+    procedure getFloatTimeDomainData(aArray_: IJSFloat32Array);
+    procedure getByteTimeDomainData(aArray_: IJSUint8Array);
+    property fftSize: Cardinal read _GetfftSize write _SetfftSize;
+    property frequencyBinCount: Cardinal read _GetfrequencyBinCount;
+    property minDecibels: Double read _GetminDecibels write _SetminDecibels;
+    property maxDecibels: Double read _GetmaxDecibels write _SetmaxDecibels;
+    property smoothingTimeConstant: Double read _GetsmoothingTimeConstant write _SetsmoothingTimeConstant;
+  end;
+  
+  TJSAnalyserNode = class(TJSAudioNode,IJSAnalyserNode)
+  Private
+  Protected
+    function _GetfftSize: Cardinal; 
+    function _GetfrequencyBinCount: Cardinal; 
+    function _GetminDecibels: Double; 
+    function _GetmaxDecibels: Double; 
+    function _GetsmoothingTimeConstant: Double; 
+    procedure _SetfftSize(const aValue: Cardinal);
+    procedure _SetminDecibels(const aValue: Double);
+    procedure _SetmaxDecibels(const aValue: Double);
+    procedure _SetsmoothingTimeConstant(const aValue: Double);
+  Public
+    constructor Create(aContext: IJSBaseAudioContext; const aOptions: IJSAnalyserOptions); overload;
+    constructor Create(aContext: IJSBaseAudioContext); overload;
+    procedure getFloatFrequencyData(aArray_: IJSFloat32Array); overload;
+    procedure getByteFrequencyData(aArray_: IJSUint8Array); overload;
+    procedure getFloatTimeDomainData(aArray_: IJSFloat32Array); overload;
+    procedure getByteTimeDomainData(aArray_: IJSUint8Array); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSAnalyserNode;
+    property fftSize: Cardinal read _GetfftSize write _SetfftSize;
+    property frequencyBinCount: Cardinal read _GetfrequencyBinCount;
+    property minDecibels: Double read _GetminDecibels write _SetminDecibels;
+    property maxDecibels: Double read _GetmaxDecibels write _SetmaxDecibels;
+    property smoothingTimeConstant: Double read _GetsmoothingTimeConstant write _SetsmoothingTimeConstant;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSAudioContext
+    --------------------------------------------------------------------}
+  
+  IJSAudioContext = interface(IJSBaseAudioContext)
+    ['{9EB9C7F1-DB3A-32E3-9DD4-A7CDE269CA5C}']
+    function _GetbaseLatency: Double; 
+    function _GetoutputLatency: Double; 
+    function getOutputTimestamp: IJSAudioTimestamp;
+    function suspend: IJSPromise; // Promise<undefined>
+    function close: IJSPromise; // Promise<undefined>
+    property baseLatency: Double read _GetbaseLatency;
+    property outputLatency: Double read _GetoutputLatency;
+  end;
+  
+  TJSAudioContext = class(TJSBaseAudioContext,IJSAudioContext)
+  Private
+  Protected
+    function _GetbaseLatency: Double; 
+    function _GetoutputLatency: Double; 
+  Public
+    constructor Create(const aContextOptions: IJSAudioContextOptions); overload;
+    constructor Create; overload;
+    function getOutputTimestamp: IJSAudioTimestamp; overload;
+    function suspend: IJSPromise; overload; // Promise<undefined>
+    function close: IJSPromise; overload; // Promise<undefined>
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSAudioContext;
+    property baseLatency: Double read _GetbaseLatency;
+    property outputLatency: Double read _GetoutputLatency;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSAudioDestinationNode
+    --------------------------------------------------------------------}
+  
+  IJSAudioDestinationNode = interface(IJSAudioNode)
+    ['{FDD4B4E7-124B-3B7B-B2D0-C390668A1D85}']
+    function _GetmaxChannelCount: Cardinal; 
+    property maxChannelCount: Cardinal read _GetmaxChannelCount;
+  end;
+  
+  TJSAudioDestinationNode = class(TJSAudioNode,IJSAudioDestinationNode)
+  Private
+  Protected
+    function _GetmaxChannelCount: Cardinal; 
+  Public
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSAudioDestinationNode;
+    property maxChannelCount: Cardinal read _GetmaxChannelCount;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSAudioScheduledSourceNode
+    --------------------------------------------------------------------}
+  
+  IJSAudioScheduledSourceNode = interface(IJSAudioNode)
+    ['{E60FF121-E28C-3E20-B262-C282CAA0A019}']
+    function _Getonended: TEventHandler; 
+    procedure _Setonended(const aValue: TEventHandler);
+    procedure start(aWhen: Double);
+    procedure start;
+    procedure stop(aWhen: Double);
+    procedure stop;
+    property onended: TEventHandler read _Getonended write _Setonended;
+  end;
+  
+  TJSAudioScheduledSourceNode = class(TJSAudioNode,IJSAudioScheduledSourceNode)
+  Private
+  Protected
+    function _Getonended: TEventHandler; 
+    procedure _Setonended(const aValue: TEventHandler);
+  Public
+    procedure start(aWhen: Double); overload;
+    procedure start; overload;
+    procedure stop(aWhen: Double); overload;
+    procedure stop; overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSAudioScheduledSourceNode;
+    property onended: TEventHandler read _Getonended write _Setonended;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSBiquadFilterNode
+    --------------------------------------------------------------------}
+  
+  IJSBiquadFilterNode = interface(IJSAudioNode)
+    ['{B6DF09A9-3950-365E-86C2-4443015CDC7E}']
+    function _Gettype_: TBiquadFilterType; 
+    function _Getfrequency: IJSAudioParam; 
+    function _Getdetune: IJSAudioParam; 
+    function _GetQ: IJSAudioParam; 
+    function _Getgain: IJSAudioParam; 
+    procedure _Settype_(const aValue: TBiquadFilterType);
+    procedure getFrequencyResponse(aFrequencyHz: IJSFloat32Array; aMagResponse: IJSFloat32Array; aPhaseResponse: IJSFloat32Array);
+    property type_: TBiquadFilterType read _Gettype_ write _Settype_;
+    property frequency: IJSAudioParam read _Getfrequency;
+    property detune: IJSAudioParam read _Getdetune;
+    property Q: IJSAudioParam read _GetQ;
+    property gain: IJSAudioParam read _Getgain;
+  end;
+  
+  TJSBiquadFilterNode = class(TJSAudioNode,IJSBiquadFilterNode)
+  Private
+  Protected
+    function _Gettype_: TBiquadFilterType; 
+    function _Getfrequency: IJSAudioParam; 
+    function _Getdetune: IJSAudioParam; 
+    function _GetQ: IJSAudioParam; 
+    function _Getgain: IJSAudioParam; 
+    procedure _Settype_(const aValue: TBiquadFilterType);
+  Public
+    constructor Create(aContext: IJSBaseAudioContext; const aOptions: IJSBiquadFilterOptions); overload;
+    constructor Create(aContext: IJSBaseAudioContext); overload;
+    procedure getFrequencyResponse(aFrequencyHz: IJSFloat32Array; aMagResponse: IJSFloat32Array; aPhaseResponse: IJSFloat32Array); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSBiquadFilterNode;
+    property type_: TBiquadFilterType read _Gettype_ write _Settype_;
+    property frequency: IJSAudioParam read _Getfrequency;
+    property detune: IJSAudioParam read _Getdetune;
+    property Q: IJSAudioParam read _GetQ;
+    property gain: IJSAudioParam read _Getgain;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSChannelMergerNode
+    --------------------------------------------------------------------}
+  
+  IJSChannelMergerNode = interface(IJSAudioNode)
+    ['{2B7DF456-801C-31EA-919E-EF008AA4F2BB}']
+  end;
+  
+  TJSChannelMergerNode = class(TJSAudioNode,IJSChannelMergerNode)
+  Private
+  Protected
+  Public
+    constructor Create(aContext: IJSBaseAudioContext; const aOptions: IJSChannelMergerOptions); overload;
+    constructor Create(aContext: IJSBaseAudioContext); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSChannelMergerNode;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSChannelSplitterNode
+    --------------------------------------------------------------------}
+  
+  IJSChannelSplitterNode = interface(IJSAudioNode)
+    ['{091CB9B2-5FD8-328A-872E-67393F61A8BC}']
+  end;
+  
+  TJSChannelSplitterNode = class(TJSAudioNode,IJSChannelSplitterNode)
+  Private
+  Protected
+  Public
+    constructor Create(aContext: IJSBaseAudioContext; const aOptions: IJSChannelSplitterOptions); overload;
+    constructor Create(aContext: IJSBaseAudioContext); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSChannelSplitterNode;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSConvolverNode
+    --------------------------------------------------------------------}
+  
+  IJSConvolverNode = interface(IJSAudioNode)
+    ['{D5FA9C0F-5CE9-3888-A88E-221591E1B64D}']
+    function _Getbuffer: IJSAudioBuffer; 
+    function _Getnormalize: Boolean; 
+    procedure _Setbuffer(const aValue: IJSAudioBuffer);
+    procedure _Setnormalize(const aValue: Boolean);
+    property buffer: IJSAudioBuffer read _Getbuffer write _Setbuffer;
+    property normalize: Boolean read _Getnormalize write _Setnormalize;
+  end;
+  
+  TJSConvolverNode = class(TJSAudioNode,IJSConvolverNode)
+  Private
+  Protected
+    function _Getbuffer: IJSAudioBuffer; 
+    function _Getnormalize: Boolean; 
+    procedure _Setbuffer(const aValue: IJSAudioBuffer);
+    procedure _Setnormalize(const aValue: Boolean);
+  Public
+    constructor Create(aContext: IJSBaseAudioContext; const aOptions: IJSConvolverOptions); overload;
+    constructor Create(aContext: IJSBaseAudioContext); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSConvolverNode;
+    property buffer: IJSAudioBuffer read _Getbuffer write _Setbuffer;
+    property normalize: Boolean read _Getnormalize write _Setnormalize;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSDelayNode
+    --------------------------------------------------------------------}
+  
+  IJSDelayNode = interface(IJSAudioNode)
+    ['{4B7B7B52-4ED5-35A1-A06B-14FAA2B30FF8}']
+    function _GetdelayTime: IJSAudioParam; 
+    property delayTime: IJSAudioParam read _GetdelayTime;
+  end;
+  
+  TJSDelayNode = class(TJSAudioNode,IJSDelayNode)
+  Private
+  Protected
+    function _GetdelayTime: IJSAudioParam; 
+  Public
+    constructor Create(aContext: IJSBaseAudioContext; const aOptions: IJSDelayOptions); overload;
+    constructor Create(aContext: IJSBaseAudioContext); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSDelayNode;
+    property delayTime: IJSAudioParam read _GetdelayTime;
   end;
   
   { --------------------------------------------------------------------
@@ -7354,17 +10085,77 @@ Type
     --------------------------------------------------------------------}
   
   IJSDocument = interface(IJSNode)
-    ['{854193E3-7817-343F-B20F-DC8B7D9CC85A}']
+    ['{940BEBF5-06FF-3254-ADE4-A37A8FEC247E}']
+    function _Getonpointerlockchange: TEventHandler; 
+    function _Getonpointerlockerror: TEventHandler; 
+    function _GetpointerLockElement: IJSElement; 
+    procedure _Setonpointerlockchange(const aValue: TEventHandler);
+    procedure _Setonpointerlockerror(const aValue: TEventHandler);
+    procedure exitPointerLock;
     function getElementById(const aElementId: UnicodeString): IJSElement;
+    property onpointerlockchange: TEventHandler read _Getonpointerlockchange write _Setonpointerlockchange;
+    property onpointerlockerror: TEventHandler read _Getonpointerlockerror write _Setonpointerlockerror;
+    property pointerLockElement: IJSElement read _GetpointerLockElement;
   end;
   
   TJSDocument = class(TJSNode,IJSDocument)
   Private
   Protected
+    function _Getonpointerlockchange: TEventHandler; 
+    function _Getonpointerlockerror: TEventHandler; 
+    function _GetpointerLockElement: IJSElement; 
+    procedure _Setonpointerlockchange(const aValue: TEventHandler);
+    procedure _Setonpointerlockerror(const aValue: TEventHandler);
   Public
+    procedure exitPointerLock; overload;
     function getElementById(const aElementId: UnicodeString): IJSElement; overload;
     class function JSClassName: UnicodeString; override;
     class function Cast(const Intf: IJSObject): IJSDocument;
+    property onpointerlockchange: TEventHandler read _Getonpointerlockchange write _Setonpointerlockchange;
+    property onpointerlockerror: TEventHandler read _Getonpointerlockerror write _Setonpointerlockerror;
+    property pointerLockElement: IJSElement read _GetpointerLockElement;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSDynamicsCompressorNode
+    --------------------------------------------------------------------}
+  
+  IJSDynamicsCompressorNode = interface(IJSAudioNode)
+    ['{B0D6CF81-10B0-3763-892E-69ECB008DF04}']
+    function _Getthreshold: IJSAudioParam; 
+    function _Getknee: IJSAudioParam; 
+    function _Getratio: IJSAudioParam; 
+    function _Getreduction: Single; 
+    function _Getattack: IJSAudioParam; 
+    function _Getrelease: IJSAudioParam; 
+    property threshold: IJSAudioParam read _Getthreshold;
+    property knee: IJSAudioParam read _Getknee;
+    property ratio: IJSAudioParam read _Getratio;
+    property reduction: Single read _Getreduction;
+    property attack: IJSAudioParam read _Getattack;
+    property release: IJSAudioParam read _Getrelease;
+  end;
+  
+  TJSDynamicsCompressorNode = class(TJSAudioNode,IJSDynamicsCompressorNode)
+  Private
+  Protected
+    function _Getthreshold: IJSAudioParam; 
+    function _Getknee: IJSAudioParam; 
+    function _Getratio: IJSAudioParam; 
+    function _Getreduction: Single; 
+    function _Getattack: IJSAudioParam; 
+    function _Getrelease: IJSAudioParam; 
+  Public
+    constructor Create(aContext: IJSBaseAudioContext; const aOptions: IJSDynamicsCompressorOptions); overload;
+    constructor Create(aContext: IJSBaseAudioContext); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSDynamicsCompressorNode;
+    property threshold: IJSAudioParam read _Getthreshold;
+    property knee: IJSAudioParam read _Getknee;
+    property ratio: IJSAudioParam read _Getratio;
+    property reduction: Single read _Getreduction;
+    property attack: IJSAudioParam read _Getattack;
+    property release: IJSAudioParam read _Getrelease;
   end;
   
   { --------------------------------------------------------------------
@@ -7372,7 +10163,7 @@ Type
     --------------------------------------------------------------------}
   
   IJSElement = interface(IJSNode)
-    ['{ABE51DF6-570F-31A0-917E-3E93C20CD2B8}']
+    ['{BB713959-4552-352D-86AD-23B0F35BF839}']
     function _GetnamespaceURI: UnicodeString; 
     function _Getprefix: UnicodeString; 
     function _GetlocalName: UnicodeString; 
@@ -7392,6 +10183,8 @@ Type
     procedure _SetouterHTML(const aValue: UnicodeString);
     function getBoundingClientRect: IJSDOMRect;
     procedure insertAdjacentHTML(const aPosition: UnicodeString; const aText: UnicodeString);
+    function requestPointerLock(const aOptions: IJSPointerLockOptions): IJSPromise; // Promise<undefined>
+    function requestPointerLock: IJSPromise; // Promise<undefined>
     property namespaceURI: UnicodeString read _GetnamespaceURI;
     property prefix: UnicodeString read _Getprefix;
     property localName: UnicodeString read _GetlocalName;
@@ -7430,6 +10223,8 @@ Type
   Public
     function getBoundingClientRect: IJSDOMRect; overload;
     procedure insertAdjacentHTML(const aPosition: UnicodeString; const aText: UnicodeString); overload;
+    function requestPointerLock(const aOptions: IJSPointerLockOptions): IJSPromise; overload; // Promise<undefined>
+    function requestPointerLock: IJSPromise; overload; // Promise<undefined>
     class function JSClassName: UnicodeString; override;
     class function Cast(const Intf: IJSObject): IJSElement;
     property namespaceURI: UnicodeString read _GetnamespaceURI;
@@ -7445,6 +10240,47 @@ Type
     property currentCSSZoom: Double read _GetcurrentCSSZoom;
     property innerHTML: UnicodeString read _GetinnerHTML write _SetinnerHTML;
     property outerHTML: UnicodeString read _GetouterHTML write _SetouterHTML;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSGainNode
+    --------------------------------------------------------------------}
+  
+  IJSGainNode = interface(IJSAudioNode)
+    ['{0CAF8B06-B950-3A07-9116-5C139295F2A4}']
+    function _Getgain: IJSAudioParam; 
+    property gain: IJSAudioParam read _Getgain;
+  end;
+  
+  TJSGainNode = class(TJSAudioNode,IJSGainNode)
+  Private
+  Protected
+    function _Getgain: IJSAudioParam; 
+  Public
+    constructor Create(aContext: IJSBaseAudioContext; const aOptions: IJSGainOptions); overload;
+    constructor Create(aContext: IJSBaseAudioContext); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSGainNode;
+    property gain: IJSAudioParam read _Getgain;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSIIRFilterNode
+    --------------------------------------------------------------------}
+  
+  IJSIIRFilterNode = interface(IJSAudioNode)
+    ['{4A1BA371-A164-3CD2-BF69-30477D4F92C9}']
+    procedure getFrequencyResponse(aFrequencyHz: IJSFloat32Array; aMagResponse: IJSFloat32Array; aPhaseResponse: IJSFloat32Array);
+  end;
+  
+  TJSIIRFilterNode = class(TJSAudioNode,IJSIIRFilterNode)
+  Private
+  Protected
+  Public
+    constructor Create(aContext: IJSBaseAudioContext; const aOptions: IJSIIRFilterOptions); overload;
+    procedure getFrequencyResponse(aFrequencyHz: IJSFloat32Array; aMagResponse: IJSFloat32Array; aPhaseResponse: IJSFloat32Array); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSIIRFilterNode;
   end;
   
   { --------------------------------------------------------------------
@@ -7715,6 +10551,390 @@ Type
   end;
   
   { --------------------------------------------------------------------
+    TJSPannerNode
+    --------------------------------------------------------------------}
+  
+  IJSPannerNode = interface(IJSAudioNode)
+    ['{BA4DE1ED-1AFC-31CD-B96F-8660AFBAF9CE}']
+    function _GetpanningModel: TPanningModelType; 
+    function _GetpositionX: IJSAudioParam; 
+    function _GetpositionY: IJSAudioParam; 
+    function _GetpositionZ: IJSAudioParam; 
+    function _GetorientationX: IJSAudioParam; 
+    function _GetorientationY: IJSAudioParam; 
+    function _GetorientationZ: IJSAudioParam; 
+    function _GetdistanceModel: TDistanceModelType; 
+    function _GetrefDistance: Double; 
+    function _GetmaxDistance: Double; 
+    function _GetrolloffFactor: Double; 
+    function _GetconeInnerAngle: Double; 
+    function _GetconeOuterAngle: Double; 
+    function _GetconeOuterGain: Double; 
+    procedure _SetpanningModel(const aValue: TPanningModelType);
+    procedure _SetdistanceModel(const aValue: TDistanceModelType);
+    procedure _SetrefDistance(const aValue: Double);
+    procedure _SetmaxDistance(const aValue: Double);
+    procedure _SetrolloffFactor(const aValue: Double);
+    procedure _SetconeInnerAngle(const aValue: Double);
+    procedure _SetconeOuterAngle(const aValue: Double);
+    procedure _SetconeOuterGain(const aValue: Double);
+    procedure setPosition(aX: Double; aY: Double; aZ: Double);
+    procedure setOrientation(aX: Double; aY: Double; aZ: Double);
+    property panningModel: TPanningModelType read _GetpanningModel write _SetpanningModel;
+    property positionX: IJSAudioParam read _GetpositionX;
+    property positionY: IJSAudioParam read _GetpositionY;
+    property positionZ: IJSAudioParam read _GetpositionZ;
+    property orientationX: IJSAudioParam read _GetorientationX;
+    property orientationY: IJSAudioParam read _GetorientationY;
+    property orientationZ: IJSAudioParam read _GetorientationZ;
+    property distanceModel: TDistanceModelType read _GetdistanceModel write _SetdistanceModel;
+    property refDistance: Double read _GetrefDistance write _SetrefDistance;
+    property maxDistance: Double read _GetmaxDistance write _SetmaxDistance;
+    property rolloffFactor: Double read _GetrolloffFactor write _SetrolloffFactor;
+    property coneInnerAngle: Double read _GetconeInnerAngle write _SetconeInnerAngle;
+    property coneOuterAngle: Double read _GetconeOuterAngle write _SetconeOuterAngle;
+    property coneOuterGain: Double read _GetconeOuterGain write _SetconeOuterGain;
+  end;
+  
+  TJSPannerNode = class(TJSAudioNode,IJSPannerNode)
+  Private
+  Protected
+    function _GetpanningModel: TPanningModelType; 
+    function _GetpositionX: IJSAudioParam; 
+    function _GetpositionY: IJSAudioParam; 
+    function _GetpositionZ: IJSAudioParam; 
+    function _GetorientationX: IJSAudioParam; 
+    function _GetorientationY: IJSAudioParam; 
+    function _GetorientationZ: IJSAudioParam; 
+    function _GetdistanceModel: TDistanceModelType; 
+    function _GetrefDistance: Double; 
+    function _GetmaxDistance: Double; 
+    function _GetrolloffFactor: Double; 
+    function _GetconeInnerAngle: Double; 
+    function _GetconeOuterAngle: Double; 
+    function _GetconeOuterGain: Double; 
+    procedure _SetpanningModel(const aValue: TPanningModelType);
+    procedure _SetdistanceModel(const aValue: TDistanceModelType);
+    procedure _SetrefDistance(const aValue: Double);
+    procedure _SetmaxDistance(const aValue: Double);
+    procedure _SetrolloffFactor(const aValue: Double);
+    procedure _SetconeInnerAngle(const aValue: Double);
+    procedure _SetconeOuterAngle(const aValue: Double);
+    procedure _SetconeOuterGain(const aValue: Double);
+  Public
+    constructor Create(aContext: IJSBaseAudioContext; const aOptions: IJSPannerOptions); overload;
+    constructor Create(aContext: IJSBaseAudioContext); overload;
+    procedure setPosition(aX: Double; aY: Double; aZ: Double); overload;
+    procedure setOrientation(aX: Double; aY: Double; aZ: Double); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSPannerNode;
+    property panningModel: TPanningModelType read _GetpanningModel write _SetpanningModel;
+    property positionX: IJSAudioParam read _GetpositionX;
+    property positionY: IJSAudioParam read _GetpositionY;
+    property positionZ: IJSAudioParam read _GetpositionZ;
+    property orientationX: IJSAudioParam read _GetorientationX;
+    property orientationY: IJSAudioParam read _GetorientationY;
+    property orientationZ: IJSAudioParam read _GetorientationZ;
+    property distanceModel: TDistanceModelType read _GetdistanceModel write _SetdistanceModel;
+    property refDistance: Double read _GetrefDistance write _SetrefDistance;
+    property maxDistance: Double read _GetmaxDistance write _SetmaxDistance;
+    property rolloffFactor: Double read _GetrolloffFactor write _SetrolloffFactor;
+    property coneInnerAngle: Double read _GetconeInnerAngle write _SetconeInnerAngle;
+    property coneOuterAngle: Double read _GetconeOuterAngle write _SetconeOuterAngle;
+    property coneOuterGain: Double read _GetconeOuterGain write _SetconeOuterGain;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSScriptProcessorNode
+    --------------------------------------------------------------------}
+  
+  IJSScriptProcessorNode = interface(IJSAudioNode)
+    ['{2964F484-BF90-3E4C-997B-85FADD644CD0}']
+    function _Getonaudioprocess: TEventHandler; 
+    function _GetbufferSize: LongInt; 
+    procedure _Setonaudioprocess(const aValue: TEventHandler);
+    property onaudioprocess: TEventHandler read _Getonaudioprocess write _Setonaudioprocess;
+    property bufferSize: LongInt read _GetbufferSize;
+  end;
+  
+  TJSScriptProcessorNode = class(TJSAudioNode,IJSScriptProcessorNode)
+  Private
+  Protected
+    function _Getonaudioprocess: TEventHandler; 
+    function _GetbufferSize: LongInt; 
+    procedure _Setonaudioprocess(const aValue: TEventHandler);
+  Public
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSScriptProcessorNode;
+    property onaudioprocess: TEventHandler read _Getonaudioprocess write _Setonaudioprocess;
+    property bufferSize: LongInt read _GetbufferSize;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSStereoPannerNode
+    --------------------------------------------------------------------}
+  
+  IJSStereoPannerNode = interface(IJSAudioNode)
+    ['{AAA997FB-20CE-34D5-A400-69863B87857C}']
+    function _Getpan: IJSAudioParam; 
+    property pan: IJSAudioParam read _Getpan;
+  end;
+  
+  TJSStereoPannerNode = class(TJSAudioNode,IJSStereoPannerNode)
+  Private
+  Protected
+    function _Getpan: IJSAudioParam; 
+  Public
+    constructor Create(aContext: IJSBaseAudioContext; const aOptions: IJSStereoPannerOptions); overload;
+    constructor Create(aContext: IJSBaseAudioContext); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSStereoPannerNode;
+    property pan: IJSAudioParam read _Getpan;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSWaveShaperNode
+    --------------------------------------------------------------------}
+  
+  IJSWaveShaperNode = interface(IJSAudioNode)
+    ['{DA3371C3-4124-3A58-B6E1-FA1894778863}']
+    function _Getcurve: IJSFloat32Array; 
+    function _Getoversample: TOverSampleType; 
+    procedure _Setcurve(const aValue: IJSFloat32Array);
+    procedure _Setoversample(const aValue: TOverSampleType);
+    property curve: IJSFloat32Array read _Getcurve write _Setcurve;
+    property oversample: TOverSampleType read _Getoversample write _Setoversample;
+  end;
+  
+  TJSWaveShaperNode = class(TJSAudioNode,IJSWaveShaperNode)
+  Private
+  Protected
+    function _Getcurve: IJSFloat32Array; 
+    function _Getoversample: TOverSampleType; 
+    procedure _Setcurve(const aValue: IJSFloat32Array);
+    procedure _Setoversample(const aValue: TOverSampleType);
+  Public
+    constructor Create(aContext: IJSBaseAudioContext; const aOptions: IJSWaveShaperOptions); overload;
+    constructor Create(aContext: IJSBaseAudioContext); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSWaveShaperNode;
+    property curve: IJSFloat32Array read _Getcurve write _Setcurve;
+    property oversample: TOverSampleType read _Getoversample write _Setoversample;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSXMLHttpRequestUpload
+    --------------------------------------------------------------------}
+  
+  IJSXMLHttpRequestUpload = interface(IJSXMLHttpRequestEventTarget)
+    ['{9D686DEC-4392-374E-AB8E-4CA0C1B54601}']
+  end;
+  
+  TJSXMLHttpRequestUpload = class(TJSXMLHttpRequestEventTarget,IJSXMLHttpRequestUpload)
+  Private
+  Protected
+  Public
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSXMLHttpRequestUpload;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSXMLHttpRequest
+    --------------------------------------------------------------------}
+  
+  // Union of Document, XMLHttpRequestBodyInit
+  TXMLHttpRequest_send_body_Type = Variant;
+  IJSXMLHttpRequest = interface(IJSXMLHttpRequestEventTarget)
+    ['{A2BCBF78-E03D-30AB-96F0-0950EBA7941B}']
+    function _Getonreadystatechange: TEventHandler; 
+    function _GetreadyState: Word; 
+    function _Gettimeout: Cardinal; 
+    function _GetwithCredentials: Boolean; 
+    function _Getupload: IJSXMLHttpRequestUpload; 
+    function _GetresponseURL: UTF8String; 
+    function _Getstatus: Word; 
+    function _GetstatusText: UnicodeString; 
+    function _GetresponseType: TXMLHttpRequestResponseType; 
+    function _Getresponse: Variant; 
+    function _GetresponseText: UnicodeString; 
+    function _GetresponseXML: IJSDocument; 
+    function _GetmozAnon: Boolean; 
+    function _GetmozSystem: Boolean; 
+    procedure _Setonreadystatechange(const aValue: TEventHandler);
+    procedure _Settimeout(const aValue: Cardinal);
+    procedure _SetwithCredentials(const aValue: Boolean);
+    procedure _SetresponseType(const aValue: TXMLHttpRequestResponseType);
+    procedure open(const aMethod: UnicodeString; const aUrl: UnicodeString);
+    procedure open(const aMethod: UnicodeString; const aUrl: UnicodeString; aAsync: Boolean; const aUser: UnicodeString; const aPassword: UnicodeString);
+    procedure open(const aMethod: UnicodeString; const aUrl: UnicodeString; aAsync: Boolean);
+    procedure open(const aMethod: UnicodeString; const aUrl: UnicodeString; aAsync: Boolean; const aUser: UnicodeString);
+    procedure setRequestHeader(const aHeader: UnicodeString; const aValue: UnicodeString);
+    procedure send(aBody: IJSDocument);
+    procedure send;
+    procedure send(const aBody: TXMLHttpRequestBodyInit);
+    procedure abort;
+    function getResponseHeader(const aHeader: UnicodeString): UnicodeString;
+    function getAllResponseHeaders: UnicodeString;
+    procedure overrideMimeType(const aMime: UnicodeString);
+    property onreadystatechange: TEventHandler read _Getonreadystatechange write _Setonreadystatechange;
+    property readyState: Word read _GetreadyState;
+    property timeout: Cardinal read _Gettimeout write _Settimeout;
+    property withCredentials: Boolean read _GetwithCredentials write _SetwithCredentials;
+    property upload: IJSXMLHttpRequestUpload read _Getupload;
+    property responseURL: UTF8String read _GetresponseURL;
+    property status: Word read _Getstatus;
+    property statusText: UnicodeString read _GetstatusText;
+    property responseType: TXMLHttpRequestResponseType read _GetresponseType write _SetresponseType;
+    property response: Variant read _Getresponse;
+    property responseText: UnicodeString read _GetresponseText;
+    property responseXML: IJSDocument read _GetresponseXML;
+    property mozAnon: Boolean read _GetmozAnon;
+    property mozSystem: Boolean read _GetmozSystem;
+  end;
+  
+  TJSXMLHttpRequest = class(TJSXMLHttpRequestEventTarget,IJSXMLHttpRequest)
+  Private
+  Protected
+    function _Getonreadystatechange: TEventHandler; 
+    function _GetreadyState: Word; 
+    function _Gettimeout: Cardinal; 
+    function _GetwithCredentials: Boolean; 
+    function _Getupload: IJSXMLHttpRequestUpload; 
+    function _GetresponseURL: UTF8String; 
+    function _Getstatus: Word; 
+    function _GetstatusText: UnicodeString; 
+    function _GetresponseType: TXMLHttpRequestResponseType; 
+    function _Getresponse: Variant; 
+    function _GetresponseText: UnicodeString; 
+    function _GetresponseXML: IJSDocument; 
+    function _GetmozAnon: Boolean; 
+    function _GetmozSystem: Boolean; 
+    procedure _Setonreadystatechange(const aValue: TEventHandler);
+    procedure _Settimeout(const aValue: Cardinal);
+    procedure _SetwithCredentials(const aValue: Boolean);
+    procedure _SetresponseType(const aValue: TXMLHttpRequestResponseType);
+  Public
+    Const
+      UNSENT = 0;
+      OPENED = 1;
+      HEADERS_RECEIVED = 2;
+      LOADING = 3;
+      DONE = 4;
+  Public
+    constructor Create(const aParams: IJSMozXMLHttpRequestParameters); overload;
+    constructor Create; overload;
+    constructor Create(const aIgnored: UnicodeString); overload;
+    procedure open(const aMethod: UnicodeString; const aUrl: UnicodeString); overload;
+    procedure open(const aMethod: UnicodeString; const aUrl: UnicodeString; aAsync: Boolean; const aUser: UnicodeString; const aPassword: UnicodeString); overload;
+    procedure open(const aMethod: UnicodeString; const aUrl: UnicodeString; aAsync: Boolean); overload;
+    procedure open(const aMethod: UnicodeString; const aUrl: UnicodeString; aAsync: Boolean; const aUser: UnicodeString); overload;
+    procedure setRequestHeader(const aHeader: UnicodeString; const aValue: UnicodeString); overload;
+    procedure send(aBody: IJSDocument); overload;
+    procedure send; overload;
+    procedure send(const aBody: TXMLHttpRequestBodyInit); overload;
+    procedure abort; overload;
+    function getResponseHeader(const aHeader: UnicodeString): UnicodeString; overload;
+    function getAllResponseHeaders: UnicodeString; overload;
+    procedure overrideMimeType(const aMime: UnicodeString); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSXMLHttpRequest;
+    property onreadystatechange: TEventHandler read _Getonreadystatechange write _Setonreadystatechange;
+    property readyState: Word read _GetreadyState;
+    property timeout: Cardinal read _Gettimeout write _Settimeout;
+    property withCredentials: Boolean read _GetwithCredentials write _SetwithCredentials;
+    property upload: IJSXMLHttpRequestUpload read _Getupload;
+    property responseURL: UTF8String read _GetresponseURL;
+    property status: Word read _Getstatus;
+    property statusText: UnicodeString read _GetstatusText;
+    property responseType: TXMLHttpRequestResponseType read _GetresponseType write _SetresponseType;
+    property response: Variant read _Getresponse;
+    property responseText: UnicodeString read _GetresponseText;
+    property responseXML: IJSDocument read _GetresponseXML;
+    property mozAnon: Boolean read _GetmozAnon;
+    property mozSystem: Boolean read _GetmozSystem;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSAudioBufferSourceNode
+    --------------------------------------------------------------------}
+  
+  IJSAudioBufferSourceNode = interface(IJSAudioScheduledSourceNode)
+    ['{AAB3C3D5-3006-358A-B82F-3DFD0EC30D2D}']
+    function _Getbuffer: IJSAudioBuffer; 
+    function _GetplaybackRate: IJSAudioParam; 
+    function _Getdetune: IJSAudioParam; 
+    function _Getloop: Boolean; 
+    function _GetloopStart: Double; 
+    function _GetloopEnd: Double; 
+    procedure _Setbuffer(const aValue: IJSAudioBuffer);
+    procedure _Setloop(const aValue: Boolean);
+    procedure _SetloopStart(const aValue: Double);
+    procedure _SetloopEnd(const aValue: Double);
+    procedure start(aWhen: Double; aGrainOffset: Double; aGrainDuration: Double);
+    procedure start;
+    procedure start(aWhen: Double);
+    procedure start(aWhen: Double; aGrainOffset: Double);
+    property buffer: IJSAudioBuffer read _Getbuffer write _Setbuffer;
+    property playbackRate: IJSAudioParam read _GetplaybackRate;
+    property detune: IJSAudioParam read _Getdetune;
+    property loop: Boolean read _Getloop write _Setloop;
+    property loopStart: Double read _GetloopStart write _SetloopStart;
+    property loopEnd: Double read _GetloopEnd write _SetloopEnd;
+  end;
+  
+  TJSAudioBufferSourceNode = class(TJSAudioScheduledSourceNode,IJSAudioBufferSourceNode)
+  Private
+  Protected
+    function _Getbuffer: IJSAudioBuffer; 
+    function _GetplaybackRate: IJSAudioParam; 
+    function _Getdetune: IJSAudioParam; 
+    function _Getloop: Boolean; 
+    function _GetloopStart: Double; 
+    function _GetloopEnd: Double; 
+    procedure _Setbuffer(const aValue: IJSAudioBuffer);
+    procedure _Setloop(const aValue: Boolean);
+    procedure _SetloopStart(const aValue: Double);
+    procedure _SetloopEnd(const aValue: Double);
+  Public
+    constructor Create(aContext: IJSBaseAudioContext; const aOptions: IJSAudioBufferSourceOptions); overload;
+    constructor Create(aContext: IJSBaseAudioContext); overload;
+    procedure start(aWhen: Double; aGrainOffset: Double; aGrainDuration: Double); overload;
+    procedure start; overload;
+    procedure start(aWhen: Double); overload;
+    procedure start(aWhen: Double; aGrainOffset: Double); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSAudioBufferSourceNode;
+    property buffer: IJSAudioBuffer read _Getbuffer write _Setbuffer;
+    property playbackRate: IJSAudioParam read _GetplaybackRate;
+    property detune: IJSAudioParam read _Getdetune;
+    property loop: Boolean read _Getloop write _Setloop;
+    property loopStart: Double read _GetloopStart write _SetloopStart;
+    property loopEnd: Double read _GetloopEnd write _SetloopEnd;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSConstantSourceNode
+    --------------------------------------------------------------------}
+  
+  IJSConstantSourceNode = interface(IJSAudioScheduledSourceNode)
+    ['{4DA4462E-B0AC-30A6-AF37-9FEC4541B1BA}']
+    function _Getoffset: IJSAudioParam; 
+    property offset: IJSAudioParam read _Getoffset;
+  end;
+  
+  TJSConstantSourceNode = class(TJSAudioScheduledSourceNode,IJSConstantSourceNode)
+  Private
+  Protected
+    function _Getoffset: IJSAudioParam; 
+  Public
+    constructor Create(aContext: IJSBaseAudioContext; const aOptions: IJSConstantSourceOptions); overload;
+    constructor Create(aContext: IJSBaseAudioContext); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSConstantSourceNode;
+    property offset: IJSAudioParam read _Getoffset;
+  end;
+  
+  { --------------------------------------------------------------------
     TJSHTMLElement
     --------------------------------------------------------------------}
   
@@ -7871,6 +11091,40 @@ Type
     property offsetWidth: LongInt read _GetoffsetWidth;
     property offsetHeight: LongInt read _GetoffsetHeight;
     property style: IJSCSSStyleDeclaration read _Getstyle;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSOscillatorNode
+    --------------------------------------------------------------------}
+  
+  IJSOscillatorNode = interface(IJSAudioScheduledSourceNode)
+    ['{0C958E71-6D54-3F80-8340-CF612B6DA474}']
+    function _Gettype_: TOscillatorType; 
+    function _Getfrequency: IJSAudioParam; 
+    function _Getdetune: IJSAudioParam; 
+    procedure _Settype_(const aValue: TOscillatorType);
+    procedure setPeriodicWave(aPeriodicWave: IJSPeriodicWave);
+    property type_: TOscillatorType read _Gettype_ write _Settype_;
+    property frequency: IJSAudioParam read _Getfrequency;
+    property detune: IJSAudioParam read _Getdetune;
+  end;
+  
+  TJSOscillatorNode = class(TJSAudioScheduledSourceNode,IJSOscillatorNode)
+  Private
+  Protected
+    function _Gettype_: TOscillatorType; 
+    function _Getfrequency: IJSAudioParam; 
+    function _Getdetune: IJSAudioParam; 
+    procedure _Settype_(const aValue: TOscillatorType);
+  Public
+    constructor Create(aContext: IJSBaseAudioContext; const aOptions: IJSOscillatorOptions); overload;
+    constructor Create(aContext: IJSBaseAudioContext); overload;
+    procedure setPeriodicWave(aPeriodicWave: IJSPeriodicWave); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSOscillatorNode;
+    property type_: TOscillatorType read _Gettype_ write _Settype_;
+    property frequency: IJSAudioParam read _Getfrequency;
+    property detune: IJSAudioParam read _Getdetune;
   end;
   
   { --------------------------------------------------------------------
@@ -8291,6 +11545,24 @@ begin
   Result:=H.AllocUndefined;
 end;
 
+function JOBCallDecodeSuccessCallback(const aMethod: TMethod; var H: TJOBCallbackHelper): PByte;
+var
+  decodedData: IJSAudioBuffer;
+begin
+  decodedData:=H.GetObject(TJSAudioBuffer) as IJSAudioBuffer;
+  TDecodeSuccessCallback(aMethod)(decodedData);
+  Result:=H.AllocUndefined;
+end;
+
+function JOBCallDecodeErrorCallback(const aMethod: TMethod; var H: TJOBCallbackHelper): PByte;
+var
+  error: IJSDOMException;
+begin
+  error:=H.GetObject(TJSDOMException) as IJSDOMException;
+  TDecodeErrorCallback(aMethod)(error);
+  Result:=H.AllocUndefined;
+end;
+
 function JOBCallEventHandlerNonNull(const aMethod: TMethod; var H: TJOBCallbackHelper): PByte;
 var
   event: IJSEvent;
@@ -8331,6 +11603,219 @@ begin
   Result:=H.AllocBool(TEventListener(aMethod)(event));
 end;
 
+function JOBCallQueuingStrategySize(const aMethod: TMethod; var H: TJOBCallbackHelper): PByte;
+var
+  chunk: Variant;
+begin
+  chunk:=H.GetVariant;
+  Result:=H.AllocDouble(TQueuingStrategySize(aMethod)(chunk));
+end;
+
+function TJSAbortSignal._Getaborted: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('aborted');
+end;
+
+function TJSAbortSignal._Getreason: Variant;
+begin
+  Result:=ReadJSPropertyVariant('reason');
+end;
+
+function TJSAbortSignal._Getonabort: TEventHandler;
+begin
+  Result:=(TEventHandlerNonNull(ReadJSPropertyMethod('onabort')));
+end;
+
+procedure TJSAbortSignal._Setonabort(const aValue : TEventHandler);
+var
+  m : TJOB_Method;
+begin
+  m:=TJOB_Method.create(TMethod(aValue),@JobCallEventHandlerNonNull);
+  try
+    InvokeJSNoResult('onabort',[m],jiSet);
+  finally
+    m.free
+  end;
+end;
+
+function TJSAbortSignal.abort(const aReason: Variant): IJSAbortSignal;
+begin
+  Result:=InvokeJSObjectResult('abort',[aReason],TJSAbortSignal) as IJSAbortSignal;
+end;
+
+function TJSAbortSignal.abort: IJSAbortSignal;
+begin
+  Result:=InvokeJSObjectResult('abort',[],TJSAbortSignal) as IJSAbortSignal;
+end;
+
+function TJSAbortSignal.timeout(aMilliseconds: QWord): IJSAbortSignal;
+begin
+  Result:=InvokeJSObjectResult('timeout',[aMilliseconds],TJSAbortSignal) as IJSAbortSignal;
+end;
+
+function TJSAbortSignal.any(const aSignals: TJSAbortSignalDynArray): IJSAbortSignal;
+begin
+  Result:=InvokeJSObjectResult('any',[aSignals],TJSAbortSignal) as IJSAbortSignal;
+end;
+
+procedure TJSAbortSignal.throwIfAborted;
+begin
+  InvokeJSNoResult('throwIfAborted',[]);
+end;
+
+class function TJSAbortSignal.JSClassName: UnicodeString;
+begin
+  Result:='AbortSignal';
+end;
+
+class function TJSAbortSignal.Cast(const Intf: IJSObject): IJSAbortSignal;
+begin
+  Result:=TJSAbortSignal.JOBCast(Intf);
+end;
+
+function TJSAnalyserOptions._GetfftSize: Cardinal;
+begin
+  Result:=ReadJSPropertyInt64('fftSize');
+end;
+
+function TJSAnalyserOptions._GetmaxDecibels: Double;
+begin
+  Result:=ReadJSPropertyDouble('maxDecibels');
+end;
+
+function TJSAnalyserOptions._GetminDecibels: Double;
+begin
+  Result:=ReadJSPropertyDouble('minDecibels');
+end;
+
+function TJSAnalyserOptions._GetsmoothingTimeConstant: Double;
+begin
+  Result:=ReadJSPropertyDouble('smoothingTimeConstant');
+end;
+
+procedure TJSAnalyserOptions._SetfftSize(const aValue : Cardinal);
+begin
+  WriteJSPropertyDouble('fftSize',aValue);
+end;
+
+procedure TJSAnalyserOptions._SetmaxDecibels(const aValue : Double);
+begin
+  WriteJSPropertyDouble('maxDecibels',aValue);
+end;
+
+procedure TJSAnalyserOptions._SetminDecibels(const aValue : Double);
+begin
+  WriteJSPropertyDouble('minDecibels',aValue);
+end;
+
+procedure TJSAnalyserOptions._SetsmoothingTimeConstant(const aValue : Double);
+begin
+  WriteJSPropertyDouble('smoothingTimeConstant',aValue);
+end;
+
+constructor TJSAnalyserOptions.create(const aDict : TJSAnalyserOptionsRec); overload;
+begin
+  Self.fftSize:=aDict.fftSize;
+  Self.maxDecibels:=aDict.maxDecibels;
+  Self.minDecibels:=aDict.minDecibels;
+  Self.smoothingTimeConstant:=aDict.smoothingTimeConstant;
+end;
+
+class function TJSAnalyserOptions.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSAnalyserOptions.Cast(const Intf: IJSObject): IJSAnalyserOptions;
+begin
+  Result:=TJSAnalyserOptions.JOBCast(Intf);
+end;
+
+function TJSAnalyserNode._GetfftSize: Cardinal;
+begin
+  Result:=ReadJSPropertyInt64('fftSize');
+end;
+
+function TJSAnalyserNode._GetfrequencyBinCount: Cardinal;
+begin
+  Result:=ReadJSPropertyInt64('frequencyBinCount');
+end;
+
+function TJSAnalyserNode._GetminDecibels: Double;
+begin
+  Result:=ReadJSPropertyDouble('minDecibels');
+end;
+
+function TJSAnalyserNode._GetmaxDecibels: Double;
+begin
+  Result:=ReadJSPropertyDouble('maxDecibels');
+end;
+
+function TJSAnalyserNode._GetsmoothingTimeConstant: Double;
+begin
+  Result:=ReadJSPropertyDouble('smoothingTimeConstant');
+end;
+
+procedure TJSAnalyserNode._SetfftSize(const aValue : Cardinal);
+begin
+  WriteJSPropertyDouble('fftSize',aValue);
+end;
+
+procedure TJSAnalyserNode._SetminDecibels(const aValue : Double);
+begin
+  WriteJSPropertyDouble('minDecibels',aValue);
+end;
+
+procedure TJSAnalyserNode._SetmaxDecibels(const aValue : Double);
+begin
+  WriteJSPropertyDouble('maxDecibels',aValue);
+end;
+
+procedure TJSAnalyserNode._SetsmoothingTimeConstant(const aValue : Double);
+begin
+  WriteJSPropertyDouble('smoothingTimeConstant',aValue);
+end;
+
+constructor TJSAnalyserNode.Create(aContext: IJSBaseAudioContext; const aOptions: IJSAnalyserOptions);
+begin
+  JOBCreate([aContext,aOptions]);
+end;
+
+constructor TJSAnalyserNode.Create(aContext: IJSBaseAudioContext);
+begin
+  JOBCreate([aContext]);
+end;
+
+procedure TJSAnalyserNode.getFloatFrequencyData(aArray_: IJSFloat32Array);
+begin
+  InvokeJSNoResult('getFloatFrequencyData',[aArray_]);
+end;
+
+procedure TJSAnalyserNode.getByteFrequencyData(aArray_: IJSUint8Array);
+begin
+  InvokeJSNoResult('getByteFrequencyData',[aArray_]);
+end;
+
+procedure TJSAnalyserNode.getFloatTimeDomainData(aArray_: IJSFloat32Array);
+begin
+  InvokeJSNoResult('getFloatTimeDomainData',[aArray_]);
+end;
+
+procedure TJSAnalyserNode.getByteTimeDomainData(aArray_: IJSUint8Array);
+begin
+  InvokeJSNoResult('getByteTimeDomainData',[aArray_]);
+end;
+
+class function TJSAnalyserNode.JSClassName: UnicodeString;
+begin
+  Result:='AnalyserNode';
+end;
+
+class function TJSAnalyserNode.Cast(const Intf: IJSObject): IJSAnalyserNode;
+begin
+  Result:=TJSAnalyserNode.JOBCast(Intf);
+end;
+
 function TJSAnimationFrameProvider.requestAnimationFrame(const aCallback: TFrameRequestCallback): LongInt;
 var
   m: TJOB_Method;
@@ -8356,6 +11841,1388 @@ end;
 class function TJSAnimationFrameProvider.Cast(const Intf: IJSObject): IJSAnimationFrameProvider;
 begin
   Result:=TJSAnimationFrameProvider.JOBCast(Intf);
+end;
+
+function TJSAudioBufferSourceOptions._Getbuffer: IJSAudioBuffer;
+begin
+  Result:=ReadJSPropertyObject('buffer',TJSAudioBuffer) as IJSAudioBuffer;
+end;
+
+function TJSAudioBufferSourceOptions._Getdetune: Single;
+begin
+  Result:=ReadJSPropertyDouble('detune');
+end;
+
+function TJSAudioBufferSourceOptions._Getloop: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('loop');
+end;
+
+function TJSAudioBufferSourceOptions._GetloopEnd: Double;
+begin
+  Result:=ReadJSPropertyDouble('loopEnd');
+end;
+
+function TJSAudioBufferSourceOptions._GetloopStart: Double;
+begin
+  Result:=ReadJSPropertyDouble('loopStart');
+end;
+
+function TJSAudioBufferSourceOptions._GetplaybackRate: Single;
+begin
+  Result:=ReadJSPropertyDouble('playbackRate');
+end;
+
+procedure TJSAudioBufferSourceOptions._Setbuffer(const aValue : IJSAudioBuffer);
+begin
+  WriteJSPropertyObject('buffer',aValue);
+end;
+
+procedure TJSAudioBufferSourceOptions._Setdetune(const aValue : Single);
+begin
+  WriteJSPropertyDouble('detune',aValue);
+end;
+
+procedure TJSAudioBufferSourceOptions._Setloop(const aValue : Boolean);
+begin
+  WriteJSPropertyBoolean('loop',aValue);
+end;
+
+procedure TJSAudioBufferSourceOptions._SetloopEnd(const aValue : Double);
+begin
+  WriteJSPropertyDouble('loopEnd',aValue);
+end;
+
+procedure TJSAudioBufferSourceOptions._SetloopStart(const aValue : Double);
+begin
+  WriteJSPropertyDouble('loopStart',aValue);
+end;
+
+procedure TJSAudioBufferSourceOptions._SetplaybackRate(const aValue : Single);
+begin
+  WriteJSPropertyDouble('playbackRate',aValue);
+end;
+
+constructor TJSAudioBufferSourceOptions.create(const aDict : TJSAudioBufferSourceOptionsRec); overload;
+begin
+  Self.buffer:=aDict.buffer;
+  Self.detune:=aDict.detune;
+  Self.loop:=aDict.loop;
+  Self.loopEnd:=aDict.loopEnd;
+  Self.loopStart:=aDict.loopStart;
+  Self.playbackRate:=aDict.playbackRate;
+end;
+
+class function TJSAudioBufferSourceOptions.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSAudioBufferSourceOptions.Cast(const Intf: IJSObject): IJSAudioBufferSourceOptions;
+begin
+  Result:=TJSAudioBufferSourceOptions.JOBCast(Intf);
+end;
+
+function TJSAudioBufferSourceNode._Getbuffer: IJSAudioBuffer;
+begin
+  Result:=ReadJSPropertyObject('buffer',TJSAudioBuffer) as IJSAudioBuffer;
+end;
+
+function TJSAudioBufferSourceNode._GetplaybackRate: IJSAudioParam;
+begin
+  Result:=ReadJSPropertyObject('playbackRate',TJSAudioParam) as IJSAudioParam;
+end;
+
+function TJSAudioBufferSourceNode._Getdetune: IJSAudioParam;
+begin
+  Result:=ReadJSPropertyObject('detune',TJSAudioParam) as IJSAudioParam;
+end;
+
+function TJSAudioBufferSourceNode._Getloop: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('loop');
+end;
+
+function TJSAudioBufferSourceNode._GetloopStart: Double;
+begin
+  Result:=ReadJSPropertyDouble('loopStart');
+end;
+
+function TJSAudioBufferSourceNode._GetloopEnd: Double;
+begin
+  Result:=ReadJSPropertyDouble('loopEnd');
+end;
+
+procedure TJSAudioBufferSourceNode._Setbuffer(const aValue : IJSAudioBuffer);
+begin
+  WriteJSPropertyObject('buffer',aValue);
+end;
+
+procedure TJSAudioBufferSourceNode._Setloop(const aValue : Boolean);
+begin
+  WriteJSPropertyBoolean('loop',aValue);
+end;
+
+procedure TJSAudioBufferSourceNode._SetloopStart(const aValue : Double);
+begin
+  WriteJSPropertyDouble('loopStart',aValue);
+end;
+
+procedure TJSAudioBufferSourceNode._SetloopEnd(const aValue : Double);
+begin
+  WriteJSPropertyDouble('loopEnd',aValue);
+end;
+
+constructor TJSAudioBufferSourceNode.Create(aContext: IJSBaseAudioContext; const aOptions: IJSAudioBufferSourceOptions);
+begin
+  JOBCreate([aContext,aOptions]);
+end;
+
+constructor TJSAudioBufferSourceNode.Create(aContext: IJSBaseAudioContext);
+begin
+  JOBCreate([aContext]);
+end;
+
+procedure TJSAudioBufferSourceNode.start(aWhen: Double; aGrainOffset: Double; aGrainDuration: Double);
+begin
+  InvokeJSNoResult('start',[aWhen,aGrainOffset,aGrainDuration]);
+end;
+
+procedure TJSAudioBufferSourceNode.start;
+begin
+  InvokeJSNoResult('start',[]);
+end;
+
+procedure TJSAudioBufferSourceNode.start(aWhen: Double);
+begin
+  InvokeJSNoResult('start',[aWhen]);
+end;
+
+procedure TJSAudioBufferSourceNode.start(aWhen: Double; aGrainOffset: Double);
+begin
+  InvokeJSNoResult('start',[aWhen,aGrainOffset]);
+end;
+
+class function TJSAudioBufferSourceNode.JSClassName: UnicodeString;
+begin
+  Result:='AudioBufferSourceNode';
+end;
+
+class function TJSAudioBufferSourceNode.Cast(const Intf: IJSObject): IJSAudioBufferSourceNode;
+begin
+  Result:=TJSAudioBufferSourceNode.JOBCast(Intf);
+end;
+
+function TJSAudioBufferOptions._GetnumberOfChannels: Cardinal;
+begin
+  Result:=ReadJSPropertyInt64('numberOfChannels');
+end;
+
+function TJSAudioBufferOptions._Getlength_: Cardinal;
+begin
+  Result:=ReadJSPropertyInt64('length');
+end;
+
+function TJSAudioBufferOptions._GetsampleRate: Single;
+begin
+  Result:=ReadJSPropertyDouble('sampleRate');
+end;
+
+procedure TJSAudioBufferOptions._SetnumberOfChannels(const aValue : Cardinal);
+begin
+  WriteJSPropertyDouble('numberOfChannels',aValue);
+end;
+
+procedure TJSAudioBufferOptions._Setlength_(const aValue : Cardinal);
+begin
+  WriteJSPropertyDouble('length',aValue);
+end;
+
+procedure TJSAudioBufferOptions._SetsampleRate(const aValue : Single);
+begin
+  WriteJSPropertyDouble('sampleRate',aValue);
+end;
+
+constructor TJSAudioBufferOptions.create(const aDict : TJSAudioBufferOptionsRec); overload;
+begin
+  Self.numberOfChannels:=aDict.numberOfChannels;
+  Self.length_:=aDict.length_;
+  Self.sampleRate:=aDict.sampleRate;
+end;
+
+class function TJSAudioBufferOptions.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSAudioBufferOptions.Cast(const Intf: IJSObject): IJSAudioBufferOptions;
+begin
+  Result:=TJSAudioBufferOptions.JOBCast(Intf);
+end;
+
+function TJSAudioBuffer._GetsampleRate: Single;
+begin
+  Result:=ReadJSPropertyDouble('sampleRate');
+end;
+
+function TJSAudioBuffer._Getlength_: Cardinal;
+begin
+  Result:=ReadJSPropertyInt64('length');
+end;
+
+function TJSAudioBuffer._Getduration: Double;
+begin
+  Result:=ReadJSPropertyDouble('duration');
+end;
+
+function TJSAudioBuffer._GetnumberOfChannels: Cardinal;
+begin
+  Result:=ReadJSPropertyInt64('numberOfChannels');
+end;
+
+constructor TJSAudioBuffer.Create(const aOptions: IJSAudioBufferOptions);
+begin
+  JOBCreate([aOptions]);
+end;
+
+function TJSAudioBuffer.getChannelData(aChannel: Cardinal): IJSFloat32Array;
+begin
+  Result:=InvokeJSObjectResult('getChannelData',[aChannel],TJSFloat32Array) as IJSFloat32Array;
+end;
+
+procedure TJSAudioBuffer.copyFromChannel(aDestination: IJSFloat32Array; aChannelNumber: Cardinal; aStartInChannel: Cardinal);
+begin
+  InvokeJSNoResult('copyFromChannel',[aDestination,aChannelNumber,aStartInChannel]);
+end;
+
+procedure TJSAudioBuffer.copyFromChannel(aDestination: IJSFloat32Array; aChannelNumber: Cardinal);
+begin
+  InvokeJSNoResult('copyFromChannel',[aDestination,aChannelNumber]);
+end;
+
+procedure TJSAudioBuffer.copyToChannel(aSource: IJSFloat32Array; aChannelNumber: Cardinal; aStartInChannel: Cardinal);
+begin
+  InvokeJSNoResult('copyToChannel',[aSource,aChannelNumber,aStartInChannel]);
+end;
+
+procedure TJSAudioBuffer.copyToChannel(aSource: IJSFloat32Array; aChannelNumber: Cardinal);
+begin
+  InvokeJSNoResult('copyToChannel',[aSource,aChannelNumber]);
+end;
+
+class function TJSAudioBuffer.JSClassName: UnicodeString;
+begin
+  Result:='AudioBuffer';
+end;
+
+class function TJSAudioBuffer.Cast(const Intf: IJSObject): IJSAudioBuffer;
+begin
+  Result:=TJSAudioBuffer.JOBCast(Intf);
+end;
+
+function TJSAudioContextOptions._GetsampleRate: Single;
+begin
+  Result:=ReadJSPropertyDouble('sampleRate');
+end;
+
+procedure TJSAudioContextOptions._SetsampleRate(const aValue : Single);
+begin
+  WriteJSPropertyDouble('sampleRate',aValue);
+end;
+
+constructor TJSAudioContextOptions.create(const aDict : TJSAudioContextOptionsRec); overload;
+begin
+  Self.sampleRate:=aDict.sampleRate;
+end;
+
+class function TJSAudioContextOptions.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSAudioContextOptions.Cast(const Intf: IJSObject): IJSAudioContextOptions;
+begin
+  Result:=TJSAudioContextOptions.JOBCast(Intf);
+end;
+
+function TJSAudioTimestamp._GetcontextTime: Double;
+begin
+  Result:=ReadJSPropertyDouble('contextTime');
+end;
+
+function TJSAudioTimestamp._GetperformanceTime: TDOMHighResTimeStamp;
+begin
+  Result:=ReadJSPropertyDouble('performanceTime');
+end;
+
+procedure TJSAudioTimestamp._SetcontextTime(const aValue : Double);
+begin
+  WriteJSPropertyDouble('contextTime',aValue);
+end;
+
+procedure TJSAudioTimestamp._SetperformanceTime(const aValue : TDOMHighResTimeStamp);
+begin
+  WriteJSPropertyDouble('performanceTime',aValue);
+end;
+
+constructor TJSAudioTimestamp.create(const aDict : TJSAudioTimestampRec); overload;
+begin
+  Self.contextTime:=aDict.contextTime;
+  Self.performanceTime:=aDict.performanceTime;
+end;
+
+class function TJSAudioTimestamp.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSAudioTimestamp.Cast(const Intf: IJSObject): IJSAudioTimestamp;
+begin
+  Result:=TJSAudioTimestamp.JOBCast(Intf);
+end;
+
+function TJSAudioContext._GetbaseLatency: Double;
+begin
+  Result:=ReadJSPropertyDouble('baseLatency');
+end;
+
+function TJSAudioContext._GetoutputLatency: Double;
+begin
+  Result:=ReadJSPropertyDouble('outputLatency');
+end;
+
+constructor TJSAudioContext.Create(const aContextOptions: IJSAudioContextOptions);
+begin
+  JOBCreate([aContextOptions]);
+end;
+
+constructor TJSAudioContext.Create;
+begin
+  JOBCreate([]);
+end;
+
+function TJSAudioContext.getOutputTimestamp: IJSAudioTimestamp;
+begin
+  Result:=InvokeJSObjectResult('getOutputTimestamp',[],TJSAudioTimestamp) as IJSAudioTimestamp;
+end;
+
+function TJSAudioContext.suspend: IJSPromise; // Promise<undefined>
+begin
+  Result:=InvokeJSObjectResult('suspend',[],TJSPromise) as IJSPromise;
+end;
+
+function TJSAudioContext.close: IJSPromise; // Promise<undefined>
+begin
+  Result:=InvokeJSObjectResult('close',[],TJSPromise) as IJSPromise;
+end;
+
+class function TJSAudioContext.JSClassName: UnicodeString;
+begin
+  Result:='AudioContext';
+end;
+
+class function TJSAudioContext.Cast(const Intf: IJSObject): IJSAudioContext;
+begin
+  Result:=TJSAudioContext.JOBCast(Intf);
+end;
+
+function TJSAudioDestinationNode._GetmaxChannelCount: Cardinal;
+begin
+  Result:=ReadJSPropertyInt64('maxChannelCount');
+end;
+
+class function TJSAudioDestinationNode.JSClassName: UnicodeString;
+begin
+  Result:='AudioDestinationNode';
+end;
+
+class function TJSAudioDestinationNode.Cast(const Intf: IJSObject): IJSAudioDestinationNode;
+begin
+  Result:=TJSAudioDestinationNode.JOBCast(Intf);
+end;
+
+procedure TJSAudioListener.setPosition(aX: Double; aY: Double; aZ: Double);
+begin
+  InvokeJSNoResult('setPosition',[aX,aY,aZ]);
+end;
+
+procedure TJSAudioListener.setOrientation(aX: Double; aY: Double; aZ: Double; aXUp: Double; aYUp: Double; aZUp: Double);
+begin
+  InvokeJSNoResult('setOrientation',[aX,aY,aZ,aXUp,aYUp,aZUp]);
+end;
+
+class function TJSAudioListener.JSClassName: UnicodeString;
+begin
+  Result:='AudioListener';
+end;
+
+class function TJSAudioListener.Cast(const Intf: IJSObject): IJSAudioListener;
+begin
+  Result:=TJSAudioListener.JOBCast(Intf);
+end;
+
+function TJSAudioNodeOptions._GetchannelCount: Cardinal;
+begin
+  Result:=ReadJSPropertyInt64('channelCount');
+end;
+
+function TJSAudioNodeOptions._GetchannelCountMode: TChannelCountMode;
+begin
+  Result:=ReadJSPropertyUnicodeString('channelCountMode');
+end;
+
+function TJSAudioNodeOptions._GetchannelInterpretation: TChannelInterpretation;
+begin
+  Result:=ReadJSPropertyUnicodeString('channelInterpretation');
+end;
+
+procedure TJSAudioNodeOptions._SetchannelCount(const aValue : Cardinal);
+begin
+  WriteJSPropertyDouble('channelCount',aValue);
+end;
+
+procedure TJSAudioNodeOptions._SetchannelCountMode(const aValue : TChannelCountMode);
+begin
+  WriteJSPropertyUnicodeString('channelCountMode',aValue);
+end;
+
+procedure TJSAudioNodeOptions._SetchannelInterpretation(const aValue : TChannelInterpretation);
+begin
+  WriteJSPropertyUnicodeString('channelInterpretation',aValue);
+end;
+
+constructor TJSAudioNodeOptions.create(const aDict : TJSAudioNodeOptionsRec); overload;
+begin
+  Self.channelCount:=aDict.channelCount;
+  Self.channelCountMode:=aDict.channelCountMode;
+  Self.channelInterpretation:=aDict.channelInterpretation;
+end;
+
+class function TJSAudioNodeOptions.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSAudioNodeOptions.Cast(const Intf: IJSObject): IJSAudioNodeOptions;
+begin
+  Result:=TJSAudioNodeOptions.JOBCast(Intf);
+end;
+
+function TJSAudioNode._Getcontext: IJSBaseAudioContext;
+begin
+  Result:=ReadJSPropertyObject('context',TJSBaseAudioContext) as IJSBaseAudioContext;
+end;
+
+function TJSAudioNode._GetnumberOfInputs: Cardinal;
+begin
+  Result:=ReadJSPropertyInt64('numberOfInputs');
+end;
+
+function TJSAudioNode._GetnumberOfOutputs: Cardinal;
+begin
+  Result:=ReadJSPropertyInt64('numberOfOutputs');
+end;
+
+function TJSAudioNode._GetchannelCount: Cardinal;
+begin
+  Result:=ReadJSPropertyInt64('channelCount');
+end;
+
+function TJSAudioNode._GetchannelCountMode: TChannelCountMode;
+begin
+  Result:=ReadJSPropertyUnicodeString('channelCountMode');
+end;
+
+function TJSAudioNode._GetchannelInterpretation: TChannelInterpretation;
+begin
+  Result:=ReadJSPropertyUnicodeString('channelInterpretation');
+end;
+
+procedure TJSAudioNode._SetchannelCount(const aValue : Cardinal);
+begin
+  WriteJSPropertyDouble('channelCount',aValue);
+end;
+
+procedure TJSAudioNode._SetchannelCountMode(const aValue : TChannelCountMode);
+begin
+  WriteJSPropertyUnicodeString('channelCountMode',aValue);
+end;
+
+procedure TJSAudioNode._SetchannelInterpretation(const aValue : TChannelInterpretation);
+begin
+  WriteJSPropertyUnicodeString('channelInterpretation',aValue);
+end;
+
+function TJSAudioNode.connect(aDestination: IJSAudioNode; aOutput: Cardinal; aInput: Cardinal): IJSAudioNode;
+begin
+  Result:=InvokeJSObjectResult('connect',[aDestination,aOutput,aInput],TJSAudioNode) as IJSAudioNode;
+end;
+
+function TJSAudioNode.connect(aDestination: IJSAudioNode): IJSAudioNode;
+begin
+  Result:=InvokeJSObjectResult('connect',[aDestination],TJSAudioNode) as IJSAudioNode;
+end;
+
+function TJSAudioNode.connect(aDestination: IJSAudioNode; aOutput: Cardinal): IJSAudioNode;
+begin
+  Result:=InvokeJSObjectResult('connect',[aDestination,aOutput],TJSAudioNode) as IJSAudioNode;
+end;
+
+procedure TJSAudioNode.connect(aDestination: IJSAudioParam; aOutput: Cardinal);
+begin
+  InvokeJSNoResult('connect',[aDestination,aOutput]);
+end;
+
+procedure TJSAudioNode.connect(aDestination: IJSAudioParam);
+begin
+  InvokeJSNoResult('connect',[aDestination]);
+end;
+
+procedure TJSAudioNode.disconnect;
+begin
+  InvokeJSNoResult('disconnect',[]);
+end;
+
+procedure TJSAudioNode.disconnect(aOutput: Cardinal);
+begin
+  InvokeJSNoResult('disconnect',[aOutput]);
+end;
+
+procedure TJSAudioNode.disconnect(aDestination: IJSAudioNode);
+begin
+  InvokeJSNoResult('disconnect',[aDestination]);
+end;
+
+procedure TJSAudioNode.disconnect(aDestination: IJSAudioNode; aOutput: Cardinal);
+begin
+  InvokeJSNoResult('disconnect',[aDestination,aOutput]);
+end;
+
+procedure TJSAudioNode.disconnect(aDestination: IJSAudioNode; aOutput: Cardinal; aInput: Cardinal);
+begin
+  InvokeJSNoResult('disconnect',[aDestination,aOutput,aInput]);
+end;
+
+procedure TJSAudioNode.disconnect(aDestination: IJSAudioParam);
+begin
+  InvokeJSNoResult('disconnect',[aDestination]);
+end;
+
+procedure TJSAudioNode.disconnect(aDestination: IJSAudioParam; aOutput: Cardinal);
+begin
+  InvokeJSNoResult('disconnect',[aDestination,aOutput]);
+end;
+
+class function TJSAudioNode.JSClassName: UnicodeString;
+begin
+  Result:='AudioNode';
+end;
+
+class function TJSAudioNode.Cast(const Intf: IJSObject): IJSAudioNode;
+begin
+  Result:=TJSAudioNode.JOBCast(Intf);
+end;
+
+class function TJSAudioNodePassThrough.JSClassName: UnicodeString;
+begin
+  Result:='AudioNodePassThrough';
+end;
+
+class function TJSAudioNodePassThrough.Cast(const Intf: IJSObject): IJSAudioNodePassThrough;
+begin
+  Result:=TJSAudioNodePassThrough.JOBCast(Intf);
+end;
+
+function TJSAudioParam._Getvalue: Single;
+begin
+  Result:=ReadJSPropertyDouble('value');
+end;
+
+function TJSAudioParam._GetdefaultValue: Single;
+begin
+  Result:=ReadJSPropertyDouble('defaultValue');
+end;
+
+function TJSAudioParam._GetminValue: Single;
+begin
+  Result:=ReadJSPropertyDouble('minValue');
+end;
+
+function TJSAudioParam._GetmaxValue: Single;
+begin
+  Result:=ReadJSPropertyDouble('maxValue');
+end;
+
+procedure TJSAudioParam._Setvalue(const aValue : Single);
+begin
+  WriteJSPropertyDouble('value',aValue);
+end;
+
+function TJSAudioParam.setValueAtTime(aValue: Single; aStartTime: Double): IJSAudioParam;
+begin
+  Result:=InvokeJSObjectResult('setValueAtTime',[aValue,aStartTime],TJSAudioParam) as IJSAudioParam;
+end;
+
+function TJSAudioParam.linearRampToValueAtTime(aValue: Single; aEndTime: Double): IJSAudioParam;
+begin
+  Result:=InvokeJSObjectResult('linearRampToValueAtTime',[aValue,aEndTime],TJSAudioParam) as IJSAudioParam;
+end;
+
+function TJSAudioParam.exponentialRampToValueAtTime(aValue: Single; aEndTime: Double): IJSAudioParam;
+begin
+  Result:=InvokeJSObjectResult('exponentialRampToValueAtTime',[aValue,aEndTime],TJSAudioParam) as IJSAudioParam;
+end;
+
+function TJSAudioParam.setTargetAtTime(aTarget: Single; aStartTime: Double; aTimeConstant: Double): IJSAudioParam;
+begin
+  Result:=InvokeJSObjectResult('setTargetAtTime',[aTarget,aStartTime,aTimeConstant],TJSAudioParam) as IJSAudioParam;
+end;
+
+function TJSAudioParam.setValueCurveAtTime(const aValues: TSingleDynArray; aStartTime: Double; aDuration: Double): IJSAudioParam;
+begin
+  Result:=InvokeJSObjectResult('setValueCurveAtTime',[aValues,aStartTime,aDuration],TJSAudioParam) as IJSAudioParam;
+end;
+
+function TJSAudioParam.cancelScheduledValues(aStartTime: Double): IJSAudioParam;
+begin
+  Result:=InvokeJSObjectResult('cancelScheduledValues',[aStartTime],TJSAudioParam) as IJSAudioParam;
+end;
+
+class function TJSAudioParam.JSClassName: UnicodeString;
+begin
+  Result:='AudioParam';
+end;
+
+class function TJSAudioParam.Cast(const Intf: IJSObject): IJSAudioParam;
+begin
+  Result:=TJSAudioParam.JOBCast(Intf);
+end;
+
+function TJSAudioScheduledSourceNode._Getonended: TEventHandler;
+begin
+  Result:=(TEventHandlerNonNull(ReadJSPropertyMethod('onended')));
+end;
+
+procedure TJSAudioScheduledSourceNode._Setonended(const aValue : TEventHandler);
+var
+  m : TJOB_Method;
+begin
+  m:=TJOB_Method.create(TMethod(aValue),@JobCallEventHandlerNonNull);
+  try
+    InvokeJSNoResult('onended',[m],jiSet);
+  finally
+    m.free
+  end;
+end;
+
+procedure TJSAudioScheduledSourceNode.start(aWhen: Double);
+begin
+  InvokeJSNoResult('start',[aWhen]);
+end;
+
+procedure TJSAudioScheduledSourceNode.start;
+begin
+  InvokeJSNoResult('start',[]);
+end;
+
+procedure TJSAudioScheduledSourceNode.stop(aWhen: Double);
+begin
+  InvokeJSNoResult('stop',[aWhen]);
+end;
+
+procedure TJSAudioScheduledSourceNode.stop;
+begin
+  InvokeJSNoResult('stop',[]);
+end;
+
+class function TJSAudioScheduledSourceNode.JSClassName: UnicodeString;
+begin
+  Result:='AudioScheduledSourceNode';
+end;
+
+class function TJSAudioScheduledSourceNode.Cast(const Intf: IJSObject): IJSAudioScheduledSourceNode;
+begin
+  Result:=TJSAudioScheduledSourceNode.JOBCast(Intf);
+end;
+
+class function TJSAudioWorklet.JSClassName: UnicodeString;
+begin
+  Result:='AudioWorklet';
+end;
+
+class function TJSAudioWorklet.Cast(const Intf: IJSObject): IJSAudioWorklet;
+begin
+  Result:=TJSAudioWorklet.JOBCast(Intf);
+end;
+
+function TJSBaseAudioContext._Getdestination: IJSAudioDestinationNode;
+begin
+  Result:=ReadJSPropertyObject('destination',TJSAudioDestinationNode) as IJSAudioDestinationNode;
+end;
+
+function TJSBaseAudioContext._GetsampleRate: Single;
+begin
+  Result:=ReadJSPropertyDouble('sampleRate');
+end;
+
+function TJSBaseAudioContext._GetcurrentTime: Double;
+begin
+  Result:=ReadJSPropertyDouble('currentTime');
+end;
+
+function TJSBaseAudioContext._Getlistener: IJSAudioListener;
+begin
+  Result:=ReadJSPropertyObject('listener',TJSAudioListener) as IJSAudioListener;
+end;
+
+function TJSBaseAudioContext._Getstate: TAudioContextState;
+begin
+  Result:=ReadJSPropertyUnicodeString('state');
+end;
+
+function TJSBaseAudioContext._GetaudioWorklet: IJSAudioWorklet;
+begin
+  Result:=ReadJSPropertyObject('audioWorklet',TJSAudioWorklet) as IJSAudioWorklet;
+end;
+
+function TJSBaseAudioContext._Getonstatechange: TEventHandler;
+begin
+  Result:=(TEventHandlerNonNull(ReadJSPropertyMethod('onstatechange')));
+end;
+
+procedure TJSBaseAudioContext._Setonstatechange(const aValue : TEventHandler);
+var
+  m : TJOB_Method;
+begin
+  m:=TJOB_Method.create(TMethod(aValue),@JobCallEventHandlerNonNull);
+  try
+    InvokeJSNoResult('onstatechange',[m],jiSet);
+  finally
+    m.free
+  end;
+end;
+
+function TJSBaseAudioContext.resume: IJSPromise; // Promise<undefined>
+begin
+  Result:=InvokeJSObjectResult('resume',[],TJSPromise) as IJSPromise;
+end;
+
+function TJSBaseAudioContext.createBuffer(aNumberOfChannels: Cardinal; aLength_: Cardinal; aSampleRate: Single): IJSAudioBuffer;
+begin
+  Result:=InvokeJSObjectResult('createBuffer',[aNumberOfChannels,aLength_,aSampleRate],TJSAudioBuffer) as IJSAudioBuffer;
+end;
+
+function TJSBaseAudioContext.decodeAudioData(aAudioData: IJSArrayBuffer; const aSuccessCallback: TDecodeSuccessCallback; const aErrorCallback: TDecodeErrorCallback): IJSPromise; // Promise<AudioBuffer>
+var
+  m: TJOB_Method;
+  m2: TJOB_Method;
+begin
+  m:=TJOB_Method.Create(TMethod(aSuccessCallback),@JOBCallDecodeSuccessCallback);
+  m2:=TJOB_Method.Create(TMethod(aErrorCallback),@JOBCallDecodeErrorCallback);
+  try
+    Result:=InvokeJSObjectResult('decodeAudioData',[aAudioData,m,m2],TJSPromise) as IJSPromise;
+  finally
+    m.free;
+    m2.free;
+  end;
+end;
+
+function TJSBaseAudioContext.decodeAudioData(aAudioData: IJSArrayBuffer): IJSPromise; // Promise<AudioBuffer>
+begin
+  Result:=InvokeJSObjectResult('decodeAudioData',[aAudioData],TJSPromise) as IJSPromise;
+end;
+
+function TJSBaseAudioContext.decodeAudioData(aAudioData: IJSArrayBuffer; const aSuccessCallback: TDecodeSuccessCallback): IJSPromise; // Promise<AudioBuffer>
+var
+  m: TJOB_Method;
+begin
+  m:=TJOB_Method.Create(TMethod(aSuccessCallback),@JOBCallDecodeSuccessCallback);
+  try
+    Result:=InvokeJSObjectResult('decodeAudioData',[aAudioData,m],TJSPromise) as IJSPromise;
+  finally
+    m.free;
+  end;
+end;
+
+function TJSBaseAudioContext.createBufferSource: IJSAudioBufferSourceNode;
+begin
+  Result:=InvokeJSObjectResult('createBufferSource',[],TJSAudioBufferSourceNode) as IJSAudioBufferSourceNode;
+end;
+
+function TJSBaseAudioContext.createConstantSource: IJSConstantSourceNode;
+begin
+  Result:=InvokeJSObjectResult('createConstantSource',[],TJSConstantSourceNode) as IJSConstantSourceNode;
+end;
+
+function TJSBaseAudioContext.createScriptProcessor(aBufferSize: Cardinal; aNumberOfInputChannels: Cardinal; aNumberOfOutputChannels: Cardinal): IJSScriptProcessorNode;
+begin
+  Result:=InvokeJSObjectResult('createScriptProcessor',[aBufferSize,aNumberOfInputChannels,aNumberOfOutputChannels],TJSScriptProcessorNode) as IJSScriptProcessorNode;
+end;
+
+function TJSBaseAudioContext.createScriptProcessor: IJSScriptProcessorNode;
+begin
+  Result:=InvokeJSObjectResult('createScriptProcessor',[],TJSScriptProcessorNode) as IJSScriptProcessorNode;
+end;
+
+function TJSBaseAudioContext.createScriptProcessor(aBufferSize: Cardinal): IJSScriptProcessorNode;
+begin
+  Result:=InvokeJSObjectResult('createScriptProcessor',[aBufferSize],TJSScriptProcessorNode) as IJSScriptProcessorNode;
+end;
+
+function TJSBaseAudioContext.createScriptProcessor(aBufferSize: Cardinal; aNumberOfInputChannels: Cardinal): IJSScriptProcessorNode;
+begin
+  Result:=InvokeJSObjectResult('createScriptProcessor',[aBufferSize,aNumberOfInputChannels],TJSScriptProcessorNode) as IJSScriptProcessorNode;
+end;
+
+function TJSBaseAudioContext.createAnalyser: IJSAnalyserNode;
+begin
+  Result:=InvokeJSObjectResult('createAnalyser',[],TJSAnalyserNode) as IJSAnalyserNode;
+end;
+
+function TJSBaseAudioContext.createGain: IJSGainNode;
+begin
+  Result:=InvokeJSObjectResult('createGain',[],TJSGainNode) as IJSGainNode;
+end;
+
+function TJSBaseAudioContext.createDelay(aMaxDelayTime: Double): IJSDelayNode;
+begin
+  Result:=InvokeJSObjectResult('createDelay',[aMaxDelayTime],TJSDelayNode) as IJSDelayNode;
+end;
+
+function TJSBaseAudioContext.createDelay: IJSDelayNode;
+begin
+  Result:=InvokeJSObjectResult('createDelay',[],TJSDelayNode) as IJSDelayNode;
+end;
+
+function TJSBaseAudioContext.createBiquadFilter: IJSBiquadFilterNode;
+begin
+  Result:=InvokeJSObjectResult('createBiquadFilter',[],TJSBiquadFilterNode) as IJSBiquadFilterNode;
+end;
+
+function TJSBaseAudioContext.createIIRFilter(const aFeedforward: TDoubleDynArray; const aFeedback: TDoubleDynArray): IJSIIRFilterNode;
+begin
+  Result:=InvokeJSObjectResult('createIIRFilter',[aFeedforward,aFeedback],TJSIIRFilterNode) as IJSIIRFilterNode;
+end;
+
+function TJSBaseAudioContext.createWaveShaper: IJSWaveShaperNode;
+begin
+  Result:=InvokeJSObjectResult('createWaveShaper',[],TJSWaveShaperNode) as IJSWaveShaperNode;
+end;
+
+function TJSBaseAudioContext.createPanner: IJSPannerNode;
+begin
+  Result:=InvokeJSObjectResult('createPanner',[],TJSPannerNode) as IJSPannerNode;
+end;
+
+function TJSBaseAudioContext.createStereoPanner: IJSStereoPannerNode;
+begin
+  Result:=InvokeJSObjectResult('createStereoPanner',[],TJSStereoPannerNode) as IJSStereoPannerNode;
+end;
+
+function TJSBaseAudioContext.createConvolver: IJSConvolverNode;
+begin
+  Result:=InvokeJSObjectResult('createConvolver',[],TJSConvolverNode) as IJSConvolverNode;
+end;
+
+function TJSBaseAudioContext.createChannelSplitter(aNumberOfOutputs: Cardinal): IJSChannelSplitterNode;
+begin
+  Result:=InvokeJSObjectResult('createChannelSplitter',[aNumberOfOutputs],TJSChannelSplitterNode) as IJSChannelSplitterNode;
+end;
+
+function TJSBaseAudioContext.createChannelSplitter: IJSChannelSplitterNode;
+begin
+  Result:=InvokeJSObjectResult('createChannelSplitter',[],TJSChannelSplitterNode) as IJSChannelSplitterNode;
+end;
+
+function TJSBaseAudioContext.createChannelMerger(aNumberOfInputs: Cardinal): IJSChannelMergerNode;
+begin
+  Result:=InvokeJSObjectResult('createChannelMerger',[aNumberOfInputs],TJSChannelMergerNode) as IJSChannelMergerNode;
+end;
+
+function TJSBaseAudioContext.createChannelMerger: IJSChannelMergerNode;
+begin
+  Result:=InvokeJSObjectResult('createChannelMerger',[],TJSChannelMergerNode) as IJSChannelMergerNode;
+end;
+
+function TJSBaseAudioContext.createDynamicsCompressor: IJSDynamicsCompressorNode;
+begin
+  Result:=InvokeJSObjectResult('createDynamicsCompressor',[],TJSDynamicsCompressorNode) as IJSDynamicsCompressorNode;
+end;
+
+function TJSBaseAudioContext.createOscillator: IJSOscillatorNode;
+begin
+  Result:=InvokeJSObjectResult('createOscillator',[],TJSOscillatorNode) as IJSOscillatorNode;
+end;
+
+function TJSBaseAudioContext.createPeriodicWave(const aReal: TSingleDynArray; const aImag: TSingleDynArray; const aConstraints: IJSPeriodicWaveConstraints): IJSPeriodicWave;
+begin
+  Result:=InvokeJSObjectResult('createPeriodicWave',[aReal,aImag,aConstraints],TJSPeriodicWave) as IJSPeriodicWave;
+end;
+
+function TJSBaseAudioContext.createPeriodicWave(const aReal: TSingleDynArray; const aImag: TSingleDynArray): IJSPeriodicWave;
+begin
+  Result:=InvokeJSObjectResult('createPeriodicWave',[aReal,aImag],TJSPeriodicWave) as IJSPeriodicWave;
+end;
+
+class function TJSBaseAudioContext.JSClassName: UnicodeString;
+begin
+  Result:='BaseAudioContext';
+end;
+
+class function TJSBaseAudioContext.Cast(const Intf: IJSObject): IJSBaseAudioContext;
+begin
+  Result:=TJSBaseAudioContext.JOBCast(Intf);
+end;
+
+function TJSBiquadFilterOptions._Gettype_: TBiquadFilterType;
+begin
+  Result:=ReadJSPropertyUnicodeString('type');
+end;
+
+function TJSBiquadFilterOptions._GetQ: Single;
+begin
+  Result:=ReadJSPropertyDouble('Q');
+end;
+
+function TJSBiquadFilterOptions._Getdetune: Single;
+begin
+  Result:=ReadJSPropertyDouble('detune');
+end;
+
+function TJSBiquadFilterOptions._Getfrequency: Single;
+begin
+  Result:=ReadJSPropertyDouble('frequency');
+end;
+
+function TJSBiquadFilterOptions._Getgain: Single;
+begin
+  Result:=ReadJSPropertyDouble('gain');
+end;
+
+procedure TJSBiquadFilterOptions._Settype_(const aValue : TBiquadFilterType);
+begin
+  WriteJSPropertyUnicodeString('type',aValue);
+end;
+
+procedure TJSBiquadFilterOptions._SetQ(const aValue : Single);
+begin
+  WriteJSPropertyDouble('Q',aValue);
+end;
+
+procedure TJSBiquadFilterOptions._Setdetune(const aValue : Single);
+begin
+  WriteJSPropertyDouble('detune',aValue);
+end;
+
+procedure TJSBiquadFilterOptions._Setfrequency(const aValue : Single);
+begin
+  WriteJSPropertyDouble('frequency',aValue);
+end;
+
+procedure TJSBiquadFilterOptions._Setgain(const aValue : Single);
+begin
+  WriteJSPropertyDouble('gain',aValue);
+end;
+
+constructor TJSBiquadFilterOptions.create(const aDict : TJSBiquadFilterOptionsRec); overload;
+begin
+  Self.type_:=aDict.type_;
+  Self.Q:=aDict.Q;
+  Self.detune:=aDict.detune;
+  Self.frequency:=aDict.frequency;
+  Self.gain:=aDict.gain;
+end;
+
+class function TJSBiquadFilterOptions.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSBiquadFilterOptions.Cast(const Intf: IJSObject): IJSBiquadFilterOptions;
+begin
+  Result:=TJSBiquadFilterOptions.JOBCast(Intf);
+end;
+
+function TJSBiquadFilterNode._Gettype_: TBiquadFilterType;
+begin
+  Result:=ReadJSPropertyUnicodeString('type');
+end;
+
+function TJSBiquadFilterNode._Getfrequency: IJSAudioParam;
+begin
+  Result:=ReadJSPropertyObject('frequency',TJSAudioParam) as IJSAudioParam;
+end;
+
+function TJSBiquadFilterNode._Getdetune: IJSAudioParam;
+begin
+  Result:=ReadJSPropertyObject('detune',TJSAudioParam) as IJSAudioParam;
+end;
+
+function TJSBiquadFilterNode._GetQ: IJSAudioParam;
+begin
+  Result:=ReadJSPropertyObject('Q',TJSAudioParam) as IJSAudioParam;
+end;
+
+function TJSBiquadFilterNode._Getgain: IJSAudioParam;
+begin
+  Result:=ReadJSPropertyObject('gain',TJSAudioParam) as IJSAudioParam;
+end;
+
+procedure TJSBiquadFilterNode._Settype_(const aValue : TBiquadFilterType);
+begin
+  WriteJSPropertyUnicodeString('type',aValue);
+end;
+
+constructor TJSBiquadFilterNode.Create(aContext: IJSBaseAudioContext; const aOptions: IJSBiquadFilterOptions);
+begin
+  JOBCreate([aContext,aOptions]);
+end;
+
+constructor TJSBiquadFilterNode.Create(aContext: IJSBaseAudioContext);
+begin
+  JOBCreate([aContext]);
+end;
+
+procedure TJSBiquadFilterNode.getFrequencyResponse(aFrequencyHz: IJSFloat32Array; aMagResponse: IJSFloat32Array; aPhaseResponse: IJSFloat32Array);
+begin
+  InvokeJSNoResult('getFrequencyResponse',[aFrequencyHz,aMagResponse,aPhaseResponse]);
+end;
+
+class function TJSBiquadFilterNode.JSClassName: UnicodeString;
+begin
+  Result:='BiquadFilterNode';
+end;
+
+class function TJSBiquadFilterNode.Cast(const Intf: IJSObject): IJSBiquadFilterNode;
+begin
+  Result:=TJSBiquadFilterNode.JOBCast(Intf);
+end;
+
+function TJSBlob._Getsize: QWord;
+begin
+  Result:=ReadJSPropertyInt64('size');
+end;
+
+function TJSBlob._Gettype_: UnicodeString;
+begin
+  Result:=ReadJSPropertyUnicodeString('type');
+end;
+
+constructor TJSBlob.Create(const aBlobParts: TBlobPartDynArray; const aOptions: IJSBlobPropertyBag);
+begin
+  JOBCreate([aBlobParts,aOptions]);
+end;
+
+constructor TJSBlob.Create;
+begin
+  JOBCreate([]);
+end;
+
+constructor TJSBlob.Create(const aBlobParts: TBlobPartDynArray);
+begin
+  JOBCreate([aBlobParts]);
+end;
+
+function TJSBlob.slice(aStart: Int64; aEnd_: Int64; const aContentType: UnicodeString): IJSBlob;
+begin
+  Result:=InvokeJSObjectResult('slice',[aStart,aEnd_,aContentType],TJSBlob) as IJSBlob;
+end;
+
+function TJSBlob.slice: IJSBlob;
+begin
+  Result:=InvokeJSObjectResult('slice',[],TJSBlob) as IJSBlob;
+end;
+
+function TJSBlob.slice(aStart: Int64): IJSBlob;
+begin
+  Result:=InvokeJSObjectResult('slice',[aStart],TJSBlob) as IJSBlob;
+end;
+
+function TJSBlob.slice(aStart: Int64; aEnd_: Int64): IJSBlob;
+begin
+  Result:=InvokeJSObjectResult('slice',[aStart,aEnd_],TJSBlob) as IJSBlob;
+end;
+
+function TJSBlob.stream: IJSReadableStream;
+begin
+  Result:=InvokeJSObjectResult('stream',[],TJSReadableStream) as IJSReadableStream;
+end;
+
+function TJSBlob.text: IJSPromise; // Promise<USVString>
+begin
+  Result:=InvokeJSObjectResult('text',[],TJSPromise) as IJSPromise;
+end;
+
+function TJSBlob.arrayBuffer: IJSPromise; // Promise<ArrayBuffer>
+begin
+  Result:=InvokeJSObjectResult('arrayBuffer',[],TJSPromise) as IJSPromise;
+end;
+
+function TJSBlob.bytes: IJSPromise; // Promise<Uint8Array>
+begin
+  Result:=InvokeJSObjectResult('bytes',[],TJSPromise) as IJSPromise;
+end;
+
+class function TJSBlob.JSClassName: UnicodeString;
+begin
+  Result:='Blob';
+end;
+
+class function TJSBlob.Cast(const Intf: IJSObject): IJSBlob;
+begin
+  Result:=TJSBlob.JOBCast(Intf);
+end;
+
+function TJSBlobPropertyBag._Gettype_: UnicodeString;
+begin
+  Result:=ReadJSPropertyUnicodeString('type');
+end;
+
+function TJSBlobPropertyBag._Getendings: TEndingType;
+begin
+  Result:=ReadJSPropertyUnicodeString('endings');
+end;
+
+procedure TJSBlobPropertyBag._Settype_(const aValue : UnicodeString);
+begin
+  WriteJSPropertyUnicodeString('type',aValue);
+end;
+
+procedure TJSBlobPropertyBag._Setendings(const aValue : TEndingType);
+begin
+  WriteJSPropertyUnicodeString('endings',aValue);
+end;
+
+constructor TJSBlobPropertyBag.create(const aDict : TJSBlobPropertyBagRec); overload;
+begin
+  Self.type_:=aDict.type_;
+  Self.endings:=aDict.endings;
+end;
+
+class function TJSBlobPropertyBag.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSBlobPropertyBag.Cast(const Intf: IJSObject): IJSBlobPropertyBag;
+begin
+  Result:=TJSBlobPropertyBag.JOBCast(Intf);
+end;
+
+function TJSChannelMergerOptions._GetnumberOfInputs: Cardinal;
+begin
+  Result:=ReadJSPropertyInt64('numberOfInputs');
+end;
+
+procedure TJSChannelMergerOptions._SetnumberOfInputs(const aValue : Cardinal);
+begin
+  WriteJSPropertyDouble('numberOfInputs',aValue);
+end;
+
+constructor TJSChannelMergerOptions.create(const aDict : TJSChannelMergerOptionsRec); overload;
+begin
+  Self.numberOfInputs:=aDict.numberOfInputs;
+end;
+
+class function TJSChannelMergerOptions.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSChannelMergerOptions.Cast(const Intf: IJSObject): IJSChannelMergerOptions;
+begin
+  Result:=TJSChannelMergerOptions.JOBCast(Intf);
+end;
+
+constructor TJSChannelMergerNode.Create(aContext: IJSBaseAudioContext; const aOptions: IJSChannelMergerOptions);
+begin
+  JOBCreate([aContext,aOptions]);
+end;
+
+constructor TJSChannelMergerNode.Create(aContext: IJSBaseAudioContext);
+begin
+  JOBCreate([aContext]);
+end;
+
+class function TJSChannelMergerNode.JSClassName: UnicodeString;
+begin
+  Result:='ChannelMergerNode';
+end;
+
+class function TJSChannelMergerNode.Cast(const Intf: IJSObject): IJSChannelMergerNode;
+begin
+  Result:=TJSChannelMergerNode.JOBCast(Intf);
+end;
+
+function TJSChannelSplitterOptions._GetnumberOfOutputs: Cardinal;
+begin
+  Result:=ReadJSPropertyInt64('numberOfOutputs');
+end;
+
+procedure TJSChannelSplitterOptions._SetnumberOfOutputs(const aValue : Cardinal);
+begin
+  WriteJSPropertyDouble('numberOfOutputs',aValue);
+end;
+
+constructor TJSChannelSplitterOptions.create(const aDict : TJSChannelSplitterOptionsRec); overload;
+begin
+  Self.numberOfOutputs:=aDict.numberOfOutputs;
+end;
+
+class function TJSChannelSplitterOptions.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSChannelSplitterOptions.Cast(const Intf: IJSObject): IJSChannelSplitterOptions;
+begin
+  Result:=TJSChannelSplitterOptions.JOBCast(Intf);
+end;
+
+constructor TJSChannelSplitterNode.Create(aContext: IJSBaseAudioContext; const aOptions: IJSChannelSplitterOptions);
+begin
+  JOBCreate([aContext,aOptions]);
+end;
+
+constructor TJSChannelSplitterNode.Create(aContext: IJSBaseAudioContext);
+begin
+  JOBCreate([aContext]);
+end;
+
+class function TJSChannelSplitterNode.JSClassName: UnicodeString;
+begin
+  Result:='ChannelSplitterNode';
+end;
+
+class function TJSChannelSplitterNode.Cast(const Intf: IJSObject): IJSChannelSplitterNode;
+begin
+  Result:=TJSChannelSplitterNode.JOBCast(Intf);
+end;
+
+function TJSConstantSourceOptions._Getoffset: Single;
+begin
+  Result:=ReadJSPropertyDouble('offset');
+end;
+
+procedure TJSConstantSourceOptions._Setoffset(const aValue : Single);
+begin
+  WriteJSPropertyDouble('offset',aValue);
+end;
+
+constructor TJSConstantSourceOptions.create(const aDict : TJSConstantSourceOptionsRec); overload;
+begin
+  Self.offset:=aDict.offset;
+end;
+
+class function TJSConstantSourceOptions.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSConstantSourceOptions.Cast(const Intf: IJSObject): IJSConstantSourceOptions;
+begin
+  Result:=TJSConstantSourceOptions.JOBCast(Intf);
+end;
+
+function TJSConstantSourceNode._Getoffset: IJSAudioParam;
+begin
+  Result:=ReadJSPropertyObject('offset',TJSAudioParam) as IJSAudioParam;
+end;
+
+constructor TJSConstantSourceNode.Create(aContext: IJSBaseAudioContext; const aOptions: IJSConstantSourceOptions);
+begin
+  JOBCreate([aContext,aOptions]);
+end;
+
+constructor TJSConstantSourceNode.Create(aContext: IJSBaseAudioContext);
+begin
+  JOBCreate([aContext]);
+end;
+
+class function TJSConstantSourceNode.JSClassName: UnicodeString;
+begin
+  Result:='ConstantSourceNode';
+end;
+
+class function TJSConstantSourceNode.Cast(const Intf: IJSObject): IJSConstantSourceNode;
+begin
+  Result:=TJSConstantSourceNode.JOBCast(Intf);
+end;
+
+function TJSConvolverOptions._Getbuffer: IJSAudioBuffer;
+begin
+  Result:=ReadJSPropertyObject('buffer',TJSAudioBuffer) as IJSAudioBuffer;
+end;
+
+function TJSConvolverOptions._GetdisableNormalization: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('disableNormalization');
+end;
+
+procedure TJSConvolverOptions._Setbuffer(const aValue : IJSAudioBuffer);
+begin
+  WriteJSPropertyObject('buffer',aValue);
+end;
+
+procedure TJSConvolverOptions._SetdisableNormalization(const aValue : Boolean);
+begin
+  WriteJSPropertyBoolean('disableNormalization',aValue);
+end;
+
+constructor TJSConvolverOptions.create(const aDict : TJSConvolverOptionsRec); overload;
+begin
+  Self.buffer:=aDict.buffer;
+  Self.disableNormalization:=aDict.disableNormalization;
+end;
+
+class function TJSConvolverOptions.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSConvolverOptions.Cast(const Intf: IJSObject): IJSConvolverOptions;
+begin
+  Result:=TJSConvolverOptions.JOBCast(Intf);
+end;
+
+function TJSConvolverNode._Getbuffer: IJSAudioBuffer;
+begin
+  Result:=ReadJSPropertyObject('buffer',TJSAudioBuffer) as IJSAudioBuffer;
+end;
+
+function TJSConvolverNode._Getnormalize: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('normalize');
+end;
+
+procedure TJSConvolverNode._Setbuffer(const aValue : IJSAudioBuffer);
+begin
+  WriteJSPropertyObject('buffer',aValue);
+end;
+
+procedure TJSConvolverNode._Setnormalize(const aValue : Boolean);
+begin
+  WriteJSPropertyBoolean('normalize',aValue);
+end;
+
+constructor TJSConvolverNode.Create(aContext: IJSBaseAudioContext; const aOptions: IJSConvolverOptions);
+begin
+  JOBCreate([aContext,aOptions]);
+end;
+
+constructor TJSConvolverNode.Create(aContext: IJSBaseAudioContext);
+begin
+  JOBCreate([aContext]);
+end;
+
+class function TJSConvolverNode.JSClassName: UnicodeString;
+begin
+  Result:='ConvolverNode';
+end;
+
+class function TJSConvolverNode.Cast(const Intf: IJSObject): IJSConvolverNode;
+begin
+  Result:=TJSConvolverNode.JOBCast(Intf);
 end;
 
 function TJSCSSStyleDeclaration._GetcssText: UTF8String;
@@ -8411,6 +13278,82 @@ end;
 class function TJSCSSStyleDeclaration.Cast(const Intf: IJSObject): IJSCSSStyleDeclaration;
 begin
   Result:=TJSCSSStyleDeclaration.JOBCast(Intf);
+end;
+
+function TJSDelayOptions._GetmaxDelayTime: Double;
+begin
+  Result:=ReadJSPropertyDouble('maxDelayTime');
+end;
+
+function TJSDelayOptions._GetdelayTime: Double;
+begin
+  Result:=ReadJSPropertyDouble('delayTime');
+end;
+
+procedure TJSDelayOptions._SetmaxDelayTime(const aValue : Double);
+begin
+  WriteJSPropertyDouble('maxDelayTime',aValue);
+end;
+
+procedure TJSDelayOptions._SetdelayTime(const aValue : Double);
+begin
+  WriteJSPropertyDouble('delayTime',aValue);
+end;
+
+constructor TJSDelayOptions.create(const aDict : TJSDelayOptionsRec); overload;
+begin
+  Self.maxDelayTime:=aDict.maxDelayTime;
+  Self.delayTime:=aDict.delayTime;
+end;
+
+class function TJSDelayOptions.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSDelayOptions.Cast(const Intf: IJSObject): IJSDelayOptions;
+begin
+  Result:=TJSDelayOptions.JOBCast(Intf);
+end;
+
+function TJSDelayNode._GetdelayTime: IJSAudioParam;
+begin
+  Result:=ReadJSPropertyObject('delayTime',TJSAudioParam) as IJSAudioParam;
+end;
+
+constructor TJSDelayNode.Create(aContext: IJSBaseAudioContext; const aOptions: IJSDelayOptions);
+begin
+  JOBCreate([aContext,aOptions]);
+end;
+
+constructor TJSDelayNode.Create(aContext: IJSBaseAudioContext);
+begin
+  JOBCreate([aContext]);
+end;
+
+class function TJSDelayNode.JSClassName: UnicodeString;
+begin
+  Result:='DelayNode';
+end;
+
+class function TJSDelayNode.Cast(const Intf: IJSObject): IJSDelayNode;
+begin
+  Result:=TJSDelayNode.JOBCast(Intf);
+end;
+
+function TJSDocumentOrShadowRoot._GetpointerLockElement: IJSElement;
+begin
+  Result:=ReadJSPropertyObject('pointerLockElement',TJSElement) as IJSElement;
+end;
+
+class function TJSDocumentOrShadowRoot.JSClassName: UnicodeString;
+begin
+  Result:='DocumentOrShadowRoot';
+end;
+
+class function TJSDocumentOrShadowRoot.Cast(const Intf: IJSObject): IJSDocumentOrShadowRoot;
+begin
+  Result:=TJSDocumentOrShadowRoot.JOBCast(Intf);
 end;
 
 class function TJSContentSecurityPolicy.JSClassName: UnicodeString;
@@ -8523,6 +13466,50 @@ begin
   Result:=TJSXULCommandDispatcher.JOBCast(Intf);
 end;
 
+function TJSDocument._Getonpointerlockchange: TEventHandler;
+begin
+  Result:=(TEventHandlerNonNull(ReadJSPropertyMethod('onpointerlockchange')));
+end;
+
+function TJSDocument._Getonpointerlockerror: TEventHandler;
+begin
+  Result:=(TEventHandlerNonNull(ReadJSPropertyMethod('onpointerlockerror')));
+end;
+
+function TJSDocument._GetpointerLockElement: IJSElement;
+begin
+  Result:=ReadJSPropertyObject('pointerLockElement',TJSElement) as IJSElement;
+end;
+
+procedure TJSDocument._Setonpointerlockchange(const aValue : TEventHandler);
+var
+  m : TJOB_Method;
+begin
+  m:=TJOB_Method.create(TMethod(aValue),@JobCallEventHandlerNonNull);
+  try
+    InvokeJSNoResult('onpointerlockchange',[m],jiSet);
+  finally
+    m.free
+  end;
+end;
+
+procedure TJSDocument._Setonpointerlockerror(const aValue : TEventHandler);
+var
+  m : TJOB_Method;
+begin
+  m:=TJOB_Method.create(TMethod(aValue),@JobCallEventHandlerNonNull);
+  try
+    InvokeJSNoResult('onpointerlockerror',[m],jiSet);
+  finally
+    m.free
+  end;
+end;
+
+procedure TJSDocument.exitPointerLock;
+begin
+  InvokeJSNoResult('exitPointerLock',[]);
+end;
+
 function TJSDocument.getElementById(const aElementId: UnicodeString): IJSElement;
 begin
   Result:=InvokeJSObjectResult('getElementById',[aElementId],TJSElement) as IJSElement;
@@ -8536,6 +13523,116 @@ end;
 class function TJSDocument.Cast(const Intf: IJSObject): IJSDocument;
 begin
   Result:=TJSDocument.JOBCast(Intf);
+end;
+
+class function TJSStackFrame.JSClassName: UnicodeString;
+begin
+  Result:='StackFrame';
+end;
+
+class function TJSStackFrame.Cast(const Intf: IJSObject): IJSStackFrame;
+begin
+  Result:=TJSStackFrame.JOBCast(Intf);
+end;
+
+function TJSExceptionMembers._Getresult: Cardinal;
+begin
+  Result:=ReadJSPropertyInt64('result');
+end;
+
+function TJSExceptionMembers._Getfilename: UnicodeString;
+begin
+  Result:=ReadJSPropertyUnicodeString('filename');
+end;
+
+function TJSExceptionMembers._GetlineNumber: Cardinal;
+begin
+  Result:=ReadJSPropertyInt64('lineNumber');
+end;
+
+function TJSExceptionMembers._GetcolumnNumber: Cardinal;
+begin
+  Result:=ReadJSPropertyInt64('columnNumber');
+end;
+
+function TJSExceptionMembers._Getdata: IJSnsISupports;
+begin
+  Result:=ReadJSPropertyObject('data',TJSnsISupports) as IJSnsISupports;
+end;
+
+function TJSExceptionMembers._Getstack: UnicodeString;
+begin
+  Result:=ReadJSPropertyUnicodeString('stack');
+end;
+
+class function TJSExceptionMembers.JSClassName: UnicodeString;
+begin
+  Result:='ExceptionMembers';
+end;
+
+class function TJSExceptionMembers.Cast(const Intf: IJSObject): IJSExceptionMembers;
+begin
+  Result:=TJSExceptionMembers.JOBCast(Intf);
+end;
+
+function TJSException._Getname: UnicodeString;
+begin
+  Result:=ReadJSPropertyUnicodeString('name');
+end;
+
+function TJSException._Getmessage: UnicodeString;
+begin
+  Result:=ReadJSPropertyUnicodeString('message');
+end;
+
+class function TJSException.JSClassName: UnicodeString;
+begin
+  Result:='Exception';
+end;
+
+class function TJSException.Cast(const Intf: IJSObject): IJSException;
+begin
+  Result:=TJSException.JOBCast(Intf);
+end;
+
+function TJSDOMException._Getname: UnicodeString;
+begin
+  Result:=ReadJSPropertyUnicodeString('name');
+end;
+
+function TJSDOMException._Getmessage: UnicodeString;
+begin
+  Result:=ReadJSPropertyUnicodeString('message');
+end;
+
+function TJSDOMException._Getcode: Word;
+begin
+  Result:=ReadJSPropertyLongInt('code');
+end;
+
+constructor TJSDOMException.Create(const aMessage: UnicodeString; const aName: UnicodeString);
+begin
+  JOBCreate([aMessage,aName]);
+end;
+
+constructor TJSDOMException.Create;
+begin
+  JOBCreate([]);
+end;
+
+constructor TJSDOMException.Create(const aMessage: UnicodeString);
+begin
+  JOBCreate([aMessage]);
+end;
+
+class function TJSDOMException.JSClassName: UnicodeString;
+begin
+  Result:='DOMException';
+end;
+
+class function TJSDOMException.Cast(const Intf: IJSObject): IJSDOMException;
+begin
+  Result:=TJSDOMException.JOBCast(Intf);
 end;
 
 function TJSDOMRect._Getx2: Double;
@@ -8771,6 +13868,150 @@ begin
   Result:=TJSDOMRectInit.JOBCast(Intf);
 end;
 
+function TJSDOMStringList._Getlength_: Cardinal;
+begin
+  Result:=ReadJSPropertyInt64('length');
+end;
+
+function TJSDOMStringList.item(aIndex: Cardinal): UnicodeString;
+begin
+  Result:=InvokeJSUnicodeStringResult('item',[aIndex]);
+end;
+
+function TJSDOMStringList.contains(const aString_: UnicodeString): Boolean;
+begin
+  Result:=InvokeJSBooleanResult('contains',[aString_]);
+end;
+
+class function TJSDOMStringList.JSClassName: UnicodeString;
+begin
+  Result:='DOMStringList';
+end;
+
+class function TJSDOMStringList.Cast(const Intf: IJSObject): IJSDOMStringList;
+begin
+  Result:=TJSDOMStringList.JOBCast(Intf);
+end;
+
+function TJSDynamicsCompressorOptions._Getattack: Single;
+begin
+  Result:=ReadJSPropertyDouble('attack');
+end;
+
+function TJSDynamicsCompressorOptions._Getknee: Single;
+begin
+  Result:=ReadJSPropertyDouble('knee');
+end;
+
+function TJSDynamicsCompressorOptions._Getratio: Single;
+begin
+  Result:=ReadJSPropertyDouble('ratio');
+end;
+
+function TJSDynamicsCompressorOptions._Getrelease: Single;
+begin
+  Result:=ReadJSPropertyDouble('release');
+end;
+
+function TJSDynamicsCompressorOptions._Getthreshold: Single;
+begin
+  Result:=ReadJSPropertyDouble('threshold');
+end;
+
+procedure TJSDynamicsCompressorOptions._Setattack(const aValue : Single);
+begin
+  WriteJSPropertyDouble('attack',aValue);
+end;
+
+procedure TJSDynamicsCompressorOptions._Setknee(const aValue : Single);
+begin
+  WriteJSPropertyDouble('knee',aValue);
+end;
+
+procedure TJSDynamicsCompressorOptions._Setratio(const aValue : Single);
+begin
+  WriteJSPropertyDouble('ratio',aValue);
+end;
+
+procedure TJSDynamicsCompressorOptions._Setrelease(const aValue : Single);
+begin
+  WriteJSPropertyDouble('release',aValue);
+end;
+
+procedure TJSDynamicsCompressorOptions._Setthreshold(const aValue : Single);
+begin
+  WriteJSPropertyDouble('threshold',aValue);
+end;
+
+constructor TJSDynamicsCompressorOptions.create(const aDict : TJSDynamicsCompressorOptionsRec); overload;
+begin
+  Self.attack:=aDict.attack;
+  Self.knee:=aDict.knee;
+  Self.ratio:=aDict.ratio;
+  Self.release:=aDict.release;
+  Self.threshold:=aDict.threshold;
+end;
+
+class function TJSDynamicsCompressorOptions.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSDynamicsCompressorOptions.Cast(const Intf: IJSObject): IJSDynamicsCompressorOptions;
+begin
+  Result:=TJSDynamicsCompressorOptions.JOBCast(Intf);
+end;
+
+function TJSDynamicsCompressorNode._Getthreshold: IJSAudioParam;
+begin
+  Result:=ReadJSPropertyObject('threshold',TJSAudioParam) as IJSAudioParam;
+end;
+
+function TJSDynamicsCompressorNode._Getknee: IJSAudioParam;
+begin
+  Result:=ReadJSPropertyObject('knee',TJSAudioParam) as IJSAudioParam;
+end;
+
+function TJSDynamicsCompressorNode._Getratio: IJSAudioParam;
+begin
+  Result:=ReadJSPropertyObject('ratio',TJSAudioParam) as IJSAudioParam;
+end;
+
+function TJSDynamicsCompressorNode._Getreduction: Single;
+begin
+  Result:=ReadJSPropertyDouble('reduction');
+end;
+
+function TJSDynamicsCompressorNode._Getattack: IJSAudioParam;
+begin
+  Result:=ReadJSPropertyObject('attack',TJSAudioParam) as IJSAudioParam;
+end;
+
+function TJSDynamicsCompressorNode._Getrelease: IJSAudioParam;
+begin
+  Result:=ReadJSPropertyObject('release',TJSAudioParam) as IJSAudioParam;
+end;
+
+constructor TJSDynamicsCompressorNode.Create(aContext: IJSBaseAudioContext; const aOptions: IJSDynamicsCompressorOptions);
+begin
+  JOBCreate([aContext,aOptions]);
+end;
+
+constructor TJSDynamicsCompressorNode.Create(aContext: IJSBaseAudioContext);
+begin
+  JOBCreate([aContext]);
+end;
+
+class function TJSDynamicsCompressorNode.JSClassName: UnicodeString;
+begin
+  Result:='DynamicsCompressorNode';
+end;
+
+class function TJSDynamicsCompressorNode.Cast(const Intf: IJSObject): IJSDynamicsCompressorNode;
+begin
+  Result:=TJSDynamicsCompressorNode.JOBCast(Intf);
+end;
+
 class function TJSnsIScreen.JSClassName: UnicodeString;
 begin
   Result:='nsIScreen';
@@ -8876,6 +14117,16 @@ begin
   InvokeJSNoResult('insertAdjacentHTML',[aPosition,aText]);
 end;
 
+function TJSElement.requestPointerLock(const aOptions: IJSPointerLockOptions): IJSPromise; // Promise<undefined>
+begin
+  Result:=InvokeJSObjectResult('requestPointerLock',[aOptions],TJSPromise) as IJSPromise;
+end;
+
+function TJSElement.requestPointerLock: IJSPromise; // Promise<undefined>
+begin
+  Result:=InvokeJSObjectResult('requestPointerLock',[],TJSPromise) as IJSPromise;
+end;
+
 class function TJSElement.JSClassName: UnicodeString;
 begin
   Result:='Element';
@@ -8899,6 +14150,31 @@ end;
 class function TJSElementCSSInlineStyle.Cast(const Intf: IJSObject): IJSElementCSSInlineStyle;
 begin
   Result:=TJSElementCSSInlineStyle.JOBCast(Intf);
+end;
+
+function TJSPointerLockOptions._GetunadjustedMovement: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('unadjustedMovement');
+end;
+
+procedure TJSPointerLockOptions._SetunadjustedMovement(const aValue : Boolean);
+begin
+  WriteJSPropertyBoolean('unadjustedMovement',aValue);
+end;
+
+constructor TJSPointerLockOptions.create(const aDict : TJSPointerLockOptionsRec); overload;
+begin
+  Self.unadjustedMovement:=aDict.unadjustedMovement;
+end;
+
+class function TJSPointerLockOptions.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSPointerLockOptions.Cast(const Intf: IJSObject): IJSPointerLockOptions;
+begin
+  Result:=TJSPointerLockOptions.JOBCast(Intf);
 end;
 
 function TJSGlobalEventHandlers._Getonabort: TEventHandler;
@@ -11300,6 +16576,161 @@ begin
   Result:=TJSEventInit.JOBCast(Intf);
 end;
 
+function TJSBody._GetbodyUsed: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('bodyUsed');
+end;
+
+function TJSBody.arrayBuffer: IJSPromise; // Promise<ArrayBuffer>
+begin
+  Result:=InvokeJSObjectResult('arrayBuffer',[],TJSPromise) as IJSPromise;
+end;
+
+function TJSBody.blob: IJSPromise; // Promise<Blob>
+begin
+  Result:=InvokeJSObjectResult('blob',[],TJSPromise) as IJSPromise;
+end;
+
+function TJSBody.bytes: IJSPromise; // Promise<Uint8Array>
+begin
+  Result:=InvokeJSObjectResult('bytes',[],TJSPromise) as IJSPromise;
+end;
+
+function TJSBody.formData: IJSPromise; // Promise<FormData>
+begin
+  Result:=InvokeJSObjectResult('formData',[],TJSPromise) as IJSPromise;
+end;
+
+function TJSBody.json: IJSPromise; // Promise<JSON>
+begin
+  Result:=InvokeJSObjectResult('json',[],TJSPromise) as IJSPromise;
+end;
+
+function TJSBody.text: IJSPromise; // Promise<USVString>
+begin
+  Result:=InvokeJSObjectResult('text',[],TJSPromise) as IJSPromise;
+end;
+
+class function TJSBody.JSClassName: UnicodeString;
+begin
+  Result:='Body';
+end;
+
+class function TJSBody.Cast(const Intf: IJSObject): IJSBody;
+begin
+  Result:=TJSBody.JOBCast(Intf);
+end;
+
+function TJSFetchReadableStreamReadDataDone._Getdone: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('done');
+end;
+
+procedure TJSFetchReadableStreamReadDataDone._Setdone(const aValue : Boolean);
+begin
+  WriteJSPropertyBoolean('done',aValue);
+end;
+
+constructor TJSFetchReadableStreamReadDataDone.create(const aDict : TJSFetchReadableStreamReadDataDoneRec); overload;
+begin
+  Self.done:=aDict.done;
+end;
+
+class function TJSFetchReadableStreamReadDataDone.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSFetchReadableStreamReadDataDone.Cast(const Intf: IJSObject): IJSFetchReadableStreamReadDataDone;
+begin
+  Result:=TJSFetchReadableStreamReadDataDone.JOBCast(Intf);
+end;
+
+function TJSFetchReadableStreamReadDataArray._Getvalue: IJSUint8Array;
+begin
+  Result:=ReadJSPropertyObject('value',TJSUint8Array) as IJSUint8Array;
+end;
+
+procedure TJSFetchReadableStreamReadDataArray._Setvalue(const aValue : IJSUint8Array);
+begin
+  WriteJSPropertyObject('value',aValue);
+end;
+
+constructor TJSFetchReadableStreamReadDataArray.create(const aDict : TJSFetchReadableStreamReadDataArrayRec); overload;
+begin
+  Self.value:=aDict.value;
+end;
+
+class function TJSFetchReadableStreamReadDataArray.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSFetchReadableStreamReadDataArray.Cast(const Intf: IJSObject): IJSFetchReadableStreamReadDataArray;
+begin
+  Result:=TJSFetchReadableStreamReadDataArray.JOBCast(Intf);
+end;
+
+class function TJSFormData.JSClassName: UnicodeString;
+begin
+  Result:='FormData';
+end;
+
+class function TJSFormData.Cast(const Intf: IJSObject): IJSFormData;
+begin
+  Result:=TJSFormData.JOBCast(Intf);
+end;
+
+function TJSGainOptions._Getgain: Single;
+begin
+  Result:=ReadJSPropertyDouble('gain');
+end;
+
+procedure TJSGainOptions._Setgain(const aValue : Single);
+begin
+  WriteJSPropertyDouble('gain',aValue);
+end;
+
+constructor TJSGainOptions.create(const aDict : TJSGainOptionsRec); overload;
+begin
+  Self.gain:=aDict.gain;
+end;
+
+class function TJSGainOptions.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSGainOptions.Cast(const Intf: IJSObject): IJSGainOptions;
+begin
+  Result:=TJSGainOptions.JOBCast(Intf);
+end;
+
+function TJSGainNode._Getgain: IJSAudioParam;
+begin
+  Result:=ReadJSPropertyObject('gain',TJSAudioParam) as IJSAudioParam;
+end;
+
+constructor TJSGainNode.Create(aContext: IJSBaseAudioContext; const aOptions: IJSGainOptions);
+begin
+  JOBCreate([aContext,aOptions]);
+end;
+
+constructor TJSGainNode.Create(aContext: IJSBaseAudioContext);
+begin
+  JOBCreate([aContext]);
+end;
+
+class function TJSGainNode.JSClassName: UnicodeString;
+begin
+  Result:='GainNode';
+end;
+
+class function TJSGainNode.Cast(const Intf: IJSObject): IJSGainNode;
+begin
+  Result:=TJSGainNode.JOBCast(Intf);
+end;
+
 function TJSHTMLCanvasElement._Getwidth: Cardinal;
 begin
   Result:=ReadJSPropertyInt64('width');
@@ -12035,6 +17466,62 @@ begin
   Result:=TJSHTMLVideoElement.JOBCast(Intf);
 end;
 
+function TJSIIRFilterOptions._Getfeedforward: TDoubleDynArray;
+begin
+  Result:=ReadJSPropertyObject('feedforward',TJSArray) as TDoubleDynArray;
+end;
+
+function TJSIIRFilterOptions._Getfeedback: TDoubleDynArray;
+begin
+  Result:=ReadJSPropertyObject('feedback',TJSArray) as TDoubleDynArray;
+end;
+
+procedure TJSIIRFilterOptions._Setfeedforward(const aValue : TDoubleDynArray);
+begin
+  WriteJSPropertyObject('feedforward',aValue);
+end;
+
+procedure TJSIIRFilterOptions._Setfeedback(const aValue : TDoubleDynArray);
+begin
+  WriteJSPropertyObject('feedback',aValue);
+end;
+
+constructor TJSIIRFilterOptions.create(const aDict : TJSIIRFilterOptionsRec); overload;
+begin
+  Self.feedforward:=aDict.feedforward;
+  Self.feedback:=aDict.feedback;
+end;
+
+class function TJSIIRFilterOptions.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSIIRFilterOptions.Cast(const Intf: IJSObject): IJSIIRFilterOptions;
+begin
+  Result:=TJSIIRFilterOptions.JOBCast(Intf);
+end;
+
+constructor TJSIIRFilterNode.Create(aContext: IJSBaseAudioContext; const aOptions: IJSIIRFilterOptions);
+begin
+  JOBCreate([aContext,aOptions]);
+end;
+
+procedure TJSIIRFilterNode.getFrequencyResponse(aFrequencyHz: IJSFloat32Array; aMagResponse: IJSFloat32Array; aPhaseResponse: IJSFloat32Array);
+begin
+  InvokeJSNoResult('getFrequencyResponse',[aFrequencyHz,aMagResponse,aPhaseResponse]);
+end;
+
+class function TJSIIRFilterNode.JSClassName: UnicodeString;
+begin
+  Result:='IIRFilterNode';
+end;
+
+class function TJSIIRFilterNode.Cast(const Intf: IJSObject): IJSIIRFilterNode;
+begin
+  Result:=TJSIIRFilterNode.JOBCast(Intf);
+end;
+
 function TJSImageBitmap._Getwidth: Cardinal;
 begin
   Result:=ReadJSPropertyInt64('width');
@@ -12325,6 +17812,121 @@ end;
 class function TJSKeyboardEventInit.Cast(const Intf: IJSObject): IJSKeyboardEventInit;
 begin
   Result:=TJSKeyboardEventInit.JOBCast(Intf);
+end;
+
+function TJSLocation._Gethref: UTF8String;
+begin
+  Result:=ReadJSPropertyUTF8String('href');
+end;
+
+function TJSLocation._Getorigin: UTF8String;
+begin
+  Result:=ReadJSPropertyUTF8String('origin');
+end;
+
+function TJSLocation._Getprotocol: UTF8String;
+begin
+  Result:=ReadJSPropertyUTF8String('protocol');
+end;
+
+function TJSLocation._Gethost: UTF8String;
+begin
+  Result:=ReadJSPropertyUTF8String('host');
+end;
+
+function TJSLocation._Gethostname: UTF8String;
+begin
+  Result:=ReadJSPropertyUTF8String('hostname');
+end;
+
+function TJSLocation._Getport: UTF8String;
+begin
+  Result:=ReadJSPropertyUTF8String('port');
+end;
+
+function TJSLocation._Getpathname: UTF8String;
+begin
+  Result:=ReadJSPropertyUTF8String('pathname');
+end;
+
+function TJSLocation._Getsearch: UTF8String;
+begin
+  Result:=ReadJSPropertyUTF8String('search');
+end;
+
+function TJSLocation._Gethash: UTF8String;
+begin
+  Result:=ReadJSPropertyUTF8String('hash');
+end;
+
+function TJSLocation._GetancestorOrigins: IJSDOMStringList;
+begin
+  Result:=ReadJSPropertyObject('ancestorOrigins',TJSDOMStringList) as IJSDOMStringList;
+end;
+
+procedure TJSLocation._Setprotocol(const aValue : UTF8String);
+begin
+  WriteJSPropertyUTF8String('protocol',aValue);
+end;
+
+procedure TJSLocation._Sethost(const aValue : UTF8String);
+begin
+  WriteJSPropertyUTF8String('host',aValue);
+end;
+
+procedure TJSLocation._Sethostname(const aValue : UTF8String);
+begin
+  WriteJSPropertyUTF8String('hostname',aValue);
+end;
+
+procedure TJSLocation._Setport(const aValue : UTF8String);
+begin
+  WriteJSPropertyUTF8String('port',aValue);
+end;
+
+procedure TJSLocation._Setpathname(const aValue : UTF8String);
+begin
+  WriteJSPropertyUTF8String('pathname',aValue);
+end;
+
+procedure TJSLocation._Setsearch(const aValue : UTF8String);
+begin
+  WriteJSPropertyUTF8String('search',aValue);
+end;
+
+procedure TJSLocation._Sethash(const aValue : UTF8String);
+begin
+  WriteJSPropertyUTF8String('hash',aValue);
+end;
+
+procedure TJSLocation.assign(const aUrl: UTF8String);
+begin
+  InvokeJSNoResult('assign',[aUrl]);
+end;
+
+procedure TJSLocation.replace(const aUrl: UTF8String);
+begin
+  InvokeJSNoResult('replace',[aUrl]);
+end;
+
+procedure TJSLocation.reload(aForceget: Boolean);
+begin
+  InvokeJSNoResult('reload',[aForceget]);
+end;
+
+procedure TJSLocation.reload;
+begin
+  InvokeJSNoResult('reload',[]);
+end;
+
+class function TJSLocation.JSClassName: UnicodeString;
+begin
+  Result:='Location';
+end;
+
+class function TJSLocation.Cast(const Intf: IJSObject): IJSLocation;
+begin
+  Result:=TJSLocation.JOBCast(Intf);
 end;
 
 function TJSMouseEvent._GetscreenX: Double;
@@ -13025,6 +18627,498 @@ begin
   Result:=TJSOffscreenCanvas.JOBCast(Intf);
 end;
 
+function TJSOscillatorOptions._Gettype_: TOscillatorType;
+begin
+  Result:=ReadJSPropertyUnicodeString('type');
+end;
+
+function TJSOscillatorOptions._Getfrequency: Single;
+begin
+  Result:=ReadJSPropertyDouble('frequency');
+end;
+
+function TJSOscillatorOptions._Getdetune: Single;
+begin
+  Result:=ReadJSPropertyDouble('detune');
+end;
+
+function TJSOscillatorOptions._GetperiodicWave: IJSPeriodicWave;
+begin
+  Result:=ReadJSPropertyObject('periodicWave',TJSPeriodicWave) as IJSPeriodicWave;
+end;
+
+procedure TJSOscillatorOptions._Settype_(const aValue : TOscillatorType);
+begin
+  WriteJSPropertyUnicodeString('type',aValue);
+end;
+
+procedure TJSOscillatorOptions._Setfrequency(const aValue : Single);
+begin
+  WriteJSPropertyDouble('frequency',aValue);
+end;
+
+procedure TJSOscillatorOptions._Setdetune(const aValue : Single);
+begin
+  WriteJSPropertyDouble('detune',aValue);
+end;
+
+procedure TJSOscillatorOptions._SetperiodicWave(const aValue : IJSPeriodicWave);
+begin
+  WriteJSPropertyObject('periodicWave',aValue);
+end;
+
+constructor TJSOscillatorOptions.create(const aDict : TJSOscillatorOptionsRec); overload;
+begin
+  Self.type_:=aDict.type_;
+  Self.frequency:=aDict.frequency;
+  Self.detune:=aDict.detune;
+  Self.periodicWave:=aDict.periodicWave;
+end;
+
+class function TJSOscillatorOptions.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSOscillatorOptions.Cast(const Intf: IJSObject): IJSOscillatorOptions;
+begin
+  Result:=TJSOscillatorOptions.JOBCast(Intf);
+end;
+
+function TJSOscillatorNode._Gettype_: TOscillatorType;
+begin
+  Result:=ReadJSPropertyUnicodeString('type');
+end;
+
+function TJSOscillatorNode._Getfrequency: IJSAudioParam;
+begin
+  Result:=ReadJSPropertyObject('frequency',TJSAudioParam) as IJSAudioParam;
+end;
+
+function TJSOscillatorNode._Getdetune: IJSAudioParam;
+begin
+  Result:=ReadJSPropertyObject('detune',TJSAudioParam) as IJSAudioParam;
+end;
+
+procedure TJSOscillatorNode._Settype_(const aValue : TOscillatorType);
+begin
+  WriteJSPropertyUnicodeString('type',aValue);
+end;
+
+constructor TJSOscillatorNode.Create(aContext: IJSBaseAudioContext; const aOptions: IJSOscillatorOptions);
+begin
+  JOBCreate([aContext,aOptions]);
+end;
+
+constructor TJSOscillatorNode.Create(aContext: IJSBaseAudioContext);
+begin
+  JOBCreate([aContext]);
+end;
+
+procedure TJSOscillatorNode.setPeriodicWave(aPeriodicWave: IJSPeriodicWave);
+begin
+  InvokeJSNoResult('setPeriodicWave',[aPeriodicWave]);
+end;
+
+class function TJSOscillatorNode.JSClassName: UnicodeString;
+begin
+  Result:='OscillatorNode';
+end;
+
+class function TJSOscillatorNode.Cast(const Intf: IJSObject): IJSOscillatorNode;
+begin
+  Result:=TJSOscillatorNode.JOBCast(Intf);
+end;
+
+function TJSPannerOptions._GetpanningModel: TPanningModelType;
+begin
+  Result:=ReadJSPropertyUnicodeString('panningModel');
+end;
+
+function TJSPannerOptions._GetdistanceModel: TDistanceModelType;
+begin
+  Result:=ReadJSPropertyUnicodeString('distanceModel');
+end;
+
+function TJSPannerOptions._GetpositionX: Single;
+begin
+  Result:=ReadJSPropertyDouble('positionX');
+end;
+
+function TJSPannerOptions._GetpositionY: Single;
+begin
+  Result:=ReadJSPropertyDouble('positionY');
+end;
+
+function TJSPannerOptions._GetpositionZ: Single;
+begin
+  Result:=ReadJSPropertyDouble('positionZ');
+end;
+
+function TJSPannerOptions._GetorientationX: Single;
+begin
+  Result:=ReadJSPropertyDouble('orientationX');
+end;
+
+function TJSPannerOptions._GetorientationY: Single;
+begin
+  Result:=ReadJSPropertyDouble('orientationY');
+end;
+
+function TJSPannerOptions._GetorientationZ: Single;
+begin
+  Result:=ReadJSPropertyDouble('orientationZ');
+end;
+
+function TJSPannerOptions._GetrefDistance: Double;
+begin
+  Result:=ReadJSPropertyDouble('refDistance');
+end;
+
+function TJSPannerOptions._GetmaxDistance: Double;
+begin
+  Result:=ReadJSPropertyDouble('maxDistance');
+end;
+
+function TJSPannerOptions._GetrolloffFactor: Double;
+begin
+  Result:=ReadJSPropertyDouble('rolloffFactor');
+end;
+
+function TJSPannerOptions._GetconeInnerAngle: Double;
+begin
+  Result:=ReadJSPropertyDouble('coneInnerAngle');
+end;
+
+function TJSPannerOptions._GetconeOuterAngle: Double;
+begin
+  Result:=ReadJSPropertyDouble('coneOuterAngle');
+end;
+
+function TJSPannerOptions._GetconeOuterGain: Double;
+begin
+  Result:=ReadJSPropertyDouble('coneOuterGain');
+end;
+
+procedure TJSPannerOptions._SetpanningModel(const aValue : TPanningModelType);
+begin
+  WriteJSPropertyUnicodeString('panningModel',aValue);
+end;
+
+procedure TJSPannerOptions._SetdistanceModel(const aValue : TDistanceModelType);
+begin
+  WriteJSPropertyUnicodeString('distanceModel',aValue);
+end;
+
+procedure TJSPannerOptions._SetpositionX(const aValue : Single);
+begin
+  WriteJSPropertyDouble('positionX',aValue);
+end;
+
+procedure TJSPannerOptions._SetpositionY(const aValue : Single);
+begin
+  WriteJSPropertyDouble('positionY',aValue);
+end;
+
+procedure TJSPannerOptions._SetpositionZ(const aValue : Single);
+begin
+  WriteJSPropertyDouble('positionZ',aValue);
+end;
+
+procedure TJSPannerOptions._SetorientationX(const aValue : Single);
+begin
+  WriteJSPropertyDouble('orientationX',aValue);
+end;
+
+procedure TJSPannerOptions._SetorientationY(const aValue : Single);
+begin
+  WriteJSPropertyDouble('orientationY',aValue);
+end;
+
+procedure TJSPannerOptions._SetorientationZ(const aValue : Single);
+begin
+  WriteJSPropertyDouble('orientationZ',aValue);
+end;
+
+procedure TJSPannerOptions._SetrefDistance(const aValue : Double);
+begin
+  WriteJSPropertyDouble('refDistance',aValue);
+end;
+
+procedure TJSPannerOptions._SetmaxDistance(const aValue : Double);
+begin
+  WriteJSPropertyDouble('maxDistance',aValue);
+end;
+
+procedure TJSPannerOptions._SetrolloffFactor(const aValue : Double);
+begin
+  WriteJSPropertyDouble('rolloffFactor',aValue);
+end;
+
+procedure TJSPannerOptions._SetconeInnerAngle(const aValue : Double);
+begin
+  WriteJSPropertyDouble('coneInnerAngle',aValue);
+end;
+
+procedure TJSPannerOptions._SetconeOuterAngle(const aValue : Double);
+begin
+  WriteJSPropertyDouble('coneOuterAngle',aValue);
+end;
+
+procedure TJSPannerOptions._SetconeOuterGain(const aValue : Double);
+begin
+  WriteJSPropertyDouble('coneOuterGain',aValue);
+end;
+
+constructor TJSPannerOptions.create(const aDict : TJSPannerOptionsRec); overload;
+begin
+  Self.panningModel:=aDict.panningModel;
+  Self.distanceModel:=aDict.distanceModel;
+  Self.positionX:=aDict.positionX;
+  Self.positionY:=aDict.positionY;
+  Self.positionZ:=aDict.positionZ;
+  Self.orientationX:=aDict.orientationX;
+  Self.orientationY:=aDict.orientationY;
+  Self.orientationZ:=aDict.orientationZ;
+  Self.refDistance:=aDict.refDistance;
+  Self.maxDistance:=aDict.maxDistance;
+  Self.rolloffFactor:=aDict.rolloffFactor;
+  Self.coneInnerAngle:=aDict.coneInnerAngle;
+  Self.coneOuterAngle:=aDict.coneOuterAngle;
+  Self.coneOuterGain:=aDict.coneOuterGain;
+end;
+
+class function TJSPannerOptions.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSPannerOptions.Cast(const Intf: IJSObject): IJSPannerOptions;
+begin
+  Result:=TJSPannerOptions.JOBCast(Intf);
+end;
+
+function TJSPannerNode._GetpanningModel: TPanningModelType;
+begin
+  Result:=ReadJSPropertyUnicodeString('panningModel');
+end;
+
+function TJSPannerNode._GetpositionX: IJSAudioParam;
+begin
+  Result:=ReadJSPropertyObject('positionX',TJSAudioParam) as IJSAudioParam;
+end;
+
+function TJSPannerNode._GetpositionY: IJSAudioParam;
+begin
+  Result:=ReadJSPropertyObject('positionY',TJSAudioParam) as IJSAudioParam;
+end;
+
+function TJSPannerNode._GetpositionZ: IJSAudioParam;
+begin
+  Result:=ReadJSPropertyObject('positionZ',TJSAudioParam) as IJSAudioParam;
+end;
+
+function TJSPannerNode._GetorientationX: IJSAudioParam;
+begin
+  Result:=ReadJSPropertyObject('orientationX',TJSAudioParam) as IJSAudioParam;
+end;
+
+function TJSPannerNode._GetorientationY: IJSAudioParam;
+begin
+  Result:=ReadJSPropertyObject('orientationY',TJSAudioParam) as IJSAudioParam;
+end;
+
+function TJSPannerNode._GetorientationZ: IJSAudioParam;
+begin
+  Result:=ReadJSPropertyObject('orientationZ',TJSAudioParam) as IJSAudioParam;
+end;
+
+function TJSPannerNode._GetdistanceModel: TDistanceModelType;
+begin
+  Result:=ReadJSPropertyUnicodeString('distanceModel');
+end;
+
+function TJSPannerNode._GetrefDistance: Double;
+begin
+  Result:=ReadJSPropertyDouble('refDistance');
+end;
+
+function TJSPannerNode._GetmaxDistance: Double;
+begin
+  Result:=ReadJSPropertyDouble('maxDistance');
+end;
+
+function TJSPannerNode._GetrolloffFactor: Double;
+begin
+  Result:=ReadJSPropertyDouble('rolloffFactor');
+end;
+
+function TJSPannerNode._GetconeInnerAngle: Double;
+begin
+  Result:=ReadJSPropertyDouble('coneInnerAngle');
+end;
+
+function TJSPannerNode._GetconeOuterAngle: Double;
+begin
+  Result:=ReadJSPropertyDouble('coneOuterAngle');
+end;
+
+function TJSPannerNode._GetconeOuterGain: Double;
+begin
+  Result:=ReadJSPropertyDouble('coneOuterGain');
+end;
+
+procedure TJSPannerNode._SetpanningModel(const aValue : TPanningModelType);
+begin
+  WriteJSPropertyUnicodeString('panningModel',aValue);
+end;
+
+procedure TJSPannerNode._SetdistanceModel(const aValue : TDistanceModelType);
+begin
+  WriteJSPropertyUnicodeString('distanceModel',aValue);
+end;
+
+procedure TJSPannerNode._SetrefDistance(const aValue : Double);
+begin
+  WriteJSPropertyDouble('refDistance',aValue);
+end;
+
+procedure TJSPannerNode._SetmaxDistance(const aValue : Double);
+begin
+  WriteJSPropertyDouble('maxDistance',aValue);
+end;
+
+procedure TJSPannerNode._SetrolloffFactor(const aValue : Double);
+begin
+  WriteJSPropertyDouble('rolloffFactor',aValue);
+end;
+
+procedure TJSPannerNode._SetconeInnerAngle(const aValue : Double);
+begin
+  WriteJSPropertyDouble('coneInnerAngle',aValue);
+end;
+
+procedure TJSPannerNode._SetconeOuterAngle(const aValue : Double);
+begin
+  WriteJSPropertyDouble('coneOuterAngle',aValue);
+end;
+
+procedure TJSPannerNode._SetconeOuterGain(const aValue : Double);
+begin
+  WriteJSPropertyDouble('coneOuterGain',aValue);
+end;
+
+constructor TJSPannerNode.Create(aContext: IJSBaseAudioContext; const aOptions: IJSPannerOptions);
+begin
+  JOBCreate([aContext,aOptions]);
+end;
+
+constructor TJSPannerNode.Create(aContext: IJSBaseAudioContext);
+begin
+  JOBCreate([aContext]);
+end;
+
+procedure TJSPannerNode.setPosition(aX: Double; aY: Double; aZ: Double);
+begin
+  InvokeJSNoResult('setPosition',[aX,aY,aZ]);
+end;
+
+procedure TJSPannerNode.setOrientation(aX: Double; aY: Double; aZ: Double);
+begin
+  InvokeJSNoResult('setOrientation',[aX,aY,aZ]);
+end;
+
+class function TJSPannerNode.JSClassName: UnicodeString;
+begin
+  Result:='PannerNode';
+end;
+
+class function TJSPannerNode.Cast(const Intf: IJSObject): IJSPannerNode;
+begin
+  Result:=TJSPannerNode.JOBCast(Intf);
+end;
+
+function TJSPeriodicWaveConstraints._GetdisableNormalization: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('disableNormalization');
+end;
+
+procedure TJSPeriodicWaveConstraints._SetdisableNormalization(const aValue : Boolean);
+begin
+  WriteJSPropertyBoolean('disableNormalization',aValue);
+end;
+
+constructor TJSPeriodicWaveConstraints.create(const aDict : TJSPeriodicWaveConstraintsRec); overload;
+begin
+  Self.disableNormalization:=aDict.disableNormalization;
+end;
+
+class function TJSPeriodicWaveConstraints.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSPeriodicWaveConstraints.Cast(const Intf: IJSObject): IJSPeriodicWaveConstraints;
+begin
+  Result:=TJSPeriodicWaveConstraints.JOBCast(Intf);
+end;
+
+function TJSPeriodicWaveOptions._Getreal: TSingleDynArray;
+begin
+  Result:=ReadJSPropertyObject('real',TJSArray) as TSingleDynArray;
+end;
+
+function TJSPeriodicWaveOptions._Getimag: TSingleDynArray;
+begin
+  Result:=ReadJSPropertyObject('imag',TJSArray) as TSingleDynArray;
+end;
+
+procedure TJSPeriodicWaveOptions._Setreal(const aValue : TSingleDynArray);
+begin
+  WriteJSPropertyObject('real',aValue);
+end;
+
+procedure TJSPeriodicWaveOptions._Setimag(const aValue : TSingleDynArray);
+begin
+  WriteJSPropertyObject('imag',aValue);
+end;
+
+constructor TJSPeriodicWaveOptions.create(const aDict : TJSPeriodicWaveOptionsRec); overload;
+begin
+  Self.real:=aDict.real;
+  Self.imag:=aDict.imag;
+end;
+
+class function TJSPeriodicWaveOptions.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSPeriodicWaveOptions.Cast(const Intf: IJSObject): IJSPeriodicWaveOptions;
+begin
+  Result:=TJSPeriodicWaveOptions.JOBCast(Intf);
+end;
+
+constructor TJSPeriodicWave.Create(aContext: IJSBaseAudioContext; const aOptions: IJSPeriodicWaveOptions);
+begin
+  JOBCreate([aContext,aOptions]);
+end;
+
+constructor TJSPeriodicWave.Create(aContext: IJSBaseAudioContext);
+begin
+  JOBCreate([aContext]);
+end;
+
+class function TJSPeriodicWave.JSClassName: UnicodeString;
+begin
+  Result:='PeriodicWave';
+end;
+
+class function TJSPeriodicWave.Cast(const Intf: IJSObject): IJSPeriodicWave;
+begin
+  Result:=TJSPeriodicWave.JOBCast(Intf);
+end;
+
 function TJSPointerEvent._GetpointerId: LongInt;
 begin
   Result:=ReadJSPropertyLongInt('pointerId');
@@ -13281,6 +19375,577 @@ end;
 class function TJSPointerEventInit.Cast(const Intf: IJSObject): IJSPointerEventInit;
 begin
   Result:=TJSPointerEventInit.JOBCast(Intf);
+end;
+
+function TJSProgressEvent._GetlengthComputable: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('lengthComputable');
+end;
+
+function TJSProgressEvent._Getloaded: Double;
+begin
+  Result:=ReadJSPropertyDouble('loaded');
+end;
+
+function TJSProgressEvent._Gettotal: Double;
+begin
+  Result:=ReadJSPropertyDouble('total');
+end;
+
+constructor TJSProgressEvent.Create(const aType_: UnicodeString; const aEventInitDict: IJSProgressEventInit);
+begin
+  JOBCreate([aType_,aEventInitDict]);
+end;
+
+constructor TJSProgressEvent.Create(const aType_: UnicodeString);
+begin
+  JOBCreate([aType_]);
+end;
+
+class function TJSProgressEvent.JSClassName: UnicodeString;
+begin
+  Result:='ProgressEvent';
+end;
+
+class function TJSProgressEvent.Cast(const Intf: IJSObject): IJSProgressEvent;
+begin
+  Result:=TJSProgressEvent.JOBCast(Intf);
+end;
+
+function TJSProgressEventInit._GetlengthComputable: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('lengthComputable');
+end;
+
+function TJSProgressEventInit._Getloaded: Double;
+begin
+  Result:=ReadJSPropertyDouble('loaded');
+end;
+
+function TJSProgressEventInit._Gettotal: Double;
+begin
+  Result:=ReadJSPropertyDouble('total');
+end;
+
+procedure TJSProgressEventInit._SetlengthComputable(const aValue : Boolean);
+begin
+  WriteJSPropertyBoolean('lengthComputable',aValue);
+end;
+
+procedure TJSProgressEventInit._Setloaded(const aValue : Double);
+begin
+  WriteJSPropertyDouble('loaded',aValue);
+end;
+
+procedure TJSProgressEventInit._Settotal(const aValue : Double);
+begin
+  WriteJSPropertyDouble('total',aValue);
+end;
+
+constructor TJSProgressEventInit.create(const aDict : TJSProgressEventInitRec); overload;
+begin
+  Self.lengthComputable:=aDict.lengthComputable;
+  Self.loaded:=aDict.loaded;
+  Self.total:=aDict.total;
+end;
+
+class function TJSProgressEventInit.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSProgressEventInit.Cast(const Intf: IJSObject): IJSProgressEventInit;
+begin
+  Result:=TJSProgressEventInit.JOBCast(Intf);
+end;
+
+function TJSQueuingStrategy._GethighWaterMark: Double;
+begin
+  Result:=ReadJSPropertyDouble('highWaterMark');
+end;
+
+function TJSQueuingStrategy._Getsize: TQueuingStrategySize;
+begin
+  Result:=(TQueuingStrategySize(ReadJSPropertyMethod('size')));
+end;
+
+procedure TJSQueuingStrategy._SethighWaterMark(const aValue : Double);
+begin
+  WriteJSPropertyDouble('highWaterMark',aValue);
+end;
+
+procedure TJSQueuingStrategy._Setsize(const aValue : TQueuingStrategySize);
+var
+  m : TJOB_Method;
+begin
+  m:=TJOB_Method.create(TMethod(aValue),@JobCallQueuingStrategySize);
+  try
+    InvokeJSNoResult('size',[m],jiSet);
+  finally
+    m.free
+  end;
+end;
+
+constructor TJSQueuingStrategy.create(const aDict : TJSQueuingStrategyRec); overload;
+begin
+  Self.highWaterMark:=aDict.highWaterMark;
+  Self.size:=aDict.size;
+end;
+
+class function TJSQueuingStrategy.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSQueuingStrategy.Cast(const Intf: IJSObject): IJSQueuingStrategy;
+begin
+  Result:=TJSQueuingStrategy.JOBCast(Intf);
+end;
+
+function TJSQueuingStrategyInit._GethighWaterMark: Double;
+begin
+  Result:=ReadJSPropertyDouble('highWaterMark');
+end;
+
+procedure TJSQueuingStrategyInit._SethighWaterMark(const aValue : Double);
+begin
+  WriteJSPropertyDouble('highWaterMark',aValue);
+end;
+
+constructor TJSQueuingStrategyInit.create(const aDict : TJSQueuingStrategyInitRec); overload;
+begin
+  Self.highWaterMark:=aDict.highWaterMark;
+end;
+
+class function TJSQueuingStrategyInit.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSQueuingStrategyInit.Cast(const Intf: IJSObject): IJSQueuingStrategyInit;
+begin
+  Result:=TJSQueuingStrategyInit.JOBCast(Intf);
+end;
+
+function TJSCountQueuingStrategy._GethighWaterMark: Double;
+begin
+  Result:=ReadJSPropertyDouble('highWaterMark');
+end;
+
+function TJSCountQueuingStrategy._Getsize: IJSFunction;
+begin
+  Result:=ReadJSPropertyObject('size',TJSFunction) as IJSFunction;
+end;
+
+constructor TJSCountQueuingStrategy.Create(const aInit: IJSQueuingStrategyInit);
+begin
+  JOBCreate([aInit]);
+end;
+
+class function TJSCountQueuingStrategy.JSClassName: UnicodeString;
+begin
+  Result:='CountQueuingStrategy';
+end;
+
+class function TJSCountQueuingStrategy.Cast(const Intf: IJSObject): IJSCountQueuingStrategy;
+begin
+  Result:=TJSCountQueuingStrategy.JOBCast(Intf);
+end;
+
+function TJSByteLengthQueuingStrategy._GethighWaterMark: Double;
+begin
+  Result:=ReadJSPropertyDouble('highWaterMark');
+end;
+
+function TJSByteLengthQueuingStrategy._Getsize: IJSFunction;
+begin
+  Result:=ReadJSPropertyObject('size',TJSFunction) as IJSFunction;
+end;
+
+constructor TJSByteLengthQueuingStrategy.Create(const aInit: IJSQueuingStrategyInit);
+begin
+  JOBCreate([aInit]);
+end;
+
+class function TJSByteLengthQueuingStrategy.JSClassName: UnicodeString;
+begin
+  Result:='ByteLengthQueuingStrategy';
+end;
+
+class function TJSByteLengthQueuingStrategy.Cast(const Intf: IJSObject): IJSByteLengthQueuingStrategy;
+begin
+  Result:=TJSByteLengthQueuingStrategy.JOBCast(Intf);
+end;
+
+function TJSReadableStreamGenericReader._Getclosed: IJSPromise;
+begin
+  Result:=ReadJSPropertyObject('closed',TJSPromise) as IJSPromise;
+end;
+
+function TJSReadableStreamGenericReader.cancel(const aReason: Variant): IJSPromise; // Promise<undefined>
+begin
+  Result:=InvokeJSObjectResult('cancel',[aReason],TJSPromise) as IJSPromise;
+end;
+
+function TJSReadableStreamGenericReader.cancel: IJSPromise; // Promise<undefined>
+begin
+  Result:=InvokeJSObjectResult('cancel',[],TJSPromise) as IJSPromise;
+end;
+
+class function TJSReadableStreamGenericReader.JSClassName: UnicodeString;
+begin
+  Result:='ReadableStreamGenericReader';
+end;
+
+class function TJSReadableStreamGenericReader.Cast(const Intf: IJSObject): IJSReadableStreamGenericReader;
+begin
+  Result:=TJSReadableStreamGenericReader.JOBCast(Intf);
+end;
+
+constructor TJSReadableStreamDefaultReader.Create(aStream: IJSReadableStream);
+begin
+  JOBCreate([aStream]);
+end;
+
+function TJSReadableStreamDefaultReader.read: IJSPromise; // Promise<ReadableStreamReadResult>
+begin
+  Result:=InvokeJSObjectResult('read',[],TJSPromise) as IJSPromise;
+end;
+
+procedure TJSReadableStreamDefaultReader.releaseLock;
+begin
+  InvokeJSNoResult('releaseLock',[]);
+end;
+
+class function TJSReadableStreamDefaultReader.JSClassName: UnicodeString;
+begin
+  Result:='ReadableStreamDefaultReader';
+end;
+
+class function TJSReadableStreamDefaultReader.Cast(const Intf: IJSObject): IJSReadableStreamDefaultReader;
+begin
+  Result:=TJSReadableStreamDefaultReader.JOBCast(Intf);
+end;
+
+function TJSReadableStreamReadResult._Getvalue: Variant;
+begin
+  Result:=ReadJSPropertyVariant('value');
+end;
+
+function TJSReadableStreamReadResult._Getdone: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('done');
+end;
+
+procedure TJSReadableStreamReadResult._Setvalue(const aValue : Variant);
+begin
+  WriteJSPropertyVariant('value',aValue);
+end;
+
+procedure TJSReadableStreamReadResult._Setdone(const aValue : Boolean);
+begin
+  WriteJSPropertyBoolean('done',aValue);
+end;
+
+constructor TJSReadableStreamReadResult.create(const aDict : TJSReadableStreamReadResultRec); overload;
+begin
+  Self.value:=aDict.value;
+  Self.done:=aDict.done;
+end;
+
+class function TJSReadableStreamReadResult.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSReadableStreamReadResult.Cast(const Intf: IJSObject): IJSReadableStreamReadResult;
+begin
+  Result:=TJSReadableStreamReadResult.JOBCast(Intf);
+end;
+
+function TJSReadableStream._Getlocked: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('locked');
+end;
+
+constructor TJSReadableStream.Create(aUnderlyingSource: IJSObject; const aStrategy: IJSQueuingStrategy);
+begin
+  JOBCreate([aUnderlyingSource,aStrategy]);
+end;
+
+constructor TJSReadableStream.Create;
+begin
+  JOBCreate([]);
+end;
+
+constructor TJSReadableStream.Create(aUnderlyingSource: IJSObject);
+begin
+  JOBCreate([aUnderlyingSource]);
+end;
+
+function TJSReadableStream.from(const aAsyncIterable: Variant): IJSReadableStream;
+begin
+  Result:=InvokeJSObjectResult('from',[aAsyncIterable],TJSReadableStream) as IJSReadableStream;
+end;
+
+function TJSReadableStream.cancel(const aReason: Variant): IJSPromise; // Promise<undefined>
+begin
+  Result:=InvokeJSObjectResult('cancel',[aReason],TJSPromise) as IJSPromise;
+end;
+
+function TJSReadableStream.cancel: IJSPromise; // Promise<undefined>
+begin
+  Result:=InvokeJSObjectResult('cancel',[],TJSPromise) as IJSPromise;
+end;
+
+function TJSReadableStream.getReader(const aOptions: IJSReadableStreamGetReaderOptions): TReadableStreamReader;
+begin
+  Result:=InvokeJSVariantResult('getReader',[aOptions]);
+end;
+
+function TJSReadableStream.getReader: TReadableStreamReader;
+begin
+  Result:=InvokeJSVariantResult('getReader',[]);
+end;
+
+function TJSReadableStream.pipeThrough(const aTransform: IJSReadableWritablePair; const aOptions: IJSStreamPipeOptions): IJSReadableStream;
+begin
+  Result:=InvokeJSObjectResult('pipeThrough',[aTransform,aOptions],TJSReadableStream) as IJSReadableStream;
+end;
+
+function TJSReadableStream.pipeThrough(const aTransform: IJSReadableWritablePair): IJSReadableStream;
+begin
+  Result:=InvokeJSObjectResult('pipeThrough',[aTransform],TJSReadableStream) as IJSReadableStream;
+end;
+
+function TJSReadableStream.tee: TJSReadableStreamDynArray;
+begin
+  Result:=InvokeJSObjectResult('tee',[],TJSArray) as TJSReadableStreamDynArray;
+end;
+
+class function TJSReadableStream.JSClassName: UnicodeString;
+begin
+  Result:='ReadableStream';
+end;
+
+class function TJSReadableStream.Cast(const Intf: IJSObject): IJSReadableStream;
+begin
+  Result:=TJSReadableStream.JOBCast(Intf);
+end;
+
+function TJSReadableStreamGetReaderOptions._Getmode: TReadableStreamReaderMode;
+begin
+  Result:=ReadJSPropertyUnicodeString('mode');
+end;
+
+procedure TJSReadableStreamGetReaderOptions._Setmode(const aValue : TReadableStreamReaderMode);
+begin
+  WriteJSPropertyUnicodeString('mode',aValue);
+end;
+
+constructor TJSReadableStreamGetReaderOptions.create(const aDict : TJSReadableStreamGetReaderOptionsRec); overload;
+begin
+  Self.mode:=aDict.mode;
+end;
+
+class function TJSReadableStreamGetReaderOptions.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSReadableStreamGetReaderOptions.Cast(const Intf: IJSObject): IJSReadableStreamGetReaderOptions;
+begin
+  Result:=TJSReadableStreamGetReaderOptions.JOBCast(Intf);
+end;
+
+function TJSReadableStreamIteratorOptions._GetpreventCancel: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('preventCancel');
+end;
+
+procedure TJSReadableStreamIteratorOptions._SetpreventCancel(const aValue : Boolean);
+begin
+  WriteJSPropertyBoolean('preventCancel',aValue);
+end;
+
+constructor TJSReadableStreamIteratorOptions.create(const aDict : TJSReadableStreamIteratorOptionsRec); overload;
+begin
+  Self.preventCancel:=aDict.preventCancel;
+end;
+
+class function TJSReadableStreamIteratorOptions.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSReadableStreamIteratorOptions.Cast(const Intf: IJSObject): IJSReadableStreamIteratorOptions;
+begin
+  Result:=TJSReadableStreamIteratorOptions.JOBCast(Intf);
+end;
+
+function TJSReadableWritablePair._Getreadable: IJSReadableStream;
+begin
+  Result:=ReadJSPropertyObject('readable',TJSReadableStream) as IJSReadableStream;
+end;
+
+procedure TJSReadableWritablePair._Setreadable(const aValue : IJSReadableStream);
+begin
+  WriteJSPropertyObject('readable',aValue);
+end;
+
+constructor TJSReadableWritablePair.create(const aDict : TJSReadableWritablePairRec); overload;
+begin
+  Self.readable:=aDict.readable;
+end;
+
+class function TJSReadableWritablePair.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSReadableWritablePair.Cast(const Intf: IJSObject): IJSReadableWritablePair;
+begin
+  Result:=TJSReadableWritablePair.JOBCast(Intf);
+end;
+
+function TJSStreamPipeOptions._GetpreventClose: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('preventClose');
+end;
+
+function TJSStreamPipeOptions._GetpreventAbort: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('preventAbort');
+end;
+
+function TJSStreamPipeOptions._GetpreventCancel: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('preventCancel');
+end;
+
+function TJSStreamPipeOptions._Getsignal: IJSAbortSignal;
+begin
+  Result:=ReadJSPropertyObject('signal',TJSAbortSignal) as IJSAbortSignal;
+end;
+
+procedure TJSStreamPipeOptions._SetpreventClose(const aValue : Boolean);
+begin
+  WriteJSPropertyBoolean('preventClose',aValue);
+end;
+
+procedure TJSStreamPipeOptions._SetpreventAbort(const aValue : Boolean);
+begin
+  WriteJSPropertyBoolean('preventAbort',aValue);
+end;
+
+procedure TJSStreamPipeOptions._SetpreventCancel(const aValue : Boolean);
+begin
+  WriteJSPropertyBoolean('preventCancel',aValue);
+end;
+
+procedure TJSStreamPipeOptions._Setsignal(const aValue : IJSAbortSignal);
+begin
+  WriteJSPropertyObject('signal',aValue);
+end;
+
+constructor TJSStreamPipeOptions.create(const aDict : TJSStreamPipeOptionsRec); overload;
+begin
+  Self.preventClose:=aDict.preventClose;
+  Self.preventAbort:=aDict.preventAbort;
+  Self.preventCancel:=aDict.preventCancel;
+  Self.signal:=aDict.signal;
+end;
+
+class function TJSStreamPipeOptions.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSStreamPipeOptions.Cast(const Intf: IJSObject): IJSStreamPipeOptions;
+begin
+  Result:=TJSStreamPipeOptions.JOBCast(Intf);
+end;
+
+function TJSScriptProcessorNode._Getonaudioprocess: TEventHandler;
+begin
+  Result:=(TEventHandlerNonNull(ReadJSPropertyMethod('onaudioprocess')));
+end;
+
+function TJSScriptProcessorNode._GetbufferSize: LongInt;
+begin
+  Result:=ReadJSPropertyLongInt('bufferSize');
+end;
+
+procedure TJSScriptProcessorNode._Setonaudioprocess(const aValue : TEventHandler);
+var
+  m : TJOB_Method;
+begin
+  m:=TJOB_Method.create(TMethod(aValue),@JobCallEventHandlerNonNull);
+  try
+    InvokeJSNoResult('onaudioprocess',[m],jiSet);
+  finally
+    m.free
+  end;
+end;
+
+class function TJSScriptProcessorNode.JSClassName: UnicodeString;
+begin
+  Result:='ScriptProcessorNode';
+end;
+
+class function TJSScriptProcessorNode.Cast(const Intf: IJSObject): IJSScriptProcessorNode;
+begin
+  Result:=TJSScriptProcessorNode.JOBCast(Intf);
+end;
+
+function TJSStereoPannerOptions._Getpan: Single;
+begin
+  Result:=ReadJSPropertyDouble('pan');
+end;
+
+procedure TJSStereoPannerOptions._Setpan(const aValue : Single);
+begin
+  WriteJSPropertyDouble('pan',aValue);
+end;
+
+constructor TJSStereoPannerOptions.create(const aDict : TJSStereoPannerOptionsRec); overload;
+begin
+  Self.pan:=aDict.pan;
+end;
+
+class function TJSStereoPannerOptions.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSStereoPannerOptions.Cast(const Intf: IJSObject): IJSStereoPannerOptions;
+begin
+  Result:=TJSStereoPannerOptions.JOBCast(Intf);
+end;
+
+function TJSStereoPannerNode._Getpan: IJSAudioParam;
+begin
+  Result:=ReadJSPropertyObject('pan',TJSAudioParam) as IJSAudioParam;
+end;
+
+constructor TJSStereoPannerNode.Create(aContext: IJSBaseAudioContext; const aOptions: IJSStereoPannerOptions);
+begin
+  JOBCreate([aContext,aOptions]);
+end;
+
+constructor TJSStereoPannerNode.Create(aContext: IJSBaseAudioContext);
+begin
+  JOBCreate([aContext]);
+end;
+
+class function TJSStereoPannerNode.JSClassName: UnicodeString;
+begin
+  Result:='StereoPannerNode';
+end;
+
+class function TJSStereoPannerNode.Cast(const Intf: IJSObject): IJSStereoPannerNode;
+begin
+  Result:=TJSStereoPannerNode.JOBCast(Intf);
 end;
 
 function TJSUIEvent._Getview: IJSWindowProxy;
@@ -13963,6 +20628,82 @@ end;
 class function TJSPlaneLayout.Cast(const Intf: IJSObject): IJSPlaneLayout;
 begin
   Result:=TJSPlaneLayout.JOBCast(Intf);
+end;
+
+function TJSWaveShaperOptions._Getcurve: TSingleDynArray;
+begin
+  Result:=ReadJSPropertyObject('curve',TJSArray) as TSingleDynArray;
+end;
+
+function TJSWaveShaperOptions._Getoversample: TOverSampleType;
+begin
+  Result:=ReadJSPropertyUnicodeString('oversample');
+end;
+
+procedure TJSWaveShaperOptions._Setcurve(const aValue : TSingleDynArray);
+begin
+  WriteJSPropertyObject('curve',aValue);
+end;
+
+procedure TJSWaveShaperOptions._Setoversample(const aValue : TOverSampleType);
+begin
+  WriteJSPropertyUnicodeString('oversample',aValue);
+end;
+
+constructor TJSWaveShaperOptions.create(const aDict : TJSWaveShaperOptionsRec); overload;
+begin
+  Self.curve:=aDict.curve;
+  Self.oversample:=aDict.oversample;
+end;
+
+class function TJSWaveShaperOptions.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSWaveShaperOptions.Cast(const Intf: IJSObject): IJSWaveShaperOptions;
+begin
+  Result:=TJSWaveShaperOptions.JOBCast(Intf);
+end;
+
+function TJSWaveShaperNode._Getcurve: IJSFloat32Array;
+begin
+  Result:=ReadJSPropertyObject('curve',TJSFloat32Array) as IJSFloat32Array;
+end;
+
+function TJSWaveShaperNode._Getoversample: TOverSampleType;
+begin
+  Result:=ReadJSPropertyUnicodeString('oversample');
+end;
+
+procedure TJSWaveShaperNode._Setcurve(const aValue : IJSFloat32Array);
+begin
+  WriteJSPropertyObject('curve',aValue);
+end;
+
+procedure TJSWaveShaperNode._Setoversample(const aValue : TOverSampleType);
+begin
+  WriteJSPropertyUnicodeString('oversample',aValue);
+end;
+
+constructor TJSWaveShaperNode.Create(aContext: IJSBaseAudioContext; const aOptions: IJSWaveShaperOptions);
+begin
+  JOBCreate([aContext,aOptions]);
+end;
+
+constructor TJSWaveShaperNode.Create(aContext: IJSBaseAudioContext);
+begin
+  JOBCreate([aContext]);
+end;
+
+class function TJSWaveShaperNode.JSClassName: UnicodeString;
+begin
+  Result:='WaveShaperNode';
+end;
+
+class function TJSWaveShaperNode.Cast(const Intf: IJSObject): IJSWaveShaperNode;
+begin
+  Result:=TJSWaveShaperNode.JOBCast(Intf);
 end;
 
 class function TJSWebGLSampler.JSClassName: UnicodeString;
@@ -14838,41 +21579,6 @@ end;
 procedure TJSWebGL2RenderingContext.texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aPboOffset: TGLintptr);
 begin
   InvokeJSNoResult('texImage2D',[aTarget,aLevel,aInternalformat,aWidth,aHeight,aBorder,aFormat,aType_,aPboOffset]);
-end;
-
-procedure TJSWebGL2RenderingContext.texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSHTMLCanvasElement);
-begin
-  InvokeJSNoResult('texImage2D',[aTarget,aLevel,aInternalformat,aWidth,aHeight,aBorder,aFormat,aType_,aSource]);
-end;
-
-procedure TJSWebGL2RenderingContext.texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSHTMLImageElement);
-begin
-  InvokeJSNoResult('texImage2D',[aTarget,aLevel,aInternalformat,aWidth,aHeight,aBorder,aFormat,aType_,aSource]);
-end;
-
-procedure TJSWebGL2RenderingContext.texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSHTMLVideoElement);
-begin
-  InvokeJSNoResult('texImage2D',[aTarget,aLevel,aInternalformat,aWidth,aHeight,aBorder,aFormat,aType_,aSource]);
-end;
-
-procedure TJSWebGL2RenderingContext.texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSImageBitmap);
-begin
-  InvokeJSNoResult('texImage2D',[aTarget,aLevel,aInternalformat,aWidth,aHeight,aBorder,aFormat,aType_,aSource]);
-end;
-
-procedure TJSWebGL2RenderingContext.texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSImageData);
-begin
-  InvokeJSNoResult('texImage2D',[aTarget,aLevel,aInternalformat,aWidth,aHeight,aBorder,aFormat,aType_,aSource]);
-end;
-
-procedure TJSWebGL2RenderingContext.texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSOffscreenCanvas);
-begin
-  InvokeJSNoResult('texImage2D',[aTarget,aLevel,aInternalformat,aWidth,aHeight,aBorder,aFormat,aType_,aSource]);
-end;
-
-procedure TJSWebGL2RenderingContext.texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSVideoFrame);
-begin
-  InvokeJSNoResult('texImage2D',[aTarget,aLevel,aInternalformat,aWidth,aHeight,aBorder,aFormat,aType_,aSource]);
 end;
 
 procedure TJSWebGL2RenderingContext.texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSrcData: IJSArrayBufferView; aSrcOffset: TGLuint);
@@ -16323,41 +23029,6 @@ end;
 procedure TJSWebGL2RenderingContextBase.texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aPboOffset: TGLintptr);
 begin
   InvokeJSNoResult('texImage2D',[aTarget,aLevel,aInternalformat,aWidth,aHeight,aBorder,aFormat,aType_,aPboOffset]);
-end;
-
-procedure TJSWebGL2RenderingContextBase.texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSHTMLCanvasElement);
-begin
-  InvokeJSNoResult('texImage2D',[aTarget,aLevel,aInternalformat,aWidth,aHeight,aBorder,aFormat,aType_,aSource]);
-end;
-
-procedure TJSWebGL2RenderingContextBase.texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSHTMLImageElement);
-begin
-  InvokeJSNoResult('texImage2D',[aTarget,aLevel,aInternalformat,aWidth,aHeight,aBorder,aFormat,aType_,aSource]);
-end;
-
-procedure TJSWebGL2RenderingContextBase.texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSHTMLVideoElement);
-begin
-  InvokeJSNoResult('texImage2D',[aTarget,aLevel,aInternalformat,aWidth,aHeight,aBorder,aFormat,aType_,aSource]);
-end;
-
-procedure TJSWebGL2RenderingContextBase.texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSImageBitmap);
-begin
-  InvokeJSNoResult('texImage2D',[aTarget,aLevel,aInternalformat,aWidth,aHeight,aBorder,aFormat,aType_,aSource]);
-end;
-
-procedure TJSWebGL2RenderingContextBase.texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSImageData);
-begin
-  InvokeJSNoResult('texImage2D',[aTarget,aLevel,aInternalformat,aWidth,aHeight,aBorder,aFormat,aType_,aSource]);
-end;
-
-procedure TJSWebGL2RenderingContextBase.texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSOffscreenCanvas);
-begin
-  InvokeJSNoResult('texImage2D',[aTarget,aLevel,aInternalformat,aWidth,aHeight,aBorder,aFormat,aType_,aSource]);
-end;
-
-procedure TJSWebGL2RenderingContextBase.texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSVideoFrame);
-begin
-  InvokeJSNoResult('texImage2D',[aTarget,aLevel,aInternalformat,aWidth,aHeight,aBorder,aFormat,aType_,aSource]);
 end;
 
 procedure TJSWebGL2RenderingContextBase.texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSrcData: IJSArrayBufferView; aSrcOffset: TGLuint);
@@ -19413,6 +26084,11 @@ begin
   Result:=TJSnsIPrintSettings.JOBCast(Intf);
 end;
 
+function TJSWindow._Getlocation: IJSLocation;
+begin
+  Result:=ReadJSPropertyObject('location',TJSLocation) as IJSLocation;
+end;
+
 function TJSWindow._GetdevicePixelRatio: Double;
 begin
   Result:=ReadJSPropertyDouble('devicePixelRatio');
@@ -19463,6 +26139,383 @@ end;
 class function TJSWindow.Cast(const Intf: IJSObject): IJSWindow;
 begin
   Result:=TJSWindow.JOBCast(Intf);
+end;
+
+function TJSXMLHttpRequestEventTarget._Getonloadstart: TEventHandler;
+begin
+  Result:=(TEventHandlerNonNull(ReadJSPropertyMethod('onloadstart')));
+end;
+
+function TJSXMLHttpRequestEventTarget._Getonprogress: TEventHandler;
+begin
+  Result:=(TEventHandlerNonNull(ReadJSPropertyMethod('onprogress')));
+end;
+
+function TJSXMLHttpRequestEventTarget._Getonabort: TEventHandler;
+begin
+  Result:=(TEventHandlerNonNull(ReadJSPropertyMethod('onabort')));
+end;
+
+function TJSXMLHttpRequestEventTarget._Getonerror: TEventHandler;
+begin
+  Result:=(TEventHandlerNonNull(ReadJSPropertyMethod('onerror')));
+end;
+
+function TJSXMLHttpRequestEventTarget._Getonload: TEventHandler;
+begin
+  Result:=(TEventHandlerNonNull(ReadJSPropertyMethod('onload')));
+end;
+
+function TJSXMLHttpRequestEventTarget._Getontimeout: TEventHandler;
+begin
+  Result:=(TEventHandlerNonNull(ReadJSPropertyMethod('ontimeout')));
+end;
+
+function TJSXMLHttpRequestEventTarget._Getonloadend: TEventHandler;
+begin
+  Result:=(TEventHandlerNonNull(ReadJSPropertyMethod('onloadend')));
+end;
+
+procedure TJSXMLHttpRequestEventTarget._Setonloadstart(const aValue : TEventHandler);
+var
+  m : TJOB_Method;
+begin
+  m:=TJOB_Method.create(TMethod(aValue),@JobCallEventHandlerNonNull);
+  try
+    InvokeJSNoResult('onloadstart',[m],jiSet);
+  finally
+    m.free
+  end;
+end;
+
+procedure TJSXMLHttpRequestEventTarget._Setonprogress(const aValue : TEventHandler);
+var
+  m : TJOB_Method;
+begin
+  m:=TJOB_Method.create(TMethod(aValue),@JobCallEventHandlerNonNull);
+  try
+    InvokeJSNoResult('onprogress',[m],jiSet);
+  finally
+    m.free
+  end;
+end;
+
+procedure TJSXMLHttpRequestEventTarget._Setonabort(const aValue : TEventHandler);
+var
+  m : TJOB_Method;
+begin
+  m:=TJOB_Method.create(TMethod(aValue),@JobCallEventHandlerNonNull);
+  try
+    InvokeJSNoResult('onabort',[m],jiSet);
+  finally
+    m.free
+  end;
+end;
+
+procedure TJSXMLHttpRequestEventTarget._Setonerror(const aValue : TEventHandler);
+var
+  m : TJOB_Method;
+begin
+  m:=TJOB_Method.create(TMethod(aValue),@JobCallEventHandlerNonNull);
+  try
+    InvokeJSNoResult('onerror',[m],jiSet);
+  finally
+    m.free
+  end;
+end;
+
+procedure TJSXMLHttpRequestEventTarget._Setonload(const aValue : TEventHandler);
+var
+  m : TJOB_Method;
+begin
+  m:=TJOB_Method.create(TMethod(aValue),@JobCallEventHandlerNonNull);
+  try
+    InvokeJSNoResult('onload',[m],jiSet);
+  finally
+    m.free
+  end;
+end;
+
+procedure TJSXMLHttpRequestEventTarget._Setontimeout(const aValue : TEventHandler);
+var
+  m : TJOB_Method;
+begin
+  m:=TJOB_Method.create(TMethod(aValue),@JobCallEventHandlerNonNull);
+  try
+    InvokeJSNoResult('ontimeout',[m],jiSet);
+  finally
+    m.free
+  end;
+end;
+
+procedure TJSXMLHttpRequestEventTarget._Setonloadend(const aValue : TEventHandler);
+var
+  m : TJOB_Method;
+begin
+  m:=TJOB_Method.create(TMethod(aValue),@JobCallEventHandlerNonNull);
+  try
+    InvokeJSNoResult('onloadend',[m],jiSet);
+  finally
+    m.free
+  end;
+end;
+
+class function TJSXMLHttpRequestEventTarget.JSClassName: UnicodeString;
+begin
+  Result:='XMLHttpRequestEventTarget';
+end;
+
+class function TJSXMLHttpRequestEventTarget.Cast(const Intf: IJSObject): IJSXMLHttpRequestEventTarget;
+begin
+  Result:=TJSXMLHttpRequestEventTarget.JOBCast(Intf);
+end;
+
+class function TJSXMLHttpRequestUpload.JSClassName: UnicodeString;
+begin
+  Result:='XMLHttpRequestUpload';
+end;
+
+class function TJSXMLHttpRequestUpload.Cast(const Intf: IJSObject): IJSXMLHttpRequestUpload;
+begin
+  Result:=TJSXMLHttpRequestUpload.JOBCast(Intf);
+end;
+
+class function TJSInputStream.JSClassName: UnicodeString;
+begin
+  Result:='InputStream';
+end;
+
+class function TJSInputStream.Cast(const Intf: IJSObject): IJSInputStream;
+begin
+  Result:=TJSInputStream.JOBCast(Intf);
+end;
+
+class function TJSMozChannel.JSClassName: UnicodeString;
+begin
+  Result:='MozChannel';
+end;
+
+class function TJSMozChannel.Cast(const Intf: IJSObject): IJSMozChannel;
+begin
+  Result:=TJSMozChannel.JOBCast(Intf);
+end;
+
+function TJSMozXMLHttpRequestParameters._GetmozAnon: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('mozAnon');
+end;
+
+function TJSMozXMLHttpRequestParameters._GetmozSystem: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('mozSystem');
+end;
+
+procedure TJSMozXMLHttpRequestParameters._SetmozAnon(const aValue : Boolean);
+begin
+  WriteJSPropertyBoolean('mozAnon',aValue);
+end;
+
+procedure TJSMozXMLHttpRequestParameters._SetmozSystem(const aValue : Boolean);
+begin
+  WriteJSPropertyBoolean('mozSystem',aValue);
+end;
+
+constructor TJSMozXMLHttpRequestParameters.create(const aDict : TJSMozXMLHttpRequestParametersRec); overload;
+begin
+  Self.mozAnon:=aDict.mozAnon;
+  Self.mozSystem:=aDict.mozSystem;
+end;
+
+class function TJSMozXMLHttpRequestParameters.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSMozXMLHttpRequestParameters.Cast(const Intf: IJSObject): IJSMozXMLHttpRequestParameters;
+begin
+  Result:=TJSMozXMLHttpRequestParameters.JOBCast(Intf);
+end;
+
+function TJSXMLHttpRequest._Getonreadystatechange: TEventHandler;
+begin
+  Result:=(TEventHandlerNonNull(ReadJSPropertyMethod('onreadystatechange')));
+end;
+
+function TJSXMLHttpRequest._GetreadyState: Word;
+begin
+  Result:=ReadJSPropertyLongInt('readyState');
+end;
+
+function TJSXMLHttpRequest._Gettimeout: Cardinal;
+begin
+  Result:=ReadJSPropertyInt64('timeout');
+end;
+
+function TJSXMLHttpRequest._GetwithCredentials: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('withCredentials');
+end;
+
+function TJSXMLHttpRequest._Getupload: IJSXMLHttpRequestUpload;
+begin
+  Result:=ReadJSPropertyObject('upload',TJSXMLHttpRequestUpload) as IJSXMLHttpRequestUpload;
+end;
+
+function TJSXMLHttpRequest._GetresponseURL: UTF8String;
+begin
+  Result:=ReadJSPropertyUTF8String('responseURL');
+end;
+
+function TJSXMLHttpRequest._Getstatus: Word;
+begin
+  Result:=ReadJSPropertyLongInt('status');
+end;
+
+function TJSXMLHttpRequest._GetstatusText: UnicodeString;
+begin
+  Result:=ReadJSPropertyUnicodeString('statusText');
+end;
+
+function TJSXMLHttpRequest._GetresponseType: TXMLHttpRequestResponseType;
+begin
+  Result:=ReadJSPropertyUnicodeString('responseType');
+end;
+
+function TJSXMLHttpRequest._Getresponse: Variant;
+begin
+  Result:=ReadJSPropertyVariant('response');
+end;
+
+function TJSXMLHttpRequest._GetresponseText: UnicodeString;
+begin
+  Result:=ReadJSPropertyUnicodeString('responseText');
+end;
+
+function TJSXMLHttpRequest._GetresponseXML: IJSDocument;
+begin
+  Result:=ReadJSPropertyObject('responseXML',TJSDocument) as IJSDocument;
+end;
+
+function TJSXMLHttpRequest._GetmozAnon: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('mozAnon');
+end;
+
+function TJSXMLHttpRequest._GetmozSystem: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('mozSystem');
+end;
+
+procedure TJSXMLHttpRequest._Setonreadystatechange(const aValue : TEventHandler);
+var
+  m : TJOB_Method;
+begin
+  m:=TJOB_Method.create(TMethod(aValue),@JobCallEventHandlerNonNull);
+  try
+    InvokeJSNoResult('onreadystatechange',[m],jiSet);
+  finally
+    m.free
+  end;
+end;
+
+procedure TJSXMLHttpRequest._Settimeout(const aValue : Cardinal);
+begin
+  WriteJSPropertyDouble('timeout',aValue);
+end;
+
+procedure TJSXMLHttpRequest._SetwithCredentials(const aValue : Boolean);
+begin
+  WriteJSPropertyBoolean('withCredentials',aValue);
+end;
+
+procedure TJSXMLHttpRequest._SetresponseType(const aValue : TXMLHttpRequestResponseType);
+begin
+  WriteJSPropertyUnicodeString('responseType',aValue);
+end;
+
+constructor TJSXMLHttpRequest.Create(const aParams: IJSMozXMLHttpRequestParameters);
+begin
+  JOBCreate([aParams]);
+end;
+
+constructor TJSXMLHttpRequest.Create;
+begin
+  JOBCreate([]);
+end;
+
+constructor TJSXMLHttpRequest.Create(const aIgnored: UnicodeString);
+begin
+  JOBCreate([aIgnored]);
+end;
+
+procedure TJSXMLHttpRequest.open(const aMethod: UnicodeString; const aUrl: UnicodeString);
+begin
+  InvokeJSNoResult('open',[aMethod,aUrl]);
+end;
+
+procedure TJSXMLHttpRequest.open(const aMethod: UnicodeString; const aUrl: UnicodeString; aAsync: Boolean; const aUser: UnicodeString; const aPassword: UnicodeString);
+begin
+  InvokeJSNoResult('open',[aMethod,aUrl,aAsync,aUser,aPassword]);
+end;
+
+procedure TJSXMLHttpRequest.open(const aMethod: UnicodeString; const aUrl: UnicodeString; aAsync: Boolean);
+begin
+  InvokeJSNoResult('open',[aMethod,aUrl,aAsync]);
+end;
+
+procedure TJSXMLHttpRequest.open(const aMethod: UnicodeString; const aUrl: UnicodeString; aAsync: Boolean; const aUser: UnicodeString);
+begin
+  InvokeJSNoResult('open',[aMethod,aUrl,aAsync,aUser]);
+end;
+
+procedure TJSXMLHttpRequest.setRequestHeader(const aHeader: UnicodeString; const aValue: UnicodeString);
+begin
+  InvokeJSNoResult('setRequestHeader',[aHeader,aValue]);
+end;
+
+procedure TJSXMLHttpRequest.send(aBody: IJSDocument);
+begin
+  InvokeJSNoResult('send',[aBody]);
+end;
+
+procedure TJSXMLHttpRequest.send;
+begin
+  InvokeJSNoResult('send',[]);
+end;
+
+procedure TJSXMLHttpRequest.send(const aBody: TXMLHttpRequestBodyInit);
+begin
+  InvokeJSNoResult('send',[aBody]);
+end;
+
+procedure TJSXMLHttpRequest.abort;
+begin
+  InvokeJSNoResult('abort',[]);
+end;
+
+function TJSXMLHttpRequest.getResponseHeader(const aHeader: UnicodeString): UnicodeString;
+begin
+  Result:=InvokeJSUnicodeStringResult('getResponseHeader',[aHeader]);
+end;
+
+function TJSXMLHttpRequest.getAllResponseHeaders: UnicodeString;
+begin
+  Result:=InvokeJSUnicodeStringResult('getAllResponseHeaders',[]);
+end;
+
+procedure TJSXMLHttpRequest.overrideMimeType(const aMime: UnicodeString);
+begin
+  InvokeJSNoResult('overrideMimeType',[aMime]);
+end;
+
+class function TJSXMLHttpRequest.JSClassName: UnicodeString;
+begin
+  Result:='XMLHttpRequest';
+end;
+
+class function TJSXMLHttpRequest.Cast(const Intf: IJSObject): IJSXMLHttpRequest;
+begin
+  Result:=TJSXMLHttpRequest.JOBCast(Intf);
 end;
 
 initialization

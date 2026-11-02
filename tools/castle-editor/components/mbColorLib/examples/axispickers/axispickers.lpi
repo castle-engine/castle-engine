@@ -23,7 +23,7 @@
     </RunParams>
     <RequiredPackages Count="2">
       <Item1>
-        <PackageName Value="castle_editor_components"/>
+        <PackageName Value="castle_engine_editor_components"/>
       </Item1>
       <Item2>
         <PackageName Value="LCL"/>

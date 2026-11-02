@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -66,18 +66,42 @@ procedure Check(TrueValue: boolean; const ErrMessage: string = 'Check failed');
   #) }
 function ArrayPosStr(const A: String; const Arr: array of String): Integer; overload;
 function ArrayPosText(const A: String; const Arr: array of String;
-  IgnoreCase: boolean = true): Integer; overload;
+  const IgnoreCase: boolean = true): Integer; overload;
 
 function ArrayContainsString(const A: String; const Arr: array of String): Boolean;
 
 { Iff functions ------------------------------------------------------------- }
 
-{ }
+{ Simple conditional function.
+  Returns trueval if boolval is true, falseval otherwise.
+
+  This can be used in a similar way to the ternary operator from C-like languages,
+  e.g. like this
+
+  @longCode(#
+  AvatarHeight := Iff(AvatarCrouch, 0.5, 2.0);
+  #)
+
+  However, remember that this is just a regular function, so both arguments
+  are evaluated before the result is calculated. For example, this code
+  is incorrect:
+
+  @longCode(#
+  // INCORRECT EXAMPLE, DO NOT COPY
+  AvatarHeight := Iff(Avatar <> nil, Avatar.Height, 0.0);
+  #)
+
+  @deprecated
+  Do not use this, as equivalent functions are available in standard
+  Pascal libraries now. Use Math.IfThen, StrUtils.IfThen instead.
+
+  @groupBegin }
 function Iff(boolval: boolean; trueval, falseval: string)  : string;   overload;
 function Iff(boolval: boolean; trueval, falseval: Integer) : Integer;  overload;
 function Iff(boolval: boolean; trueval, falseval: Float)   : Float;    overload;
 function Iff(boolval: boolean; trueval, falseval: Cardinal): Cardinal; overload;
 function Iff(boolval: boolean; trueval, falseval: char)    : char;     overload;
+{ @groupEnd }
 
 { Some helpful version stuff ------------------------------------------------ }
 
@@ -102,8 +126,8 @@ function SCastleEngineProgramHelpSuffix(const AppName, AppVersion: String; const
   deprecated 'use ApplicationProperties.Description';
 
 { If not TrueValue then RaiseLastOSError. }
-procedure OSCheck(TrueValue: boolean); overload;
-procedure OSCheck(TrueValue: boolean; const Place: string); overload;
+procedure OSCheck(const TrueValue: Boolean); overload;
+procedure OSCheck(const TrueValue: Boolean; const Place: String); overload;
 
 type
   { Descend from this to hide a parameterless constructor.
@@ -290,7 +314,7 @@ begin
 end;
 
 function ArrayPosText(const A: String; const Arr: array of String;
-  IgnoreCase: boolean): Integer;
+  const IgnoreCase: boolean): Integer;
 var
   AA: string;
 begin
@@ -362,12 +386,13 @@ begin
     'Platform: ' + SPlatformDescription + '.';
 end;
 
-procedure OSCheck(TrueValue: boolean);
+procedure OSCheck(const TrueValue: Boolean);
 begin
-  if not TrueValue then RaiseLastOSError;
+  if not TrueValue then
+    RaiseLastOSError;
 end;
 
-procedure OSCheck(TrueValue: boolean; const Place: string);
+procedure OSCheck(const TrueValue: Boolean; const Place: String);
 begin
   if not TrueValue then
   try

@@ -1,9 +1,9 @@
 {
-  Copyright 2003-2024 Michalis Kamburelis.
+  Copyright 2003-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -39,7 +39,8 @@ type
       shortcuts. }
     niNormal,
 
-    { Mouse and touch dragging. Both TCastleExamineNavigation and TCastleWalkNavigation implement their own,
+    { Mouse and touch dragging.
+      Both TCastleExamineNavigation and TCastleWalkNavigation implement their own,
       special reactions to mouse dragging, that allows to navigate / rotate
       while pressing specific mouse buttons.
 
@@ -124,11 +125,16 @@ type
     MouseDraggingStarted: Integer;
     MouseDraggingStart: TVector2;
 
+    { Box around which the Examine navigation should work.
+      Note that calling this has sometimes non-trivial cost,
+      needs to iterate over items,
+      so save the result to a variable if you need to use it multiple times. }
     function GoodModelBox: TBox3D;
 
     { Viewport we should manipulate.
       This is @nil, or TCastleViewport instance, but it cannot be declared as
-      TCastleViewport due to unit dependencies. }
+      TCastleViewport due to unit dependencies.
+      @exclude }
     function InternalViewport: TCastleUserInterface;
 
     { If this is @true, then Camera is non-nil, InternalViewport is non-nil,
@@ -343,6 +349,12 @@ type
         procedure SetTranslation(const Value: TVector3);
         procedure SetRotations(const Value: TQuaternion);
       public
+        { Calculated TCastleExamineNavigation.EffectiveCenterOfRotation
+          at the time of getting these vectors, to avoid calculating it again
+          when setting. Calculating it relies on viewport bounding box,
+          so it's not always cheap. }
+        EffectiveCenterOfRotation: TVector3;
+
         property Translation: TVector3 read FTranslation write SetTranslation;
         property Rotations: TQuaternion read FRotations write SetRotations;
 
@@ -655,35 +667,67 @@ type
     during which mouse cursor is hidden and we look at MouseLookDelta every frame. }
   TCastleMouseLookNavigation = class(TCastleNavigation)
   strict private
-    FMouseLookHorizontalSensitivity: Single;
-    FMouseLookVerticalSensitivity: Single;
-    FInvertVerticalMouseLook: boolean;
-    FMouseLook: boolean;
+    var
+      FMouseLookHorizontalSensitivity: Single;
+      FMouseLookVerticalSensitivity: Single;
+      FInvertVerticalMouseLook: boolean;
+      FMouseLook: boolean;
+      FLastInternalUsingMouseLook: Boolean;
     procedure SetMouseLook(const Value: boolean);
+    procedure PointerLockUserCancelled(Sender: TObject);
+    { Potentially set Container.PointerLock.Active and PointerLock.Controller,
+      observing InternalUsingMouseLook changes.
+      @param(ForceDisable When @true, we behave as if InternalUsingMouseLook
+        is @false, and thus disable pointer lock handling.) }
+    procedure UpdateContainerPointerLock(const ForceDisable: Boolean = false);
   protected
     procedure ProcessMouseLookDelta(const Delta: TVector2); virtual;
+    procedure ReleasePointerLock; override;
   public
     const
       DefaultMouseLookHorizontalSensitivity = Pi * 0.1 / 180;
       DefaultMouseLookVerticalSensitivity = Pi * 0.1 / 180;
 
     constructor Create(AOwner: TComponent); override;
-    procedure Update(const SecondsPassed: Single;
-      var HandleInput: boolean); override;
     function Motion(const Event: TInputMotion): boolean; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+    procedure InternalSetContainer(const Value: TCastleContainer); override;
+    procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
 
+    { @exclude
+      Are we in a state where we want + can grab mouse look?
+      Doesn't look at PointerLock.Controller, only considers does *this*
+      navigation want to use mouse look. }
     function InternalUsingMouseLook: Boolean;
   published
     { Use mouse look to navigate (rotate the camera).
 
-      This also makes mouse cursor of Container hidden, and forces
-      mouse position to the middle of the window
-      (to avoid the situation when mouse movement is blocked by screen borders).
+      Underneath, this controls the @link(TCastleContainer.PointerLock
+      Container.PointerLock).
+
+      @unorderedList(
+
+        @item(On platforms other than web,
+          this makes mouse cursor hidden and repositions
+          it to the middle of this control. Remember that TCastleNavigation is
+          an invisible UI control, typically added as child of TCastleViewport,
+          in which case we will reposition mouse to the middle of the viewport.)
+
+        @item(On web, this uses web browser's API for this purpose.
+          It can be cancelled by user at any time,
+          in which case this property changes to @false then and listeners
+          registered by
+          @link(TCastleAbstractPointerLock.AddUserCancelledListener) are fired.
+          See https://castle-engine.io/web#pointer_lock for details.)
+      )
 
       Setting this property at design-time (in CGE editor) does not activate
       the mouse look in CGE editor.
-      It only controls the mouse look once the application is running. }
+      It only controls the mouse look once the application is running.
+
+      Only one navigation at a time can have mouse look active.
+      It is undefined which one "wins" if you set this property to @true on
+      more than one navigation. }
     property MouseLook: boolean read FMouseLook write SetMouseLook default false;
 
     { Mouse look sensitivity, if @link(MouseLook) is working.
@@ -1457,14 +1501,16 @@ type
       we do full head bobbing sequence (camera swing up, then down again).
 
       Note that if you do a footsteps sound in your game (see
-      stPlayerFootstepsDefault or TMaterialProperty.FootstepsSound)
+      e.g. @url(https://castle-engine.io/behaviors#_example_controlling_the_footsteps_sound
+      Example: controlling the footsteps sound))
       then you will want this property to match your footsteps sound length,
-      things feel and sound natural then.
-      Also, often it sounds better to record two footsteps inside
+      to sound natural.
+
+      Note: Often it sounds better to record two footsteps inside
       a single sound file, in which case the footstep sound length should be twice
       as long as this property. For example, record 2 steps inside a 1-second long
-      footstep sound, and set this property to 0.5 a second (which is a default
-      in fact). }
+      footstep sound, and set this property to 0.5 a second (which happens to be
+      a default). }
     property HeadBobbingTime: Single
       read FHeadBobbingTime write FHeadBobbingTime
       {$ifdef FPC}default DefaultHeadBobbingTime{$endif};
@@ -1650,13 +1696,49 @@ begin
   begin
     MouseDraggingStart := Container.MousePosition;
     MouseDraggingStarted := Event.FingerIndex;
-    { TODO: Not setting Result to true below is a hack, to allow TCastleViewport
-      to receive presses anyway. A cleaner solution would be to use
-      PreviewPress in TCastleViewport, but this causes other problems,
-      for unknown reason clicking on TouchSensor then still allows navigation like Walk
-      to receive mouse dragging.
-      Testcase: demo-models, touch_sensor_tests.x3dv }
-    // Exit(true);
+
+    { We want to capture mouse events, to track motion even when it goes
+      outside of the viewport (testcase: zombie_fighter non-FullSize viewport).
+
+      The standard way to do this is to return true from Press,
+      but we cannot really do it here, it would mean that default
+      TCastleWalkNavigation, with default Input (which includes niMouseDragging,
+      so it enters this code path, for *every* mouse button),
+      prevents other things from handling "mouse down".
+
+      - Handling stuff in view's Press is no longer possible.
+        E.g. many examples shoot on buttonLeft, toggle MouseLook on
+        buttonRight.
+
+          All of this would need to change, to handle in PreviewPress
+          (and be selective when it returns true from PreviewPress,
+          otherwise it disables mouse dragging). Alternatively
+          we would need to disable niMouseDragging.
+
+      - TCastleTouchNavigation, when placed behind TCastleWalkNavigation,
+        would not work.
+
+          If this would be everything, it would be a forgivable compatibility break.
+          We have a note in docs https://castle-engine.io/touch_input
+          that says to "place TCastleTouchNavigation in front".
+
+      The only practical solution to this would be to not include
+      niMouseDragging in DefaultInput, otherwise we'd break too much existing code.
+      But even this is problematic, as it means that
+      if someone wants niMouseDragging (which is nice for mobile) ->
+      (s)he has to deal with new limitations of it, e.g. use PreviewPress
+      for stuff.
+
+      Decision for now: we capture the events by Container.InternalCapturePointerEvents,
+      but we return false.
+
+      Testcase:
+      - zombie_fighter, with non-FullSize viewport, and moving
+        by mouse dragging. Dragging should work even as mouse gets outside
+        of screen.
+      - zombie_fighter, clicking on zombie, handled in Press, should work. }
+    Container.InternalCapturePointerEvents(Event.FingerIndex, Self);
+    Exit(false);
   end;
 
   if (Event.EventType = itMouseWheel) and
@@ -1683,9 +1765,7 @@ begin
     SourceNav := TCastleNavigation(Source);
     Radius              := SourceNav.Radius             ;
     Input               := SourceNav.Input              ;
-    { The Cursor should be synchronized with TCastleMouseLookNavigation.MouseLook,
-      do not blindly copy it from TCastleWalkNavigation to TCastleExamineNavigation. }
-    // Cursor              := SourceNav.Cursor             ;
+    Cursor              := SourceNav.Cursor             ;
     ModelBox            := SourceNav.ModelBox           ;
 
     { TODO: should move to TCastleWalkNavigation.Assign,
@@ -1814,7 +1894,7 @@ begin
     Note: We use Items.BoundingBox, not (private) ItemsBoundingBox
     that avoids adding gizmos to bbox.
     Right now it doesn't matter (as we don't need this box to be precise,
-    we dont' zoom to box center) so it's better to use Items.BoundingBox
+    we don't zoom to box center) so it's better to use Items.BoundingBox
     and keep ItemsBoundingBox private.
   }
   if ModelBox.IsEmpty and
@@ -2107,6 +2187,8 @@ begin
   Result.Translation := -APos;
   Result.Rotations := OrientationQuaternionFromDirectionUp(ADir, AUp).Conjugate;
 
+  Result.EffectiveCenterOfRotation := EffectiveCenterOfRotation;
+
   { We have to fix our Translation, since our TCastleExamineNavigation.Matrix
     applies our move *first* before applying rotation
     (and this is good, as it allows rotating around object center,
@@ -2119,8 +2201,9 @@ begin
     We also note at this point that rotation is done around
     (Translation + EffectiveCenterOfRotation). But EffectiveCenterOfRotation is not
     included in Translation. }
-  Result.Translation := Result.Rotations.Rotate(Result.Translation + EffectiveCenterOfRotation)
-    - EffectiveCenterOfRotation;
+  Result.Translation :=
+    Result.Rotations.Rotate(Result.Translation + Result.EffectiveCenterOfRotation)
+    - Result.EffectiveCenterOfRotation;
 end;
 
 procedure TCastleExamineNavigation.SetExamineVectors(const Value: TExamineVectors);
@@ -2128,9 +2211,9 @@ var
   MInverse: TMatrix4;
 begin
   MInverse :=
-    TranslationMatrix(EffectiveCenterOfRotation) *
+    TranslationMatrix(Value.EffectiveCenterOfRotation) *
     Value.Rotations.Conjugate.ToRotationMatrix *
-    TranslationMatrix(-(Value.Translation + EffectiveCenterOfRotation));
+    TranslationMatrix(-(Value.Translation + Value.EffectiveCenterOfRotation));
 
   { These MultPoint/Direction should never fail with ETransformedResultInvalid.
     That's because M is composed from translations, rotations, scaling,
@@ -2212,10 +2295,7 @@ begin
 
   if HandleInput and (niNormal in UsingInput) then
   begin
-    if GoodModelBox.IsEmptyOrZero then
-      MoveChange := KeysMoveSpeed * SecondsPassed
-    else
-      MoveChange := KeysMoveSpeed * GoodModelBox.AverageSize * SecondsPassed;
+    MoveChange := KeysMoveSpeed * GoodModelBox.AverageSize(false, 1.0) * SecondsPassed;
 
     ModsDown := ModifiersDown(Container.Pressed);
 
@@ -2304,13 +2384,15 @@ function TCastleExamineNavigation.SensorTranslation(const X, Y, Z, Length: Doubl
 var
   Size: Single;
   MoveSize: Double;
+  Box: TBox3D;
 begin
   if not (ni3dMouse in UsingInput) then Exit(false);
   if not MoveEnabled then Exit(false);
-  if GoodModelBox.IsEmptyOrZero then Exit(false);
+  Box := GoodModelBox;
+  if Box.IsEmptyOrZero then Exit(false);
   Result := true;
 
-  Size := GoodModelBox.AverageSize;
+  Size := Box.AverageSize;
   MoveSize := Length * SecondsPassed / 5000;
 
   if Abs(X) > 5 then   { left / right }
@@ -2671,6 +2753,7 @@ const
 var
   Recognizer: TCastlePinchPanGestureRecognizer;
   Factor, Size, MoveDivConst, ZoomScale: Single;
+  Box: TBox3D;
 begin
   Recognizer := Sender as TCastlePinchPanGestureRecognizer;
   if Recognizer = nil then Exit;
@@ -2692,13 +2775,17 @@ begin
     Zoom(PinchZoomSpeed * Factor * ZoomScale);
   end;
 
-  if MoveEnabled and (not GoodModelBox.IsEmpty) and (Recognizer.Gesture = gtPan) then
+  if MoveEnabled and (Recognizer.Gesture = gtPan) then
   begin
-    Size := GoodModelBox.AverageSize;
-    Translation := Translation - Vector3(
-      DragMoveSpeed * Size * Recognizer.PanMove.X / (2 * MoveDivConst),
-      DragMoveSpeed * Size * Recognizer.PanMove.Y / (2 * MoveDivConst),
-      0);
+    Box := GoodModelBox;
+    if not Box.IsEmptyOrZero then
+    begin
+      Size := Box.AverageSize;
+      Translation := Translation - Vector3(
+        DragMoveSpeed * Size * Recognizer.PanMove.X / (2 * MoveDivConst),
+        DragMoveSpeed * Size * Recognizer.PanMove.Y / (2 * MoveDivConst),
+        0);
+    end;
   end;
 end;
 
@@ -2759,6 +2846,10 @@ end;
 
 { TCastleMouseLookNavigation ------------------------------------------------- }
 
+var
+  { Extra logging for debugging MouseLook. }
+  LogMouseLook: Boolean = false;
+
 constructor TCastleMouseLookNavigation.Create(AOwner: TComponent);
 begin
   inherited;
@@ -2767,18 +2858,79 @@ begin
   FInvertVerticalMouseLook := false;
 end;
 
-procedure TCastleMouseLookNavigation.Update(const SecondsPassed: Single;
-  var HandleInput: boolean);
-
-  procedure MouseLookUpdate;
-  begin
-    if InternalUsingMouseLook and (Container <> nil) then
-      Container.MouseLookUpdate;
-  end;
-
+procedure TCastleMouseLookNavigation.ReleasePointerLock;
 begin
   inherited;
-  MouseLookUpdate;
+  UpdateContainerPointerLock(true);
+end;
+
+procedure TCastleMouseLookNavigation.UpdateContainerPointerLock(const ForceDisable: Boolean);
+var
+  NewInternalUsingMouseLook: Boolean;
+begin
+  { We need to avoid multiple things trying to control
+    single Container.PointerLock.Active value. We may have multiple
+    TCastleWalkNavigation instances (like examples/window/multiple_windows_and_viewports/ )
+    and also user code trying to control it (like examples/user_interface/dragging_test ).
+    So we track:
+    1. Current component causing PointerLock.Active := true, if any.
+    2. What is our previous "desired pointer lock active" state (InternalUsingMouseLook),
+       and only switch if InternalUsingMouseLook changes (and nothing else
+       wants to control pointer lock now).
+  }
+
+  { Don't do anything if no change to InternalUsingMouseLook.
+    This avoids TCastleMouseLookNavigation
+    messing with user's code (like in dragging_test) trying to control pointer
+    lock, in which case PointerLock.Controller = nil but we should
+    never touch PointerLock.Active if user didn't set MouseLook:=true ever. }
+  NewInternalUsingMouseLook := InternalUsingMouseLook and (not ForceDisable);
+  if FLastInternalUsingMouseLook = NewInternalUsingMouseLook then
+    Exit;
+
+  FLastInternalUsingMouseLook := NewInternalUsingMouseLook;
+
+  { Without Container, we cannot even track Container.PointerLock.Controller.
+    Early exit should be OK now, as InternalUsingMouseLook requires
+    Container <> nil anyway. If Container = nil and we have MouseLook=true,
+    we wait for update when Container <> nil which will flip
+    InternalUsingMouseLook to true. }
+  if Container = nil then
+    Exit;
+
+  { Don't try to control Container.PointerLock.Active when other control
+    is already controlling it. This may happen if you try to set MouseLook := true
+    on multiple TCastleWalkNavigation instances. }
+  if (Container.PointerLock.Controller <> nil) and
+     (Container.PointerLock.Controller <> Self) then
+  begin
+    if NewInternalUsingMouseLook then
+      WritelnWarning('Multiple components try to control pointer lock at the same time, this is not possible: %s(%s) and %s(%s)', [
+        Container.PointerLock.Controller.Name,
+        Container.PointerLock.Controller.ClassName,
+        Name,
+        ClassName
+      ]);
+    Exit;
+  end;
+
+  if NewInternalUsingMouseLook then
+  begin
+    // grab mouse look, we want to control it from now on
+    Container.PointerLock.Controller := Self;
+    // InternalUsingMouseLook is true only if we have Container
+    Assert(Container <> nil);
+    if LogMouseLook then
+      WritelnLog('Pointer lock (MouseLook) activation by %s(%s)', [Name, ClassName]);
+  end else
+  begin
+    // release mouse look, this also means we don't want to control it anymore
+    Container.PointerLock.Controller := nil;
+    if LogMouseLook then
+      WritelnLog('Pointer lock (MouseLook) release by %s(%s)', [Name, ClassName]);
+  end;
+
+  Container.PointerLock.Active := NewInternalUsingMouseLook;
 end;
 
 procedure TCastleMouseLookNavigation.SetMouseLook(const Value: boolean);
@@ -2786,13 +2938,7 @@ begin
   if FMouseLook <> Value then
   begin
     FMouseLook := Value;
-    if InternalUsingMouseLook then
-    begin
-      Cursor := mcForceNone;
-      if Container <> nil then
-        Container.MouseLookPress;
-    end else
-      Cursor := mcDefault;
+    UpdateContainerPointerLock;
   end;
 end;
 
@@ -2801,13 +2947,23 @@ begin
   // nothing in this class
 end;
 
+procedure TCastleMouseLookNavigation.Update(const SecondsPassed: Single;
+  var HandleInput: boolean);
+begin
+  inherited;
+  { We keep checking "do we need to control pointer lock" every frame,
+    because changing InternalViewport.Paused -> changes InternalUsingMouseLook
+    value. }
+  UpdateContainerPointerLock;
+end;
+
 function TCastleMouseLookNavigation.Motion(const Event: TInputMotion): boolean;
 
   procedure HandleMouseLook;
   var
     MouseChange: TVector2;
   begin
-    MouseChange := Container.MouseLookDelta(Event, RenderRect);
+    MouseChange := Event.Delta;
 
     if not MouseChange.IsPerfectlyZero then
     begin
@@ -2824,12 +2980,9 @@ begin
   Result := inherited;
   if Result or (Event.FingerIndex <> 0) then Exit;
 
-  {$warnings off} // using deprecated ContainerSizeKnown
   if InternalUsingMouseLook and
     Container.Focused and
-    ContainerSizeKnown and
-    Valid then
-  {$warnings on}
+    (Container.PointerLock.Controller = Self) then
   begin
     HandleMouseLook;
     Exit;
@@ -2838,7 +2991,14 @@ end;
 
 function TCastleMouseLookNavigation.InternalUsingMouseLook: Boolean;
 begin
-  Result := MouseLook and (niNormal in UsingInput);
+  {$warnings off} // using deprecated ContainerSizeKnown
+  Result := MouseLook and
+    (niNormal in UsingInput) and
+    { we cannot grab PointerLock if Container is nil }
+    (Container <> nil) and
+    ContainerSizeKnown and
+    Valid;
+  {$warnings on}
 
   { Note: we used to have here condition "and (not CastleDesignMode)"
     as escaping from MouseLook was impossible, if you enable it in Object Inspector.
@@ -2854,7 +3014,47 @@ begin
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
+end;
 
+procedure TCastleMouseLookNavigation.InternalSetContainer(const Value: TCastleContainer);
+begin
+  if Container <> Value then
+  begin
+    FLastInternalUsingMouseLook := false;
+    if Container <> nil then
+    begin
+      { If we controlled Container.PointerLock.Active, we need to release it now.
+        Note: If this call changes from one non-nil Container to another non-nil
+        Container, then we will reactivate pointer lock on the new Container by
+        UpdateContainerPointerLock at the end of this method.
+        We still need to release pointer lock on the old Container. }
+      if Container.PointerLock.Controller = Self then
+      begin
+        Container.PointerLock.Controller := nil;
+        Container.PointerLock.Active := false;
+        if LogMouseLook then
+          WritelnLog('Pointer lock (MouseLook) release by %s(%s) due to Container change', [Name, ClassName]);
+      end;
+    end;
+  end;
+
+  if Container <> nil then
+    Container.PointerLock.RemoveUserCancelledListener(
+      {$ifdef FPC}@{$endif} PointerLockUserCancelled);
+
+  inherited InternalSetContainer(Value);
+
+  if Container <> nil then
+    Container.PointerLock.AddUserCancelledListener(
+      {$ifdef FPC}@{$endif} PointerLockUserCancelled);
+
+  // possibly assigning Container changed InternalUsingMouseLook to true
+  UpdateContainerPointerLock;
+end;
+
+procedure TCastleMouseLookNavigation.PointerLockUserCancelled(Sender: TObject);
+begin
+  MouseLook := false;
 end;
 
 { TCastleWalkNavigation ---------------------------------------------------------------- }
@@ -3876,13 +4076,6 @@ var
 begin
   inherited;
 
-  { update Cursor every frame, in case InternalViewport.Paused changed
-    (which changes UsingInput and InternalUsingMouseLook) }
-  if InternalUsingMouseLook then
-    Cursor := mcForceNone
-  else
-    Cursor := mcDefault;
-
   if (not Valid) then Exit;
 
   ModsDown := ModifiersDown(Container.Pressed);
@@ -4321,28 +4514,14 @@ begin
   Result := inherited;
   if Result or (Event.FingerIndex <> 0) then Exit;
 
-  { It is possible to have MouseDraggingStarted = -1 even when all buttons
-    released:
-
-    - When setting MouseDraggingStarted to >= 0 in Press,
-      we do not set Result:=true to avoid other issues
-      (see comments in TCastleNevigation.Press).
-    - But as a consequence, TCastleTouchNavigation.Press may also start dragging
-      at the same time.
-    - Then when user releases the mouse,
-      TCastleTouchNavigation.Release is called,
-      and TCastleNavigation.Release is not called.
-      This is actually regardless of whether TCastleTouchNavigation.Release
-      returns false or true. It's because TCastleContainer.EventRelease
-      calls only Capture.Release + Exit when Capture <> nil,
-      it doesn't call Release on others.
-    - In effect, since our TCastleNavigation.Release wasn't called,
-      MouseDraggingStarted is left at -1.
-
-    Testcase: simple_3d_demo, click on touch navigation in the corner,
-    then release. When moving mouse, you should *not* rotate the camera now. }
+  { In case other control will capture mouse events even when we captured
+    them (by InternalCapturePointerEvents, see Press comments),
+    other controls recapture it (e.g. view handles buttonLeft).
+    We may then not receive Release, and have motion without any mouse button pressed. }
   if Event.Pressed = [] then
+  begin
     MouseDraggingStarted := -1;
+  end;
 
   if (MouseDraggingStarted <> -1) and
     // Not need to check here ReallyEnableMouseDragging, as MouseDraggingStarted is already <> -1

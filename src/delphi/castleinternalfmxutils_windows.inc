@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -18,10 +18,15 @@
   code shared between FMX TOpenGLControl and FMX TCastleControl)
   for Windows. }
 
-uses
-  Windows, SysUtils,
-  CastleInternalContextWgl,
-  CastleLog, CastleUtils;
+{$ifdef read_TFmxOpenGLUtility_interface}
+{$endif read_TFmxOpenGLUtility_interface}
+
+{$ifdef read_implementation_uses}
+Windows,
+CastleInternalContextWgl, CastleUtils,
+{$endif read_implementation_uses}
+
+{$ifdef read_implementation}
 
 { TFmxOpenGLUtility --------------------------------------------------------- }
 
@@ -64,3 +69,5 @@ begin
   else
     Result := 1;
 end;
+
+{$endif read_implementation}

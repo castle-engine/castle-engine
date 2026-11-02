@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -18,9 +18,10 @@ unit AddForceAtPositionBehavior;
 
 interface
 
-uses
-  Classes, SysUtils, CastleTransform, CastleBehaviors, CastleVectors,
-  CastleComponentSerialize, CastleClassUtils, AbstractTimeDurationBehavior;
+uses Classes, SysUtils,
+  CastleTransform, CastleBehaviors, CastleVectors, CastleUtils,
+  CastleComponentSerialize, CastleClassUtils,
+  AbstractTimeDurationBehavior;
 
 type
   TAddForceAtPositionBehavior = class(TAbstractTimeDurationBehavior)
@@ -117,8 +118,9 @@ end;
 function TAddForceAtPositionBehavior.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
-  if (PropertyName = 'Force') or
-     (PropertyName = 'Position') then
+  if ArrayContainsString(PropertyName, [
+       'ForcePersistent', 'PositionPersistent'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);

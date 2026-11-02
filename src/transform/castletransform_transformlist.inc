@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -58,8 +58,6 @@ procedure TCastleTransformList.Notify(
   {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} AValue: TCastleTransform;
   ACollectionNotification: TCollectionNotification);
 begin
-  inherited;
-
   if Owner <> nil then
   begin
     case ACollectionNotification of
@@ -69,13 +67,19 @@ begin
         AValue.RemoveParent(Owner);
       { FPC 3.3.1 introduced new notifications cnDeleting, cnExtracting
         which we ignore for now.
-        In the future: If all supported compilers have it,
-        then maybe we should call AValue.RemoveParent on
+
+        If all supported compilers would have it,
+        then we could call AValue.RemoveParent on
         cnDeleting/cnExtracting, not cnExtracted/cnRemoved?
-        It's safer to remove parent before the item is actually deleted. }
+        It's safer to remove parent before the item is actually deleted.
+        But that's not relevant option now, Delphi doesn't have this. }
       else ;
     end;
   end;
+
+  { Do above actions before calling inherited, as inherited
+    may free the Value if cnDeleted and OwnsObjects. }
+  inherited;
 end;
 
 function TCastleTransformList.RemoveAll(const Item: TCastleTransform): Cardinal;

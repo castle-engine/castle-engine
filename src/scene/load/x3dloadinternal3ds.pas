@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -964,7 +964,8 @@ end;
 
 { Load3DS -------------------------------------------------------------------- }
 
-function Load3DS(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
+function Load3DS(const Stream: TStream; const BaseUrl: String;
+  const LoadOptions: TCastleSceneLoadOptions): TX3DRootNode;
 var
   O3ds: TScene3DS;
 

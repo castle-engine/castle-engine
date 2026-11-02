@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -235,6 +235,15 @@
 
         function ReflSpecularExp: Single; override;
         function TransSpecularExp: Single; override;
+
+        function MainTexture(
+          const Appearance: TAppearanceNode;
+          const VRML1State: TVRML1State): TAbstractTextureNode; overload; override;
+        function MainTexture(
+          const Appearance: TAppearanceNode;
+          const VRML1State: TVRML1State;
+          const GeometryForTexCoord: TAbstractGeometryNode;
+          out TexCoordIndex: Integer): TAbstractTextureNode; overload; override;
       end;
     var
       FMaterialInfo: array of TMaterialInfo_1;
@@ -979,6 +988,23 @@ begin
     Result := A.L[Min(FIndex, A.Count - 1)];
 end;
 
+function TMaterialNode_1.TMaterialInfo_1.MainTexture(
+  const Appearance: TAppearanceNode;
+  const VRML1State: TVRML1State): TAbstractTextureNode;
+begin
+  Result := VRML1State.Texture2;
+end;
+
+function TMaterialNode_1.TMaterialInfo_1.MainTexture(
+  const Appearance: TAppearanceNode;
+  const VRML1State: TVRML1State;
+  const GeometryForTexCoord: TAbstractGeometryNode;
+  out TexCoordIndex: Integer): TAbstractTextureNode;
+begin
+  TexCoordIndex := -1;
+  Result := VRML1State.Texture2;
+end;
+
 { TTexture2Node_1 ------------------------------------------------------------ }
 
 const
@@ -1068,7 +1094,8 @@ end;
 procedure TTexture2TransformNode_1.MiddleTraverse(StateStack: TX3DGraphTraverseStateStack);
 begin
   inherited;
-  StateStack.Top.TextureTransform := StateStack.Top.TextureTransform *
+  StateStack.Top.Vrml1TextureTransform :=
+    StateStack.Top.Vrml1TextureTransform *
     TextureMatrixTransformation;
 end;
 

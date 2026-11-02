@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -15,6 +15,8 @@
 }
 
 unit TestCastleFonts;
+
+{$I ../../../src/common_includes/castleconf.inc}
 
 interface
 
@@ -31,6 +33,8 @@ type
     procedure TestOverrideFont;
     procedure TestSizeChangeNotificationFontFamily;
     procedure TestSizeChangeNotificationCustomized;
+    procedure TestFontFamilyCustomizeOutlineBalance;
+    procedure TestSimpleHtmlQuote;
   end;
 
 implementation
@@ -269,14 +273,40 @@ begin
   end;
 end;
 
+{ If CASTLE_IGNORE_FREETYPE_MISSING is defined, we will abort the test
+  (no error) when FreeType is missing.
+  Otherwise, when FreeType is missing, we will fail (raising an exception).
+  This forces you to install FreeType and test with it, on given platform.
+  Reasons:
+
+  - WASI: no FreeType available
+
+  - macOS: No FreeType on GH-hosted macOS/Aarch64 runner macos-latest.
+    (Unsure about macos-15-intel. On our self-hosted macos_x64 it was OK.)
+    TODO: Figure out how to install it and link to it.
+    "brew install freetype" is not enough. }
+{$if defined(WASI) or defined(DARWIN)}
+  {$define CASTLE_IGNORE_FREETYPE_MISSING}
+{$endif}
+
+const
+  { Expected height of PARPG.ttf font, at default size.
+    With CASTLE_FREETYPE_PASCAL, glyphs are not hinted (not aligned to the pixel
+    grid), so their bitmaps are a bit different, and the measured height
+    is 1 pixel smaller. }
+  ParpgHeight = {$ifdef CASTLE_FREETYPE_PASCAL} 21 {$else} 22 {$endif};
+
 procedure TTestCastleFonts.TestSizeChangeNotificationFontFamily;
 var
   F: TCastleFont;
   FF: TCastleFontFamily;
 begin
-  {$ifdef WASI} // no FreeType on Wasm
-  AbortTest;
-  Exit;
+  {$ifdef CASTLE_IGNORE_FREETYPE_MISSING}
+  if not FreeTypeLibraryInitialized then
+  begin
+    AbortTest;
+    Exit;
+  end;
   {$else}
   FailIfFreeTypeMissing;
   {$endif}
@@ -290,8 +320,8 @@ begin
   AssertEquals(0, FF.Height);
 
   F.Url := 'castle-data:/fonts/PARPG.ttf';
-  AssertSameValue(22, F.Height);
-  AssertSameValue(22, FF.Height);
+  AssertSameValue(ParpgHeight, F.Height);
+  AssertSameValue(ParpgHeight, FF.Height);
   // writeln(F.Height:1:2);
   // writeln(FF.Height:1:2);
 
@@ -304,9 +334,12 @@ var
   F: TCastleFont;
   CF: TCastleFontFamily;
 begin
-  {$ifdef WASI} // no FreeType on Wasm
-  AbortTest;
-  Exit;
+  {$ifdef CASTLE_IGNORE_FREETYPE_MISSING}
+  if not FreeTypeLibraryInitialized then
+  begin
+    AbortTest;
+    Exit;
+  end;
   {$else}
   FailIfFreeTypeMissing;
   {$endif}
@@ -320,13 +353,93 @@ begin
   AssertEquals(0, CF.Height);
 
   F.Url := 'castle-data:/fonts/PARPG.ttf';
-  AssertSameValue(22, F.Height);
-  AssertSameValue(22, CF.Height);
+  AssertSameValue(ParpgHeight, F.Height);
+  AssertSameValue(ParpgHeight, CF.Height);
   // writeln(F.Height:1:2);
   // writeln(CF.Height:1:2);
 
   FreeAndNil(F);
   FreeAndNil(CF);
+end;
+
+procedure TTestCastleFonts.TestFontFamilyCustomizeOutlineBalance;
+
+{ Test that TCastleFontFamily, when it customizes only the subfont outline
+  (Size = 0, CustomizeOutline = true), properly restores the subfont properties
+  after each operation.
+
+  This catches the bug when SubFontCustomizeBegin / SubFontCustomizeEnd
+  are not balanced: before 2026-06-08,
+  - Begin did PushProperties (and overrides Outline) when
+    (Size <> 0) or CustomizeOutline,
+  - but End did PopProperties only when Size <> 0.
+
+  So with Size = 0 and CustomizeOutline = true, every TextWidth / Print / ...
+  call would PushProperties (overriding the subfont's Outline) without a matching
+  PopProperties: leaking the properties stack and leaving the subfont's Outline
+  permanently overwritten. }
+
+const
+  FamilyOutline = 2;
+var
+  Font: TCastleFont;
+  Family: TCastleFontFamily;
+  I: Integer;
+begin
+  Font := TCastleFont.Create(nil);
+  try
+    Font.Load(Font_Default3d_Sans);
+    { The subfont starts without outline. }
+    AssertEquals(0, Font.Outline);
+
+    Family := TCastleFontFamily.Create(nil);
+    try
+      Family.Regular := Font;
+      { Customize only the outline, leave size unchanged (Size = 0). }
+      Family.Size := 0;
+      Family.CustomizeOutline := true;
+      Family.Outline := FamilyOutline;
+
+      { Measure text a few times. Each call goes through
+        SubFontCustomizeBegin / SubFontCustomizeEnd. With balanced Push/Pop,
+        the subfont's Outline must be restored to 0 after every call. }
+      for I := 1 to 3 do
+      begin
+        Family.TextWidth('test');
+        { With the bug, SubFontCustomizeEnd does not PopProperties (because Size = 0),
+          so the subfont's Outline stays overwritten with FamilyOutline.
+          With the fix, it is restored to the original 0. }
+        AssertEquals(0, Font.Outline);
+      end;
+    finally FreeAndNil(Family) end;
+  finally FreeAndNil(Font) end;
+end;
+
+procedure TTestCastleFonts.TestSimpleHtmlQuote;
+begin
+  { SimpleHtmlQuote should ESCAPE special characters, so that the result,
+    when interpreted as HTML (Print with Html = true), shows the original text. }
+
+  { No special characters -> unchanged. }
+  AssertEquals('abc 123', SimpleHtmlQuote('abc 123'));
+  AssertEquals('', SimpleHtmlQuote(''));
+
+  { Each special character is escaped. }
+  AssertEquals('&lt;', SimpleHtmlQuote('<'));
+  AssertEquals('&gt;', SimpleHtmlQuote('>'));
+  AssertEquals('&amp;', SimpleHtmlQuote('&'));
+  AssertEquals('&apos;', SimpleHtmlQuote(''''));
+  AssertEquals('&quot;', SimpleHtmlQuote('"'));
+
+  { Mixed text. }
+  AssertEquals('a &lt; b &amp; c &gt; d', SimpleHtmlQuote('a < b & c > d'));
+  AssertEquals('&lt;b&gt;Hello &amp; bye&lt;/b&gt;',
+    SimpleHtmlQuote('<b>Hello & bye</b>'));
+
+  { Already-escaped input is escaped again (single pass, no double-processing
+    of the '&' we introduce): '&lt;' -> '&amp;lt;', not '&amp;amp;lt;'. }
+  AssertEquals('&amp;lt;', SimpleHtmlQuote('&lt;'));
+  AssertEquals('&amp;amp;', SimpleHtmlQuote('&amp;'));
 end;
 
 initialization

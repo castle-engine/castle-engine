@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+
+<!--
+Rules for automatic processing
+(converting, compressing, downscaling, mipmap creation...) of images.
+See https://castle-engine.io/creating_data_auto_generated_textures.php
+-->
+
+<properties>
+  <!--
+  Make not-compressed and not-downscaled version in castle-image format
+  of textures in quaternius/ (used for 3D).
+  The castle-image format will load faster than anything else in CGE.
+
+  Commented out:
+  - the gain is very small
+    (~5 secs loading textures in viewport PrepareResources with .castle-image,
+    vs ~7.5 time with .png/.jpg)
+  - while .castle-image file size is significant.
+  -->
+  <!--
+  <auto_generated_textures>
+    <preferred_output_format extension=".castle-image" />
+    <trivial_uncompressed_convert />
+    <include path="quaternius/*" recursive="True" />
+  </auto_generated_textures>
+  -->
+</properties>

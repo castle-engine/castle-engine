@@ -727,13 +727,6 @@ procedure glTexSubImage2D(const target: TGLenum; const level: TGLint; const xoff
 procedure glTexSubImage2D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSOffscreenCanvas);
 procedure glTexSubImage2D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSVideoFrame);
 procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const pboOffset: TGLintptr);
-procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSHTMLCanvasElement);
-procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSHTMLImageElement);
-procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSHTMLVideoElement);
-procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSImageBitmap);
-procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSImageData);
-procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSOffscreenCanvas);
-procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSVideoFrame);
 procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const srcData: IJSArrayBufferView; const srcOffset: TGLuint);
 procedure glTexImage3D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const pboOffset: TGLintptr);
 procedure glTexImage3D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSHTMLCanvasElement);
@@ -1787,48 +1780,6 @@ procedure glTexImage2D(const target: TGLenum; const level: TGLint; const interna
 begin
   if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texImage2D');
   GL2.texImage2D(target, level, internalformat, width, height, border, format, type_, pboOffset);
-end;
-
-procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSHTMLCanvasElement);
-begin
-  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texImage2D');
-  GL2.texImage2D(target, level, internalformat, width, height, border, format, type_, source);
-end;
-
-procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSHTMLImageElement);
-begin
-  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texImage2D');
-  GL2.texImage2D(target, level, internalformat, width, height, border, format, type_, source);
-end;
-
-procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSHTMLVideoElement);
-begin
-  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texImage2D');
-  GL2.texImage2D(target, level, internalformat, width, height, border, format, type_, source);
-end;
-
-procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSImageBitmap);
-begin
-  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texImage2D');
-  GL2.texImage2D(target, level, internalformat, width, height, border, format, type_, source);
-end;
-
-procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSImageData);
-begin
-  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texImage2D');
-  GL2.texImage2D(target, level, internalformat, width, height, border, format, type_, source);
-end;
-
-procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSOffscreenCanvas);
-begin
-  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texImage2D');
-  GL2.texImage2D(target, level, internalformat, width, height, border, format, type_, source);
-end;
-
-procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSVideoFrame);
-begin
-  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texImage2D');
-  GL2.texImage2D(target, level, internalformat, width, height, border, format, type_, source);
 end;
 
 procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const srcData: IJSArrayBufferView; const srcOffset: TGLuint);

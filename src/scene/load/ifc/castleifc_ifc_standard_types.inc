@@ -1,10 +1,10 @@
 {%MainUnit castleifc.pas}
 {
-  Copyright 2024-2025 Michalis Kamburelis.
+  Copyright 2024-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -268,6 +268,25 @@
 
     https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcIdentifier.htm }
   TIfcIdentifier = String;
+
+  { Text that is meant to be displayed (as opposed to TIfcText, that is
+    meant to be read as a description).
+
+    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPresentableText.htm }
+  TIfcPresentableText = String;
+
+  { Alignment of a text within the text box.
+    Has to be one of the strings:
+    'top-left', 'top-middle', 'top-right',
+    'middle-left', 'center', 'middle-right',
+    'bottom-left', 'bottom-middle', 'bottom-right'.
+
+    TODO: Due to using -, we cannot express this as a simple enumerated type.
+    Maybe make it enumerated anyway, with nice names like TopLeft,
+    TopMiddle, etc. and just handle in special way when reading/writing.
+
+    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcBoxAlignment.htm }
+  TIfcBoxAlignment = String;
 
   { Indication of date and time by measuring the number of seconds
     which have elapsed since 1 January 1970, 00:00:00 UTC.
@@ -2030,6 +2049,128 @@
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcAxis2Placement.htm }
   TIfcAxis2Placement = TIfcPlacement;
 
+  { Writing direction of the text.
+
+    The @code(Unknown) value is not defined by the IFC specification.
+    We add it as the 1st value, and declare it as the "default" of
+    @link(TIfcTextLiteral.Path), only to force writing out all the values
+    that the specification does define, including @code(Right).
+    Reason: our IFC JSON writer omits the properties that have their default
+    value, and Path is a mandatory IFC attribute, so it should always
+    be written.
+
+    The other values follow the order in the specification (alphabetical).
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTextPath.htm }
+  TIfcTextPath = (Unknown, Down, Left, Right, Up);
+
+  { Planar extent, in 2 dimensions: sizes along the X and Y axes.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPlanarExtent.htm }
+  TIfcPlanarExtent = class(TIfcGeometricRepresentationItem)
+  strict private
+    FSizeInX: TIfcLengthMeasure;
+    FSizeInY: TIfcLengthMeasure;
+  published
+    { The extent in the direction of the X axis. }
+    property SizeInX: TIfcLengthMeasure read FSizeInX write FSizeInX;
+
+    { The extent in the direction of the Y axis. }
+    property SizeInY: TIfcLengthMeasure read FSizeInY write FSizeInY;
+  end;
+
+  { Text to be displayed, in 2D and 3D views.
+    This is the IFC counterpart of the X3D @link(TTextNode).
+
+    Authoring applications like
+    @url(https://bonsaibim.org/ BonsaiBIM) and @url(https://www.freecad.org/ FreeCAD)
+    use this too. Usually as the descendant @link(TIfcTextLiteralWithExtent)
+    inside a @link(TIfcAnnotation) product, in a representation with
+    @code(RepresentationIdentifier = 'Annotation').
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTextLiteral.htm }
+  TIfcTextLiteral = class(TIfcGeometricRepresentationItem)
+  strict private
+    FLiteral: TIfcPresentableText;
+    FPlacement: TIfcAxis2Placement;
+    FPath: TIfcTextPath;
+  protected
+    { Current BoxAlignment. Returns @link(TIfcTextLiteralWithExtent.BoxAlignment)
+      or empty string, if this is not TIfcTextLiteralWithExtent. }
+    function GetBoxAlignment: TIfcBoxAlignment; virtual;
+  public
+    constructor Create(AOwner: TComponent); override;
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct;
+      const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode; override;
+
+    { Set the font size (height of the font, in the model length units).
+
+      This creates the IFC structure to express it:
+      @link(TIfcStyledItem) (assigned as our @link(StyledByItem))
+      with @link(TIfcTextStyle) with @link(TIfcTextStyleFontModel).
+      Replaces previous @link(StyledByItem), if any.
+
+      Note: The created TIfcStyledItem.Item is left @nil, for now.
+      The item is clear from the context (TIfcStyledItem is nested in our
+      @link(StyledByItem)). }
+    procedure SetFontSize(const Size: TIfcPositiveLengthMeasure;
+      const FontFamily: String = 'sans-serif');
+
+    { Font size (height of the font, in the model length units),
+      looking at the @link(TIfcTextStyle) in @link(StyledByItem).
+      Returns @false if not specified (or specified in a way we don't support). }
+    function TryGetFontSize(out Size: Single): Boolean;
+  published
+    { The text to display. }
+    property Literal: TIfcPresentableText read FLiteral write FLiteral;
+
+    { Placement (position and orientation) of the text. }
+    property Placement: TIfcAxis2Placement read FPlacement write FPlacement;
+
+    { Writing direction of the text. The value after creation is
+      @code(Right), see the constructor.
+
+      Note: The @italic(declared) default below is deliberately different,
+      @code(Unknown), i.e. a value that never occurs in practice in IFC files
+      and that constructor does not set.
+      Normally the "default" should say what the constructor sets,
+      but here we deliberately break this convention: the "default" is used
+      by our IFC JSON writer to @italic(omit) the property, and Path
+      is a mandatory IFC attribute that we always want to write.
+      See @link(TIfcTextPath). }
+    property Path: TIfcTextPath read FPath write FPath default TIfcTextPath.Unknown;
+  end;
+
+  { Text to be displayed, with a defined extent (box) and alignment within it.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTextLiteralWithExtent.htm }
+  TIfcTextLiteralWithExtent = class(TIfcTextLiteral)
+  strict private
+    FExtent: TIfcPlanarExtent;
+    FBoxAlignment: TIfcBoxAlignment;
+  protected
+    function GetBoxAlignment: TIfcBoxAlignment; override;
+  published
+    { Extent (size of the box) in which the text is displayed.
+
+      Note: We ignore this for now. We don't need it to honor @link(BoxAlignment):
+      from what I understand, both the box defined by this,
+      and the text, place the corner at @link(BoxAlignment).
+
+      This value would only matter to wrap or clip the text to the box, and to
+      honor the alignment of the text within the box, given by
+      IfcTextStyleTextModel.TextAlign . Then, the box size does shift
+      the text, e.g. BoxAlignment = 'bottom-right' with TextAlign = 'left'
+      means the text starts SizeInX to the left of the placement. }
+    property Extent: TIfcPlanarExtent read FExtent write FExtent;
+
+    { Alignment of the text (and of the box defined by @link(Extent)).
+      One of the 9 values allowed
+      by @link(TIfcBoxAlignment), like @code('bottom-left'). }
+    property BoxAlignment: TIfcBoxAlignment read FBoxAlignment write FBoxAlignment;
+  end;
+
   { Parameterized planar curve.
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcConic.htm }
@@ -3004,6 +3145,29 @@
       const Indexes: array of Integer;
       const Solid: Boolean = true);
 
+    { Add representation as a polyline to the given product.
+      The sequence of points in Coordinates defines a polyline,
+      so it starts from the first point and goes through each subsequent point in order.
+
+      @param(Context Geometric representation context instance,
+        usually @link(TIfcProject.ModelContext) (for 3D models) or
+        @link(TIfcProject.PlanContext) (for 2D floor plans).
+      ) }
+    procedure AddPolylineRepresentation(
+      const Context: TIfcGeometricRepresentationContext;
+      const Coordinates: array of TVector3);
+
+    { Add representation as a set of line segments to the given product.
+      Each pair of points in Coordinates defines a line segment.
+
+      @param(Context Geometric representation context instance,
+        usually @link(TIfcProject.ModelContext) (for 3D models) or
+        @link(TIfcProject.PlanContext) (for 2D floor plans).
+      ) }
+    procedure AddLinesRepresentation(
+      const Context: TIfcGeometricRepresentationContext;
+      const Coordinates: array of TVector3);
+
     { Add box representation to the given product.
 
       Right now, the Box is transformed into a proper mesh representation,
@@ -3220,20 +3384,36 @@
     property LongName: TIfcLabel read FLongName write FLongName;
     property ContainsElements: TIfcRelContainedInSpatialStructureList read FContainsElements;
 
-    { Add given Element (TIfcElement, descendant of TIfcProduct)
+    { Add given Element (usually TIfcElement, but can be any TIfcProduct)
       to the @link(ContainsElements) list of this spatial element.
 
-      This adds an intermediate TIfcRelContainedInSpatialStructure instance,
-      and expands the @link(ContainsElements) list of this spatial element,
-      and expands the @link(TIfcElement.ContainedInStructure) of the given Element.
+      What this does:
 
-      It may reuse existing TIfcRelContainedInSpatialStructure instance
+      @unorderedList(
+        @item(Adds an intermediate TIfcRelContainedInSpatialStructure instance,)
+
+        @item(Expands the @link(ContainsElements) list of this spatial element,)
+
+        @item(Expands the @link(TIfcElement.ContainedInStructure) of the given Element.
+          This is done only if @code(Element) is a TIfcElement.)
+      )
+
+      This may reuse existing TIfcRelContainedInSpatialStructure instance
       (BonsaiBIM also does this, using one TIfcRelContainedInSpatialStructure
       to refer to multiple children).
 
       This should be used to add smaller elements, like TIfcWall, TIfcWindow
-      into larger spatial elements, like TIfcBuildingStorey, TIfcSpace. }
-    procedure AddContainedElement(const Element: TIfcElement);
+      into larger spatial elements, like TIfcBuildingStorey, TIfcSpace.
+      It can also add other products, like TIfcAnnotation
+      (which is not a TIfcElement, but can be contained in a spatial element).
+
+      Despite the name suggesting it takes only "elements" (TIfcElement),
+      this method actually accepts a more general TIfcProduct, not only TIfcElement.
+      This reflects the IFC standard, that allows any TIfcProduct
+      in @link(ContainsElements),
+      and in @url(IfcRelContainedInSpatialStructure
+      https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcRelContainedInSpatialStructure.htm). }
+    procedure AddContainedElement(const Element: TIfcProduct);
 
     { Add all contained elemenents to the List.
       This enumerates relations inside @link(ContainsElements)
@@ -4381,6 +4561,16 @@
     property Value: TIfcReal read FValue write FValue;
   end;
 
+  { Value of a distance that is always positive.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPositiveLengthMeasure.htm }
+  TIfcPositiveLengthMeasure_Boxed = class(TIfcMeasureValue)
+  strict private
+    FValue: TIfcReal;
+  published
+    property Value: TIfcReal read FValue write FValue;
+  end;
+
   { Measure of the quantity of a medium acting on a unit area.
     Usually measured in Pascals (Pa, N/m2).
 
@@ -4412,6 +4602,110 @@
     FValue: TIfcReal;
   published
     property Value: TIfcReal read FValue write FValue;
+  end;
+
+  { Size of something, like the font size.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcSizeSelect.htm }
+  TIfcSizeSelect = TIfcMeasureValue;
+
+  { Name of a font family, following CSS, like 'serif', 'sans-serif', 'Arial'.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTextFontName.htm }
+  TIfcTextFontName = String;
+
+  { Font style, following CSS: 'normal', 'italic' or 'oblique'.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcFontStyle.htm }
+  TIfcFontStyle = String;
+
+  { Font variant, following CSS: 'normal' or 'small-caps'.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcFontVariant.htm }
+  TIfcFontVariant = String;
+
+  { Font weight, following CSS: 'normal', 'bold' or '100', '200', ... '900'.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcFontWeight.htm }
+  TIfcFontWeight = String;
+
+  { Pre-defined presentation item, identified by name.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPreDefinedItem.htm }
+  TIfcPreDefinedItem = class abstract(TIfcPresentationItem)
+  strict private
+    FName: TIfcLabel;
+  published
+    { Name of the pre-defined item. }
+    property Name: TIfcLabel read FName write FName;
+  end;
+
+  { Pre-defined text font.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPreDefinedTextFont.htm }
+  TIfcPreDefinedTextFont = class abstract(TIfcPreDefinedItem)
+  end;
+
+  { Font for text, following the CSS font model.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTextStyleFontModel.htm }
+  TIfcTextStyleFontModel = class(TIfcPreDefinedTextFont)
+  strict private
+    FFontFamily: TCastleStringList;
+    FFontStyle: TIfcFontStyle;
+    FFontVariant: TIfcFontVariant;
+    FFontWeight: TIfcFontWeight;
+    FFontSize: TIfcSizeSelect;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+
+    { Font size as a length (in the model length units), if possible.
+      Returns @false if FontSize is @nil or is not a length measure. }
+    function TryGetFontSizeLength(out Size: Single): Boolean;
+  published
+    { Font families, in order of preference. Always at least 1 item. }
+    property FontFamily: TCastleStringList read FFontFamily;
+
+    { Font style. }
+    property FontStyle: TIfcFontStyle read FFontStyle write FFontStyle;
+
+    { Font variant. }
+    property FontVariant: TIfcFontVariant read FFontVariant write FFontVariant;
+
+    { Font weight. }
+    property FontWeight: TIfcFontWeight read FFontWeight write FFontWeight;
+
+    { Font size. Usually TIfcLengthMeasure_Boxed or TIfcPositiveLengthMeasure_Boxed,
+      which is the height of the font (in the model length units).
+      We use it to set X3D TFontStyleNode.Size. }
+    property FontSize: TIfcSizeSelect read FFontSize write FFontSize;
+  end;
+
+  { Font for text, a choice (select) in IFC standard between
+    @link(TIfcPreDefinedTextFont) and IfcExternallyDefinedTextFont.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTextFontSelect.htm }
+  TIfcTextFontSelect = TIfcPersistent;
+
+  { Style of a text, in particular its font (with size).
+    Assign it to a text (like @link(TIfcTextLiteral)) using
+    @link(TIfcStyledItem), or just use @link(TIfcTextLiteral.SetFontSize).
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTextStyle.htm }
+  TIfcTextStyle = class(TIfcPresentationStyle)
+  strict private
+    FTextFontStyle: TIfcTextFontSelect;
+    FModelOrDraughting: TIfcBoolean;
+  published
+    { Font of the text. Usually @link(TIfcTextStyleFontModel). }
+    property TextFontStyle: TIfcTextFontSelect read FTextFontStyle write FTextFontStyle;
+
+    { Whether the text size is in model space (@true)
+      or in the drawing space (@false).
+      Note: We don't use this for display for now, we always treat
+      the font size as in model units. }
+    property ModelOrDraughting: TIfcBoolean read FModelOrDraughting write FModelOrDraughting default false;
   end;
 
   { Abstract unit: a physical quantity, with a value of one, which is used as
@@ -4834,14 +5128,30 @@
   { Context that applies to several shape representations of a product
     being a sub context, sharing the WorldCoordinateSystem,
     CoordinateSpaceDimension, Precision and TrueNorth attributes with
-    the parent IfcGeometricRepresentationContext.  }
-  TIfcGeometricRepresentationSubContext = class(TIfcRepresentationContext)
+    the parent IfcGeometricRepresentationContext.
+
+    Descends from TIfcGeometricRepresentationContext, like in the IFC spec.
+    The WorldCoordinateSystem, CoordinateSpaceDimension, Precision and TrueNorth
+    are derived (from @link(ParentContext)) in a subcontext,
+    so they are not stored in IFC files.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcGeometricRepresentationSubContext.htm }
+  TIfcGeometricRepresentationSubContext = class(TIfcGeometricRepresentationContext)
   strict private
     FParentContext: TIfcGeometricRepresentationContext;
     FTargetScale: TIfcPositiveRatioMeasure;
     FTargetView: TIfcGeometricProjectionEnum;
     FUserDefinedTargetView: TIfcLabel;
   published
+    { Derived from @link(ParentContext) in a subcontext, so not stored. }
+    property CoordinateSpaceDimension stored false;
+    { Derived from @link(ParentContext) in a subcontext, so not stored. }
+    property Precision stored false;
+    { Derived from @link(ParentContext) in a subcontext, so not stored. }
+    property WorldCoordinateSystem stored false;
+    { Derived from @link(ParentContext) in a subcontext, so not stored. }
+    property TrueNorth stored false;
+
     { Parent context from which the sub context derives its world coordinate system,
       precision, space coordinate dimension and true north. }
     property ParentContext: TIfcGeometricRepresentationContext read FParentContext write FParentContext;
@@ -6116,6 +6426,92 @@ begin
   NewRepresentation.OfProductRepresentation.Add(Representation);
 end;
 
+procedure TIfcProduct.AddPolylineRepresentation(
+  const Context: TIfcGeometricRepresentationContext;
+  const Coordinates: array of TVector3);
+var
+  PolyLine: TIfcPolyline;
+  NewRepresentation: TIfcRepresentation;
+  I: Integer;
+begin
+  PolyLine := TIfcPolyline.Create(Owner);
+  for I := 0 to High(Coordinates) do
+    PolyLine.Points.Add(TIfcCartesianPoint.CreateVector(Owner, Coordinates[I]));
+
+  NewRepresentation := TIfcShapeRepresentation.Create(Owner);
+  NewRepresentation.RepresentationIdentifier := 'Body';
+  NewRepresentation.RepresentationType := 'Curve3D';
+  NewRepresentation.ContextOfItems := Context;
+  NewRepresentation.Items.Add(PolyLine);
+
+  if Representation = nil then
+    Representation := TIfcProductDefinitionShape.Create(Owner);
+  Representation.Representations.Add(NewRepresentation);
+
+  Context.RepresentationsInContext.Add(NewRepresentation);
+
+  // link back from NewRepresentation -> (product) Representation
+  NewRepresentation.OfProductRepresentation.Add(Representation);
+end;
+
+procedure TIfcProduct.AddLinesRepresentation(
+  const Context: TIfcGeometricRepresentationContext;
+  const Coordinates: array of TVector3);
+var
+  {$ifdef CASTLE_AddLinesRepresentation_UseGeometricSet}
+  GeometricCurveSet: TIfcGeometricCurveSet;
+  {$endif}
+  NewRepresentation: TIfcRepresentation;
+  PolyLine: TIfcPolyline;
+  I: Integer;
+begin
+  {$ifdef CASTLE_AddLinesRepresentation_UseGeometricSet}
+  GeometricCurveSet := TIfcGeometricCurveSet.Create(Owner);
+  I := 0;
+  while I + 1 < Length(Coordinates) do
+  begin
+    PolyLine := TIfcPolyline.Create(Owner);
+    PolyLine.Points.Add(TIfcCartesianPoint.CreateVector(Owner, Coordinates[I]));
+    PolyLine.Points.Add(TIfcCartesianPoint.CreateVector(Owner, Coordinates[I + 1]));
+    GeometricCurveSet.Elements.Add(PolyLine);
+    Inc(I, 2);
+  end;
+
+  NewRepresentation := TIfcShapeRepresentation.Create(Owner);
+  NewRepresentation.RepresentationIdentifier := 'Body';
+  { See https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcShapeRepresentation.htm
+    for possible RepresentationType values. }
+  NewRepresentation.RepresentationType := 'GeometricCurveSet';
+  NewRepresentation.ContextOfItems := Context;
+  NewRepresentation.Items.Add(GeometricCurveSet);
+
+  {$else}
+  NewRepresentation := TIfcShapeRepresentation.Create(Owner);
+  NewRepresentation.RepresentationIdentifier := 'Body';
+  NewRepresentation.RepresentationType := 'Curve3D';
+  NewRepresentation.ContextOfItems := Context;
+
+  I := 0;
+  while I + 1 < Length(Coordinates) do
+  begin
+    PolyLine := TIfcPolyline.Create(Owner);
+    PolyLine.Points.Add(TIfcCartesianPoint.CreateVector(Owner, Coordinates[I]));
+    PolyLine.Points.Add(TIfcCartesianPoint.CreateVector(Owner, Coordinates[I + 1]));
+    NewRepresentation.Items.Add(PolyLine);
+    Inc(I, 2);
+  end;
+  {$endif}
+
+  if Representation = nil then
+    Representation := TIfcProductDefinitionShape.Create(Owner);
+  Representation.Representations.Add(NewRepresentation);
+
+  Context.RepresentationsInContext.Add(NewRepresentation);
+
+  // link back from NewRepresentation -> (product) Representation
+  NewRepresentation.OfProductRepresentation.Add(Representation);
+end;
+
 procedure TIfcProduct.AddBoxRepresentation(
   const Context: TIfcGeometricRepresentationContext;
   const Box: TBox3D);
@@ -6210,6 +6606,19 @@ begin
 end;
 
 procedure TIfcProduct.SetTransformRelativeTo(const OtherProduct: TIfcProduct);
+
+  { Create TIfcLocalPlacement with assigned TIfcLocalPlacement.RelativePlacement.
+
+    Set RelativePlacement to empty TIfcAxis2Placement3D, because
+    it is required by IFC spec
+    (not OPTIONAL in https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcLocalPlacement.htm )
+    and Blender BonsaiBIM indeed crashes when it is missing. }
+  function CreateLocalPlacement: TIfcLocalPlacement;
+  begin
+    Result := TIfcLocalPlacement.Create(Owner);
+    Result.RelativePlacement := TIfcAxis2Placement3D.Create(Owner);
+  end;
+
 begin
   if (OtherProduct = nil) or (OtherProduct = Self) then
   begin
@@ -6222,10 +6631,10 @@ begin
   begin
     // make sure OtherProduct.ObjectPlacement <> nil
     if OtherProduct.ObjectPlacement = nil then
-      OtherProduct.ObjectPlacement := TIfcLocalPlacement.Create(Owner);
+      OtherProduct.ObjectPlacement := CreateLocalPlacement;
     // make sure ObjectPlacement <> nil
     if ObjectPlacement = nil then
-      ObjectPlacement := TIfcLocalPlacement.Create(Owner);
+      ObjectPlacement := CreateLocalPlacement;
     ObjectPlacement.PlacementRelTo := OtherProduct.ObjectPlacement;
 
     { Inverse of PlacementRelTo, according to spec of IfcObjectPlacement.
@@ -6394,7 +6803,7 @@ begin
   inherited;
 end;
 
-procedure TIfcSpatialElement.AddContainedElement(const Element: TIfcElement);
+procedure TIfcSpatialElement.AddContainedElement(const Element: TIfcProduct);
 var
   Relation: TIfcRelContainedInSpatialStructure;
 begin
@@ -6413,7 +6822,8 @@ begin
 
   Relation.RelatedElements.Add(Element);
 
-  Element.ContainedInStructure.Add(Relation);
+  if Element is TIfcElement then
+    TIfcElement(Element).ContainedInStructure.Add(Relation);
 end;
 
 procedure TIfcSpatialElement.GetContainedElements(const List: TIfcElementList);
@@ -8089,6 +8499,100 @@ begin
   inherited;
 end;
 
+{ TIfcTextLiteral ------------------------------------------------------------ }
+
+constructor TIfcTextLiteral.Create(AOwner: TComponent);
+begin
+  inherited;
+  { The IFC specification defines no default for Path (the attribute is not
+    optional). But we have to assume something when the file omits it,
+    or when constructing this with Pascal code.
+    The 1st enum value (Unknown, which is not even in the specification,
+    see @link(TIfcTextPath)) would be non-standard,
+    so explicitly make this default to Right. }
+  FPath := TIfcTextPath.Right;
+end;
+
+function TIfcTextLiteral.GetBoxAlignment: TIfcBoxAlignment;
+begin
+  Result := '';
+end;
+
+procedure TIfcTextLiteral.SetFontSize(const Size: TIfcPositiveLengthMeasure;
+  const FontFamily: String);
+var
+  FontSize: TIfcPositiveLengthMeasure_Boxed;
+  FontModel: TIfcTextStyleFontModel;
+  TextStyle: TIfcTextStyle;
+  NewStyledItem: TIfcStyledItem;
+begin
+  FontSize := TIfcPositiveLengthMeasure_Boxed.Create(Owner);
+  FontSize.Value := Size;
+
+  FontModel := TIfcTextStyleFontModel.Create(Owner);
+  FontModel.FontFamily.Add(FontFamily);
+  FontModel.FontSize := FontSize;
+
+  TextStyle := TIfcTextStyle.Create(Owner);
+  TextStyle.TextFontStyle := FontModel;
+  { Font size is in model units, not drawing (paper) units. }
+  TextStyle.ModelOrDraughting := true;
+
+  NewStyledItem := TIfcStyledItem.Create(Owner);
+  NewStyledItem.Styles.Add(TextStyle);
+
+  StyledByItem := NewStyledItem;
+end;
+
+function TIfcTextLiteral.TryGetFontSize(out Size: Single): Boolean;
+var
+  Style: TIfcPresentationStyle;
+begin
+  if StyledByItem <> nil then
+    for Style in StyledByItem.Styles do
+      if (Style is TIfcTextStyle) and
+         (TIfcTextStyle(Style).TextFontStyle is TIfcTextStyleFontModel) and
+         TIfcTextStyleFontModel(TIfcTextStyle(Style).TextFontStyle).TryGetFontSizeLength(Size) then
+        Exit(true);
+  Result := false;
+end;
+
+{ TIfcTextStyleFontModel ----------------------------------------------------- }
+
+constructor TIfcTextStyleFontModel.Create(AOwner: TComponent);
+begin
+  inherited;
+  FFontFamily := TCastleStringList.Create;
+end;
+
+destructor TIfcTextStyleFontModel.Destroy;
+begin
+  FreeAndNil(FFontFamily);
+  inherited;
+end;
+
+function TIfcTextStyleFontModel.TryGetFontSizeLength(out Size: Single): Boolean;
+begin
+  if FontSize is TIfcPositiveLengthMeasure_Boxed then
+  begin
+    Size := TIfcPositiveLengthMeasure_Boxed(FontSize).Value;
+    Result := true;
+  end else
+  if FontSize is TIfcLengthMeasure_Boxed then
+  begin
+    Size := TIfcLengthMeasure_Boxed(FontSize).Value;
+    Result := true;
+  end else
+    Result := false;
+end;
+
+{ TIfcTextLiteralWithExtent -------------------------------------------------- }
+
+function TIfcTextLiteralWithExtent.GetBoxAlignment: TIfcBoxAlignment;
+begin
+  Result := FBoxAlignment;
+end;
+
 { initialization, finalization ----------------------------------------------- }
 
 var
@@ -8168,6 +8672,7 @@ function IfcClasses: TIfcPersistentClassList;
     FIfcClasses.Add(TIfcAreaMeasure_Boxed);
     FIfcClasses.Add(TIfcMassMeasure);
     FIfcClasses.Add(TIfcLengthMeasure_Boxed);
+    FIfcClasses.Add(TIfcPositiveLengthMeasure_Boxed);
     FIfcClasses.Add(TIfcPressureMeasure);
     FIfcClasses.Add(TIfcVolumeMeasure);
     FIfcClasses.Add(TIfcThermodynamicTemperatureMeasure);
@@ -8251,6 +8756,13 @@ function IfcClasses: TIfcPersistentClassList;
     FIfcClasses.Add(TIfcBuildingElementProxyType);
     FIfcClasses.Add(TIfcRectangleProfileDef);
     FIfcClasses.Add(TIfcBoundingBox);
+    FIfcClasses.Add(TIfcPlanarExtent);
+    FIfcClasses.Add(TIfcTextLiteral);
+    FIfcClasses.Add(TIfcTextLiteralWithExtent);
+    FIfcClasses.Add(TIfcPreDefinedItem);
+    FIfcClasses.Add(TIfcPreDefinedTextFont);
+    FIfcClasses.Add(TIfcTextStyleFontModel);
+    FIfcClasses.Add(TIfcTextStyle);
     FIfcClasses.Add(TIfcTrimmedCurve);
     FIfcClasses.Add(TIfcEllipse);
     FIfcClasses.Add(TIfcMappedItem);

@@ -1,9 +1,9 @@
 {
-  Copyright 2000-2024 Michalis Kamburelis.
+  Copyright 2000-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -157,8 +157,9 @@ type
 
     { Access dictionary items.
       Setting this is allowed regardless if the key previously existed or not,
-      in other words: setting this does AddOrSetValue, contrary to the ancestor TDictionary
-      that only allows setting when the key already exists. }
+      in other words: setting this does @code(AddOrSetValue),
+      contrary to the ancestor TDictionary that only sets the value
+      if the key already exists, and otherwise (on new key) raises an exception. }
     property Items [const AKey: string]: string read GetItems write SetItems; default;
   end;
 
@@ -331,6 +332,9 @@ function SuffixRemove(const Suffix, S: string; IgnoreCase: boolean): string;
   but @code(IsPrefixSuffix('bla', 'abc', 'blabc')) returns unmodified @code('blabc'). }
 function PrefixSuffixRemove(const Prefix, Suffix, S: String; const IgnoreCase: Boolean): String;
 
+{ Remove the characters in Chars (as many as they appear) from the end of S. }
+function SuffixRemoveChars(const S: String; const Chars: TSetOfChars): String;
+
 { Appends to a string S DataSize bytes from Data. }
 procedure SAppendData(var s: string; const Data; DataSize: integer); deprecated 'this function is not very useful';
 
@@ -453,7 +457,7 @@ function CreateTokens(const s: string;
       )
     )
 
-    @item(f the Delimiter occurs at the very end of the source string,
+    @item(If the Delimiter occurs at the very end of the source string,
       then the very last part of the resulting list will be an empty string.
 
       @unorderedList(
@@ -525,6 +529,8 @@ function SAppendPart(const s, PartSeparator, NextPart: string): string;
 type
   EDeformatError = class(Exception);
 
+{$ifndef CASTLE_DEFORMAT_BUGGY}
+
 { Parse a string according to the given format, returning the
   values corresponding to placeholders %x in format string.
 
@@ -566,10 +572,10 @@ type
       @code(%d), but they specify appropriate variable type in Args.)
 
     @item(@code(%s) in Format means a string (will end on the first whitespace)
-      in Data. Args should contain a pointer to an AnsiString
-      on the appropriate position. Note that I mean it --- a pointer
-      to an AnsiString, not just a string typecasted into a pointer.
-      I.e., if S is AnsiString, Args should contain @@S, not Pointer(S).
+      in Data. Args should contain a @italic(pointer) to a String
+      on the appropriate position. Take care: we really mean a pointer
+      to a String, @italic(not a string typecasted into a pointer).
+      I.e., if S is String, Args should contain @@S, not Pointer(S).
 
       Note that a string may be empty in some cases, e.g. Format = '%d %s'
       and Data = '123 ' will result in the empty string as second Args.)
@@ -622,6 +628,8 @@ function TryDeFormat(Data: string; const Format: string;
   const args: array of pointer;
   const IgnoreCase: boolean = true;
   const RelaxedWhitespaceChecking: boolean = true): integer; overload;
+
+{$endif CASTLE_DEFORMAT_BUGGY}
 
 { Replace all strings in Patterns with corresponding strings in Values.
   This is similar to standard StringReplace, but this does many
@@ -936,6 +944,8 @@ function StrToFloatDef(const s: string; DefValue: Extended): Extended;
   can't depend on how compiler stores sets.) }
 function SetToStr(const SetVariable; NumStart, NumEnd: byte): string;
 
+{ Show every character in set, using SReadableForm.
+  Useful for debugging TSetOfChars values. }
 function CharSetToStr(const SetVariable: TSetOfChars): string;
 
 { PCharOrNil simply returns a Pointer(S), you can think of it as a NO-OP.
@@ -951,7 +961,7 @@ function PWideCharOrNil(const s: WideString): PWideChar;
 { PAnsiCharOrNil simply returns a Pointer(S), you can think of it as a NO-OP.
   If string is empty, this returns @nil, otherwise it works just like
   PAnsiChar(S): returns a Pointer(S) with appropriate type cast. }
-function PAnsiCharOrNil(const s: AnsiString): PAnsiChar;
+function PAnsiCharOrNil(const s: RawByteString): PAnsiChar;
 
 { Replace any number of consecutive whitespace (including newlines)
   with a single whitespace. This is nice when you have a string
@@ -980,17 +990,26 @@ function TrimEndingNewline(const S: String): String;
 function SizeToStr(const Value: Int64): String;
 
 { Convert String to UTF-16 (UnicodeString).
-  On Delphi (more generally: on compilers where String is already UnicodeString, which is UTF-16),
-  this does nothing.
-  On FPC (more generally: on compilers where String is AnsiString with UTF-8 encoding),
-  this converts UTF-8 into UTF-16 UnicodeString. }
+  On Delphi (more generally: on compilers where String is already UnicodeString,
+  which is UTF-16), this does nothing.
+  On FPC (more generally: on compilers where String is AnsiString
+  with UTF-8 encoding), this converts UTF-8 into UTF-16 UnicodeString.
+
+  Note: Use this routine instead of @code(MyUnicodeString := Utf8Decode(MyString)).
+
+  Reason: With Delphi, MyString is already a UnicodeString, and using
+  @url(https://docwiki.embarcadero.com/Libraries/Florence/en/System.UTF8Decode
+  UTF8Decode) would forcefully convert it to 8-bit String (UTF8Decode takes
+  RawByteString). With CASTLE_ANSISTRING_UNCHANGED, this means converting to
+  system-specific encoding that may not be even able to express all Unicode
+  characters. Then UTF8Decode would convert this, assuming input is UTF-8. }
 function StringToUtf16(const Src: String): UnicodeString; inline;
 
 { Convert UTF-16 (UnicodeString) to String.
-  On Delphi (more generally: on compilers where String is already UnicodeString, which is UTF-16),
-  this does nothing.
-  On FPC (more generally: on compilers where String is AnsiString with UTF-8 encoding),
-  this converts UTF-16 into UTF-8. }
+  On Delphi (more generally: on compilers where String is already UnicodeString,
+  which is UTF-16), this does nothing.
+  On FPC (more generally: on compilers where String is AnsiString with UTF-8
+  encoding), this converts UTF-16 into UTF-8. }
 function Utf16ToString(const Src: UnicodeString): String; inline;
 
 const
@@ -1520,6 +1539,13 @@ begin
     Result := S;
 end;
 
+function SuffixRemoveChars(const S: String; const Chars: TSetOfChars): String;
+begin
+  Result := S;
+  while (Length(Result) > 0) and CharInSet(Result[Length(Result)], Chars) do
+    SetLength(Result, Length(Result) - 1);
+end;
+
 procedure SAppendData(var s: string; const Data; DataSize: integer);
 var
   OldLen: integer;
@@ -1791,6 +1817,8 @@ begin
     Result := S + PartSeparator + NextPart;
 end;
 
+{$ifndef CASTLE_DEFORMAT_BUGGY}
+
 procedure DeFormat(Data: string; const Format: string;
   const args: array of pointer;
   const IgnoreCase: boolean;
@@ -1992,6 +2020,8 @@ begin
   raise EDeformatError.CreateFmt(
     'data ''%s'' too long - unexpected end of format ''%s''', [Data, Format]);
 end;
+
+{$endif CASTLE_DEFORMAT_BUGGY}
 
 function SReplacePatterns(const S: string;
   const Patterns, Values: array of string; const IgnoreCase: boolean): string;
@@ -2575,7 +2605,7 @@ begin if s = '' then result := nil else result := PChar(s); end;
 function PWideCharOrNil(const s: WideString): PWideChar;
 begin if s = '' then result := nil else result := PWideChar(s); end;
 
-function PAnsiCharOrNil(const s: AnsiString): PAnsiChar;
+function PAnsiCharOrNil(const s: RawByteString): PAnsiChar;
 begin if s = '' then result := nil else result := PAnsiChar(s); end;
 
 function SCompressWhiteSpace(const S: string): string;

@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -65,7 +65,7 @@ function LazarusVersion: TLazarusVersion;
 implementation
 
 uses SysUtils, Classes,
-  CastleFilesUtils, CastleLog, CastleStringUtils,
+  CastleFilesUtils, CastleLog, CastleStringUtils, CastleInternalProcess,
   ToolCommonUtils, ToolCompilerInfo, ToolProcessRun;
 
 { TToolVersion --------------------------------------------------------------- }
@@ -132,9 +132,9 @@ begin
   inherited;
 
   ToolExe := FindExeFpcCompiler;
-  MyRunCommandIndir(GetCurrentDir, ToolExe, ['-iV'], ToolOutput, ToolExitStatus,
-    // use rcNoConsole to not blink with a console when CGE editor starts
-    nil, nil, [rcNoConsole]);
+  ExecuteCommandCapture('', ToolExe, ['-iV'], ToolOutput, ToolExitStatus,
+    // use ecNoConsole to not blink with a console when CGE editor starts
+    nil, nil, [ecNoConsole]);
   if ToolExitStatus <> 0 then
     raise Exception.Create('Failed to query FPC version');
 
@@ -175,9 +175,9 @@ begin
   inherited;
 
   ToolExe := FindExeLazbuild;
-  MyRunCommandIndir(GetCurrentDir, ToolExe, ['--version'], ToolOutput, ToolExitStatus,
-    // use rcNoConsole to not blink with a console when CGE editor starts
-    nil, nil, [rcNoConsole]);
+  ExecuteCommandCapture(GetCurrentDir, ToolExe, ['--version'], ToolOutput, ToolExitStatus,
+    // use ecNoConsole to not blink with a console when CGE editor starts
+    nil, nil, [ecNoConsole]);
   if ToolExitStatus <> 0 then
     raise Exception.Create('Failed to query Lazarus (lazbuild) version');
 

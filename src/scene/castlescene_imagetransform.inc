@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -27,7 +27,7 @@ type
     FRootNode: TX3DRootNode;
     FAppearanceNode: TAppearanceNode;
     FShapeNode: TShapeNode;
-    FBaseTexture, FNormalMapTexture: TCastleAbstractPrimitive.TMaterialTexture;
+    FBaseTexture, FNormalMapTexture: TMaterialTexture;
     FTexPropertiesNode: TTexturePropertiesNode;
     FCoordinateNode: TCoordinateNode;
     FTexCoordNode: TTextureCoordinateNode;
@@ -352,11 +352,11 @@ end;
 function TCastleImageTransform.PropertySections(const PropertyName: String): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
-        'PivotPersistent', 'SizePersistent', 'RepeatImagePersistent',
-        'ShiftPersistent', 'ColorPersistent', 'SmoothScaling', 'AlphaChannel',
-        'PreciseCollisions', 'Url', 'UrlNormalMap', 'Mipmaps', 'RenderOptions',
-        'Material'
-      ]) then
+      'PivotPersistent', 'SizePersistent', 'RepeatImagePersistent',
+      'ShiftPersistent', 'ColorPersistent', 'SmoothScaling', 'AlphaChannel',
+      'PreciseCollisions', 'Url', 'UrlNormalMap', 'Mipmaps', 'RenderOptions',
+      'Material'
+    ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);

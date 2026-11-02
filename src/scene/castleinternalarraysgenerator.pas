@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -40,8 +40,8 @@ type
     { Generalized version of AssignAttribute, AssignCoordinate. }
     procedure AssignAttributeOrCoordinate(
       const AttributeName: String;
-      const TargetPtr: Pointer; const TargetItemSize: SizeInt;
-      const SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeInt;
+      const TargetPtr: Pointer; const TargetItemSize: SizeUInt;
+      const SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeUInt;
       const TrivialIndex: Boolean);
   protected
     { Indexes, only when Arrays.Indexes = nil but original node was indexed
@@ -320,11 +320,21 @@ type
   require initialization / finalization. Otherwise target memory data
   will not be properly referenced.
 
-  @raises EAssignInterleavedRangeError When Count < CopyCount. }
+  @raises EAssignInterleavedRangeError When Count < CopyCount.
+
+  Note: It's important to declare sizes and counts parameters here as SizeUInt,
+  not SizeInt! Otherwise, additions inside like
+
+    PtrUInt(Source) := PtrUInt(Source) + SourceItemSize
+
+  can make range check errors, in case PtrUInt(Source) is beyond
+  (signed) Int64 range, and compiler (reproduced with Delphi 13
+  for Android/Aarch64) decides to resolve the + by treating both
+  parts as Int64. }
 procedure AssignToInterleaved(
   const AttributeName: String;
-  Target: Pointer; const TargetItemSize, CopyCount: SizeInt;
-  Source: Pointer; const SourceItemSize, SourceCount: SizeInt);
+  Target: Pointer; const TargetItemSize, CopyCount: SizeUInt;
+  Source: Pointer; const SourceItemSize, SourceCount: SizeUInt);
 var
   I: Integer;
 begin
@@ -335,12 +345,13 @@ begin
       CopyCount
     ]);
 
-  for I := 0 to CopyCount - 1 do
-  begin
-    Move(Source^, Target^, SourceItemSize);
-    PtrUInt(Source) := PtrUInt(Source) + SourceItemSize;
-    PtrUInt(Target) := PtrUInt(Target) + TargetItemSize;
-  end;
+  if CopyCount <> 0 then
+    for I := 0 to CopyCount - 1 do
+    begin
+      Move(Source^, Target^, SourceItemSize);
+      PtrUInt(Source) := PtrUInt(Source) + SourceItemSize;
+      PtrUInt(Target) := PtrUInt(Target) + TargetItemSize;
+    end;
 end;
 
 { Copy Source contents to given Target memory. Each item in Target
@@ -358,12 +369,15 @@ end;
   require initialization / finalization. Otherwise target memory data
   will not be properly referenced.
 
+  Note: It's important to declare sizes and counts parameters here as SizeUInt,
+  not SizeInt. See AssignToInterleaved for more details.
+
   @raises(EAssignInterleavedRangeError When Indexes.Count < CopyCount,
     or some index points outside of array.) }
 procedure AssignToInterleavedIndexed(
   const AttributeName: String;
-  Target: Pointer; const TargetItemSize, CopyCount: SizeInt;
-  Source: Pointer; const SourceItemSize, SourceCount: SizeInt;
+  Target: Pointer; const TargetItemSize, CopyCount: SizeUInt;
+  Source: Pointer; const SourceItemSize, SourceCount: SizeUInt;
   const Indexes: TUInt32List);
 var
   I: Integer;
@@ -376,39 +390,41 @@ begin
       CopyCount
     ]);
 
-  for I := 0 to CopyCount - 1 do
-  begin
-    Index := Indexes.L[I];
-    if Index >= SourceCount then
-      raise EAssignInterleavedRangeError.CreateFmt('Invalid index: %d, but we have %d items in %s', [
-        Index,
-        SourceCount,
-        AttributeName
-      ]);
+  if CopyCount <> 0 then
+    for I := 0 to CopyCount - 1 do
+    begin
+      Index := Indexes.L[I];
+      if Index >= SourceCount then
+        raise EAssignInterleavedRangeError.CreateFmt('Invalid index: %d, but we have %d items in %s', [
+          Index,
+          SourceCount,
+          AttributeName
+        ]);
 
-    { Beware to not make multiplication below (* ItemSize) using 64-bit ints.
-      This would cause noticeable slowdown when using AssignToInterleavedIndexed
-      for ArraysGenerator, that in turn affects dynamic scenes
-      and especially dynamic shading like radiance_transfer. }
-    Move(Pointer(PtrUInt(Source) + PtrUInt(Index) * PtrUInt(SourceItemSize))^,
-      Target^, SourceItemSize);
-    PtrUInt(Target) := PtrUInt(Target) + TargetItemSize;
-  end;
+      { Beware to not make multiplication below (* ItemSize) using 64-bit ints.
+        This would cause noticeable slowdown when using AssignToInterleavedIndexed
+        for ArraysGenerator, that in turn affects dynamic scenes
+        and especially dynamic shading like radiance_transfer. }
+      Move(Pointer(PtrUInt(Source) + PtrUInt(Index) * PtrUInt(SourceItemSize))^,
+        Target^, SourceItemSize);
+      PtrUInt(Target) := PtrUInt(Target) + TargetItemSize;
+    end;
 end;
 
 { Like AssignToInterleaved, but there is only one Source value,
   that should be copied to all destinations. }
 procedure AssignToInterleavedConstant(
-  Target: Pointer; const TargetItemSize, CopyCount: SizeInt;
-  const Source: Pointer; const SourceItemSize: SizeInt);
+  Target: Pointer; const TargetItemSize, CopyCount: SizeUInt;
+  const Source: Pointer; const SourceItemSize: SizeUInt);
 var
   I: Integer;
 begin
-  for I := 0 to CopyCount - 1 do
-  begin
-    Move(Source^, Target^, SourceItemSize);
-    PtrUInt(Target) := PtrUInt(Target) + TargetItemSize;
-  end;
+  if CopyCount <> 0 then
+    for I := 0 to CopyCount - 1 do
+    begin
+      Move(Source^, Target^, SourceItemSize);
+      PtrUInt(Target) := PtrUInt(Target) + TargetItemSize;
+    end;
 end;
 
 { classes -------------------------------------------------------------------- }
@@ -786,12 +802,12 @@ type
       GetNormal to return correct normal. }
   TAbstractBumpMappingGenerator = class(TAbstractShaderAttribGenerator)
   strict private
-    Tangent: TVector3;
+    Tangent: TVector4;
     CalculateTangents: Boolean;
   protected
-    { If tangents are provided in the TAbstractComposedGeometryNode.FdTangent,
+    { If tangents are provided in the TAbstractComposedGeometryNode.Tangent,
       descendants should set them here. }
-    TangentsFromNode: TVector3List;
+    TangentsFromNode: TVector4List;
 
     procedure PrepareAttributes(var AllowIndexed: boolean); override;
     procedure GenerateCoordinateBegin; override;
@@ -804,9 +820,15 @@ type
       const TriangleIndex1, TriangleIndex2, TriangleIndex3: Integer);
   end;
 
+  TAbstractSkinWeightsJointsGenerator = class(TAbstractBumpMappingGenerator)
+  protected
+    procedure PrepareAttributes(var AllowIndexed: boolean); override;
+    procedure GenerateCoordinateBegin; override;
+  end;
+
   { Most complete implementation of arrays generator,
     should be used to derive non-abstract renderers for nodes. }
-  TAbstractCompleteGenerator = TAbstractBumpMappingGenerator;
+  TAbstractCompleteGenerator = TAbstractSkinWeightsJointsGenerator;
 
 { TArraysGenerator ------------------------------------------------------ }
 
@@ -951,8 +973,8 @@ end;
 
 procedure TArraysGenerator.AssignAttributeOrCoordinate(
   const AttributeName: String;
-  const TargetPtr: Pointer; const TargetItemSize: SizeInt;
-  const SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeInt;
+  const TargetPtr: Pointer; const TargetItemSize: SizeUInt;
+  const SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeUInt;
   const TrivialIndex: Boolean);
 begin
   { Following TArraysGenerator.GenerateArrays logic, there are various cases:
@@ -1863,8 +1885,9 @@ begin
       ColorIndex is set but always equal to CoordIndex.
       This means we don't have to disable AllowIndexed (which is beneficial for speed).
 
-      Testcase: test examples/fps_game/data/knight_creature/knight.gltf
-      with LogShapes, observe it should have AllowIndexed=true
+      Testcase: test fps_game_old_ai (example now in castle-engine/private-assets
+      as it uses some deprecated API) with LogShapes,
+      observe it should have AllowIndexed=true
       and CoordinatePreserveGeometryOrder=true. }
     if ((ColorIndex <> nil) and (ColorIndex <> CoordIndex)) or
        (not ColorPerVertex) then
@@ -2407,7 +2430,13 @@ procedure TAbstractBumpMappingGenerator.GenerateVertex(IndexNum: Integer);
         and both tangents/bitangents may be different on each vertex. }
 
       GetNormal(IndexNum, CurrentRangeNumber, Normal);
-      Arrays.Tangent(ArrayIndexNum)^ := MakeVectorOrthogonal(Tangent, Normal);
+      Arrays.Tangent(ArrayIndexNum)^ :=
+        Vector4(MakeVectorOrthogonal(Tangent.XYZ, Normal),
+          { tangent W is always 1.0 in this case,
+            this is simple and correct, because this code executes only
+            when CalculateTangents = true, and then Tangent.W is 1.0
+            because we always calculate right-handed tangents. }
+          1.0);
     end;
   end;
 
@@ -2438,20 +2467,74 @@ begin
       { calculate Tangent }
       CalculateTangent(true , Tangent, TriangleCoord, TriangleTexCoord) ) then
     begin
-      { Would be more correct to set Tangent as anything perpendicular to Normal. }
-      Tangent := TVector3.One[0];
+      { Return X direction.
+        It would be more correct to set Tangent as anything perpendicular
+        to Normal? But it doesn't really matter, as our tangent calculation
+        should work for all normal cases, and exceptional cases should
+        provide explicit Tangent vectors by the Tangent node. }
+      Tangent := Vector4(1, 0, 0, 1);
     end;
 
     { It *is* possible that we'll get somewhat incorrect tangents in practice,
       but it's not really useful to check it (at least in non-debug builds)
       because we don't really have here a better fallback.
-      Using above "TVector3.One[0]" isn't really better. }
+      Using above "Vector4(1, 0, 0, 1)" isn't really better. }
     {
-    if not ( (Abs(TVector3.DotProduct(Tangent, Bitangent)) < 0.95) and
-             (Abs(TVector3.DotProduct(Tangent, Normal)) < 0.95) and
+    if not ( (Abs(TVector3.DotProduct(Tangent.XYZ, Bitangent)) < 0.95) and
+             (Abs(TVector3.DotProduct(Tangent.XYZ, Normal)) < 0.95) and
              (Abs(TVector3.DotProduct(Bitangent, Normal)) < 0.95) ) then
       WritelnWarning('Tangents are likely incorrect');
     }
+  end;
+end;
+
+{ TAbstractSkinWeightsJointsGenerator --------------------------------------- }
+
+procedure TAbstractSkinWeightsJointsGenerator.PrepareAttributes(var AllowIndexed: boolean);
+var
+  Weights0: TVector4List;
+  Joints0: TInt32List;
+begin
+  inherited;
+  if State.SkinnedAnimatedShape and
+     (Geometry.SkinWeightsJoints(Weights0, Joints0)) then
+  begin
+    Arrays.AddSkinWeights0;
+    Arrays.AddSkinJoints0;
+  end;
+end;
+
+procedure TAbstractSkinWeightsJointsGenerator.GenerateCoordinateBegin;
+var
+  Weights0: TVector4List;
+  Joints0Int: TInt32List;
+  Joints0Float: TVector4List;
+  I: Integer;
+begin
+  inherited;
+  if State.SkinnedAnimatedShape and
+     (Geometry.SkinWeightsJoints(Weights0, Joints0Int)) then
+  begin
+    AssignAttribute('skinWeights0', Arrays.SkinWeights0,
+      Weights0.L, Weights0.ItemSize, Weights0.Count);
+
+    { Create Joints0Float (array of TVector4, best OpenGL type to pass it)
+      from Joints0Int (array of Int32, next X3D type to express it).
+      The best type would be really TVector4List, but neither OpenGL nor X3D
+      have it (at least for all OpenGL versions -- newer desktop versions have
+      int vectors in GLSL). }
+    Joints0Float := TVector4List.Create;
+    try
+      Joints0Float.Count := Joints0Int.Count div 4;
+      for I := 0 to Joints0Float.Count - 1 do
+        Joints0Float[I] := Vector4(
+          Joints0Int.L[I * 4],
+          Joints0Int.L[I * 4 + 1],
+          Joints0Int.L[I * 4 + 2],
+          Joints0Int.L[I * 4 + 3]);
+      AssignAttribute('skinJoints0', Arrays.SkinJoints0,
+        Joints0Float.L, Joints0Float.ItemSize, Joints0Float.Count);
+    finally FreeAndNil(Joints0Float); end;
   end;
 end;
 

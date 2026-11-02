@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -21,8 +21,7 @@ interface
 implementation
 
 uses SysUtils, Math, Classes,
-  {$ifdef FPC} OpenSSLSockets, {$endif} // support HTTPS
-  CastleWindow, CastleLog, CastleApplicationProperties,
+  CastleHttps, CastleWindow, CastleLog, CastleApplicationProperties,
   GameLogHandler
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.

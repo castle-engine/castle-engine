@@ -14927,7 +14927,12 @@ const
 function InitOpenGL(LibName: String = OPENGL_LIBNAME; GLULibName: String = GLU_LIBNAME): Boolean;
 
 function dglGetProcAddress(const ProcNameStr: String; LibHandle: TDynLib = nil {$IFDEF DGL_GLX}; ForceDLSym: Boolean = False{$ENDIF}): Pointer;
-function dglCheckExtension(Extension: AnsiString): Boolean;
+
+{ Is extension with given name supported.
+
+  Note that Extension is RawByteString, not Utf8String or AnsiString.
+  Valid extension names are ASCII-only. }
+function dglCheckExtension(const Extension: RawByteString): Boolean;
 
 procedure ReadExtensions;
 procedure ReadImplementationProperties;
@@ -15246,7 +15251,7 @@ function dglGetProcAddress(const ProcNameStr: String; LibHandle: TDynLib = nil {
 
 {$if defined(DGL_WIN) or defined(DGL_GLX)}
 var
-  ProcName: AnsiString;
+  ProcName: RawByteString;
 {$endif}
 begin
   Result := nil;
@@ -15295,7 +15300,7 @@ end;
   {$hints on}
 {$endif}
 
-function Int_GetExtensionString: AnsiString;
+function Int_GetExtensionString: RawByteString;
 var
 	ExtensionCount : GLuint;
   i : Integer;
@@ -15348,15 +15353,15 @@ begin
 end;
 
 
-function Int_CheckExtension(AllExtensions, CheckExtension: AnsiString): Boolean;
+function Int_CheckExtension(AllExtensions, CheckExtension: RawByteString): Boolean;
 begin
   Result := Pos(#32 + CheckExtension + #32, AllExtensions) > 0;
 end;
 
 
-function dglCheckExtension(Extension: AnsiString): Boolean;
+function dglCheckExtension(const Extension: RawByteString): Boolean;
 var
-  Extensions: AnsiString;
+  Extensions: RawByteString;
 begin
   Extensions := Int_GetExtensionString;
   Result := Int_CheckExtension(Extensions, Extension);
@@ -19702,7 +19707,7 @@ end;
 
 procedure ReadCoreVersion;
 var
-  AnsiBuffer: AnsiString;
+  Buffer8: Utf8String;
   Buffer: String;
   MajorVersion, MinorVersion: Integer;
 
@@ -19752,8 +19757,8 @@ begin
   if not Assigned(@glGetString) then
     glGetString := dglGetProcAddress('glGetString');
 
-  AnsiBuffer := glGetString(GL_VERSION);
-  Buffer := String(AnsiBuffer);
+  Buffer8 := glGetString(GL_VERSION);
+  Buffer := String(Buffer8);
 
   TrimAndSplitVersionString(Buffer, MajorVersion, MinorVersion);
 
@@ -19844,8 +19849,8 @@ begin
   GLU_VERSION_1_3 := False;
 
   if Assigned(gluGetString) then begin
-    AnsiBuffer := gluGetString(GLU_VERSION);
-    Buffer := String(AnsiBuffer);
+    Buffer8 := gluGetString(GLU_VERSION);
+    Buffer := String(Buffer8);
 
     TrimAndSplitVersionString(Buffer, Majorversion, MinorVersion);
 
@@ -19866,7 +19871,7 @@ end;
 
 procedure ReadImplementationProperties;
 var
-  Buffer: Ansistring;
+  Buffer: RawByteString;
 begin
   ReadCoreVersion;
 

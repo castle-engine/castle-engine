@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -30,7 +30,7 @@ type
     LabelTestInfo: TCastleLabel;
   private
     const
-      TestImages: array [0..11] of String = (
+      TestImages: array [0..12] of String = (
         'castle-data:/images/bricks2.jpg',
         'castle-data:/images/crown.gif',
         'castle-data:/images/metal_decal.dds',
@@ -39,6 +39,7 @@ type
         'castle-data:/images/sky_red_right.rgbe',
         'castle-data:/images/test_texture_grayscale.png',
         'castle-data:/images/test_texture.png',
+        'castle-data:/images/test_texture.castle-image',
         'castle-data:/images/texture_alpha.png',
         'castle-data:/images/test_texture.tga',
         'castle-data:/images/test_texture.xpm',

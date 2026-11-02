@@ -1,10 +1,10 @@
 // -*- compile-command: "./test_single_testcase.sh TTestSceneCore" -*-
 {
-  Copyright 2020-2023 Michalis Kamburelis.
+  Copyright 2020-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -47,6 +47,7 @@ type
     procedure TestMultipleScenesOneNodeIncorrect;
     procedure TestMultipleScenesOneNodeCorrect;
     procedure TestSpineUtf8Names;
+    procedure TestSpineUtf8Escapes;
     procedure TestAnimsInSwitch;
     procedure TestLoadGzipped;
     procedure TestStarlingAndAnchors;
@@ -71,6 +72,8 @@ type
     procedure TestExposedTransforms;
     //procedure TestInternalNodesReadOnly;
     procedure TestValidScene;
+    procedure TestInternalDetectedWholeSceneManifold;
+    procedure TestMaterialInfo;
   end;
 
 implementation
@@ -78,7 +81,7 @@ implementation
 uses X3DLoad, CastleVectors, CastleShapes,
   CastleTimeUtils, CastleStringUtils, X3DFields, CastleViewport, CastleBoxes,
   CastleFilesUtils, CastleScene, CastleTransform, CastleApplicationProperties,
-  CastleUriUtils, CastleColors;
+  CastleUriUtils, CastleColors, CastleRenderOptions, CastleTestUtils;
 
 procedure TTestSceneCore.TestBorderManifoldEdges;
 var
@@ -464,6 +467,58 @@ begin
   finally
     ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
   end;
+end;
+
+procedure TTestSceneCore.TestSpineUtf8Escapes;
+
+{ Test that Spine JSON is read as UTF-8, both when the file has
+  literal UTF-8 characters and when it uses \uXXXX escape sequences.
+
+  The tested data file has 2 animations, with names that differ only
+  by an ASCII prefix ("literal-" and "escaped-"):
+  one has the non-ASCII characters written literally (as UTF-8 bytes),
+  the other using \uXXXX escapes (so that part of the file is pure ASCII).
+  Both must result in exactly the CastleTestUtils.SampleText,
+  which has the expected characters hardcoded (as UTF-8 bytes)
+  in the Pascal source.
+
+  Note: The sample text ends with a character outside of BMP
+  (U+1F600, written as a surrogate pair "\uD83D\uDE00" in JSON),
+  as this is the most tricky case. }
+
+const
+  LiteralPrefix = 'literal-';
+  EscapedPrefix = 'escaped-';
+var
+  Scene: TCastleScene;
+  I: Integer;
+  AnimName, FromLiteral, FromEscaped: String;
+begin
+  Scene := TCastleScene.Create(nil);
+  try
+    Scene.Load('castle-data:/spine/utf8_escapes.json');
+
+    FromLiteral := '';
+    FromEscaped := '';
+    for I := 0 to Scene.AnimationsList.Count - 1 do
+    begin
+      AnimName := Scene.AnimationsList[I];
+      if IsPrefix(LiteralPrefix, AnimName, false) then
+        FromLiteral := SEnding(AnimName, Length(LiteralPrefix) + 1)
+      else
+      if IsPrefix(EscapedPrefix, AnimName, false) then
+        FromEscaped := SEnding(AnimName, Length(EscapedPrefix) + 1);
+    end;
+
+    { Both animations were found, so both names were read. }
+    AssertTrue(FromLiteral <> '');
+    AssertTrue(FromEscaped <> '');
+
+    { Both the literal and the escaped form must result
+      in the expected characters. }
+    AssertEquals(SampleText, FromLiteral);
+    AssertEquals(SampleText, FromEscaped);
+  finally FreeAndNil(Scene) end;
 end;
 
 procedure TTestSceneCore.TestAnimsInSwitch;
@@ -1318,6 +1373,106 @@ begin
   CheckScene('castle-data:/extrusion_empty_cross_section.x3dv');
   CheckScene('castle-data:/extrusion_empty_spine_concave.x3dv');
   CheckScene('castle-data:/extrusion_empty_spine_smooth.x3dv');
+end;
+
+procedure TTestSceneCore.TestInternalDetectedWholeSceneManifold;
+var
+  Scene: TCastleSceneCore;
+  ManifoldEdges, BorderEdges: Cardinal;
+  I: Integer;
+begin
+  Scene := TCastleSceneCore.Create(nil);
+  try
+    // shapes are not 2-manifold, but whole scene is
+    Scene.Load('castle-data:/manifold_tests/manifold_not_shapes_but_scene.glb');
+    Scene.EdgesCount(ManifoldEdges, BorderEdges);
+    AssertTrue(0 <> BorderEdges);
+    AssertTrue(0 <> ManifoldEdges);
+    AssertTrue(Scene.InternalDetectedWholeSceneManifold);
+
+    // each shape is 2-manifold, in this case InternalDetectedWholeSceneManifold=false
+    Scene.Load('castle-data:/manifold_tests/manifold_shapes.glb');
+    Scene.EdgesCount(ManifoldEdges, BorderEdges);
+    AssertEquals(0, BorderEdges);
+    AssertTrue(0 <> ManifoldEdges);
+    AssertFalse(Scene.InternalDetectedWholeSceneManifold);
+
+    // not manifold at all
+    for I := 1 to 3 do
+    begin
+      Scene.Load('castle-data:/manifold_tests/not_manifold_' + IntToStr(I) + '.glb');
+      Scene.EdgesCount(ManifoldEdges, BorderEdges);
+      AssertTrue(0 <> BorderEdges);
+      AssertTrue(0 <> ManifoldEdges);
+      AssertFalse(Scene.InternalDetectedWholeSceneManifold);
+    end;
+  finally FreeAndNil(Scene) end;
+end;
+
+procedure TTestSceneCore.TestMaterialInfo;
+var
+  Scene: TCastleSceneCore;
+  ShapesList: TShapeList;
+begin
+  Scene := TCastleSceneCore.Create(nil);
+  try
+    Scene.Load('castle-data:/test_material_info/no_texture.x3dv');
+    AssertEquals(1, Scene.Shapes.ShapesCount(false, false, false));
+    ShapesList := Scene.Shapes.TraverseList(false, false, false);
+    AssertEquals(1, ShapesList.Count);
+
+    AssertTrue(ShapesList[0].State.MaterialInfo <> nil);
+    AssertVectorEquals(Vector3(1, 1, 0), ShapesList[0].State.MaterialInfo.MainColor);
+
+    AssertTrue(ShapesList[0].State.MainTexture = nil);
+  finally FreeAndNil(Scene) end;
+
+  Scene := TCastleSceneCore.Create(nil);
+  try
+    Scene.Load('castle-data:/test_material_info/texture_in_appearance.x3dv');
+    AssertEquals(1, Scene.Shapes.ShapesCount(false, false, false));
+    ShapesList := Scene.Shapes.TraverseList(false, false, false);
+    AssertEquals(1, ShapesList.Count);
+
+    AssertTrue(ShapesList[0].State.MaterialInfo <> nil);
+    AssertVectorEquals(Vector3(1, 1, 0), ShapesList[0].State.MaterialInfo.MainColor);
+
+    AssertTrue(ShapesList[0].State.MainTexture <> nil);
+    AssertTrue((ShapesList[0].State.MainTexture as TImageTextureNode).FdUrl.Count = 1);
+    AssertTrue((ShapesList[0].State.MainTexture as TImageTextureNode).FdUrl.Items[0] = 'test_texture.png');
+  finally FreeAndNil(Scene) end;
+
+
+  Scene := TCastleSceneCore.Create(nil);
+  try
+    Scene.Load('castle-data:/test_material_info/texture_in_appearance_without_material.x3dv');
+    AssertEquals(1, Scene.Shapes.ShapesCount(false, false, false));
+    ShapesList := Scene.Shapes.TraverseList(false, false, false);
+    AssertEquals(1, ShapesList.Count);
+
+    AssertTrue(ShapesList[0].State.MaterialInfo <> nil);
+    // no material node, but still MaterialInfo, with white color
+    AssertVectorEquals(Vector3(1, 1, 1), ShapesList[0].State.MaterialInfo.MainColor);
+
+    AssertTrue(ShapesList[0].State.MainTexture <> nil);
+    AssertTrue((ShapesList[0].State.MainTexture as TImageTextureNode).FdUrl.Count = 1);
+    AssertTrue((ShapesList[0].State.MainTexture as TImageTextureNode).FdUrl.Items[0] = 'test_texture.png');
+  finally FreeAndNil(Scene) end;
+
+  Scene := TCastleSceneCore.Create(nil);
+  try
+    Scene.Load('castle-data:/test_material_info/texture_in_physical_material.x3dv');
+    AssertEquals(1, Scene.Shapes.ShapesCount(false, false, false));
+    ShapesList := Scene.Shapes.TraverseList(false, false, false);
+    AssertEquals(1, ShapesList.Count);
+
+    AssertTrue(ShapesList[0].State.MaterialInfo <> nil);
+    AssertVectorEquals(Vector3(1, 1, 0), ShapesList[0].State.MaterialInfo.MainColor);
+
+    AssertTrue(ShapesList[0].State.MainTexture <> nil);
+    AssertTrue((ShapesList[0].State.MainTexture as TImageTextureNode).FdUrl.Count = 1);
+    AssertTrue((ShapesList[0].State.MainTexture as TImageTextureNode).FdUrl.Items[0] = 'test_texture_from_material.png');
+  finally FreeAndNil(Scene) end;
 end;
 
 initialization

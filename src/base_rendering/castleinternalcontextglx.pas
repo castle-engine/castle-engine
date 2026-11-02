@@ -1,9 +1,9 @@
 {
-  Copyright 2013-2024 Michalis Kamburelis.
+  Copyright 2013-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -22,9 +22,9 @@ interface
 
 {$ifndef UNIX_WITH_X}
 { To make it easier to organize Lazarus packages
-  (to keep this unit in castle_base.lpk, since it doesn't depend on TCastleWindow,
+  (to keep this unit in castle_engine_base.lpk, since it doesn't depend on TCastleWindow,
   but at the same time this unit cannot have "<AddToUsesPkgSection Value="False"/>"
-  in castle_base.lpk because castle_window.lpk expects to use this unit
+  in castle_engine_base.lpk because castle_engine_window.lpk expects to use this unit
   without recompiling...) ->
   this unit compiles even for platforms that don't have glX,
   the unit just doesn't define anything in this case. }
@@ -60,9 +60,15 @@ type
     // Initialized by InitializeEarly, freed by FinalizeLate
     XVisual: PXVisualInfo;
 
-    // Set before SwapBuffer, MakeCurrent
-    // TODO: simplify, require it before Initialize
-    WindowXID: TWindow;
+    { X identifier of the rendering area.
+      Rendering area may be a whole window (happens now with CASTLE_WINDOW_XLIB),
+      or a part of it (happens now with CASTLE_WINDOW_GTK).
+      This is passed to glX functions like glXMakeCurrent, glXSwapBuffers.
+
+      Set before SwapBuffer, MakeCurrent.
+
+      TODO: simplify, require it before Initialize. }
+    RenderingAreaXID: TWindow;
 
     { Call before creating an X window (since window creation needs XVisual)
       to create XVisual. }
@@ -202,6 +208,7 @@ begin
         More involved selection possible. }
       FBConfig := FBConfigs^;
       XVisual := glXGetVisualFromFBConfig(XDisplay, FBConfig);
+      XFree(FBConfigs);
     end else
       XVisual := glXChooseVisual(XDisplay, XScreen, Attribs.L);
   finally FreeAndNil(Attribs) end;
@@ -309,12 +316,12 @@ end;
 
 procedure TGLContextGlx.MakeCurrentCore;
 begin
-  Check( glXMakeCurrent(XDisplay, WindowXID, Context), 'glXMakeCurrent');
+  Check( glXMakeCurrent(XDisplay, RenderingAreaXID, Context), 'glXMakeCurrent');
 end;
 
 procedure TGLContextGlx.SwapBuffersCore;
 begin
-  glXSwapBuffers(XDisplay, WindowXID);
+  glXSwapBuffers(XDisplay, RenderingAreaXID);
 end;
 
 end.

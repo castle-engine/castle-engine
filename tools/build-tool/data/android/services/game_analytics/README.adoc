@@ -1,0 +1,39 @@
+## game_analytics
+
+Enable the http://www.gameanalytics.com/[Game Analytics] analytics of your apps. Use the https://castle-engine.io/apidoc/html/CastleAnalytics.TAnalytics.html[TAnalytics] class from the https://castle-engine.io/apidoc/html/CastleAnalytics.html[CastleAnalytics] unit to initialize and send data to the analytics from your Pascal code. Also, all the purchases done using `google_in_app_purchases` service are automatically send to analytics, with correct price and currency.
+
+## Usage
+
+* Using this service requires using also using the `google_play_services` service.
+
+* The core of this service is a closed-source library distributed by GameAnalytics. It will be automatically downloaded using the _Gradle_ build system on the first build, so you don't have to do anything.
+
+* This service requires Android min SDK version 26 or higher. The build tool raises the project's `min_sdk_version` (at the `<android>` element in link:pass:[CastleEngineManifest.xml examples][CastleEngineManifest.xml]) to 26 automatically when this service is used, so you don't have to do anything.
+
+Minimal sample manifest that uses this service:
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<project name="my_project"
+  game_units="GameInitialize"
+  caption="My Project"
+>
+  <android>
+    <services>
+      <service name="google_play_services" />
+      <service name="game_analytics" />
+    </services>
+  </android>
+</project>
+----
+
+## TODO: Does GameAnalytics use Android's Advertising ID?
+
+Article from 2021 ( https://gameanalytics.com/blog/googles-identifier-policy-change/ ) talks about changes in GA version 7+, but it's 2023 and latest version is 6.4.1 ( https://github.com/GameAnalytics/GA-SDK-ANDROID/ ).
+
+- Does this version use Android's Advertising ID?
+
+- If yes, does it already declare permission `com.google.android.gms.permission.AD_ID` that you need to declare (otherwise you'll get id filled with zeroes)?
+
+They don't say in https://docs.gameanalytics.com/integrations/sdk/android to add `com.google.android.gms.permission.AD_ID` . Which may imply they don't use AAID anymore. Or that they didn't update docs about it.

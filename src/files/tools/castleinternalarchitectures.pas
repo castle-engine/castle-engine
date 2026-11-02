@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
   Parts of this file are based on FPC packages/fpmkunit/src/fpmkunit.pp unit,
   which conveniently uses *exactly* the same license as Castle Game Engine.

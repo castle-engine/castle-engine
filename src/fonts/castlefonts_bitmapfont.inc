@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -390,11 +390,9 @@ end;
 
 function TCastleBitmapFont.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'ImageUrl') or
-     (PropertyName = 'ImageColumns') or
-     (PropertyName = 'ImageRows') or
-     (PropertyName = 'ImageMargin') or
-     (PropertyName = 'DisplayMargin') then
+  if ArrayContainsString(PropertyName, [
+      'ImageUrl', 'ImageColumns', 'ImageRows', 'ImageMargin', 'DisplayMargin'
+     ]) then
       Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);

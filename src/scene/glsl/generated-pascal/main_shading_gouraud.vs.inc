@@ -18,8 +18,11 @@
 '' + LineEnding +
 '/* PLUG-DECLARATIONS */' + LineEnding +
 '' + LineEnding +
+'/* VARYING-PASSTHROUGH-GEOMETRY-SHADERS */' + LineEnding +
 'varying vec4 castle_vertex_eye;' + LineEnding +
+'/* VARYING-PASSTHROUGH-GEOMETRY-SHADERS */' + LineEnding +
 'varying vec3 castle_normal_eye;' + LineEnding +
+'/* VARYING-PASSTHROUGH-GEOMETRY-SHADERS */' + LineEnding +
 'varying vec4 castle_Color;' + LineEnding +
 '' + LineEnding +
 '#if defined(COLOR_PER_VERTEX_RGB)' + LineEnding +
@@ -54,6 +57,7 @@
 '' + LineEnding +
 '/* CASTLE-LIGHTING-MODEL */' + LineEnding +
 '' + LineEnding +
+'/* CASTLE-MAIN-BEGIN */' + LineEnding +
 'void main(void)' + LineEnding +
 '{' + LineEnding +
 '  vec4 vertex_object = castle_Vertex;' + LineEnding +
@@ -95,6 +99,7 @@
 '    #endif' + LineEnding +
 '' + LineEnding +
 '  /* PLUG: vertex_eye_space (castle_vertex_eye, castle_normal_eye) */' + LineEnding +
+'  /* PLUG: vertex_eye_space_extended (castle_vertex_eye, castle_normal_eye, normal_object) */' + LineEnding +
 '' + LineEnding +
 '  calculate_lighting(castle_Color, castle_vertex_eye, castle_normal_eye);' + LineEnding +
 '' + LineEnding +
@@ -111,4 +116,5 @@
 '  castle_Color      = temp_castle_Color;' + LineEnding +
 '  #endif' + LineEnding +
 '}' + LineEnding +
+'/* CASTLE-MAIN-END */' + LineEnding +
 ''

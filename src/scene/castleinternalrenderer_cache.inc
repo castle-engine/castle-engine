@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -61,9 +61,9 @@
       @raises(ETextureLoadError If texture cannot be loaded for whatever
       reason.) }
     function TextureImage_IncReference(
-      const TextureImage: TEncodedImage;
+      TextureImage: TEncodedImage;
       const TextureFullUrl: String;
-      const Filter: TTextureFilter;
+      Filter: TTextureFilter;
       const TextureAnisotropy: TGLfloat;
       const TextureWrap: TTextureWrap2D;
       const CompositeForMipmaps: TCompositeImage;
@@ -263,17 +263,28 @@ begin
 end;
 
 function TRendererCache.TextureImage_IncReference(
-  const TextureImage: TEncodedImage;
+  TextureImage: TEncodedImage;
   const TextureFullUrl: String;
-  const Filter: TTextureFilter;
+  Filter: TTextureFilter;
   const TextureAnisotropy: TGLfloat;
   const TextureWrap: TTextureWrap2D;
   const CompositeForMipmaps: TCompositeImage;
   const GUITexture: boolean;
   const FlipVertically: Boolean): TGLTexture;
+
+  function IsFloatImage(const Image: TEncodedImage): Boolean;
+  begin
+    Result :=
+      (Image is TGrayscaleFloatImage) or
+      (Image is TGrayscaleAlphaFloatImage) or
+      (Image is TRGBFloatImage) or
+      (Image is TRGBAlphaFloatImage);
+  end;
+
 var
   I: Integer;
   TextureCached: TTextureImageCache;
+  FreeTextureImage: Boolean;
 begin
   for I := 0 to TextureImageCaches.Count - 1 do
   begin
@@ -315,6 +326,46 @@ begin
     end;
   end;
 
+  FreeTextureImage := false;
+
+  if IsFloatImage(TextureImage) then
+  begin
+    { If trying to load float texture, but it's not supported,
+      replace it with dummy 1x1 non-float texture.
+
+      This is important to work reliably, as our TSkinNode always creates
+      JointTextureNode with a float texture, even when GLFeatures.TextureFloat
+      may be @false (because at the TSkinNode.Create moment, we may not know
+      GLFeatures yet, if renderer not initialized). In turn, our shape preparation
+      may try to prepare such texture. It will not actually be used (because
+      TSkinNode.InternalMeshCalculation will not be mcGpuTexture), but it still
+      cannot crash the preparation process.
+    }
+    if not GLFeatures.TextureFloat then
+    begin
+      WritelnWarning('Trying to prepare a float texture "%s" (%d x %d), but it is not supported by current renderer. Replacing with dummy 1x1 non-float texture.', [
+        UriDisplay(TextureFullUrl),
+        TextureImage.Width,
+        TextureImage.Height
+      ]);
+      TextureImage := TRGBImage.Create(1, 1);
+      FreeTextureImage := true;
+    end else
+    { If trying to load float texture with non-nearest filtering, but it's not supported,
+      use nearest filtering. }
+    if (not GLFeatures.TextureFloatLinear) and
+       ( (Filter.Magnification <> magNearest) or
+         (Filter.Minification <> minNearest) ) then
+    begin
+      WritelnWarning('Trying to prepare a float texture "%s" (%d x %d) with non-nearest filtering, but it is not supported by current renderer. Replacing with nearest filtering.', [
+        UriDisplay(TextureFullUrl),
+        TextureImage.Width,
+        TextureImage.Height
+      ]);
+      Filter := TextureFilter(minNearest, magNearest);
+    end;
+  end;
+
   { Initialize Result first, before calling TextureImageCaches.Add.
     That's because in case LoadGLTexture raises exception,
     we don't want to add texture to cache (because caller would have
@@ -336,6 +387,9 @@ begin
 
   if LogRendererCache then
     WritelnLog('++', 'TextureImage %s: %d', [TextureFullUrl, 1]);
+
+  if FreeTextureImage then
+    FreeAndNil(TextureImage);
 end;
 
 procedure TRendererCache.TextureImage_DecReference(
@@ -630,7 +684,7 @@ var
   I: Integer;
   TextureCached: TTextureDepthOrFloatCache;
   Filter: TTextureFilter;
-  ImageType: TGLenum;
+  ImageType, ImageInternalFormat: TGLenum;
   ImageFormat: string;
   ImageSize: Int64;
 begin
@@ -664,23 +718,40 @@ begin
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, TextureWrap.Data[0]);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, TextureWrap.Data[1]);
 
-  { OpenGLES allows only GL_UNSIGNED_SHORT or GL_UNSIGNED_INT for depth textures.
-    This was true for OES_depth_texture, looks like it is true for OpenGLES 3.0 core too,
-    based on "OpenGL ES 3.2 NVIDIA 515.86.01". }
-  ImageType := {$ifdef OpenGLES} GL_UNSIGNED_SHORT {$else} GL_UNSIGNED_BYTE {$endif};
-  ImageFormat := {$ifdef OpenGLES} 'depth-short' {$else} 'depth-byte' {$endif};
-  ImageSize := {$ifdef OpenGLES} SizeOf(TGLushort) {$else} SizeOf(TGLbyte) {$endif}
-    * Width * Height;
+  ImageType := GLFeatures.DepthTextureImageType;
+  ImageInternalFormat := GLFeatures.DepthTextureInternalFormat;
+  case ImageType of
+    GL_UNSIGNED_SHORT:
+      begin
+        ImageFormat := 'depth-short';
+        ImageSize := SizeOf(TGLushort) * Width * Height;
+      end;
+    GL_UNSIGNED_INT:
+      begin
+        ImageFormat := 'depth-int';
+        ImageSize := SizeOf(TGLuint) * Width * Height;
+      end;
+    GL_UNSIGNED_BYTE:
+      begin
+        ImageFormat := 'depth-byte';
+        ImageSize := SizeOf(TGLbyte) * Width * Height;
+      end;
+    else
+    begin
+      WritelnWarning('Unexpected depth texture image type: %d', [ImageType]);
+      { These values are only used for TextureMemoryProfiler.Allocate call,
+        so using some defaults is acceptable. Rendering will be OK,
+        just TextureMemoryProfiler will have wrong values. }
+      ImageFormat := 'unknown';
+      ImageSize := Width * Height;
+    end;
+  end;
 
   { Do not init any texture image. Just initialize texture sizes
     and both internal and external formats to GL_DEPTH_COMPONENT_ARB
     (will match depth buffer precision). }
-  {$ifdef CASTLE_WEBGL}
-  // TODO: web: Fix initializing empty depth texture on WebGL
-  {$else}
-  glTexImage2d(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
+  glTexImage2d(GL_TEXTURE_2D, 0, ImageInternalFormat,
     Width, Height, 0, GL_DEPTH_COMPONENT, ImageType, nil);
-  {$endif}
   TextureMemoryProfiler.Allocate(Result, '', ImageFormat, ImageSize, false,
     Width, Height, 1);
 
@@ -833,9 +904,8 @@ var
     if { Force CacheIgnoresTransform to be false if our shape uses shaders.
          Shaders may depend on coordinates in eye space, which obviously
          may be different for shapes that differ even only on transform. }
-      (Shape.Node <> nil) and
-      (Shape.Node.Appearance <> nil) and
-      (Shape.Node.Appearance.FdShaders.Count <> 0) then
+      (Shape.State.Appearance <> nil) and
+      (Shape.State.Appearance.FdShaders.Count <> 0) then
       Exit(false);
 
     { If we use any features that (may) render shape differently

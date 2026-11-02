@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -15,7 +15,7 @@
 
 { Lazarus IDE integration with Castle Game Engine.
 
-  It's actually compiled-in with castle_components now always,
+  It's actually compiled-in with castle_engine_lcl now always,
   though in principle we only need this when we're inside Lazarus IDE
   (at design-time for Lazarus IDE).
 

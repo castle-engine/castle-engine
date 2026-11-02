@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -162,6 +162,7 @@ end;
 
 procedure TAnalytics.ScreenView(const ScreenName: String);
 begin
+  CheckValidName(ScreenName);
   Messaging.Send(['analytics-send-screen-view', ScreenName]);
 end;
 
@@ -172,8 +173,7 @@ end;
 
 procedure TAnalytics.CheckValidName(const S: String);
 begin
-  // TODO: for now, merely warning
-  SCheckChars(S, ['a'..'z', 'A'..'Z', '0'..'9', '-', '_'], false);
+  SCheckChars(S, ['a'..'z', 'A'..'Z', '0'..'9', '-', '_'], true);
   // GameAnalytics allows also ., ()!?
   // not sure what GoogleAnalytics allows
 end;

@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -281,6 +281,7 @@ type
       LastSelected: TComponentList;
       FShowColliders: Boolean;
       FindActive: Boolean;
+      FMaximizePreview: Boolean;
 
     { Create and add to the designed parent a new component,
       whose type best matches currently selected file in SourceShellList.
@@ -545,6 +546,8 @@ type
       This way e.g. TransformManipulate also shows
       the transformation of selected behavior. }
     function CurrentTransform: TCastleTransform;
+
+    procedure SetMaximizePreview(const AValue: Boolean);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -709,6 +712,9 @@ type
     procedure FindNext;
 
     procedure ExportToModel;
+
+    property MaximizePreview: Boolean
+      read FMaximizePreview write SetMaximizePreview default false;
   end;
 
 implementation
@@ -1464,10 +1470,12 @@ begin
     end;
   end;
 
-  if not InternalDesignMouseLook then
-    { do not override cursor when InternalDesignMouseLook,
-      to allow mouse look to hide cursor. }
-    UpdateCursor;
+  { Note: We do this regardless if some TCastleWalkNavigationDesign
+    now uses mouse look (so user right-clicked on some viewport).
+    When mouse look is used, it overrides cursor by Container.FInternalOverrideCursor,
+    which takes precedence over Container.OverrideCursor so we don't need
+    to worry about it. }
+  UpdateCursor;
 
   UpdateHoverComponent;
 end;
@@ -1715,6 +1723,31 @@ begin
 
   FindActive := false;
   SetEnabledVisible(EditFindInHierarchy, FindActive);
+
+  { TODO: This is unoptimal, we switch all actions buttons to "inactive".
+    We don't really have a place to switch to "active" and "disabled",
+    ActionListDesign has one property for images.
+
+    We should instead pack all images into one long TImageList and set
+    TSpeedButtons index properties accordingly.
+
+    But to make this work, without going insane:), we need to manage TImageList
+    contents by code (not by GUI in Lazarus IDE),
+    and assign the indexes in TSpeedButtons by code.
+    Otherwise (using GUI in Lazarus IDE to manage TImageList contents)
+    this is unmaintainable, we'll constantly need to update
+    indexes for other buttons (or we will have chaos in image list order)
+    esp. with 3 versions for "dark" and possible future changes like
+    variations for "light" as well.
+
+    It also sucks we need all images prepared and loaded, instead of just
+    tweaking the image color at display, like we can with TCastleButton
+    in castle-editor-portable. }
+
+  { TODO: This doesn't seem to work at all at runtime.
+  if UseIconsAndColorsForDarkTheme then
+    ActionListDesign.Images := Icons.ToolbarIconsDarkInactive;
+  }
 end;
 
 destructor TDesignFrame.Destroy;
@@ -2078,7 +2111,7 @@ begin
       NewDesignRoot := ComponentLoad(NewDesignUrl, NewDesignOwner)
     else
       raise Exception.CreateFmt('Unrecognized file extension %s (MIME type %s)',
-        [ExtractFileExt(NewDesignUrl), Mime]);
+        [ExtractUriExt(NewDesignUrl), Mime]);
   except
     { Testcase: try to load using UserInterfaceLoad a file
       that has TCastleTransform inside. UserInterfaceLoad makes EInvalidCast. }
@@ -3350,10 +3383,6 @@ begin
   TabEvents.TabVisible :=
     (Inspector[itEvents].RowCount <> 0);
 
-  { If necessary, reset OverrideCursor modified by UpdateCursor, to allow mouse look to hide cursor }
-  if InternalDesignMouseLook then
-    CastleControl.Container.OverrideCursor := mcDefault;
-
   UpdateCurrentViewport;
 
   LabelViewport.Visible := FCurrentViewport <> nil;
@@ -3610,6 +3639,16 @@ begin
     SelectedFileName := SourceShellList.GetPathFromItem(SourceShellList.Selected);
     SelectedUrl := MaybeUseDataProtocol(FilenameToUriSafe(SelectedFileName));
     Result := AddComponentFromUrl(SelectedUrl, ParentComponent);
+  end;
+end;
+
+procedure TDesignFrame.SetMaximizePreview(const AValue: Boolean);
+begin
+  if FMaximizePreview <> AValue then
+  begin
+    FMaximizePreview := AValue;
+    SetEnabledVisible(PanelRight, not AValue);
+    SetEnabledVisible(PanelLeft, not AValue);
   end;
 end;
 
@@ -5402,6 +5441,9 @@ end;
 
 procedure TDesignFrame.RenameSelectedItem;
 begin
+  if MaximizePreview then // cannot focus edit control when PanelLeft invisible
+    Exit;
+
   if RenameSelectedPossible then
     ControlsTreeOneSelected.EditText;
 end;
@@ -5779,6 +5821,17 @@ begin
     DragAndDropFromShellListView(TCastleShellListView(Source));
 end;
 
+{$ifdef LCLCocoa}
+type
+  { Expose protected property of TCustomTreeView. }
+  TTreeViewExposed = class(TCustomTreeView)
+  public
+    { Tree node that is being edited now, or @nil if none.
+      This makes public a property protected in TCustomTreeView. }
+    property EditingItem;
+  end;
+{$endif LCLCocoa}
+
 procedure TDesignFrame.ControlsTreeAdvancedCustomDrawItem(
   Sender: TCustomTreeView; Node: TTreeNode; State: TCustomDrawState;
   Stage: TCustomDrawStage; var PaintImages, DefaultDraw: Boolean);
@@ -5835,6 +5888,14 @@ var
   var
     TextRect: TRect;
   begin
+    {$ifdef LCLCocoa}
+    { On Cocoa, this is fired even when editing given Node, but we should not
+      draw the class name of the edited node (as it visually collides
+      with the edit box, being underneath the typed text). }
+    if Node = TTreeViewExposed(ControlsTree).EditingItem then
+      Exit;
+    {$endif LCLCocoa}
+
     TextRect := Node.DisplayRect(true);
     C.Brush.Style := bsClear;
     C.Font.Color := clLtGray;
@@ -6463,6 +6524,36 @@ begin
 end;
 
 procedure TDesignFrame.ChangeMode(const NewMode: TMode);
+
+  { For dark theme: change button colors, and also make them depending on
+    active/inactive/disabled states.
+    Note: the disabled state is never used now in practice,
+    as these buttons are never disabled (for now). }
+  procedure AdjustToolbarButtonsTheme;
+
+    { Change Button.Images to use an image suitable for dark theme. }
+    procedure UpdateButtonForDarkTheme(const Button: TSpeedButton);
+    begin
+      if not Button.Enabled then
+        Button.Images := Icons.ToolbarIconsDarkDisabled
+      else
+      if Button.Down then
+        Button.Images := Icons.ToolbarIconsDarkActive
+      else
+        Button.Images := Icons.ToolbarIconsDarkInactive;
+    end;
+
+  begin
+    if UseIconsAndColorsForDarkTheme then
+    begin
+      UpdateButtonForDarkTheme(ButtonInteractMode);
+      UpdateButtonForDarkTheme(ButtonSelectMode);
+      UpdateButtonForDarkTheme(ButtonTranslateMode);
+      UpdateButtonForDarkTheme(ButtonRotateMode);
+      UpdateButtonForDarkTheme(ButtonScaleMode);
+    end;
+  end;
+
 begin
   Mode := NewMode;
 
@@ -6471,6 +6562,8 @@ begin
   ButtonTranslateMode.Down := Mode = moTranslate;
   ButtonRotateMode.Down := Mode = moRotate;
   ButtonScaleMode.Down := Mode = moScale;
+
+  AdjustToolbarButtonsTheme;
 
   case Mode of
     moTranslate: TransformManipulate.Mode := mmTranslate;
@@ -6658,6 +6751,7 @@ procedure TDesignFrame.ExportToModel;
 var
   RootNode: TX3DRootNode;
   SaveUrl: String;
+  UrlProcessing: TUrlProcessing;
 begin
   if CurrentViewport = nil then
   begin
@@ -6669,7 +6763,20 @@ begin
   if ExportToModelDialog.Execute then
   begin
     SaveUrl := ExportToModelDialog.Url;
-    RootNode := CurrentViewport.InternalBuildNode(SaveUrl);
+    UrlProcessing := suChangeCastleDataToRelative;
+    { TODO: get UrlProcessing as parameter;
+
+      TODO: FormProject should allow user to choose UrlProcessing --
+      e.g. by selecting a menu item (radio), like
+
+        Data ->
+          Export to Model URL Behavior ->
+            None
+            Change castle-data:/ To Relative // default
+            Embed Resources using data URI (make self-contained X3D file)
+            Copy All Resources to exported-output Subdirectory
+    }
+    RootNode := CurrentViewport.InternalBuildNode(SaveUrl, UrlProcessing);
     try
       SaveNode(RootNode, SaveUrl);
     finally FreeAndNil(RootNode) end;

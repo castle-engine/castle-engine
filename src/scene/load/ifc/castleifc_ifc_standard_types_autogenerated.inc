@@ -12,11 +12,6 @@
   strict private
   end;
 
-  { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPlanarExtent.htm IfcPlanarExtent). }
-  TIfcPlanarExtent = class(TIfcGeometricRepresentationItem)
-  strict private
-  end;
-
   { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPcurve.htm IfcPcurve). }
   TIfcPcurve = class(TIfcCurve)
   strict private
@@ -239,11 +234,6 @@
 
   { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPresentationLayerWithStyle.htm IfcPresentationLayerWithStyle). }
   TIfcPresentationLayerWithStyle = class(TIfcPresentationLayerAssignment)
-  strict private
-  end;
-
-  { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPreDefinedItem.htm IfcPreDefinedItem). }
-  TIfcPreDefinedItem = class abstract(TIfcPresentationItem)
   strict private
   end;
 
@@ -607,11 +597,6 @@
   strict private
   end;
 
-  { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTextStyle.htm IfcTextStyle). }
-  TIfcTextStyle = class(TIfcPresentationStyle)
-  strict private
-  end;
-
   { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTendonConduitType.htm IfcTendonConduitType). }
   TIfcTendonConduitType = class(TIfcReinforcingElementType)
   strict private
@@ -619,11 +604,6 @@
 
   { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTendonType.htm IfcTendonType). }
   TIfcTendonType = class(TIfcReinforcingElementType)
-  strict private
-  end;
-
-  { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTextLiteral.htm IfcTextLiteral). }
-  TIfcTextLiteral = class(TIfcGeometricRepresentationItem)
   strict private
   end;
 
@@ -1997,11 +1977,6 @@
   strict private
   end;
 
-  { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTextLiteralWithExtent.htm IfcTextLiteralWithExtent). }
-  TIfcTextLiteralWithExtent = class(TIfcTextLiteral)
-  strict private
-  end;
-
   { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcAsset.htm IfcAsset). }
   TIfcAsset = class(TIfcGroup)
   strict private
@@ -2807,11 +2782,6 @@
   strict private
   end;
 
-  { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPreDefinedTextFont.htm IfcPreDefinedTextFont). }
-  TIfcPreDefinedTextFont = class abstract(TIfcPreDefinedItem)
-  strict private
-  end;
-
   { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcProcedureType.htm IfcProcedureType). }
   TIfcProcedureType = class(TIfcTypeProcess)
   strict private
@@ -2904,11 +2874,6 @@
 
   { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcBorehole.htm IfcBorehole). }
   TIfcBorehole = class(TIfcGeotechnicalAssembly)
-  strict private
-  end;
-
-  { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTextStyleFontModel.htm IfcTextStyleFontModel). }
-  TIfcTextStyleFontModel = class(TIfcPreDefinedTextFont)
   strict private
   end;
 
@@ -3281,7 +3246,6 @@
 {$ifdef read_add_classes}
   FIfcClasses.Add(TIfcPhysicalQuantity);
   FIfcClasses.Add(TIfcPixelTexture);
-  FIfcClasses.Add(TIfcPlanarExtent);
   FIfcClasses.Add(TIfcPcurve);
   FIfcClasses.Add(TIfcPath);
   FIfcClasses.Add(TIfcPavement);
@@ -3327,7 +3291,6 @@
   FIfcClasses.Add(TIfcPropertyBoundedValue);
   FIfcClasses.Add(TIfcPropertyEnumeratedValue);
   FIfcClasses.Add(TIfcPresentationLayerWithStyle);
-  FIfcClasses.Add(TIfcPreDefinedItem);
   FIfcClasses.Add(TIfcPreDefinedProperties);
   FIfcClasses.Add(TIfcPreDefinedPropertySet);
   FIfcClasses.Add(TIfcProtectiveDeviceTrippingUnitType);
@@ -3400,10 +3363,8 @@
   FIfcClasses.Add(TIfcTextStyleForDefinedFont);
   FIfcClasses.Add(TIfcTextStyleTextModel);
   FIfcClasses.Add(TIfcTextureCoordinateGenerator);
-  FIfcClasses.Add(TIfcTextStyle);
   FIfcClasses.Add(TIfcTendonConduitType);
   FIfcClasses.Add(TIfcTendonType);
-  FIfcClasses.Add(TIfcTextLiteral);
   FIfcClasses.Add(TIfcTimeSeries);
   FIfcClasses.Add(TIfcTimeSeriesValue);
   FIfcClasses.Add(TIfcTopologyRepresentation);
@@ -3678,7 +3639,6 @@
   FIfcClasses.Add(TIfcBlock);
   FIfcClasses.Add(TIfcBoundaryFaceCondition);
   FIfcClasses.Add(TIfcBoundaryEdgeCondition);
-  FIfcClasses.Add(TIfcTextLiteralWithExtent);
   FIfcClasses.Add(TIfcAsset);
   FIfcClasses.Add(TIfcTransportElement);
   FIfcClasses.Add(TIfcBSplineCurveWithKnots);
@@ -3840,7 +3800,6 @@
   FIfcClasses.Add(TIfcDamper);
   FIfcClasses.Add(TIfcDamperType);
   FIfcClasses.Add(TIfcPreDefinedCurveFont);
-  FIfcClasses.Add(TIfcPreDefinedTextFont);
   FIfcClasses.Add(TIfcProcedureType);
   FIfcClasses.Add(TIfcProcedure);
   FIfcClasses.Add(TIfcInterceptorType);
@@ -3860,7 +3819,6 @@
   FIfcClasses.Add(TIfcWorkPlan);
   FIfcClasses.Add(TIfcGeomodel);
   FIfcClasses.Add(TIfcBorehole);
-  FIfcClasses.Add(TIfcTextStyleFontModel);
   FIfcClasses.Add(TIfcBSplineSurface);
   FIfcClasses.Add(TIfcLaborResourceType);
   FIfcClasses.Add(TIfcGeoslice);

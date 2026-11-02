@@ -1,0 +1,150 @@
+X3DVolumeRenderStyleNode : X3DNode {
+  SFBool   [in,out] enabled  TRUE
+}
+
+X3DComposableVolumeRenderStyleNode : X3DVolumeRenderStyleNode {
+}
+
+X3DVolumeDataNode : X3DChildNode, X3DBoundedObject {
+  SFVec3f [in,out] dimensions  1 1 1
+    range: (0,Inf)
+  SFBool  [in,out] bboxDisplay FALSE
+  SFBool  [in,out] visible     TRUE
+  SFVec3f []       bboxCenter  0 0 0
+    range: (-Inf,Inf)
+  SFVec3f []       bboxSize    -1 -1 -1
+    range: [0,Inf) or -1 -1 -1
+}
+
+BlendedVolumeStyle : X3DComposableVolumeRenderStyleNode {
+  SFNode   [in,out] renderStyle             NULL
+    range: [X3DComposableVolumeRenderStyleNode]
+  SFNode   [in,out] voxels                  NULL
+    range: [X3DTexture3DNode]
+  SFFloat  [in,out] weightConstant1         0.5
+    range: [0,1]
+  SFFloat  [in,out] weightConstant2         0.5
+    range: [0,1]
+  SFString [in,out] weightFunction1         "CONSTANT"
+    range: ["CONSTANT", "ALPHA1", "ALPHA2", "TABLE","ONE_MINUS_ALPHA1", "ONE_MINUS_ALPHA2"]
+    enumerated-type: TWeightFunction WeightFunctionNames wfConstant
+  SFString [in,out] weightFunction2         "CONSTANT"
+    range: ["CONSTANT", "ALPHA1", "ALPHA2", "TABLE","ONE_MINUS_ALPHA1", "ONE_MINUS_ALPHA2"]
+    enumerated-type: TWeightFunction WeightFunctionNames wfConstant
+  SFNode   [in,out] weightTransferFunction1 NULL
+    range: [X3DTexture2DNode]
+  SFNode   [in,out] weightTransferFunction2 NULL
+    range:  [X3DTexture2DNode]
+}
+
+BoundaryEnhancementVolumeStyle : X3DComposableVolumeRenderStyleNode {
+  SFFloat     [in,out] boundaryOpacity  0.9
+    range: [0,1]
+  SFFloat     [in,out] opacityFactor    2
+    range: [0,Inf)
+  SFFloat     [in,out] retainedOpacity  0.2
+    range: [0,1]
+  SFNode      [in,out] surfaceNormals   NULL
+    range: [X3DTexture3DNode]
+}
+
+CartoonVolumeStyle : X3DComposableVolumeRenderStyleNode {
+  SFInt32     [in,out] colorSteps       4
+    range: [1,64]
+  SFColorRGBA [in,out] orthogonalColor  1 1 1 1
+    range: [0,1]
+  SFColorRGBA [in,out] parallelColor    0 0 0 1
+    range: [0,1]
+  SFNode      [in,out] surfaceNormals   NULL
+    range: [X3DTexture3DNode]
+}
+
+ComposedVolumeStyle : X3DComposableVolumeRenderStyleNode {
+  MFNode [in,out] renderStyle []
+    range: [X3DComposableVolumeRenderStyleNode]
+}
+
+EdgeEnhancementVolumeStyle : X3DComposableVolumeRenderStyleNode {
+  SFColorRGBA [in,out] edgeColor         0 0 0 1
+    range: [0,1]
+  SFFloat     [in,out] gradientThreshold 0.4
+    range: [0,Pi]
+  SFNode      [in,out] surfaceNormals    NULL
+    range: [X3DTexture3DNode]
+}
+
+IsoSurfaceVolumeData : X3DVolumeDataNode {
+  SFFloat [in,out] contourStepSize  0
+    range: (-Inf,Inf)
+  SFNode  [in,out] gradients        NULL
+    range: [X3DTexture3DNode]
+  MFNode  [in,out] renderStyle      []
+    range: [X3DVolumeRenderStyleNode]
+  SFFloat [in,out] surfaceTolerance 0
+    range: [0,Inf)
+  MFFloat [in,out] surfaceValues    []
+    range: (-Inf,Inf)
+  SFNode  [in,out] voxels           NULL
+    range: [X3DTexture3DNode]
+}
+
+OpacityMapVolumeStyle : X3DComposableVolumeRenderStyleNode {
+  SFNode [in,out] transferFunction NULL
+    range: [X3DTexture2DNode, X3DTexture3DNode]
+}
+
+ProjectionVolumeStyle : X3DVolumeRenderStyleNode {
+  SFFloat  [in,out] intensityThreshold 0
+    range: [0,1]
+  SFString [in,out] type               "MAX"
+    range: ["MAX", "MIN", "AVERAGE"]
+    enumerated-type: TProjectionVolumeType ProjectionVolumeTypeNames ptMax
+}
+
+SegmentedVolumeData : X3DVolumeDataNode {
+  MFNode  [in,out] renderStyle        []
+    range: [X3DVolumeRenderStyleNode]
+  MFBool  [in,out] segmentEnabled     []
+  SFNode  [in,out] segmentIdentifiers NULL
+    range: [X3DTexture3DNode]
+  SFNode  [in,out] voxels             NULL
+    range: [X3DTexture3DNode]
+}
+
+ShadedVolumeStyle : X3DComposableVolumeRenderStyleNode {
+  SFBool   [in,out] lighting       FALSE
+  SFNode   [in,out] material       NULL
+    range: [X3DMaterialNode]
+  SFBool   [in,out] shadows        FALSE
+  SFNode   [in,out] surfaceNormals NULL
+    range: [X3DTexture3DNode]
+  SFString []       phaseFunction  "Henyey-Greenstein"
+    range: ["Henyey-Greenstein","NONE",...]
+}
+
+SilhouetteEnhancementVolumeStyle : X3DComposableVolumeRenderStyleNode {
+  SFFloat [in,out] silhouetteBoundaryOpacity 0
+    range: [0,1]
+  SFFloat [in,out] silhouetteRetainedOpacity 1
+    range: [0,1]
+  SFFloat [in,out] silhouetteSharpness       0.5
+    range: [0,Inf)
+  SFNode  [in,out] surfaceNormals            NULL
+    range: [X3DTexture3DNode]
+}
+
+ToneMappedVolumeStyle : X3DComposableVolumeRenderStyleNode {
+  SFColorRGBA [in,out] coolColor      0 0 1 0
+    range: [0,1]
+  SFNode      [in,out] surfaceNormals NULL
+    range: [X3DTexture3DNode]
+  SFColorRGBA [in,out] warmColor      1 1 0 0
+    range: [0,1]
+}
+
+VolumeData : X3DVolumeDataNode {
+  SFNode  [in,out] renderStyle     NULL
+    range: [X3DVolumeRenderStyleNode]
+  SFNode  [in,out] voxels          NULL
+    range: [X3DTexture3DNode]
+}

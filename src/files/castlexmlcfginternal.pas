@@ -26,7 +26,7 @@
     the same as used by the "Castle Game Engine": LGPL (version 2.1)
     with "static linking exception" (with exactly the same wording
     of the "static linking exception").
-    See the file COPYING.txt, included in this distribution, for details about
+    See the file COPYING.md, included in this distribution, for details about
     the copyright of "Castle Game Engine".
     See http://www.freepascal.org/faq.var#general-license about the copyright
     of FPC RTL.
@@ -205,7 +205,7 @@ begin
     SetLength(NodeName, EndPos - StartPos);
     Move(APath[StartPos], NodeName[1], EndPos - StartPos);
     StartPos := EndPos + 1;
-    Child := Node.FindNode(UTF8decode(Escape(NodeName)));
+    Child := Node.FindNode(StringToUtf16(Escape(NodeName)));
     if not Assigned(Child) then
       Exit;
     Node := Child;
@@ -214,7 +214,7 @@ begin
     Exit;
   SetLength(NodeName, PathLen - StartPos + 1);
   Move(APath[StartPos], NodeName[1], Length(NodeName));
-  Attr := Node.Attributes.GetNamedItem(UTF8Decode(Escape(NodeName)));
+  Attr := Node.Attributes.GetNamedItem(StringToUtf16(Escape(NodeName)));
   if Assigned(Attr) then
     Result := Attr.NodeValue8;
   {$else}
@@ -295,10 +295,10 @@ begin
     Move(APath[StartPos], NodeName[1], EndPos - StartPos);
     StartPos := EndPos + 1;
     NodeName := Escape(NodeName);
-    Child := Node.FindNode(UTF8Decode(NodeName));
+    Child := Node.FindNode(StringToUtf16(NodeName));
     if not Assigned(Child) then
     begin
-      Child := Doc.CreateElement(UTF8Decode(NodeName));
+      Child := Doc.CreateElement(StringToUtf16(NodeName));
       Node.AppendChild(Child);
     end;
     Node := Child;
@@ -309,10 +309,10 @@ begin
   SetLength(NodeName, PathLen - StartPos + 1);
   Move(APath[StartPos], NodeName[1], Length(NodeName));
   NodeName := Escape(NodeName);
-  if (not Assigned(TDOMElement(Node).GetAttributeNode(UTF8Decode(NodeName)))) or
-    (TDOMElement(Node)[UTF8decode(NodeName)] <> UTF8Decode(AValue)) then
+  if (not Assigned(TDOMElement(Node).GetAttributeNode(StringToUtf16(NodeName)))) or
+    (TDOMElement(Node)[StringToUtf16(NodeName)] <> StringToUtf16(AValue)) then
   begin
-    TDOMElement(Node)[UTF8decode(NodeName)] := UTF8Decode(AValue);
+    TDOMElement(Node)[StringToUtf16(NodeName)] := StringToUtf16(AValue);
     FModified := True;
   end;
   {$else}
@@ -413,9 +413,9 @@ begin
   while (StartPos > 0) and (APath[StartPos] <> '/') do
    Dec(StartPos);
   NodeName := Escape(Copy(APath, StartPos+1, Length(APath) - StartPos));
-  if (not Assigned(TDOMElement(Node).GetAttributeNode(UTF8Decode(NodeName)))) then
+  if (not Assigned(TDOMElement(Node).GetAttributeNode(StringToUtf16(NodeName)))) then
     Exit;
-  TDOMElement(Node).RemoveAttribute(UTF8Decode(NodeName));
+  TDOMElement(Node).RemoveAttribute(StringToUtf16(NodeName));
   {$else}
   StartPos := BackPos('/', APath);
   if StartPos = 0 then
@@ -464,7 +464,7 @@ begin
       break;
     SetLength(NodePath, EndPos - StartPos);
     Move(APath[StartPos], NodePath[1], Length(NodePath));
-    Result := Result.FindNode(UTF8Decode(Escape(NodePath)));
+    Result := Result.FindNode(StringToUtf16(Escape(NodePath)));
     StartPos := EndPos + 1;
     if StartPos > PathLen then
       exit;
@@ -549,7 +549,7 @@ begin
   if IsLoading then
     exit;
 
-  if URIFileExists(AUrl) and (not FStartEmpty) then
+  if UriFileExists(AUrl) and (not FStartEmpty) then
     if BlowFishKeyPhrase <> '' then
       // TODO: Delphi support
       UrlReadXML(Doc, AUrl{$ifdef FPC}, BlowFishKeyPhrase{$endif})

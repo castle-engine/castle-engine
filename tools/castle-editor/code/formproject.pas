@@ -1,9 +1,9 @@
 {
-  Copyright 2018-2024 Michalis Kamburelis.
+  Copyright 2018-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -18,7 +18,7 @@ unit FormProject;
 
 {$I castleconf.inc}
 
-{ Hack to use OpenDocument instead of RunCommandNoWait to execute Delphi.
+{ Hack to use OpenDocument instead of ExecuteCommandNoWait to execute Delphi.
   This assumes that Delphi is associated on your system with Pascal files.
   OTOH it will work a bit nicer, not opening new Delphi instance each time,
   as Windows underneath will use DDE to communicate with Delphi BDSLauncher. }
@@ -43,6 +43,7 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionMaximizePreview: TAction;
     ActionComponentDuplicateLinked: TAction;
     ActionUnInstall: TAction;
     ActionDevices: TAction;
@@ -114,6 +115,7 @@ type
     BitBtnNewView: TBitBtn;
     LabelOpenExistingView: TLabel;
     ListOpenExistingView: TListView;
+    MenuItemMaximizePreview: TMenuItem;
     MenuItemDuplicateLinkedComponent: TMenuItem;
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;
@@ -355,6 +357,7 @@ type
     procedure ActionFindNextExecute(Sender: TObject);
     procedure ActionFindToggleExecute(Sender: TObject);
     procedure ActionImportSketchfabExecute(Sender: TObject);
+    procedure ActionMaximizePreviewExecute(Sender: TObject);
     procedure ActionPhysicsShowAllJointsToolsExecute(Sender: TObject);
     procedure ActionPhysicsHideAllJointsToolsExecute(Sender: TObject);
     procedure ActionFocusDesignExecute(Sender: TObject);
@@ -647,7 +650,7 @@ uses TypInfo, LCLType, RegExpr, StrUtils, LCLVersion,
   CastleFonts, X3DLoad, CastleFileFilters, CastleImages, CastleSoundEngine,
   CastleLclEditHack, CastleRenderOptions, CastleTimeUtils,
   CastleInternalFileMonitor, CastleInternalProjectLocalSettings,
-  CastleInternalArchitectures,
+  CastleInternalArchitectures, CastleInternalProcess,
   FormAbout, FormChooseProject, FormPreferences, FormSpriteSheetEditor,
   FormSystemInformation, FormRestartCustomEditor, FormImportSketchfab,
   ToolCompilerInfo, ToolCommonUtils, ToolProcess, ToolFpcVersion, ToolProcessRun;
@@ -1020,6 +1023,14 @@ begin
   ImportSketchfabForm.Show;
 end;
 
+procedure TProjectForm.ActionMaximizePreviewExecute(Sender: TObject);
+begin
+  ActionMaximizePreview.Checked := not ActionMaximizePreview.Checked;
+  if Design <> nil then
+    Design.MaximizePreview := ActionMaximizePreview.Checked;
+  SetEnabledVisible(PageControlBottom, not ActionMaximizePreview.Checked);
+end;
+
 procedure TProjectForm.ActionFindNextExecute(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
@@ -1326,6 +1337,7 @@ end;
 procedure TProjectForm.ActionOpenProjectCodeExecute(Sender: TObject);
 var
   Exe, DelphiExe: String;
+  IgnoredFoundDelphiVersion: TDelphiVersion;
   Ce: TCodeEditor;
 begin
   if CodeEditor = ceAutodetect then
@@ -1354,7 +1366,7 @@ begin
 
         { Open through LPI to change the project. }
         if ProjectLazarus <> '' then
-          RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectLazarus])
+          ExecuteCommandNoWait(CreateTemporaryDir, Exe, [ProjectLazarus])
         else
           ErrorBox('Lazarus project not defined (neither "standalone_source" nor "lazarus_project" were specified in CastleEngineManifest.xml).' + NL +
             NL +
@@ -1362,7 +1374,7 @@ begin
       end;
     ceDelphi:
       begin
-        FindDelphiPath(true, DelphiExe);
+        FindDelphiPath(true, DelphiExe, IgnoredFoundDelphiVersion);
 
         { Open through DPROJ, this seems to be the only thing that works reliably. }
         if ProjectDelphi = '' then
@@ -1385,7 +1397,7 @@ begin
         {$ifdef DELPHI_OPEN_SHELL}
         OpenDocument(ProjectDelphi); // hack to open Pascal names in existing Delphi window, using DDE
         {$else}
-        RunCommandNoWait(ProjectPath, DelphiExe, [
+        ExecuteCommandNoWait(ProjectPath, DelphiExe, [
           ProjectDelphi
           //ProjectStandaloneSource
         ]);
@@ -1394,7 +1406,7 @@ begin
     ceVSCode:
       begin
         Exe := FindExeVSCode(true);
-        RunCommandNoWait(ProjectPath, Exe, [
+        ExecuteCommandNoWait(ProjectPath, Exe, [
           { --add would add project to workspace in current window.
             See OpenPascal for comments. }
           //'--add',
@@ -1403,7 +1415,7 @@ begin
             VS Code on Windows inability to deal with spaces in filenames.
             See OpenPascal for comments. }
           '.'
-        ], [rcNoConsole]);
+        ], [ecNoConsole]);
       end;
     else raise EInternalError.Create('CodeEditor?');
   end;
@@ -2498,7 +2510,7 @@ end;
 
 procedure TProjectForm.MenuItemManualClick(Sender: TObject);
 begin
-  OpenUrl('https://castle-engine.io/manual_intro.php');
+  OpenUrl('https://castle-engine.io/manual');
 end;
 
 procedure TProjectForm.MenuItemModeDebugClick(Sender: TObject);
@@ -2559,9 +2571,13 @@ begin
   ActionModeRotate.Enabled := Design <> nil;
   ActionModeScale.Enabled := Design <> nil;
   ActionShowStatistics.Enabled := Design <> nil;
-  ActionFindToggle.Enabled := Design <> nil;
-  ActionFindNext.Enabled := Design <> nil;
   ActionExportToModel.Enabled := Design <> nil;
+
+  // disable ActionFindToggle, as cannot focus when edit hidden
+  ActionFindToggle.Enabled := (Design <> nil) and (not ActionMaximizePreview.Checked);
+  // disable ActionFindNext for consistency with ActionFindToggle,
+  // and would be confusing when hierarchy not visible
+  ActionFindNext.Enabled := (Design <> nil) and (not ActionMaximizePreview.Checked);
 
   { Options that toggle InternalForceWireframe could actually work with Design=nil,
     with current implementation.
@@ -2627,8 +2643,6 @@ begin
   begin
     Design := TDesignFrame.Create(Self);
     DesignObserver.Observed := Design;
-    Design.Parent := PanelAboveTabs;
-    Design.Align := alClient;
     Design.OnUpdateFormCaption := @UpdateFormCaption;
     Design.UndoSystem.OnUpdateUndo := @UpdateUndo;
     Design.OnSelectionChanged := @UpdateRenameItem;
@@ -2638,6 +2652,14 @@ begin
     Design.OnShowStatistics  := @ShowStatistics;
     Design.OnRunningToggle  := @RunningToggle;
     Design.OnApiReferenceOfCurrent := @MenuItemReferenceOfCurrentClick;
+    Design.MaximizePreview := ActionMaximizePreview.Checked;
+
+    { on GTK3, changing Align on a control with Parent may result in calling
+      Paint on it, which calls our TDesignFrame.TDesignerLayer.Render.
+      So we have assigned everything necessary for correct render
+      (like OnShowStatistics) earlier. }
+    Design.Parent := PanelAboveTabs;
+    Design.Align := alClient;
 
     // Update Design.ActionPlayStop, after OnIsRunning and OnRunningToggle are set
     Design.ActionPlayStopUpdate(Design.ActionPlayStop);
@@ -2726,13 +2748,31 @@ begin
   end;
 end;
 
-procedure TProjectForm.WarningNotification(const Category,
-  Message: string);
+procedure TProjectForm.WarningNotification(const Category, Message: string);
+var
+  FixedMessage: String;
 begin
+  FixedMessage := Message;
+
+  { Cocoa LCL list cannot display multi-line items correctly
+    (the item height is always as if we had single line).
+
+    Testcase: PNG 2-line warning:
+      'Initializing dynamic LibPng library failed.' + NL +
+      '  Loading PNG will use a slower approach.'
+    which is normal on macOS.
+
+    So remove newlines from the message. }
+
+  {$ifdef LCLCocoa}
+  FixedMessage := SReplaceChars(FixedMessage, #10, ' '); // replace Unix newlines with spaces
+  FixedMessage := SDeleteChars(FixedMessage, [#13]); // remove leftovers from Windows newlines
+  {$endif LCLCocoa}
+
   if Category <> '' then
-    ListWarnings.Items.Add(Category + ': ' + Message)
+    ListWarnings.Items.Add(Category + ': ' + FixedMessage)
   else
-    ListWarnings.Items.Add(Message);
+    ListWarnings.Items.Add(FixedMessage);
   TabWarnings.Caption := 'Warnings (' + IntToStr(ListWarnings.Count) + ')';
   TabWarnings.TabVisible := true;
 end;
@@ -3047,7 +3087,7 @@ begin
       for I := 0 to Parameters.Count - 1 do
         Parameters[I] := SReplacePatterns(Parameters[I], Macros, true);
     finally FreeAndNil(Macros) end;
-    RunCommandNoWait(CreateTemporaryDir, Exe, Parameters.ToArray);
+    ExecuteCommandNoWait(CreateTemporaryDir, Exe, Parameters.ToArray);
   finally FreeAndNil(Parameters) end;
 end;
 
@@ -3068,6 +3108,7 @@ procedure TProjectForm.OpenPascal(const FileName: String; Line: Integer;
   Column: Integer);
 var
   Exe, DelphiExe, VsCodeFileArgument: String;
+  IgnoredFoundDelphiVersion: TDelphiVersion;
   Ce: TCodeEditor;
 begin
   if CodeEditor = ceAutodetect then
@@ -3094,7 +3135,7 @@ begin
         if ProjectLazarus = '' then
         begin
           WritelnWarning('Lazarus project not defined (neither "standalone_source" nor "lazarus_project" were specified in CastleEngineManifest.xml), the file will be opened without changing Lazarus project.');
-          RunCommandNoWait(CreateTemporaryDir, Exe, [FileName]);
+          ExecuteCommandNoWait(CreateTemporaryDir, Exe, [FileName]);
         end else
         if not LazarusVersion.AtLeast(2, 2, 0) then
         begin
@@ -3110,16 +3151,16 @@ begin
           }
 
           WritelnWarning('Lazarus is older than 2.2, file will be opened without changing Lazarus project.');
-          RunCommandNoWait(CreateTemporaryDir, Exe, [FileName]);
+          ExecuteCommandNoWait(CreateTemporaryDir, Exe, [FileName]);
         end else
         begin
           // pass both project name, and particular filename, to open file within this project.
-          RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectLazarus, FileName])
+          ExecuteCommandNoWait(CreateTemporaryDir, Exe, [ProjectLazarus, FileName])
         end;
       end;
     ceDelphi:
       begin
-        FindDelphiPath(true, DelphiExe);
+        FindDelphiPath(true, DelphiExe, IgnoredFoundDelphiVersion);
 
         { Open through DPROJ }
         (*
@@ -3165,7 +3206,7 @@ begin
         {$ifdef DELPHI_OPEN_SHELL}
         OpenDocument(FileName); // hack to open Pascal names in existing Delphi window, using DDE
         {$else}
-        RunCommandNoWait(ProjectPath, DelphiExe, [
+        ExecuteCommandNoWait(ProjectPath, DelphiExe, [
           FileName
         ]);
         {$endif}
@@ -3210,11 +3251,11 @@ begin
           VsCodeFileArgument += ':' + IntToStr(Line);
           if Column <> -1 then
             VsCodeFileArgument += ':' + IntToStr(Column);
-          RunCommandNoWait(ProjectPath, Exe, ['.', '--goto', VsCodeFileArgument],
-            [rcNoConsole]);
+          ExecuteCommandNoWait(ProjectPath, Exe, ['.', '--goto', VsCodeFileArgument],
+            [ecNoConsole]);
         end else
-          RunCommandNoWait(ProjectPath, Exe, ['.', VsCodeFileArgument],
-            [rcNoConsole]);
+          ExecuteCommandNoWait(ProjectPath, Exe, ['.', VsCodeFileArgument],
+            [ecNoConsole]);
       end;
     else raise EInternalError.Create('CodeEditor?');
   end;
@@ -3236,7 +3277,7 @@ procedure TProjectForm.ShellListViewDoubleClick(Sender: TObject);
       Exit;
     end;
 
-    RunCommandNoWait(CreateTemporaryDir, Exe, Arguments);
+    ExecuteCommandNoWait(CreateTemporaryDir, Exe, Arguments);
   end;
 
   procedure OpenLazarusProject(const FileName: String);
@@ -3244,7 +3285,7 @@ procedure TProjectForm.ShellListViewDoubleClick(Sender: TObject);
     Exe: String;
   begin
     Exe := FindExeLazarusIDE;
-    RunCommandNoWait(CreateTemporaryDir, Exe, [FileName]);
+    ExecuteCommandNoWait(CreateTemporaryDir, Exe, [FileName]);
   end;
 
 var
@@ -3381,6 +3422,8 @@ procedure TProjectForm.BuildToolCall(const Commands: array of String;
   begin
     if Compiler <> DefaultCompiler then
       Params.Add('--compiler=' + CompilerToString(Compiler));
+    if MSBuildDontPassEnginePaths then
+      Params.Add('--msbuild-dont-pass-engine-paths');
   end;
 
   procedure AddPackageFormatParameters(const Params: TStrings; const Format: TPackageFormat);
@@ -3455,7 +3498,10 @@ begin
       AddModeParameters(QueueItem.Parameters);
     // add --compiler parameter
     if (Command = 'compile') or
-       (Command = 'package') then
+       (Command = 'package') or
+       (Command = 'install') or
+       (Command = 'uninstall') or
+       (Command = 'run') then
       AddCompilerParameters(QueueItem.Parameters);
     // add --target, --os, --cpu parameters
     if (Command = 'compile') or
@@ -3507,11 +3553,11 @@ begin
       Exit;
     end;
 
-    RunCommandNoWait(ProjectPath, BuildToolExe,
+    ExecuteCommandNoWait(ProjectPath, BuildToolExe,
       ['editor-run', '--gui-errors', '--wait-for-process-exit', IntToStr(CurrentProcessId)],
-      [rcNoConsole]);
+      [ecNoConsole]);
 
-    { Once ProposeSaveDesign and RunCommandNoWait are both successful,
+    { Once ProposeSaveDesign and ExecuteCommandNoWait are both successful,
       we want to terminate ASAP as user is waiting for new editor to run. }
     Application.Terminate;
   end;

@@ -11,7 +11,7 @@
   the same as used by the "Castle Game Engine": LGPL (version 2.1)
   with "static linking exception" (with exactly the same wording
   of the "static linking exception").
-  See the file COPYING.txt, included in this distribution, for details about
+  See the file COPYING.md, included in this distribution, for details about
   the copyright of "Castle Game Engine".
   See http://www.freepascal.org/faq.var#general-license about the copyright
   of FPC RTL.
@@ -40,18 +40,23 @@
     that links freetype statically into the main library).
 
   - Define some things we need (or needed in the past) in CGE:
-    FT_New_Memory_Face, FT_Open_Face and friends. }
+    FT_New_Memory_Face, FT_Open_Face and friends.
+
+  - Optionally, when CASTLE_FREETYPE_PASCAL is defined (see castleconf.inc),
+    implement a subset of FreeType API in pure Pascal, without using
+    the FreeType library at all. See castleinternalfreetypeh_pascal.inc . }
 unit CastleInternalFreeTypeH;
 
 {$i castleconf.inc}
 
-{$ifdef CASTLE_IOS}
+// FPC + iOS deployment always links with static FreeType library.
+{$if defined(CASTLE_IOS) and defined(FPC) and not defined(CASTLE_FREETYPE_PASCAL)}
   {$define CASTLE_FREETYPE_STATIC}
 {$endif}
 
 interface
 
-uses CTypes;
+uses {$ifdef CASTLE_FREETYPE_PASCAL} Classes, {$endif} CTypes;
 
 {$ifdef FPC}{$packrecords c}{$endif}
 
@@ -156,25 +161,28 @@ const
 
 type
   FT_Bool = boolean;
-  FT_FWord = smallint;
-  FT_UFWord = word;
+  { Note: FT_FWord and FT_UFWord and equal, respectively,
+    to FT_Short and FT_UShort. But FreeType C header defines them separately,
+    with docs that XxxWord are 16-bit, while XXxShort correspond to C "short"
+    types. Our definitions below reflect that. }
+  FT_FWord = Int16;
+  FT_UFWord = UInt16;
   FT_Char = AnsiChar;
   FT_Byte = byte;
-  FT_String = Ansichar;
+  // FT_String = Ansichar; // nothing uses FT_String, only PFT_String is used
   PFT_String = PAnsiChar;
-  FT_Short = smallint;
-  FT_UShort = word;
-  FT_Int = CInt32;
-  FT_UInt = CUInt32;
-  {$if defined(cpu64) and not(defined(win64) and defined(cpux86_64))}
-  FT_Long = int64;
-  FT_ULong = {$ifdef FPC} qword {$else} UInt64 {$endif};
-  FT_Pos = int64;
-  {$ELSE}
-  FT_Long = CInt32;
-  FT_ULong = CUInt32;
-  FT_Pos = CInt32;
-  {$ENDIF}
+  FT_Short = CShort;
+  FT_UShort = CUShort;
+  FT_Int = CInt;
+  FT_UInt = CUInt;
+  { Note that C "long" is either 64-bit or 32-bit on 2 common platforms:
+    - 64-bit on: defined(cpu64) and not(defined(win64) and defined(cpux86_64))
+    - 32-bit on 32-bit processors
+    - (see CTypes for exact definition accounting also for 16-bit).
+    This is expected by FreeType definitions. }
+  FT_Long = CLong;
+  FT_ULong = CULong;
+  FT_Pos = CLong;
   FT_F2Dot14 = smallint;
   FT_F26Dot6 = CInt32;
   FT_Fixed = FT_Long;
@@ -250,7 +258,7 @@ type
     width : integer;
     pitch : integer;
     buffer : pointer;
-    num_grays : shortint;
+    num_grays : CUShort;
     pixel_mode : Ansichar;
     palette_mode : Ansichar;
     palette : pointer;
@@ -320,7 +328,7 @@ type
 
   TFT_Size = record
     face : PFT_Face;
-    generic : FT_Generic;
+    &generic : FT_Generic;
     metrics : FT_Size_Metrics;
     //internal : FT_Size_Internal;
   end;
@@ -333,7 +341,7 @@ type
     face : PFT_Face;
     next : PFT_GlyphSlot;
     flags : FT_UInt;
-    generic : FT_Generic;
+    &generic : FT_Generic;
     metrics : FT_Glyph_Metrics;
     linearHoriAdvance : FT_Fixed;
     linearVertAdvance : FT_Fixed;
@@ -362,7 +370,7 @@ type
     available_sizes : PFT_Bitmap_Size;     // is array
     num_charmaps : FT_Int;
     charmaps : PPFT_CharMap;               // is array
-    generic : FT_Generic;
+    &generic : FT_Generic;
     bbox : FT_BBox;
     units_per_EM : FT_UShort;
     ascender : FT_Short;
@@ -409,7 +417,31 @@ type
   end;
   PFT_Open_Args = ^TFT_Open_Args;
 
-{$ifdef CASTLE_FREETYPE_STATIC}
+{$if defined(CASTLE_FREETYPE_PASCAL)}
+
+//Base Interface
+function FT_Done_Face(face: PFT_Face): integer;
+function FT_Done_FreeType(alibrary: PFT_Library): integer;
+function FT_Get_Char_Index(face: PFT_Face; charcode: FT_ULong): FT_UInt;
+function FT_Get_Kerning(face: PFT_Face; left_glyph, right_glyph, kern_mode: FT_UInt; out akerning: FT_Vector): integer;
+function FT_Init_FreeType(var alibrary: PFT_Library): integer;
+function FT_Load_Char(face: PFT_Face; charcode: FT_ULong; load_flags: CInt32): integer;
+function FT_Load_Glyph(face: PFT_Face; glyph_index: FT_UInt; load_flags: CInt32): integer;
+{ Create face from font data in Stream.
+  Note: This is different than FreeType API (that takes pointer and size).
+  The Stream becomes owned by the face (it will be freed by FT_Done_Face,
+  or immediately if this fails). }
+function FT_New_Memory_Face(alibrary: PFT_Library; Stream: TCustomMemoryStream; face_index: FT_Long; var aface: PFT_Face): integer;
+function FT_Set_Char_Size(face: PFT_Face; char_width, char_height: FT_F26dot6; horz_res, vert_res: FT_UInt): integer;
+function FT_Set_Pixel_Sizes(face: PFT_Face; pixel_width, pixel_height: FT_UInt): integer;
+
+//Glyph Management
+function FT_Get_Glyph(slot: PFT_GlyphSlot; out aglyph: PFT_Glyph): integer;
+function FT_Glyph_Copy(Source: PFT_Glyph; out target: PFT_Glyph): integer;
+function FT_Glyph_To_Bitmap(var the_glyph: PFT_Glyph; render_mode: FT_Render_Mode; origin: PFT_Vector; Destroy: FT_Bool): integer;
+procedure FT_Done_Glyph(glyph: PFT_Glyph);
+
+{$elseif defined(CASTLE_FREETYPE_STATIC)}
 
 //Base Interface
 function FT_Done_Face(face: PFT_Face): integer; cdecl; external;
@@ -419,10 +451,11 @@ function FT_Get_Kerning(face: PFT_Face; left_glyph, right_glyph, kern_mode: FT_U
 function FT_Init_FreeType(var alibrary: PFT_Library): integer; cdecl; external;
 function FT_Load_Char(face: PFT_Face; charcode: FT_ULong; load_flags: CInt32): integer; cdecl; external;
 function FT_Load_Glyph(face: PFT_Face; glyph_index: FT_UInt; load_flags: CInt32): integer; cdecl; external;
-{ TODO:
-  Is this right?
-  - face_index should be FT_Long (makes different on 64-bit non-Windows)? }
-function FT_New_Face(alibrary: PFT_Library; filepathname: PAnsiChar; face_index: integer; var aface: PFT_Face): integer; cdecl; external;
+{ Note: We deliberately do not declare FT_New_Face (that opens a font from
+  a filename). Castle Game Engine always reads fonts through streams,
+  using FT_New_Memory_Face, see TMgrFont.Create.
+  This way we can open a font from any URL, and we avoid the question
+  in what encoding FreeType expects the filename. }
 function FT_Open_Face(alibrary: PFT_Library; Args: PFT_Open_Args; face_index: FT_Long; var aface: PFT_Face): integer; cdecl; external;
 function FT_New_Memory_Face(alibrary: PFT_Library; file_base: Pointer; file_size: FT_Long; face_index: FT_Long; var aface: PFT_Face): integer; cdecl; external;
 function FT_Set_Char_Size(face: PFT_Face; char_width, char_height: FT_F26dot6; horz_res, vert_res: FT_UInt): integer; cdecl; external;
@@ -454,7 +487,6 @@ var
   FT_Init_FreeType: function(var alibrary: PFT_Library): integer; cdecl;
   FT_Load_Char: function(face: PFT_Face; charcode: FT_ULong; load_flags: CInt32): integer; cdecl;
   FT_Load_Glyph: function(face: PFT_Face; glyph_index: FT_UInt; load_flags: CInt32): integer; cdecl;
-  FT_New_Face: function(alibrary: PFT_Library; filepathname: PAnsiChar; face_index: integer; var aface: PFT_Face): integer; cdecl;
   FT_Open_Face: function(alibrary: PFT_Library; Args: PFT_Open_Args; face_index: FT_Long; var aface: PFT_Face): integer; cdecl;
   FT_New_Memory_Face: function(alibrary: PFT_Library; file_base: Pointer; file_size: FT_Long; face_index: FT_Long; var aface: PFT_Face): integer; cdecl;
   FT_Set_Char_Size: function(face: PFT_Face; char_width, char_height: FT_F26dot6; horz_res, vert_res: FT_UInt): integer; cdecl;
@@ -474,7 +506,7 @@ var
   FT_Glyph_Transform: function(glyph: PFT_Glyph; matrix: PFT_Matrix; delta: PFT_Vector): integer; cdecl;
   FT_Done_Glyph: procedure(glyph: PFT_Glyph); cdecl;
   FT_Glyph_Get_CBox: procedure(glyph: PFT_Glyph; bbox_mode: FT_UInt; var acbox: FT_BBox); cdecl;
-{$endif CASTLE_FREETYPE_STATIC}
+{$endif}
 
 //Base Interface - macros
 function FT_IS_SCALABLE(face: PFT_Face): boolean;
@@ -482,12 +514,17 @@ function FT_IS_SCALABLE(face: PFT_Face): boolean;
 procedure LoadFreeTypeLibrary;
 
 { Did we found FreeType library and loaded it's symbols.
-  When this is @false, do not use any functions from this unit, they are @nil. }
+  When this is @false, do not use any functions from this unit, they are @nil.
+  Always @true when CASTLE_FREETYPE_PASCAL is defined. }
 function FreeTypeLibraryInitialized: boolean;
 
 implementation
 
+{$ifdef CASTLE_FREETYPE_PASCAL}
+uses SysUtils, CastleInternalOpenTypeFont, CastleInternalGlyphRasterizer;
+{$else}
 uses SysUtils, CastleDynLib;
+{$endif}
 
 { FreeType macros ------------------------------------------------------------ }
 
@@ -498,7 +535,12 @@ end;
 
 { Loading FreeType library --------------------------------------------------- }
 
-{$ifdef CASTLE_FREETYPE_STATIC}
+{$if defined(CASTLE_FREETYPE_PASCAL)}
+
+{$I castleinternalfreetypeh_pascal.inc}
+
+end.
+{$elseif defined(CASTLE_FREETYPE_STATIC)}
 
 procedure LoadFreeTypeLibrary;
 begin
@@ -510,7 +552,7 @@ begin
 end;
 
 end.
-{$else CASTLE_FREETYPE_STATIC}
+{$else}
 
 var
   FreeTypeLibrary: TDynLib;
@@ -560,7 +602,6 @@ begin
     Pointer({$ifndef FPC}@{$endif} FT_Init_FreeType) := FreeTypeLibrary.Symbol('FT_Init_FreeType');
     Pointer({$ifndef FPC}@{$endif} FT_Load_Char) := FreeTypeLibrary.Symbol('FT_Load_Char');
     Pointer({$ifndef FPC}@{$endif} FT_Load_Glyph) := FreeTypeLibrary.Symbol('FT_Load_Glyph');
-    Pointer({$ifndef FPC}@{$endif} FT_New_Face) := FreeTypeLibrary.Symbol('FT_New_Face');
     Pointer({$ifndef FPC}@{$endif} FT_Open_Face) := FreeTypeLibrary.Symbol('FT_Open_Face');
     Pointer({$ifndef FPC}@{$endif} FT_New_Memory_Face) := FreeTypeLibrary.Symbol('FT_New_Memory_Face');
     Pointer({$ifndef FPC}@{$endif} FT_Set_Char_Size) := FreeTypeLibrary.Symbol('FT_Set_Char_Size');
@@ -585,4 +626,4 @@ finalization
   FreeAndNil(FreeTypeLibrary);
 end.
 
-{$endif CASTLE_FREETYPE_STATIC}
+{$endif}

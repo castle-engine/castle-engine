@@ -19,6 +19,7 @@ uses
   { Testing (mainly) things inside Pascal standard library, not CGE }
   TestCompiler,
   TestSysUtils,
+  TestFpJson,
   {$ifdef FPC}TestFGL,{$endif}
   TestGenericsCollections,
   {$ifdef FPC}TestOldFPCBugs,{$endif}
@@ -30,6 +31,7 @@ uses
   TestCastleRectangles,
   TestCastleFindFiles,
   TestCastleFilesUtils,
+  TestCastleInternalProcess,
   TestCastleUtilsLists,
   TestCastleClassUtils,
   TestCastleVectors,
@@ -44,7 +46,9 @@ uses
   TestCastleBoxes,
   TestCastleFrustum,
   TestCastleInternalGLShadowVolumes,
+  TestCastleInternalFreeTypeH,
   TestCastleFonts,
+  TestCastleInternalOpenTypeFont,
   TestCastleTransform,
   TestCastleParameters,
   TestCastleUIControls,
@@ -99,7 +103,8 @@ uses
   TestCastleIfc,
   TestCastleZip,
   TestCastleInternalUrlUtils,
-  TestCastleTransformManipulate;
+  TestCastleTransformManipulate,
+  TestCastleSteam;
 
 implementation
 

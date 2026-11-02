@@ -1,0 +1,72 @@
+/*
+  This CSS is used instead of standard PasDoc CCS.
+  We need this, because we want to apply PasDoc CSS only inside .pasdoc-container.
+  PasDoc CSS should not affect CGE navbar, footer which are outside .pasdoc-container.
+*/
+
+@use "sass:meta";
+
+/* Copied from original PasDoc CSS, this cannot be within .pasdoc-container
+   selector to work */
+:root {
+  --pasdoc-accent: #0d6efd;
+  --pasdoc-accent-hover: #0a58ca;
+  --pasdoc-accent-light: #e7f1ff;
+  --pasdoc-sidebar-width: 18rem;
+  --pasdoc-sidebar-bg: #f8f9fa;
+  --pasdoc-border-color: #dee2e6;
+  --pasdoc-code-bg: #f8f9fa;
+  --pasdoc-muted: #6c757d;
+}
+
+.pasdoc-container {
+
+  /* Using meta.load-css to place pasdoc original CSS within .pasdoc-container.
+    Note that @import is deprecated in Dart Sass.
+    See
+    https://sass-lang.com/documentation/breaking-changes/import/#nested-imports .
+    https://sass-lang.com/documentation/at-rules/import/#differences-from-use
+  */
+  @include meta.load-css("../../../../../pasdoc/pasdoc/source/component/pasdoc.css");
+}
+
+@media (min-width: 768px) {
+  /* Don't make PasDoc sidebar start at top, to leave space for CGE <nav>. */
+  /* Not necessary anymore -- rules below turn it to float, making this redundant.
+  .offcanvas-md {
+    top: 4em !important;
+  }
+  */
+
+  /* Don't move sidebar with viewport, as then CGE navbar space would leave
+     blank space when scrolling down.
+
+     We also want to move footer down, below content, to not collide with
+     sidebar, testcase:
+     https://castle-engine.io/apidoc/html/tipue_results.html?q=tcastledesign.stretch
+  */
+  #sidebarNav {
+    position: static !important;
+    float: left !important;
+    /* height: 100% !important; does not achieve what we want */
+  }
+}
+
+/* No need for extra paddings, PasDoc content already has paddings inside.
+   Note that we apply it only to .container-fluid right inside <body>,
+   as PasDoc output has another .container-fluid, don't touch it.
+*/
+body > .container-fluid {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* Remove default CGE CSS customizations of <code> in .itemcode */
+.pasdoc-container code {
+  background: transparent;
+}
+
+/* No extra space between CGE <nav> and PasDoc content */
+body > nav {
+  margin-bottom: 0 !important;
+}

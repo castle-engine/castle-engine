@@ -18,6 +18,6 @@ The source sprite sheets atlases are in `../data-source/spritesheets_atlases/` d
 
 Author: Done originally in Spine by Paweł Wojciechowicz from [Cat-astrophe Games](https://cat-astrophe-games.com/). Thank you!
 
-License(s): Shared on the same terms as the rest of Castle Game Engine (GPL >= 2 or LGPL >= 2 with static linking exception, see COPYING.txt).
+License(s): Shared on the same terms as the rest of Castle Game Engine (GPL >= 2 or LGPL >= 2 with static linking exception, see COPYING.md).
 
 The sources for `dragon` (in Spine) and `background` (now in Blender, after some changes) are in the `../data-source/` directory.

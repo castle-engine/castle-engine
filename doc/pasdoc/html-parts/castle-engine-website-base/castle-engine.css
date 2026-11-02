@@ -99,6 +99,15 @@ table.thin_borders { border-collapse: collapse; }
 table.thin_borders td { border: 1pt solid #d3d3d3; padding: 0.3em; }
 table.thin_borders th { border: 1pt solid #d3d3d3; padding: 0.3em; }
 
+/* Commented out: we don't depend on AsciiDoctor generated tables right now.
+   Maybe restore in the future. */
+/* AsciiDoctor sets grid-all, treat it just like our thin_borders */
+/* table.grid-all { border-collapse: collapse; }
+table.grid-all td { border: 1pt solid #d3d3d3; padding: 0.3em; }
+table.grid-all th { border: 1pt solid #d3d3d3; padding: 0.3em; } */
+/* Makes cells look good, see skin.adoc */
+/* p.tableblock { margin: 0; } */
+
 dl.command_line_options_list > dt {
   font-family: monospace;
   font-weight: bold;

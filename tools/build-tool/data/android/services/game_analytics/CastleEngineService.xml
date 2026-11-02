@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- GameAnalytics SDK requires min SDK 26. -->
+<service min_min_sdk_version="26">
+</service>

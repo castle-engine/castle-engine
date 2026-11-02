@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -76,7 +76,7 @@ end;
 procedure TMd3Surface.Read(Stream: TStream);
 type
   TMd3FileSurface = record
-    Ident: array [0..3] of AnsiChar;
+    Ident: TMd3Ident;
     Name: array [0..Md3MaxQPath - 1] of AnsiChar;
     Flags: Int32;
     NumFrames: Int32;
@@ -96,9 +96,7 @@ begin
   SurfaceStart := Stream.Position;
   Stream.ReadBuffer(Surface, SizeOf(Surface));
 
-  if not CompareMem(@Surface.Ident[0], @GoodIdent[1], Length(GoodIdent)) then
-    raise EInvalidMD3.CreateFmt('Identifier of MD3 Surface must be "%s"',
-      [GoodIdent]);
+  CheckMd3Ident(Surface.Ident);
 
   Name := Surface.Name;
   NumFrames := Surface.NumFrames;

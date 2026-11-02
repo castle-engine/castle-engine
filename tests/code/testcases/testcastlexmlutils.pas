@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -27,11 +27,16 @@ type
   published
     procedure TestReadResult;
     procedure TestAttributeReading;
+    procedure TestEmptyAttribute;
+    procedure TestGetAttribute;
+    procedure TestNodeValue;
+    procedure TestUtf8StringStreams;
   end;
 
 implementation
 
-uses DOM, CastleXmlUtils, CastleFilesUtils, CastleDownload, CastleColors;
+uses DOM, CastleXmlUtils, CastleFilesUtils, CastleDownload, CastleColors,
+  CastleUtils, CastleXmlConfig, X3DNodes, X3DLoad, X3DFields, CastleTestUtils;
 
 procedure TTestCastleXmlUtils.TestReadResult;
 var
@@ -144,6 +149,126 @@ begin
     AssertTrue(not Doc.DocumentElement.AttributeInteger('some_int_not_existing', I));
     AssertTrue(I = 456);
   finally FreeAndNil(Doc); end;
+end;
+
+procedure TTestCastleXmlUtils.TestEmptyAttribute;
+var
+  Doc: TXMLDocument;
+  S: String;
+begin
+  try
+    URLReadXML(Doc, 'castle-data:/test_empty_attribute.xml');
+
+    { Reading an attribute with empty value, like empty_string="",
+      should return @true and yield empty String, not fail.
+      With Delphi, this requires a special check for Null variant
+      in TDOMElement.AttributeString (src/compatibility/delphi-only/dom.pas). }
+    S := 'initial';
+    AssertTrue(Doc.DocumentElement.AttributeString('empty_string', S));
+    AssertEquals('', S);
+
+    AssertEquals('', Doc.DocumentElement.AttributeString('empty_string'));
+    AssertEquals('', Doc.DocumentElement.AttributeStringDef('empty_string', 'default'));
+
+    { Sanity check that non-empty attribute in the same file works too. }
+    AssertEquals('some_string_value', Doc.DocumentElement.AttributeString('some_string'));
+  finally FreeAndNil(Doc); end;
+end;
+
+procedure TTestCastleXmlUtils.TestGetAttribute;
+var
+  Doc: TXMLDocument;
+begin
+  try
+    URLReadXML(Doc, 'castle-data:/test_empty_attribute.xml');
+
+    { GetAttribute follows DOM API: it returns the attribute value,
+      which may be an empty String -- both when the attribute has empty value
+      (like empty_string="") and when the attribute does not exist at all.
+      With Delphi, this requires a special check for Null variant
+      in TDOMElement.GetAttribute (src/compatibility/delphi-only/dom.pas),
+      just like in TDOMElement.AttributeString. }
+    AssertEquals('', {$ifdef FPC}UTF8Encode{$endif}(
+      Doc.DocumentElement.GetAttribute('empty_string')));
+    AssertEquals('', {$ifdef FPC}UTF8Encode{$endif}(
+      Doc.DocumentElement.GetAttribute('not_existing')));
+
+    { Sanity check that non-empty attribute works too. }
+    AssertEquals('some_string_value', {$ifdef FPC}UTF8Encode{$endif}(
+      Doc.DocumentElement.GetAttribute('some_string')));
+  finally FreeAndNil(Doc); end;
+end;
+
+procedure TTestCastleXmlUtils.TestNodeValue;
+var
+  Doc: TXMLDocument;
+  AttrNode: TDOMAttr;
+begin
+  try
+    URLReadXML(Doc, 'castle-data:/test_empty_attribute.xml');
+
+    { NodeValue (and our helper NodeValue8) of an attribute node
+      with empty value, like empty_string="", should be an empty String.
+      With Delphi, this requires a special check for Null variant
+      in TDOMNode.GetNodeValue (src/compatibility/delphi-only/dom.pas),
+      just like in TDOMElement.AttributeString and TDOMElement.GetAttribute. }
+    AttrNode := Doc.DocumentElement.GetAttributeNode('empty_string');
+    AssertTrue(AttrNode <> nil);
+    AssertEquals('', AttrNode.NodeValue8);
+    AssertEquals('', {$ifdef FPC}UTF8Encode{$endif}(AttrNode.NodeValue));
+
+    { Sanity check that non-empty attribute node works too. }
+    AttrNode := Doc.DocumentElement.GetAttributeNode('some_string');
+    AssertTrue(AttrNode <> nil);
+    AssertEquals('some_string_value', AttrNode.NodeValue8);
+  finally FreeAndNil(Doc); end;
+end;
+
+procedure TTestCastleXmlUtils.TestUtf8StringStreams;
+
+{ Test that our routines converting between String and TStringStream
+  treat the text as UTF-8 correctly.
+  See doc/miscellaneous_notes/ansistring_encoding.md . }
+
+var
+  Config: TCastleConfig;
+  ConfigXml, ConfigSaved, X3DContents: String;
+  Node: TX3DRootNode;
+  WorldInfo: TWorldInfoNode;
+begin
+  ConfigXml :=
+    '<?xml version="1.0" encoding="utf-8"?>' + LineEnding +
+    '<CONFIG><test value="' + SampleText + '" /></CONFIG>';
+
+  { TCastleConfig.LoadFromString and SaveToString. }
+  Config := TCastleConfig.Create(nil);
+  try
+    Config.LoadFromString(ConfigXml, '');
+    AssertEquals(SampleText, Config.GetValue('test/value', ''));
+
+    { Also test that saving and loading again preserves the characters. }
+    Config.SetValue('test/value2', SampleText);
+    ConfigSaved := Config.SaveToString;
+  finally FreeAndNil(Config) end;
+
+  Config := TCastleConfig.Create(nil);
+  try
+    Config.LoadFromString(ConfigSaved, '');
+    AssertEquals(SampleText, Config.GetValue('test/value', ''));
+    AssertEquals(SampleText, Config.GetValue('test/value2', ''));
+  finally FreeAndNil(Config) end;
+
+  { LoadX3DClassicFromString (which uses TStringStream underneath). }
+  X3DContents :=
+    '#VRML V2.0 utf8' + LineEnding +
+    'WorldInfo { title "' + SampleText + '" }';
+  Node := LoadX3DClassicFromString(X3DContents, '');
+  try
+    AssertTrue(Node.FdChildren.Count = 1);
+    AssertTrue(Node.FdChildren[0] is TWorldInfoNode);
+    WorldInfo := TWorldInfoNode(Node.FdChildren[0]);
+    AssertEquals(SampleText, WorldInfo.Title);
+  finally FreeAndNil(Node) end;
 end;
 
 initialization

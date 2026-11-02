@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -111,7 +111,8 @@ var
 
 { LoadCollada ---------------------------------------------------------------- }
 
-function LoadCollada(const Stream: TStream; const ProposedBaseUrl: String): TX3DRootNode;
+function LoadCollada(const Stream: TStream; const ProposedBaseUrl: String;
+  const LoadOptions: TCastleSceneLoadOptions): TX3DRootNode;
 var
   ResultModel: TGroupNode absolute Result;
   Version14: boolean; //< Collada version >= 1.4.x
@@ -307,5 +308,6 @@ initialization
   ModelFormat.MimeTypes.Add('model/vnd.collada+xml');
   ModelFormat.FileFilterName := 'Collada (*.dae)';
   ModelFormat.Extensions.Add('.dae');
+  ModelFormat.OnLoadForceMemoryStream := XmlReadingForceMemoryStream;
   RegisterModelFormat(ModelFormat);
 end.

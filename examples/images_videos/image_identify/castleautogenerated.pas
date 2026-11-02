@@ -22,7 +22,7 @@ uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
   ApplicationProperties.ApplicationName := 'image_identify';
-  ApplicationProperties.Caption := 'image_identify';
+  ApplicationProperties.Caption := 'Identity Image Size, Format';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then

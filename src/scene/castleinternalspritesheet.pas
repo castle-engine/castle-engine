@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -381,7 +381,8 @@ type
   ECantRegenerateAtlas = class(Exception);
   EReadOnlyMode = class(Exception);
 
-function LoadCastleSpriteSheet(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
+function LoadCastleSpriteSheet(const Stream: TStream; const BaseUrl: String;
+  const LoadOptions: TCastleSceneLoadOptions): TX3DRootNode;
 
 implementation
 
@@ -513,7 +514,8 @@ type
     function ExportToX3D: TX3DRootNode;
   end;
 
-function LoadCastleSpriteSheet(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
+function LoadCastleSpriteSheet(const Stream: TStream; const BaseUrl: String;
+  const LoadOptions: TCastleSceneLoadOptions): TX3DRootNode;
 var
   SpriteSheet: TCastleSpriteSheet;
 begin
@@ -1784,7 +1786,7 @@ var
 begin
   URLWithoutAnchor := UriDeleteAnchor(URL);
 
-  Stream := Download(URLWithoutAnchor);
+  Stream := Download(URLWithoutAnchor, XmlReadingOptions);
   try
     Load(Stream, URL);
   finally FreeAndNil(Stream) end;
@@ -2492,6 +2494,7 @@ initialization
   ModelFormat.MimeTypes.Add('application/x-castle-sprite-sheet');
   ModelFormat.FileFilterName := 'Castle Sprite Sheet (*.castle-sprite-sheet)';
   ModelFormat.Extensions.Add('.castle-sprite-sheet');
+  ModelFormat.OnLoadForceMemoryStream := XmlReadingForceMemoryStream;
   RegisterModelFormat(ModelFormat);
 
   { Starling sprite sheets are actually loaded exactly the same way as CGE
@@ -2502,5 +2505,6 @@ initialization
   ModelFormat.MimeTypes.Add('application/x-starling-sprite-sheet');
   ModelFormat.FileFilterName := 'Starling Sprite Sheet (*.starling-xml)';
   ModelFormat.Extensions.Add('.starling-xml');
+  ModelFormat.OnLoadForceMemoryStream := XmlReadingForceMemoryStream;
   RegisterModelFormat(ModelFormat);
 end.

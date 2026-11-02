@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in the "Castle Game Engine" distribution,
   for details about the copyright.
 
@@ -47,6 +47,20 @@
         sourceApplication:options[UIApplicationOpenURLOptionsSourceApplicationKey]
         annotation:options[UIApplicationOpenURLOptionsAnnotationKey]
     ];
+}
+
+- (BOOL)openURLContexts:(NSSet<UIOpenURLContext *> *)URLContexts
+{
+    UIOpenURLContext* context = URLContexts.anyObject;
+    if (context != nil)
+    {
+        return [[FBSDKApplicationDelegate sharedInstance] application:[UIApplication sharedApplication]
+            openURL:context.URL
+            sourceApplication:context.options.sourceApplication
+            annotation:context.options.annotation
+        ];
+    }
+    return NO;
 }
 
 - (void)facebookLoginButton

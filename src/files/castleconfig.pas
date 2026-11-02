@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -49,5 +49,12 @@ end;
 initialization
   FUserConfig := TCastleConfig.Create(nil);
 finalization
+  { Delphi on macOS crashes (runtime error 217)
+    when trying to free TDOMDocument underneath, which releases the interface.
+    Reason unknown, not happens with FPC or other Delphi platforms (Windows, Linux).
+    Reproduce: run examples/viewport_and_scenes/scene_information_cli_tool/
+    on macOS (Intel-based) with Delphi 12.3. }
+  {$if not (defined(DELPHI) and defined(DARWIN))}
   FreeAndNil(FUserConfig);
+  {$endif}
 end.

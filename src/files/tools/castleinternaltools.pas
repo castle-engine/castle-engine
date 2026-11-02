@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -56,7 +56,7 @@ const
       So it is simpler to just name all includes and units differently,
       even across system-specific dirs. }
 
-  EnginePaths: array [0..48] of String = (
+  EnginePaths: array [0..49] of String = (
     'base',
     'common_includes',
     'base/android',
@@ -70,6 +70,7 @@ const
     'fonts',
     'window',
     'window/gtk',
+    'window/gtk/gtk3/gtk3bindings',
     'window/windows',
     'window/unix',
     'window/deprecated_units',

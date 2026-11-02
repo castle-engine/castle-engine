@@ -1,10 +1,10 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2025 Michalis Kamburelis.
+  Copyright 2015-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -36,6 +36,7 @@
     public property FdDefaultTexCoord: TSFString read FFdDefaultTexCoord;
     {  }
     property DefaultTexCoord: String read GetDefaultTexCoord write SetDefaultTexCoord;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -65,6 +66,12 @@ begin
   FFdDefaultTexCoord := TSFString.Create(Self, False, 'defaultTexCoord', 'BOUNDS2D');
    FdDefaultTexCoord.ChangeAlways := chEverything;
   AddField(FFdDefaultTexCoord);
+end;
+
+procedure TShaderTextureNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  ExtensionNames.Add(X3DType);
 end;
 
 {$endif read_implementation}

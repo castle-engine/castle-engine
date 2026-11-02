@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -47,8 +47,9 @@
       Value 0 (DefaultTransparency) means fully opaque, 1 means fully transparent. }
     property Transparency: Single read GetTransparency write SetTransparency;
 
-    { Opacity of the material, just @code(1 - @link(Transparency)).
-      Sometimes it is more intuitive to use this than Transparency. }
+    { Opacity, or "alpha" of the material, equivalent to just
+      @code(1 - @link(Transparency)).
+      Sometimes it is more intuitive to use this, rather than @link(Transparency). }
     property Opacity: Single read GetOpacity write SetOpacity;
 
     { Single color that is the best approximation of this material look.
@@ -65,6 +66,21 @@
       that is not affected by any light sources.
       All material types (unlit, Phong, physical) have this color. }
     property EmissiveColor: TVector3 read GetEmissiveColor write SetEmissiveColor;
+
+    { Texture that determines the primary RGB color and transparency (opacity).
+      See @link(TX3DGraphTraverseState.MainTexture), which is really a shortcut
+      to call this.
+
+      @groupBegin }
+    function MainTexture(
+      const Appearance: TAppearanceNode;
+      const VRML1State: TVRML1State): TAbstractTextureNode; overload; virtual; abstract;
+    function MainTexture(
+      const Appearance: TAppearanceNode;
+      const VRML1State: TVRML1State;
+      const GeometryForTexCoord: TAbstractGeometryNode;
+      out TexCoordIndex: Integer): TAbstractTextureNode; overload; virtual; abstract;
+    { @groupEnd }
   end;
 
   { Material information that defines parameters for Phong lighting equations.
@@ -194,7 +210,7 @@ end;
 
 procedure TMaterialInfo.SetOpacity(const Value: Single);
 begin
-  Transparency := 1 - Value;
+  Transparency := OpacityToTransparency(Value);
 end;
 
 { TPhongMaterialInfo --------------------------------------------------------- }

@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -33,9 +33,10 @@ CastleGameControllers, CastleInternalGameControllersExplicit,
 
 {$ifdef read_window_interface}
 public
-  { Only the library in src/deprecated_library/castleengine.lpr uses this,
+  { Only the library in castle-library-model-viewer/castleengine.lpr uses this,
     to notify our window instance about various events. }
   procedure LibraryMouseWheel(const Scroll: Single; const Vertical: boolean);
+  class procedure LibrarySetMultipleWindowsPossible(const Value: boolean); static;
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
@@ -50,6 +51,8 @@ private
   Call CGEApp_Initialize / CGEApp_Finalize once and only once during the entire application. }
 procedure CGEApp_Initialize(ApplicationConfigDirectory: PChar); cdecl;
 procedure CGEApp_Finalize; cdecl;
+
+procedure CGEApp_SetFallbackConfigDirectory(FallbackConfigDirectory: PChar); cdecl;
 
 { Used by the external process to ask for context properties from CGE
   (whether to use alpha channel, depth buffer etc.).
@@ -71,9 +74,15 @@ procedure CGEApp_Motion(X, Y: CInt32; FingerIndex: CInt32); cdecl;
 procedure CGEApp_MouseUp(X, Y: cInt32; bLeftBtn: cBool; FingerIndex: CInt32); cdecl;
 procedure CGEApp_KeyDown(eKey: CInt32); cdecl;
 procedure CGEApp_KeyUp(eKey: CInt32); cdecl;
-procedure CGEApp_ControllerAxisLeft(ControllerIndex: CInt; X, Y: Single); cdecl;
-procedure CGEApp_ControllerAxisRight(ControllerIndex: CInt; X, Y: Single); cdecl;
-procedure CGEApp_ControllerCount(ControllerCount: CInt); cdecl;
+
+{ Report to the engine events of the game controller(s). }
+procedure CGEApp_ControllerAxisLeft(ControllerIndex: CInt32; X, Y: CFloat); cdecl;
+procedure CGEApp_ControllerAxisRight(ControllerIndex: CInt32; X, Y: CFloat); cdecl;
+procedure CGEApp_ControllerAxisLeftTrigger(ControllerIndex: CInt32; Axis: CFloat); cdecl;
+procedure CGEApp_ControllerAxisRightTrigger(ControllerIndex: CInt32; Axis: CFloat); cdecl;
+procedure CGEApp_ControllerCount(ControllerCount: CInt32); cdecl;
+procedure CGEApp_ControllerButton(ControllerIndex: CInt32; Button: CInt32; Pressed: CBool); cdecl;
+
 function CGEApp_HandleOpenUrl(szUrl: PChar): CInt32; cdecl;
 
 const
@@ -105,12 +114,18 @@ const
 
 var
   LibraryCallbackProc: TLibraryCallbackProc;
+  LibraryMultipleWindowsPossible: boolean = false;
 
 {$endif read_global_interface}
 
 {$ifdef read_implementation}
 
 { TCastleWindow ---------------------------------------------------------- }
+
+function TCastleWindow.CreateContainer: TCastleContainer;
+begin
+  Result := TWindowContainer.Create(Self);
+end;
 
 procedure TCastleWindow.CreateBackend;
 begin
@@ -119,6 +134,7 @@ end;
 
 procedure TCastleWindow.OpenBackend;
 begin
+  SetFocused(true);
   { We just assume that we already have OpenGL context initialized.
     Nothing to do. }
   Application.OpenWindowsAdd(Self);
@@ -200,6 +216,11 @@ end;
 procedure TCastleWindow.LibraryMouseWheel(const Scroll: Single; const Vertical: boolean);
 begin
   DoMouseWheel(Scroll, Vertical);
+end;
+
+class procedure TCastleWindow.LibrarySetMultipleWindowsPossible(const Value: boolean);
+begin
+  LibraryMultipleWindowsPossible := Value;
 end;
 
 { TCastleWindow menu ----------------------------------------------------
@@ -322,7 +343,7 @@ end;
 
 function TCastleApplication.MultipleWindowsPossible: Boolean;
 begin
-  Result := false;
+  Result := LibraryMultipleWindowsPossible;
 end;
 
 procedure TCastleApplication.WarningToCallback(const Category, S: String);
@@ -360,6 +381,16 @@ begin
     ApplicationProperties.OnWarning.Add(@Application.WarningToCallback);
   except
     on E: TObject do WritelnWarning('CGEApp_Initialize', ExceptMessage(E));
+  end;
+end;
+
+procedure CGEApp_SetFallbackConfigDirectory(FallbackConfigDirectory: PChar); cdecl;
+begin
+  try
+    InternalApplicationConfigFallback := FilenameToUriSafe(InclPathDelim(FallbackConfigDirectory));
+    WritelnLog('Library set fallback application config directory to URL: %s', [InternalApplicationConfigFallback]);
+  except
+    on E: TObject do WritelnWarning('CGEApp_SetFallbackConfigDirectory', ExceptMessage(E));
   end;
 end;
 
@@ -613,7 +644,7 @@ begin
   end;
 end;
 
-procedure CGEApp_ControllerAxisLeft(ControllerIndex: CInt; X, Y: Single); cdecl;
+procedure CGEApp_ControllerAxisLeft(ControllerIndex: CInt32; X, Y: CFloat); cdecl;
 var
   Backend: TExplicitControllerManagerBackend;
 begin
@@ -626,7 +657,7 @@ begin
   end;
 end;
 
-procedure CGEApp_ControllerAxisRight(ControllerIndex: CInt; X, Y: Single); cdecl;
+procedure CGEApp_ControllerAxisRight(ControllerIndex: CInt32; X, Y: CFloat); cdecl;
 var
   Backend: TExplicitControllerManagerBackend;
 begin
@@ -636,6 +667,45 @@ begin
     Backend.SetAxisRight(ControllerIndex, Vector2(X, Y));
   except
     on E: TObject do WritelnWarning('CGEApp_ControllerAxisRight', ExceptMessage(E));
+  end;
+end;
+
+procedure CGEApp_ControllerAxisLeftTrigger(ControllerIndex: CInt32; Axis: CFloat); cdecl;
+var
+  Backend: TExplicitControllerManagerBackend;
+begin
+  try
+    CheckMainWindow;
+    Backend := Controllers.InternalExplicitBackend as TExplicitControllerManagerBackend;
+    Backend.SetAxisLeftTrigger(ControllerIndex, Axis);
+  except
+    on E: TObject do WritelnWarning('CGEApp_ControllerAxisLeftTrigger', ExceptMessage(E));
+  end;
+end;
+
+procedure CGEApp_ControllerAxisRightTrigger(ControllerIndex: CInt32; Axis: CFloat); cdecl;
+var
+  Backend: TExplicitControllerManagerBackend;
+begin
+  try
+    CheckMainWindow;
+    Backend := Controllers.InternalExplicitBackend as TExplicitControllerManagerBackend;
+    Backend.SetAxisRightTrigger(ControllerIndex, Axis);
+  except
+    on E: TObject do WritelnWarning('CGEApp_ControllerAxisRightTrigger', ExceptMessage(E));
+  end;
+end;
+
+procedure CGEApp_ControllerButton(ControllerIndex: CInt32; Button: CInt32; Pressed: CBool); cdecl;
+var
+  Backend: TExplicitControllerManagerBackend;
+begin
+  try
+    CheckMainWindow;
+    Backend := Controllers.InternalExplicitBackend as TExplicitControllerManagerBackend;
+    Backend.SetButton(ControllerIndex, TGameControllerButton(Button), Pressed);
+  except
+    on E: TObject do WritelnWarning('CGEApp_ControllerButton', ExceptMessage(E));
   end;
 end;
 

@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -67,6 +67,8 @@ begin
   { This virtual method is executed every frame (many times per second). }
   Assert(LabelFps <> nil, 'If you remove LabelFps from the design, remember to remove also the assignment "LabelFps.Caption := ..." from code');
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
+
+  LabelMouseLook.Caption := 'Mouse look: ' + BoolToStr(WalkNavigation.MouseLook, true);
 end;
 
 function TViewMain.Press(const Event: TInputPressRelease): Boolean;
@@ -120,7 +122,6 @@ begin
   if Event.IsMouseButton(buttonRight) or Event.IsKey(keyM) then
   begin
     WalkNavigation.MouseLook := not WalkNavigation.MouseLook;
-    LabelMouseLook.Caption := 'Mouse look: ' + BoolToStr(WalkNavigation.MouseLook, true);
     Exit(true);
   end;
 

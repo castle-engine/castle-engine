@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -39,7 +39,7 @@ type
 
   CompilerOptions.OS andCompilerOptions.CPU are ignored by this routine.
   This routine may modify CompilerOptions contents. }
-procedure CompileIOS(const Compiler: TCompiler;
+procedure CompileIOS(Compiler: TCompiler;
   const WorkingDirectory, CompileFile: string;
   const CompilerOptions: TCompilerOptions);
 
@@ -66,13 +66,14 @@ implementation
 
 uses SysUtils, DOM,
   CastleImages, CastleUriUtils, CastleLog, CastleFilesUtils, CastleXmlUtils,
+  CastleInternalProcess,
   ToolEmbeddedImages, ToolIosPbxGeneration, ToolServices, ToolCommonUtils,
   ToolServicesOperations, ToolProcessRun;
 
 const
   IOSPartialLibraryName = 'lib_cge_project.a';
 
-procedure CompileIOS(const Compiler: TCompiler;
+procedure CompileIOS(Compiler: TCompiler;
   const WorkingDirectory, CompileFile: string;
   const CompilerOptions: TCompilerOptions);
 
@@ -111,28 +112,43 @@ procedure CompileIOS(const Compiler: TCompiler;
 
     DeleteFile(LinkRes); // delete it, to allow later FindLinkRes to work
 
-    RunCommandSimple('libtool', ['-static', '-o', OutputLibrary, '-filelist',
+    ExecuteCommandSimple('libtool', ['-static', '-o', OutputLibrary, '-filelist',
       CompilationOutput + 'lib_cge_project_object_files.txt']);
     if not RegularFileExists(OutputLibrary) then
       raise Exception.CreateFmt('Creating library "%s" failed', [OutputLibrary]);
   end;
 
 begin
-  { To compile CastleInternalVorbisFile properly.
-    Later PackageIOS will actually add the static tremolo files to the project. }
-  CompilerOptions.ExtraOptions.Add('-dCASTLE_TREMOLO_STATIC');
+  FinishDetectingCompiler(Compiler);
+  case Compiler of
+    coDelphi:
+      begin
+        { With Delphi, we just compile the CompileFile (which is a normal
+          program DPR) for iOS/aarch64. }
+        CompilerOptions.OS := iOS;
+        CompilerOptions.CPU := aarch64;
+        Compile(Compiler, WorkingDirectory, CompileFile, CompilerOptions);
+      end;
+    coFpc:
+      begin
+        { To compile CastleInternalVorbisFile properly.
+          Later PackageIOS will actually add the static tremolo files to the project. }
+        CompilerOptions.ExtraOptions.Add('-dCASTLE_TREMOLO_STATIC');
 
-  if IosSimulatorSupport then
-  begin
-    { iPhoneSimulator for i386 is not useful, since
-      - macOS on i386 is no longer supported
-      - fpcupdeluxe seems to not even allow making FPC cross-compiler for iPhoneSimulator on i386 }
-    //CompileLibrary(iphonesim, i386);
-    CompileLibrary(iphonesim, x86_64);
+        if IosSimulatorSupport then
+        begin
+          { iPhoneSimulator for i386 is not useful, since
+            - macOS on i386 is no longer supported
+            - fpcupdeluxe seems to not even allow making FPC cross-compiler for iPhoneSimulator on i386 }
+          //CompileLibrary(iphonesim, i386);
+          CompileLibrary(iphonesim, x86_64);
+        end;
+        if IosArm32Support then
+          CompileLibrary(iOS, arm);
+        CompileLibrary(iOS, aarch64);
+      end;
+    else raise EInternalError.Create('CompileIOS: Compiler unexpected');
   end;
-  if IosArm32Support then
-     CompileLibrary(iOS, arm);
-  CompileLibrary(iOS, aarch64);
 end;
 
 procedure LinkIOSLibrary(const Compiler: TCompiler; const CompilationWorkingDirectory, OutputFile: string);
@@ -162,7 +178,7 @@ begin
     if IosArm32Support then
        Options.Add(CompilationOutputPath(Compiler, iOS   , arm    , CompilationWorkingDirectory) + IOSPartialLibraryName);
     Options.Add(CompilationOutputPath(Compiler, iOS   , aarch64, CompilationWorkingDirectory) + IOSPartialLibraryName);
-    RunCommandSimple('libtool', Options.ToArray)
+    ExecuteCommandSimple('libtool', Options.ToArray)
   finally FreeAndNil(Options) end;
 end;
 
@@ -171,6 +187,7 @@ procedure PackageIOS(const Project: TCastleProject;
 var
   XcodeProject: string;
   UsesCocoaPods: boolean;
+  ServiceManifests: TServiceManifestList;
 
   { Generate files for iOS project from templates. }
   procedure GenerateFromTemplates;
@@ -238,17 +255,26 @@ var
     end;
 
   begin
-    Icon := Project.Icons.FindReadable;
-    if Icon = nil then
+    // get icon from <ios override_icon=...> if specified
+    if Project.IOSOverrideIconFullUrl <> '' then
     begin
-      WritelnWarning('Icon', 'No icon in a format readable by our engine (for example, png or jpg) is specified in CastleEngineManifest.xml. Using default icon.');
-      { Use DefaultIconSquare, not DefaultIcon for iOS, since we cannot have
-        transparency on iOS icon (it's replaced by an ugly blackness).
-        See
-        https://stackoverflow.com/questions/959864/is-is-possible-to-use-transparency-in-an-iphone-app-icon
-        https://stackoverflow.com/questions/22858501/ios-app-icon-with-transparent-background-showing-black-background-on-device }
-      Icon := DefaultIconSquare;
+      Icon := LoadImage(Project.IOSOverrideIconFullUrl)
+    end else
+    // otherwise get icon from <icons>, fallback on CGE default
+    begin
+      Icon := Project.Icons.FindReadable;
+      if Icon = nil then
+      begin
+        WritelnWarning('Icon', 'No icon in a format readable by our engine (for example, png or jpg) is specified in CastleEngineManifest.xml. Using default icon.');
+        { Use DefaultIconSquare, not DefaultIcon for iOS, since we cannot have
+          transparency on iOS icon (it's replaced by an ugly blackness).
+          See
+          https://stackoverflow.com/questions/959864/is-is-possible-to-use-transparency-in-an-iphone-app-icon
+          https://stackoverflow.com/questions/22858501/ios-app-icon-with-transparent-background-showing-black-background-on-device }
+        Icon := DefaultIconSquare;
+      end;
     end;
+
     try
       SaveResized(57);
       SaveResized(72);
@@ -437,9 +463,9 @@ var
       { If current binary architecture is x86_64, use CocoaPods native binaries
         also with x86_64 architecture. }
       if DefaultCPU = x86_64 then
-        RunCommandSimple(XcodeProject, 'arch', ['-x86_64', 'pod', 'install'])
+        ExecuteCommandSimple(XcodeProject, 'arch', ['-x86_64', 'pod', 'install'])
       else
-        RunCommandSimple(XcodeProject, 'pod', ['install']);
+        ExecuteCommandSimple(XcodeProject, 'pod', ['install']);
     end;
   end;
 
@@ -462,8 +488,10 @@ begin
 
     GenerateFromTemplates;
     GenerateServicesFromTemplates;
-    PackageServices(Project, Project.IOSServices,
-      'castle-data:/ios/services/', XcodeProject);
+    ServiceManifests := LoadServices(Project.IOSServices, 'castle-data:/ios/services/');
+    try
+      PackageServices(Project, ServiceManifests, XcodeProject);
+    finally FreeAndNil(ServiceManifests) end;
     GenerateLaunchImageStoryboard;
     FixPbxProjectFile; // must be done *after* all files that have to be in PBX are in place, so after PackageServices and GenerateLaunchImageStoryboard
     GenerateIcons;
@@ -526,7 +554,7 @@ begin
   if XcodeSelectExe = '' then
     raise Exception.Create('Cannot find "xcode-select". Make sure that Xcode with command-line utilities is installed.');
 
-  MyRunCommandIndir(XcodeProject, XcodeSelectExe, ['--print-path'], OutputString, ExitStatus);
+  ExecuteCommandCapture(XcodeProject, XcodeSelectExe, ['--print-path'], OutputString, ExitStatus);
 
   if ExitStatus <> 0 then
     raise Exception.CreateFmt('Running "xcode-select" failed, exit status %d, output "%s".', [
@@ -559,7 +587,7 @@ begin
     RemoveNonEmptyDir(ExportPath);
   CheckForceDirectories(ExportPath);
 
-  RunCommandSimple(XcodeProject, XcodeBuildExe, [
+  ExecuteCommandSimple(XcodeProject, XcodeBuildExe, [
     '-allowProvisioningUpdates',
     '-workspace', Project.Name + '.xcworkspace',
     '-scheme', Project.Caption,
@@ -568,7 +596,7 @@ begin
     '-archivePath', ArchivePath,
     'archive'
   ]);
-  RunCommandSimple(XcodeProject, XcodeBuildExe, [
+  ExecuteCommandSimple(XcodeProject, XcodeBuildExe, [
     '-allowProvisioningUpdates',
     '-archivePath', ArchivePath,
     '-exportOptionsPlist', XcodeProject + 'export_options.plist',
@@ -601,7 +629,7 @@ const
     '%s* serviceInstance;' + NL +
     'serviceInstance = [[%0:s alloc] init];' + NL +
     'serviceInstance.mainController = viewController;' + NL +
-    'serviceInstance.window = self.window;' + NL +
+    'serviceInstance.window = sceneWindow;' + NL +
     '[services addObject: serviceInstance];' + NL +
     '}';
 

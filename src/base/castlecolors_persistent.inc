@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -274,9 +274,9 @@ end;
 
 function TCastleColorRGBPersistent.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'Red') or
-     (PropertyName = 'Green') or
-     (PropertyName = 'Blue') then
+  if ArrayContainsString(PropertyName, [
+       'Red', 'Green', 'Blue'
+       ]) then
     Result := [psBasic, psLayout]
   else
     Result := inherited PropertySections(PropertyName);
@@ -433,10 +433,9 @@ end;
 
 function TCastleColorPersistent.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'Red') or
-     (PropertyName = 'Green') or
-     (PropertyName = 'Blue') or
-     (PropertyName = 'Alpha') then
+  if ArrayContainsString(PropertyName, [
+       'Red', 'Green', 'Blue', 'Alpha'
+       ]) then
     Result := [psBasic, psLayout]
   else
     Result := inherited PropertySections(PropertyName);

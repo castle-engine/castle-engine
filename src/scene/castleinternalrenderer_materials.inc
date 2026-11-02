@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -110,15 +110,7 @@ var
   MaterialLit, MaterialAndShapeLit: Boolean;
 begin
   // calculate Material
-  if Shape.Geometry is TAbstractGeometryNode_1 then
-  begin
-    { VRML 1.0 }
-    Material := Shape.State.VRML1State.Material.MaterialInfo(0);
-  end else
-  begin
-    { VRML >= 2.0, X3D }
-    Material := Shape.State.MaterialInfo;
-  end;
+  Material := Shape.State.MaterialInfo;
 
   // calculate MaterialLit ("whether Material requires lighting calculation")
   MaterialLit :=

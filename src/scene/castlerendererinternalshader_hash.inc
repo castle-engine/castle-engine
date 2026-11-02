@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -26,12 +26,31 @@
   strict private
     Sum, XorValue: UInt32;
   public
-    procedure AddString(const S: AnsiString; const Multiplier: UInt32);
+    { Adds the string contents (as raw bytes, whatever the String encoding is)
+      to the hash.
+      Commented out, as unused now. }
+    //procedure AddString(const S: String; const Multiplier: UInt32);
     procedure AddInteger(const I: Integer);
     procedure AddFloat(const F: Single; const UniquePrimeNumber: Cardinal);
-    procedure AddPointer(Ptr: Pointer);
-    procedure AddEffects(Nodes: TX3DNodeList); overload;
-    procedure AddEffects(Nodes: TMFNode); overload;
+
+    { Add pointer (reference) to the hash.
+
+      Multiplier allows to distinguish the same pointer used in different roles.
+      E.g. pass "light number + 1" when adding something specific to
+      a given light source. Must be non-zero. }
+    procedure AddPointer(Ptr: Pointer; const Multiplier: UInt32 = 1);
+
+    { Add enabled Effect nodes to the hash.
+
+      Multiplier allows to distinguish the same effects used at different
+      "slots", when the generated shader code depends on the slot.
+      E.g. effects on a light source should pass "light number + 1",
+      effects on a texture should pass "texture unit + 1".
+      This way the same Effect node used on a different light number
+      (or texture unit) results in a different hash.
+      Must be non-zero. }
+    procedure AddEffects(Nodes: TX3DNodeList; const Multiplier: UInt32 = 1); overload;
+    procedure AddEffects(Nodes: TMFNode; const Multiplier: UInt32 = 1); overload;
 
     function ToString: String;
     procedure Clear;
@@ -47,37 +66,47 @@
 
 {$include norqcheckbegin.inc}
 
-procedure TShaderCodeHash.AddString(const S: AnsiString; const Multiplier: UInt32);
+(*
+procedure TShaderCodeHash.AddString(const S: String; const Multiplier: UInt32);
 var
   PS: PUInt32;
   Last: UInt32;
-  I: Integer;
+  I, ByteCount: Integer;
 begin
-  PS := PUInt32(S);
+  { Note: Count bytes, not characters. They differ when String is 16-bit
+    (UnicodeString, with Delphi or FPC Unicode RTL).
+    We just hash the raw bytes of the string, whatever its encoding is. }
+  ByteCount := Length(S) * SizeOf(Char);
 
-  for I := 1 to Length(S) div 4 do
+  PS := PUInt32(Pointer(S));
+  for I := 1 to ByteCount div 4 do
   begin
     Sum := Sum + PS^ * Multiplier;
     XorValue := XorValue xor PS^;
     Inc(PS);
   end;
 
-  if Length(S) mod 4 <> 0 then
+  if ByteCount mod 4 <> 0 then
   begin
     Last := 0;
-    Move(S[(Length(S) div 4) * 4 + 1], Last, Length(S) mod 4);
+    Move(PS^, Last, ByteCount mod 4);
     Sum := Sum + Last * Multiplier;
     XorValue := XorValue xor Last;
   end;
 end;
+*)
 
-procedure TShaderCodeHash.AddPointer(Ptr: Pointer);
+procedure TShaderCodeHash.AddPointer(Ptr: Pointer; const Multiplier: UInt32);
+var
+  Value: UInt32;
 begin
+  Assert(Multiplier <> 0);
   { This will cut the pointer on non-32bit processors.
     But that's not a problem --- we just want it for hash,
     taking the least significant 32 bits from pointer is OK for this. }
-  Sum := Sum + UInt32(PtrUInt(Ptr));
-  XorValue := XorValue xor UInt32(PtrUInt(Ptr));
+  Value := UInt32(PtrUInt(Ptr)) * Multiplier;
+  Sum := Sum + Value;
+  XorValue := XorValue xor Value;
 end;
 
 procedure TShaderCodeHash.AddInteger(const I: Integer);
@@ -92,7 +121,7 @@ end;
 
 {$include norqcheckend.inc}
 
-procedure TShaderCodeHash.AddEffects(Nodes: TX3DNodeList);
+procedure TShaderCodeHash.AddEffects(Nodes: TX3DNodeList; const Multiplier: UInt32);
 var
   I: Integer;
 begin
@@ -105,17 +134,17 @@ begin
   for I := 0 to Nodes.Count - 1 do
     if (Nodes[I] is TEffectNode) and
        TEffectNode(Nodes[I]).FdEnabled.Value then
-      AddPointer(Nodes[I]);
+      AddPointer(Nodes[I], Multiplier);
 end;
 
-procedure TShaderCodeHash.AddEffects(Nodes: TMFNode);
+procedure TShaderCodeHash.AddEffects(Nodes: TMFNode; const Multiplier: UInt32);
 var
   I: Integer;
 begin
   for I := 0 to Nodes.Count - 1 do
     if (Nodes[I] is TEffectNode) and
        TEffectNode(Nodes[I]).FdEnabled.Value then
-      AddPointer(Nodes[I]);
+      AddPointer(Nodes[I], Multiplier);
 end;
 
 function TShaderCodeHash.ToString: String;

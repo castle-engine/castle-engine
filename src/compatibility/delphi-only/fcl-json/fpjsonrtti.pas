@@ -1,9 +1,6 @@
 unit fpjsonrtti;
 
-{$I castleconf.inc} // avoid useless Delphi warnings
-{$warn USE_BEFORE_DEF off}
-
-/// {$mode objfpc}
+{$I fcl-json.inc}
 
 interface
 
@@ -125,7 +122,10 @@ Type
   private
     FAfterReadObject: TJSONStreamEvent;
     FBeforeReadObject: TJSONStreamEvent;
-    FDateTimeFormat: String;
+    // Castle Game Engine note: unused now, as the DateTimeFormat property and
+    // the ScanDateTime path in ExtractDateTime are commented out (Delphi lacks
+    // ScanDateTime). Restore together with them.
+    // FDateTimeFormat: String;
     FOnGetObject: TJSONGetObjectEvent;
     FOnPropError: TJSONpropertyErrorEvent;
     FOnRestoreProp: TJSONRestorePropertyEvent;
@@ -174,7 +174,11 @@ Type
     Property CaseInsensitive : Boolean Read GetCaseInsensitive Write SetCaseInsensitive ; /// deprecated;
     // DateTime format. If not set, RFC3339DateTimeFormat is assumed.
     // If set, it will be used as an argument to ScanDateTime. If that fails, StrToDateTime is used.
-    Property DateTimeFormat : String Read FDateTimeFormat Write FDateTimeFormat;
+    // Castle Game Engine note:
+    // This property is not implemented in FpJsonRtti for Delphi port now,
+    // so it's commented out.
+    // Property DateTimeFormat : String Read FDateTimeFormat Write FDateTimeFormat;
+
     // Options overning the behaviour
     Property Options : TJSONDestreamOptions Read FOptions Write FOptions;
   end;
@@ -360,19 +364,18 @@ begin
 end;
 
 function TJSONDeStreamer.ExtractDateTime(S: String): TDateTime;
-
-Var
-  Fmt : String;
-  E,fmtSpecified : Boolean;
-
+//   Var
+//     Fmt : String;
+//     E, fmtSpecified : Boolean;
 begin
+  // TODO: We need ScanDateTime in Delphi to make it complete
+{
   E:=False;
   FMT:=DateTimeFormat;
   fmtSpecified:=Fmt<>'';
   if Not fmtSpecified then
     FMT:=RFC3339DateTimeFormat;
-  // TODO: ScanDatetime in delphi
-{  Try
+  Try
     // No TryScanDateTime
     Result:=ScanDatetime(FMT,S);
   except
@@ -381,7 +384,8 @@ begin
     else
       E:=True;
   end;
-  if E then}
+  if E then
+}
     if not TryStrToDateTime(S,Result) then
       if not TryStrToDate(S,Result) then
         if not TryStrToTime(S,Result) then
@@ -431,7 +435,7 @@ Var
   TI : PTypeInfo;
 begin
   PI:=PropInfo;
-  TI:=PropInfo^.PropType^;
+  TI:=PropInfo^.PropType{$ifndef FPC}^{$endif};
   case TI^.Kind of
     tkUnknown :
       Error(SErrUnknownPropertyKind,[PI^.Name]);
@@ -439,18 +443,23 @@ begin
     tkEnumeration,
     tkSet,
     tkChar,
+    { CGE: tkBool exists only in FPC. With Delphi, a Boolean property
+      has kind tkEnumeration. }
+    {$ifdef FPC}tkBool,{$endif}
     tkWChar:
       SetOrdProp(AObject,PI,0);
-    ///tkBool,
     ///tkQWord,
     ///tkUChar,
     tkInt64 :
       SetInt64Prop(AObject,PI,0);
     tkFloat :
       SetFloatProp(AObject,PI,0.0);
+    { CGE: tkAString (AnsiString) exists only in FPC.
+      With Delphi, an AnsiString property has kind tkLString. }
     tkString,
+    {$ifdef FPC}tkAString,{$endif}
     tkLString:
-      SetAnsiStrProp(AObject,PI,'');
+      {$ifdef FPC}SetStrProp{$else}SetAnsiStrProp{$endif}(AObject,PI,'');
     tkWString :
       SetWideStrProp(AObject,PI,'');
     tkVariant:
@@ -483,7 +492,7 @@ Var
   JS : TJSONStringType;
 begin
   PI:=PropInfo;
-  TI:=PropInfo^.PropType^;
+  TI:=PropInfo^.PropType{$ifndef FPC}^{$endif};
   case TI^.Kind of
     tkUnknown :
       Error(SErrUnknownPropertyKind,[PI^.Name]);
@@ -516,7 +525,7 @@ begin
       else if (PropData.JSONType=jtArray) then
         begin
         A:=PropData as TJSONArray;
-        TI:=GetTypeData(TI)^.CompType^;
+        TI:=GetTypeData(TI)^.CompType{$ifndef FPC}^{$endif};
         S:=0;
         For I:=0 to A.Count-1 do
           begin
@@ -534,7 +543,10 @@ begin
       If (JS<>'') then
         SetOrdProp(AObject,PI,Ord(JS[1]));
       end;
+    { CGE: tkAString (AnsiString) exists only in FPC.
+      With Delphi, an AnsiString property has kind tkLString. }
     tkString,
+    {$ifdef FPC}tkAString,{$endif}
     tkLString:
       SetStrProp(AObject,PI,PropData.AsString);
     tkWString :
@@ -549,8 +561,11 @@ begin
       If (JS<>'') then
         SetOrdProp(AObject,PI,Ord(JS[1]));
       end;
-///    tkBool :
-///      SetOrdProp(AObject,PI,Ord(PropData.AsBoolean));
+    { CGE: tkBool exists only in FPC, see comments above. }
+    {$ifdef FPC}
+    tkBool :
+      SetOrdProp(AObject,PI,Ord(PropData.AsBoolean));
+    {$endif}
 ///    tkQWord :
 ///      SetOrdProp(AObject,PI,Trunc(PropData.AsFloat));
 ///    tkObject,
@@ -690,7 +705,7 @@ begin
     FOnGetObject(Self,AInstance,PropInfo,D,APropName,Result);
   If (Result=Nil) and (AInstance is TComponent) and Assigned(PropInfo) then
      begin
-     C:=GetTypeData(Propinfo^.PropType^)^.ClassType;
+     C:=GetTypeData(Propinfo^.PropType{$ifndef FPC}^{$endif})^.ClassType;
      If C.InheritsFrom(TComponent) then
        Result:=TComponentClass(C).Create(TComponent(AInstance));
      end;
@@ -760,7 +775,7 @@ begin
   Result:=TJSONArray.Create;
   try
     FChildren:=Result;
-    THackComponent(AComponent).GetChildren(StreamChild, AComponent);
+    THackComponent(AComponent).GetChildren({$ifdef FPC}@{$endif}StreamChild, AComponent);
   except
     FreeAndNil(Result);
     Raise;
@@ -1131,7 +1146,7 @@ Var
 begin
   Result:=Nil;
   PI:=PropertyInfo;
-  PT:=PI^.PropType^;
+  PT:=PI^.PropType{$ifndef FPC}^{$endif};
   Case PT^.Kind of
     tkUnknown :
       Error(SErrUnknownPropertyKind,[PI^.Name]);
@@ -1152,7 +1167,7 @@ begin
         Result:=TJSONString.Create(GetSetProp(AObject,PI,jsoSetBrackets in Options))
       else
         begin
-        PT:=GetTypeData(PT)^.CompType^;
+        PT:=GetTypeData(PT)^.CompType{$ifndef FPC}^{$endif};
         S:=GetOrdProp(AObject,PI);
         Result:=TJSONArray.Create;
         try
@@ -1169,9 +1184,11 @@ begin
         end;
     tkChar:
       Result:=TJSONString.Create(Char(GetOrdProp(AObject,PI)));
+    { CGE: tkAString (AnsiString) exists only in FPC.
+      With Delphi, an AnsiString property has kind tkLString. }
     tkString,
+    {$ifdef FPC}tkAString,{$endif}
     tkLString:
-///    tkAString:
       Result:=TJSONString.Create(GetStrProp(AObject,PI));
     tkWString :
       Result:=TJSONString.Create(GetWideStrProp(AObject,PI));
@@ -1181,8 +1198,11 @@ begin
       Result:=StreamClassProperty(GetObjectProp(AObject,PI));
     tkWChar :
       Result:=TJSONString.Create(WideChar(GetOrdProp(AObject,PI)));
-///    tkBool :
-///      Result:=TJSONBoolean.Create(GetOrdProp(AObject,PropertyInfo)<>0);
+    { CGE: tkBool exists only in FPC, see comments above. }
+    {$ifdef FPC}
+    tkBool :
+      Result:=TJSONBoolean.Create(GetOrdProp(AObject,PropertyInfo)<>0);
+    {$endif}
     tkInt64 :
       { Note: using GetOrdProp will result in non-sense values on Delphi.
         And serializing e.g. "TComponent.Tag" on 64-bit systems relies on this. }

@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -577,7 +577,8 @@ begin
 end;
 
 function LoadX3DClassicInternal(const Stream: TStream;
-  const BaseUrl: String): TX3DRootNode;
+  const BaseUrl: String;
+  const LoadOptions: TCastleSceneLoadOptions): TX3DRootNode;
 var
   PeekStream: TPeekCharStream;
   Lexer: TX3DLexer;
@@ -602,7 +603,7 @@ function LoadX3DClassic(const Url: String;
   function DoIt(BaseStream: TStream; const BaseUrl: String): TX3DRootNode;
   begin
     try
-      Result := LoadX3DClassicInternal(BaseStream, BaseUrl);
+      Result := LoadX3DClassicInternal(BaseStream, BaseUrl, nil);
     finally FreeAndNil(BaseStream) end;
   end;
 
@@ -632,9 +633,9 @@ function LoadX3DClassicFromString(const VRMLContents: String;
 var
   Stream: TStringStream;
 begin
-  Stream := TStringStream.Create(VRMLContents);
+  Stream := TStringStream.Create(VRMLContents, TEncoding.UTF8);
   try
-    Result := LoadX3DClassicInternal(Stream, BaseUrl);
+    Result := LoadX3DClassicInternal(Stream, BaseUrl, nil);
   finally FreeAndNil(Stream) end;
 end;
 

@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -173,14 +173,10 @@ end;
 
 function TCastleText.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'Caption') or
-     (PropertyName = 'Text') or
-     (PropertyName = 'DoubleSided') or
-     (PropertyName = 'Size') or
-     (PropertyName = 'Spacing') or
-     (PropertyName = 'Alignment') or
-     (PropertyName = 'VerticalAlignment') or
-     (PropertyName = 'CustomFont') then
+  if ArrayContainsString(PropertyName, [
+       'Caption', 'Text', 'DoubleSided', 'Size', 'Spacing',
+       'Alignment', 'VerticalAlignment', 'CustomFont'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);

@@ -7,7 +7,7 @@
 '  (And it is heavily based on glTF-Sample-Viewer,' + LineEnding +
 '  on a compatible open-source license.)' + LineEnding +
 '' + LineEnding +
-'  "Castle Game Engine" is free software; see the file COPYING.txt,' + LineEnding +
+'  "Castle Game Engine" is free software; see the file COPYING.md,' + LineEnding +
 '  included in this distribution, for details about the copyright.' + LineEnding +
 '' + LineEnding +
 '  "Castle Game Engine" is distributed in the hope that it will be useful,' + LineEnding +

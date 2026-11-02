@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -30,7 +30,7 @@ var
   ParamUnitName, ParamFunctionName: string;
   OnlySampleText: boolean = false;
   DebugFontImage: boolean = false;
-  Characters: TUnicodeCharList;
+  Characters: TUnicodeCharSet;
 
 const
   Options: array [0..12] of TOption =
@@ -118,7 +118,7 @@ begin
   ApplicationProperties.Version := '1.0';
   ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
 
-  Characters := TUnicodeCharList.Create;
+  Characters := TUnicodeCharSet.Create;
   try
     Parameters.Parse(Options, @OptionProc, nil);
     Parameters.CheckHigh(1);

@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -169,7 +169,9 @@
       This is for fields in TAbstractTextureNode. }
     chTextureRendererProperties,
 
-    { Texture properties inside TextureProperties node changed. }
+    { Texture properties inside TextureProperties node changed.
+      This should cause chTextureRendererProperties on texture nodes
+      that use this TextureProperties node. }
     chTexturePropertiesNode,
 
     { What is considered a shadow caster changed. }
@@ -238,7 +240,11 @@
     chGroupChildrenAdd,
 
     { Shape.bboxCenter/Size changed, so TShape.LocalBoundingBox changed. }
-    chBBox
+    chBBox,
+
+    { Result of traversing @italic(only visible) shapes tree changed, because
+      @link(TBoundedNodeFunctionality.Visible) changed. }
+    chShapeTreeVisible
   );
   TX3DChanges = set of TX3DChange;
 

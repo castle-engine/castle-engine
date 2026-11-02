@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -35,6 +35,8 @@ type
   {$I castleuicontrols_initial_types.inc}
   {$I castleuicontrols_touchlist.inc}
   {$I castleuicontrols_inputinspector.inc}
+  {$I castleuicontrols_pointer_lock_abstract.inc}
+  {$I castleuicontrols_pointer_lock_desktop.inc}
   {$I castleuicontrols_container.inc}
   {$I castleuicontrols_userinterface.inc}
   {$I castleuicontrols_userinterfacelist.inc}
@@ -60,6 +62,8 @@ uses DOM, TypInfo, Math,
 {$I castleuicontrols_initial_types.inc}
 {$I castleuicontrols_touchlist.inc}
 {$I castleuicontrols_inputinspector.inc}
+{$I castleuicontrols_pointer_lock_abstract.inc}
+{$I castleuicontrols_pointer_lock_desktop.inc}
 {$I castleuicontrols_container.inc}
 {$I castleuicontrols_userinterface.inc}
 {$I castleuicontrols_userinterfacelist.inc}

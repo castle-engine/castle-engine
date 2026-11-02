@@ -1,9 +1,9 @@
 {
-  Copyright 2013-2024 Michalis Kamburelis.
+  Copyright 2013-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -20,7 +20,11 @@ unit CastleAndroidInternalAssetStream;
 
 interface
 
-uses SysUtils, Classes, CastleAndroidInternalAssetManager;
+uses SysUtils, Classes,
+  {$ifdef FPC} CastleAndroidInternalAssetManager
+  {$else} Androidapi.AssetManager
+  {$endif},
+  CastleUriUtils, CastleFindFiles;
 
 type
   EAssetReadError = class(EReadError);
@@ -32,7 +36,13 @@ type
     FPosition: Int64;
   protected
     function GetSize: Int64; override;
+
+    {$ifdef FPC}
+    { Current position in Stream.
+      Note: Delphi doesn't need this, to get position it always does
+      "Result := Seek(0, soCurrent)" which our Seek also handles OK. }
     function GetPosition: Int64; override;
+    {$endif}
 
     { This stream doesn't support setting size.
       (All other versions of SetSize also call this.)
@@ -42,7 +52,7 @@ type
     { Open a stream for an asset on given path.
       The path should be a valid Android asset path,
       like @code(images/my_texture.png). }
-    constructor Create(Path: string);
+    constructor Create(Path: AnsiString);
     destructor Destroy; override;
 
     { This stream doesn't support seeking.
@@ -64,14 +74,59 @@ function URIToAssetPath(const URI: string): string;
 
 function AssetPathToURI(const AssetPath: string): string;
 
+{ Check for existence of an Android asset at the given path. }
+function AndroidAssetExists(const AssetPath: string): TUriExists;
+
+{ List files in Android AssetPath matching the given Mask.
+
+  Known limitation: This reports only files, not subdirectories,
+  as Android asset API doesn't allow to enumerate subdirectories.
+  For example, if you have in assets
+
+    level1/level.gltf
+    level1/textures/my_texture.png
+
+  and you do FindFilesInAndroidAssets('level1', '*', ...),
+  it will report 'level.gltf', but it will not report subdirectory 'textures'.
+  Consequently, recursive searching by @link(CastleFindFiles.FindFiles) will
+  not visit the 'textures' subdirectory and it will not list 'my_texture.png'
+  inside.
+
+  There seems no reasonable solution to this, as long as we use Android asset API.
+
+  To enable listing subdirectories, you must generate "CastleDataInformation.xml"
+  and include it in your data. Our engine will automatically use it then
+  for UriExists and FindFiles, and listing subdirectories will work.
+
+  The "CastleDataInformation.xml" is automatically generated and packed
+  when using our build tool to package your application for Android with FPC.
+  It is not yet generated and used for Android with Delphi -- you need to
+  generate it manually, following code from
+  "procedure GenerateDataInformation(const CurrentDataPath: String);"
+  in tools/build-tool/code/toolpackage.pas .
+  TODO: We plan to make it easier, by generating "CastleDataInformation.xml"
+  automatically when building from Delphi IDE. }
+procedure FindFilesInAndroidAssets(const AssetPath, Mask: String;
+  const FileEvent: TFoundFileMethod; var StopSearch: Boolean);
+
 implementation
 
-uses CastleAndroidInternalLog, CastleAndroidNativeAppGlue,
+uses CastleAndroidInternalLog,
+  { Needed for IsWild with FPC } StrUtils,
+  {$ifdef FPC} CastleAndroidNativeAppGlue, {$else} Androidapi.AppGlue, {$endif}
   CastleClassUtils, CastleLog, CastleStringUtils, URIParser;
 
-constructor TReadAssetStream.Create(Path: string);
-var
-  AssetManager: PAAssetManager;
+function GetMainAssetManager: PAAssetManager;
+begin
+  Result :=
+    {$ifdef FPC} AndroidMainApp^.Activity^.AssetManager
+    {$else} TAndroidApplicationGlue.Current.NativeActivity^.AssetManager
+    {$endif};
+end;
+
+{ TReadAssetStream ----------------------------------------------------------- }
+
+constructor TReadAssetStream.Create(Path: AnsiString);
 begin
   inherited Create;
   if ExtractFileExt(Path) = '.gz' then
@@ -80,8 +135,7 @@ begin
     //   [Path]);
     Path := ChangeFileExt(Path, '');
   end;
-  AssetManager := AndroidMainApp^.Activity^.AssetManager;
-  Asset := AAssetManager_open(AssetManager, PChar(Path), AASSET_MODE_STREAMING);
+  Asset := AAssetManager_open(GetMainAssetManager, PAnsiChar(Path), AASSET_MODE_STREAMING);
   if Asset = nil then
     raise EAssetNotFound.CreateFmt('Android asset "%s" not found', [Path]);
 end;
@@ -98,7 +152,7 @@ begin
   Result := AAsset_read(Asset, @Buffer, Count);
   if Result < 0 then
     raise EAssetReadError.Create('Error when reading asset data stream');
-  FPosition += Result;
+  FPosition := FPosition + Result;
 end;
 
 function TReadAssetStream.GetSize: Int64;
@@ -110,10 +164,12 @@ begin
   Result := Result and Int64(High(UInt32));
 end;
 
+{$ifdef FPC}
 function TReadAssetStream.GetPosition: Int64;
 begin
   Result := FPosition;
 end;
+{$endif}
 
 procedure TReadAssetStream.SetSize(NewSize: Longint);
 begin
@@ -126,7 +182,7 @@ begin
   if ( (Origin = soBeginning) and (Offset = FPosition) ) or
      ( (Origin = soCurrent  ) and (Offset = 0) ) then
     { nothing needs to be done, ok }
-    Exit;
+    Exit(FPosition);
 
   raise EStreamNotImplementedSeek.Create('TReadAssetStream.Seek not supported');
   Result := 0; // just to get rid of warning
@@ -168,10 +224,115 @@ function AssetPathToURI(const AssetPath: string): string;
 var
   U: TURI;
 begin
-  FillByte(U, SizeOf(U), 0);
+  FillChar(U, SizeOf(U), 0);
   U.Protocol := 'castle-android-assets';
   U.Path := '/' + AssetPath; // AssetPath does not start with slash
   Result := EncodeURI(U);
+end;
+
+function AndroidAssetExists(const AssetPath: string): TUriExists;
+var
+  AssetManager: PAAssetManager;
+  Asset: PAAsset;
+  ADir: PAAssetDir;
+  PathAnsi: AnsiString;
+begin
+  { Asset paths use slash as separator, and the directory name passed
+    to AAssetManager_openDir should not end with slash.
+    See FindFilesInAndroidAssets for why we use UriExcludeSlash. }
+  PathAnsi := UriExcludeSlash(AssetPath);
+
+  { Strip .gz, consistent with TReadAssetStream.Create. }
+  if ExtractFileExt(PathAnsi) = '.gz' then
+    PathAnsi := ChangeFileExt(PathAnsi, '');
+
+  AssetManager := GetMainAssetManager;
+
+  { Opening asset in AASSET_MODE_UNKNOWN is cheap, it doesn't read the contents. }
+  Asset := AAssetManager_open(AssetManager, PAnsiChar(PathAnsi), AASSET_MODE_UNKNOWN);
+  if Asset <> nil then
+  begin
+    AAsset_close(Asset);
+    Exit(ueFile);
+  end;
+
+  { Check is it maybe directory.
+    Note that AAssetManager_openDir may return non-nil (empty directory)
+    even for non-existing directory, so we need to check is it non-empty.
+
+    Known limitation: Directory that contains only subdirectories
+    (no files) is reported as ueNotExists, since
+    AAssetDir_getNextFileName doesn't report subdirectories. }
+  ADir := AAssetManager_openDir(AssetManager, PAnsiChar(PathAnsi));
+  if ADir <> nil then
+  begin
+    try
+      if AAssetDir_getNextFileName(ADir) <> nil then
+        Exit(ueDirectory);
+    finally AAssetDir_close(ADir) end;
+  end;
+
+  Result := ueNotExists;
+end;
+
+procedure FindFilesInAndroidAssets(const AssetPath, Mask: String;
+  const FileEvent: TFoundFileMethod; var StopSearch: Boolean);
+var
+  AssetManager: PAAssetManager;
+  ADir: PAAssetDir;
+  Asset: PAAsset;
+  FilePtr: PAnsiChar;
+  PathDir, FilePath: AnsiString;
+  FileInfo: TFileInfo;
+begin
+  { Asset paths use slash as separator, and the directory name passed
+    to AAssetManager_openDir should not end with slash.
+    Empty string means the top-level assets directory.
+
+    We overuse UriExcludeSlash for this purpose, it handles /,
+    and doesn't really assume it is an URL. }
+  PathDir := UriExcludeSlash(AssetPath);
+
+  AssetManager := GetMainAssetManager;
+  ADir := AAssetManager_openDir(AssetManager, PAnsiChar(PathDir));
+  if ADir = nil then
+    Exit;
+  try
+    { Note: AAssetDir_getNextFileName returns only files, not subdirectories.
+      This is a limitation of the Android NDK asset API,
+      so we cannot report subdirectories here. }
+    FilePtr := AAssetDir_getNextFileName(ADir);
+    while FilePtr <> nil do
+    begin
+      FileInfo := Default(TFileInfo);
+      FileInfo.Name := FilePtr;
+      if IsWild(FileInfo.Name, Mask, false) then
+      begin
+        if PathDir <> '' then
+          FilePath := PathDir + '/' + FileInfo.Name
+        else
+          FilePath := FileInfo.Name;
+        FileInfo.Url := AssetPathToURI(FilePath);
+        FileInfo.Directory := false;
+        FileInfo.Symlink := false;
+
+        { Opening asset in AASSET_MODE_UNKNOWN to query length is cheap,
+          it doesn't read the contents. }
+        Asset := AAssetManager_open(AssetManager, PAnsiChar(FilePath), AASSET_MODE_UNKNOWN);
+        if Asset <> nil then
+        begin
+          { Take only the least-significant 32 bits, like TReadAssetStream.GetSize. }
+          FileInfo.Size := AAsset_getLength(Asset) and Int64(High(UInt32));
+          AAsset_close(Asset);
+        end;
+
+        FileEvent(FileInfo, StopSearch);
+        if StopSearch then
+          Exit;
+      end;
+      FilePtr := AAssetDir_getNextFileName(ADir);
+    end;
+  finally AAssetDir_close(ADir) end;
 end;
 
 end.

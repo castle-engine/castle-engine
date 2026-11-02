@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -77,7 +77,8 @@
       during calculations. OpenGL also clamps only at the end.
 
       MainTextureColor is color of the "main" texture.
-      See @link(TAppearanceNode.MainTexture) for definition what is this texture. }
+      See @link(TX3DGraphTraverseState.MainTexture) for definition what
+      is this texture. }
     function Contribution(
       const Point: TVector3; const PointPlaneNormal: TVector3;
       State: TX3DGraphTraverseState;
@@ -92,7 +93,7 @@
     function IndexOfNode(Node: TAbstractLightNode): integer;
     { Find light with given node name. Return @nil if not found. }
     function FindName(NodeName: string): PLightInstance;
-    function Equals(SecondValue: TObject): boolean; {$ifdef TOBJECT_HAS_EQUALS} override; {$endif}
+    function Equals(SecondValue: TObject): boolean; override;
   end;
 
 {$endif read_interface}

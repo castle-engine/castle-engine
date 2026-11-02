@@ -22,7 +22,7 @@ uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
   ApplicationProperties.ApplicationName := 'anisotropic_filtering';
-  ApplicationProperties.Caption := 'anisotropic_filtering';
+  ApplicationProperties.Caption := 'Anisotropic Filtering';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then

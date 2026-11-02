@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+Specify basic information about the project, including how this project is build.
+See https://castle-engine.io/project_manifest for documentation of this file.
+-->
+
+<project name="castle-openai"
+  standalone_source="castle_openai_standalone.dpr"
+  game_units="GameInitialize"
+  qualified_name="io.castleengine.ask.openai.assistant"
+  caption="Castle Game Engine - Ask OpenAI Assistant"
+>
+  <dependencies>
+    <dependency name="Https" /> <!-- read https links -->
+  </dependencies>
+  <compiler_options>
+    <search_paths>
+      <path value="code/" />
+    </search_paths>
+  </compiler_options>
+  <android>
+    <services>
+      <service name="keyboard" />
+    </services>
+  </android>
+</project>

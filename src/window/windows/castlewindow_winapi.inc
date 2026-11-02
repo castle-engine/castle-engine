@@ -1,10 +1,10 @@
 {%MainUnit ../castlewindow.pas}
 {
-  Copyright 2001-2024 Michalis Kamburelis.
+  Copyright 2001-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -14,7 +14,19 @@
   ----------------------------------------------------------------------------
 }
 
-{ CastleWindow backend using WinAPI, Windows-only.
+{ CastleWindow backend using WinAPI. Windows-only.
+
+  Looks native on Windows, supports everything:
+  - including toggling fullscreen,
+  - TCastleWindow.MainMenu,
+  - native-looking dialogs like TCastleWindow.FileDialog.
+
+  OpenGL(ES) initialization can be done using
+  - (default) WGL (WinAPI way to initialize OpenGL context).
+  - EGL (cross-platform API to initialize OpenGL or OpenGLES context).
+
+  See https://castle-engine.io/castlewindow_backends#_winapi_castle_window_winapi
+  for more information.
 
   TODO:
 
@@ -38,40 +50,40 @@
   - Note: LCL win32 widgetset (used on 64-bit Windows too) still uses ANSI.
 }
 
+{ Activate debug feature to output all WinAPI messages as they arrive.
+  Beware: your log will be *flooded* with logs about messages! }
+{.$define CASTLE_DEBUG_WINAPI_MESSAGES}
+
 {$ifdef USE_EGL}
   {$I castlewindow_egl.inc}
 {$else}
   {$I castlewindow_wgl.inc}
 {$endif}
 
+{$I castlewindow_winapi_forced_processing.inc}
+
 {$ifdef read_interface_uses}
-{ note: this unit's definitions conflict with other definitions used in this file
-  But we need it for RegisterDeviceNotification, therefore adding it to the very
-  first position in the uses list to be overwritten by subsequent used units }
 {$ifdef FPC}
+{ Note about JwaWinUser, JwaDbt units in uses clause:
+  Their definitions may conflict with some other definitions (in Windows, CommDlg).
+  But we need them for RegisterDeviceNotification and friends.
+  So keep JwaWinUser, JwaDbt early in the uses clause, before Windows, CommDlg. }
 JwaWinUser, JwaDbt,
 {$else}
 Winapi.Messages, Character,
 {$endif}
-Imm,
-{ /note }
-Windows, CommDlg,
+Imm, Windows, CommDlg,
 {$endif}
 
 {$ifdef read_implementation_uses}
+{$ifdef CASTLE_DEBUG_WINAPI_MESSAGES} StrUtils, {$endif}
 CastleInternalWindowModes, CastleMessages, CastleGameControllers, CastleUnicode,
-CastleInternalFileMonitor,
 {$endif}
 
 {$ifdef read_window_interface}
 private
   h_Dc: HDC;
   h_Wnd: HWND;
-  { InCloseBackend = true means we are currently inside CloseBackend call.
-    Useful -- see at WM_ACTIVATE. }
-  InCloseBackend: boolean;
-
-  EnableUpdatesFromWindowProc, DisableUpdatesFromWindowProc: Cardinal;
 
   VK_LeftBracket_Exists,
   VK_RightBracket_Exists,
@@ -100,6 +112,7 @@ private
   { Should we do ChangeDisplaySettings(nil, 0) when Destroy? }
   DisplaySettingsChanged: boolean;
   WndClassName: UnicodeString;
+  WndClassNameRegistered: Boolean;
 
   { A private array, initialized in CreateBackend.
     Having all cursor handles loaded makes sure that WM_SETCURSOR is able to
@@ -117,13 +130,30 @@ private
 
   fappActive: boolean;
   procedure SetAppActive(value: boolean);
+  { Whether application is active according to Windows.
+    This follows WM_ACTIVATEAPP messages. }
   property appActive: boolean read fappActive write SetAppActive;
 {$endif read_application_interface}
 
 {$ifdef read_implementation}
 
+{ If not TrueValue then make a warning, using GetLastError to get the error message. }
+procedure OSCheckWarning(const TrueValue: Boolean; const Place: String);
+begin
+  if not TrueValue then
+    WritelnWarning('WinAPI error', Place + ': ' + SysErrorMessage(GetLastError));
+end;
+
 {$I castlewindow_winapi_menu.inc}
 {$I castlewindow_winapi_sendinput.inc}
+{$I castlewindow_winapi_pointer_lock.inc}
+
+type
+  { TWindowContainer descendant for Windows, to use TCastleWindowsPointerLock. }
+  TWindowWindowsContainer = class(TWindowContainer)
+  protected
+    function CreatePointerLock: TCastleAbstractPointerLock; override;
+  end;
 
 { Describe ChangeDisplaySettings result. }
 function DispChangeToStr(L: LongInt): String;
@@ -199,6 +229,10 @@ const
   VK_OEM_7 = $DE;
   VK_OEM_8 = $DF;
   VK_OEM_102 = $E2;
+
+  { Mask for lParam of WM_SYSKEYDOWN message to determine is Alt pressed.
+    See https://learn.microsoft.com/en-us/windows/win32/inputdev/wm-syskeydown }
+  KeyMessageAltDown = 1 shl 29;
 
 { convert virtual key code (VK_xxx) to TKey. Returns keyNone if no conversion
   available. }
@@ -305,28 +339,36 @@ begin
     Window.WindowProc(uMsg, wParm, lParm);
 end;
 
+{$ifdef CASTLE_DEBUG_WINAPI_MESSAGES}
+var
+  WindowProcNesting: Cardinal;
+{$I castlewindow_winapi_debug.inc}
+{$endif}
+
 function WndProc(hWnd: HWND; uMsg: UINT; wParm: WPARAM; lParm: LPARAM) :LRESULT; stdcall;
 var
   Window: TCastleWindow;
 begin
   Window := TCastleWindow(GetWindowLongPtr(hWnd, GWL_USERDATA));
-  { Wszystkie hwnd jakie tu beda wpadac to beda nasze okna
-    (it's only different for a plugin, but right now the plugin uses only TryHandlingMessage,
-    not this). Ale zanim
-    ustawimy oknu SetWindowLongPtr (GetWindowLongPtr bedzie do tego czasu zwracac 0)
-    ono juz dostaje jakies messagy - WM_CREATE i inne.
-    Mozemy je spokojnie zignorowac.
 
-    Co wiecej jednak, moze tak byc ze Window <> nil ale wskazuje na okienko
-    ktore juz jest zamkniete (a moze nawet na obiekt ktory juz zostal
-    zwolniony z pamieci !). Dlaczego tak jest, patrz komentarz na poczatku
-    castlewindow_winsystem.inc. Wiec sprawdzamy tutaj czy Window jest na liscie
-    Application.OpenWindows .
+  { All window handles (hWnd) that will be reported here will be our windows.
+
+    But before we set SetWindowLongPtr for the window (GetWindowLongPtr will
+    return 0 until then), the window already receives some messages,
+    like WM_CREATE and others.
+    So Application.FindWindow may fail.
+    We can safely ignore these initial messages.
+
+    Moreover, it may happen that Window <> nil but points to a window
+    that is already closed (or even to an object that has already been
+    freed from memory!). Why this is so, see comment at the beginning of
+    castlewindow_winsystem.inc. So we check here whether Window is on the list
+    Application.OpenWindows.
 
     Moreover, temporary windows created by CreateTemporaryWindow in
     SetPixelFormat_WGLChoose also get here (as they use our
-    Application.wndClassName). They don't set Get/SetWindowLongPtr, so Window here
-    will be @nil in this case. }
+    Application.wndClassName). They don't set Get/SetWindowLongPtr,
+    so Window here will be @nil in this case. }
   if Application.FindWindow(Window) >= 0 then
     result := Window.WindowProc(uMsg, wParm, lParm)
   else
@@ -336,7 +378,7 @@ end;
 function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRESULT;
 
 { Note: the following Windows events may be called from CloseBackend
-  (so they probably should check InCloseBackend):
+  (so they probably should check FInCloseBackend):
      WM_WINDOWPOSCHANGING
      WM_WINDOWPOSCHANGED
      WM_NCACTIVATE
@@ -351,15 +393,26 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
        or glplotter --fullscreen-custom 640x480)
 }
 
-  procedure MaybeCapture;
-  { mouse down occurred; so capture the mouse if it's not captured already }
+  { Mouse down occurred.
+    So capture the mouse if it's not captured already.
+    Ignored when pointer lock is active, then pointer lock should control
+    the capture. }
+  procedure MouseCaptureOnDown;
   begin
+    if Container.PointerLock.Active then
+      Exit;
+
     if GetCapture <> H_Wnd then SetCapture(H_Wnd);
   end;
 
-  procedure MaybeRelease;
-  { mouse up occurred; release capture if all mouse buttons are now up }
+  { Mouse up occurred. Release capture if all mouse buttons are now up.
+    Ignored when pointer lock is active, then pointer lock should control
+    the capture. }
+  procedure MouseReleaseOnUp;
   begin
+    if Container.PointerLock.Active then
+      Exit;
+
     if (Container.MousePressed = []) and
        (GetCapture = H_Wnd) then
       ReleaseCapture;
@@ -380,6 +433,8 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
 
   function InterceptedSystemKey(key: integer): boolean;
   begin
+    { Note: If you add here Alt, make sure to adjust our Alt+F4 handling
+      during mouse look, it must capture the proper message. }
     Result := { TODO-alt: (key = VK_Alt) or }(key = VK_F10)
   end;
 
@@ -680,7 +735,7 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
 
   procedure HandleMouseDown(const Button: TCastleMouseButton);
   begin
-    MaybeCapture;
+    MouseCaptureOnDown;
     DoMouseDown(LeftTopToCastle(
       TWinParam(lParm).LoSmallint,
       TWinParam(lParm).HiSmallint), Button, 0);
@@ -691,7 +746,7 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
     DoMouseUp(LeftTopToCastle(
       TWinParam(lParm).LoSmallint,
       TWinParam(lParm).HiSmallint), Button, 0);
-    MaybeRelease;
+    MouseReleaseOnUp;
   end;
 
   procedure HandleMouseMove;
@@ -736,46 +791,60 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
   end;
 
 var
-  DoEnableUpdatesFromWindowProc, DoDisableUpdatesFromWindowProc: boolean;
+  ForcedProcessingMessage: TForcedProcessingMessageState;
 begin
   Result := 0;
 
-  { generalnie chcemy przepuszczac SYSKEY* do DefaultWndProc ktore moze
-    wtedy np. na Alt+F4 zrobic nam close albo na Alt+spacja otworzyc
-    nam system menu itp. To wszystko sa fajne rzeczy i nie chce ich blokowac
-    przechwytujac zawsze zdarzenia SYSKEY*, tym samym rezygnuje z przetwarzania
-    kiedywkolwiek sekwencji klawiszy w rodzaju Alt+F4.
+  {$ifdef CASTLE_DEBUG_WINAPI_MESSAGES}
+  WritelnLog(DupeString('  ', WindowProcNesting) + 'Message: ', WindowsMessageName(uMsg));
+  {$endif}
 
-    Ale jednak czasem chce przechwycic zdarzenia SYSKEY* zeby obsluzyc wlasne
-    klawisze. Wiec niektore klawisze przechwytujemy od systemu operacyjnego.
-    (normalnie Alt i F10 powoduja wejscie w menu). Wiec wtedy zmieniam uMsg z
-    SYSKEY* na KEY* (korzystajac z tego ze te zdarzenia maja taki sam format
-    dla wParm i lParm). }
+  { generally we want to pass SYSKEY* to DefaultWndProc which can
+    then e.g. on Alt+F4 close us or on Alt+space open
+    system menu etc. All these are nice things and we don't want to block them
+    by always intercepting SYSKEY* events, thus giving up processing
+    any key sequences like Alt+F4.
+
+    But sometimes we want to intercept SYSKEY* events to handle my own
+    keys. So some keys we intercept from the operating system.
+    (normally Alt and F10 cause entering menu). So then we change uMsg from
+    SYSKEY* to KEY* (using the fact that these events have the same format
+    for wParm and lParm). }
   if (uMsg = WM_SYSKEYDOWN) and InterceptedSystemKey(wParm) then uMsg := WM_KEYDOWN;
   if (uMsg = WM_SYSKEYUP) and InterceptedSystemKey(wParm) then uMsg := WM_KEYUP;
 
   case uMsg of
     WM_ACTIVATE:
-      if not InCloseBackend then
-        if TWinParam(wParm).LoWord = WA_INACTIVE then
-          { When user switches to another program, fake that we release all keys/mouse.
-            Otherwise we could miss some key up / mouse up, when user releases it over
-            another program/window.
-            Do not do this when InCloseBackend, as ReleaseAllKeysAndMouse causes
-            some DoKeyUp/DoMouseUp (and these even cause BackendMakeCurrent), and no DoXxx
-            should be done when the window is closing and releasing it's resources. }
-          ReleaseAllKeysAndMouse;
-      { Don't Exit, let control flow to DefWindowProcW. }
+      begin
+        SetFocused(TWinParam(wParm).LoWord <> WA_INACTIVE);
+        { Don't Exit, let control flow to DefWindowProcW. }
+      end;
     WM_ACTIVATEAPP:
       begin
         Application.appActive := longbool(wParm);
-        if Application.appActive then
-          FileMonitor.CheckChanges;
         {exit; <- allow DefWindowProcW handle WM_ACTIVETAPP too,
          since you can't say "we surely handled everything that should be done in
          reaction for this message"}
       end;
     WM_CLOSE: begin DoCloseQuery; Exit end;
+
+    { Handle Alt+F4 ourselves when pointer lock is active.
+
+      Reason: SetCapture ( https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setcapture )
+      WinAPI docs say explicitly that:
+      """When the mouse is captured, menu hotkeys and other keyboard accelerators do not work."""
+
+      Hack below follows what Godot Engine does too:
+      https://github.com/godotengine/godot/blob/6220ead4fa06611918e371e6f51d7b9a3aefe53c/platform/windows/display_server_windows.cpp#L6893 .
+    }
+    WM_SYSKEYDOWN:
+      if (wParm = VK_F4) and
+         ((lParm and KeyMessageAltDown) <> 0) and
+         Container.PointerLock.Active then
+      begin
+        DoCloseQuery;
+        Exit;
+      end;
 
     WM_KEYDOWN: begin Handle_WM_KEYDOWN; Exit end;
     WM_KEYUP: begin Handle_WM_KEYUP; Exit end;
@@ -790,12 +859,13 @@ begin
     WM_UNICHAR: begin Handle_WM_UNICHAR; Exit(1); end;
 
     WM_SIZE:
-      if not InCloseBackend then
+      if not FInCloseBackend then
       begin
         { Note: Window class has (VREDRAW or HREDRAW), so Windows will automatically
           take care of requesting window redraw after window resize. }
         if (wParm = SIZE_MAXIMIZED) or (wParm = SIZE_RESTORED) then
           DoResize(TWinParam(lParm).LoWord, TWinParam(lParm).HiWord, false);
+        (Container.PointerLock as TCastleWindowsPointerLock).UpdateClipCursor;
         Exit;
       end;
     WM_MOVE:
@@ -841,6 +911,8 @@ begin
           Maybe we should just call only glViewport,
           using current RenderContext.Viewport? }
         DoResize(fRealWidth, fRealHeight, false);
+
+        (Container.PointerLock as TCastleWindowsPointerLock).UpdateClipCursor;
         Exit;
       end;
     WM_SIZING:
@@ -964,17 +1036,27 @@ begin
     WM_SETCURSOR:
       begin
         if (WParm = h_Wnd) and
+
+           { Do not use SetCursor to set custom cursor (or hide system cursor)
+             if we're hovering over the window borders/captions.
+             Testcase:  examples/user_interface/custom_cursor/ . }
+           (not (LoWord(lParm) in
+             [HTCAPTION, HTSYSMENU, HTMINBUTTON, HTMAXBUTTON, HTCLOSE, HTMENU,
+              HTLEFT, HTRIGHT, HTBOTTOM, HTBOTTOMLEFT, HTBOTTOMRIGHT,
+              HTTOP, HTTOPLEFT, HTTOPRIGHT])) and
+
+          { Use SetCursor only if we have a useful WinAPI handle for
+            the new cursor, or (handle 0) we really want to hide it. }
            ( (InternalCursor in [mcNone, mcForceNone]) or
              (Application.CursorHandles[InternalCursor].Handle <> 0) ) then
         begin
           Windows.SetCursor(Application.CursorHandles[InternalCursor].Handle);
           Exit(1);
         end;
+
         { Otherwise we fall back on DefWindowProcW.
           It will install our window class cursor (or parent cursor)
-          if in client area, or just do the right thing if outside client area.
-          So it's suitable when wParm <> h_Wnd,
-          or we want mcDefault. }
+          if in client area, or just do the right thing if outside client area. }
       end;
 
     WM_MOUSEWHEEL, WM_MOUSEHWHEEL:
@@ -1030,49 +1112,10 @@ begin
       end;
   end;
 
-  { The DefWindowProcW may enter a modal loop in some cases, e.g. when
-    WM_NCLBUTTONDOWN initializes window resizing operation.
-
-    This makes our normal message loop not working (although application
-    is working, but methods like ProcessMessage are not called in a loop anymore,
-    instead we "hang" in a DispatchMessage call in top-level ProcessMessage).
-    WinAPI will directly call WindowProc, creating a recursion.
-    See See http://stackoverflow.com/questions/3102074/win32-my-application-freezes-while-the-user-resizes-the-window
-
-    So to keep receiving update/timer/redraws, we simply call
-    UpdateAndRenderEverything manually here.
-
-    A simple solution was to just call it always when recursion here is detected.
-    But this seems unexpected to WinAPI in many situations, causing
-
-    1. crashes, when this is done from some messages.
-    2. slowdown at initialization (castle-model-viewer main menu blinks for some
-      time, with "busy" cursor, before it becomes responsive).
-
-    So the solution now is to activate it only for certain commands,
-    and moreover deactivate inside certain other commands. }
-  //Writeln('Got message ', uMsg,
-  //  ', UpdatesFromWindowProc: Enable: ', EnableUpdatesFromWindowProc,
-  //  ', Disable: ', DisableUpdatesFromWindowProc);
-
-  if (EnableUpdatesFromWindowProc <> 0) and
-     (DisableUpdatesFromWindowProc = 0) and
-     (not Closed) then
-    Application.UpdateAndRenderEverything;
-
-  DoEnableUpdatesFromWindowProc := uMsg = WM_NCLBUTTONDOWN;
-  DoDisableUpdatesFromWindowProc :=
-    // user closes window by clicking on close button
-    ((uMsg = WM_SYSCOMMAND) and (wParm = SC_CLOSE)) or
-    // we close the window by code
-    (uMsg = WM_NCACTIVATE) or
-    // we recreate the window as fullscreen
-    (uMsg = WM_IME_SETCONTEXT) or
-    // we recreate the window as windowed?
-    (uMsg = WM_ACTIVATE);
-
-  if DoEnableUpdatesFromWindowProc then Inc(EnableUpdatesFromWindowProc);
-  if DoDisableUpdatesFromWindowProc then Inc(DisableUpdatesFromWindowProc);
+  ForcedProcessingMessage.BeforeDefWindowProc(ForcedProcessingState, uMsg, wParm, lParm);
+  {$ifdef CASTLE_DEBUG_WINAPI_MESSAGES}
+  Inc(WindowProcNesting);
+  {$endif}
   try
     { Note: It is extremely important to use here DefWindowProcW.
       If you use (ANSI, in FPC) DefWindowProc, then Windows will detect that
@@ -1082,8 +1125,10 @@ begin
       as just 1 single letter). }
     Result := DefWindowProcW(h_Wnd, uMsg, wParm, lParm);
   finally
-    if DoEnableUpdatesFromWindowProc then Dec(EnableUpdatesFromWindowProc);
-    if DoDisableUpdatesFromWindowProc then Dec(DisableUpdatesFromWindowProc);
+    ForcedProcessingMessage.AfterDefWindowProc(ForcedProcessingState);
+    {$ifdef CASTLE_DEBUG_WINAPI_MESSAGES}
+    Dec(WindowProcNesting);
+    {$endif}
   end;
 end;
 
@@ -1156,7 +1201,7 @@ procedure TCastleWindow.OpenBackend;
   begin
     if GetCursorPos({$ifdef FPC}@{$endif}InitialCursorPos) then
     begin
-      Container.InitializeMousePosition(LeftTopToCastle(
+      (Container as TWindowContainer).InitializeMousePosition(LeftTopToCastle(
         InitialCursorPos.X - ClientRect.Left,
         InitialCursorPos.Y - ClientRect.Top));
     end;
@@ -1283,6 +1328,8 @@ begin
 
   Check(h_Wnd <> 0, 'Creating window (CreateWindowExW) failed');
 
+  (Container.PointerLock as TCastleWindowsPointerLock).WindowHandle := h_Wnd;
+
   { calculate correct Left and Top, required e.g. by SetCursorPos }
   if FullScreen then
   begin
@@ -1304,12 +1351,12 @@ begin
 
   MakeCurrent;
 
-  { robimy OpenWindowsAdd PRZED ShowWindow bo ShowWindow wywoluje WinProc
-    z message'm kazacym nam sie odmalowac. Wiec zeby przetworzyc tego messaga
-    (ktory powoduje po prostu Invalidate) nasze okienko musi byc
-    zarejestrowane w Application.OpenWindows. Dlaczego nie zrobic po prostu Invalidate ?
-    Tak jest porzadniej, no i w ten sposob wiem DLACZEGO to dziala, a nie tylko
-    ze "dziala kiedy wywolamy Invalidate". }
+  { we do OpenWindowsAdd BEFORE ShowWindow because ShowWindow calls WinProc
+    with message telling us to repaint. So to process this message
+    (which simply causes Invalidate) our window must be
+    registered in Application.OpenWindows. Why not just do Invalidate?
+    This way is cleaner, and this way I know WHY it works, not just
+    that "it works when we call Invalidate". }
   Application.OpenWindowsAdd(Self);
 
   if Visible then
@@ -1370,14 +1417,14 @@ procedure TCastleWindow.SystemSetMousePosition(const Value: TVector2);
 
     Testcase: dragging_test, if we would use SetCursorPos then:
 
-    - TCastleContainer.MouseLookDelta doesn't set FMouseLookWaitingForMiddle to true:
+    - TCastleDesktopPointerLock.Delta doesn't set FWaitingForMiddle to true:
       then we have problems due to occasional rect jump, when moving mouse slowly
-      (because we need to set FMouseLookWaitingForMiddle to true!).
+      (because we need to set FWaitingForMiddle to true!).
 
-    - TCastleContainer.MouseLookDelta sets FMouseLookWaitingForMiddle to true:
+    - TCastleDesktopPointerLock.Delta sets FWaitingForMiddle to true:
       then we have occasional "blocks" when moving mouse very fast
       (like from edge to edge of the screen). Experimenting, we just
-      cannot reliably capture "the end of FMouseLookWaitingForMiddle",
+      cannot reliably capture "the end of FWaitingForMiddle",
       no matter how small/large margin in ValidArea we use.
 
     Info about SendInput:
@@ -1411,17 +1458,21 @@ end;
 
 procedure TCastleWindow.CloseBackend;
 begin
-  InCloseBackend := true;
-  try
-    ContextDestroy;
+  ContextDestroy;
 
-    if (h_Dc <> 0) and (ReleaseDC(h_Wnd, h_Dc) = 0) then
-      WritelnWarning('WinAPI', 'Releasing device context (ReleaseDC) failed.');
+  if h_Dc <> 0 then
+  begin
+    OSCheckWarning(ReleaseDC(h_Wnd, h_Dc) <> 0, 'ReleaseDC');
     h_Dc := 0;
-    if (h_Wnd <> 0) and (not DestroyWindow(h_Wnd))then
-      WritelnWarning('WinAPI', 'Destroying window (DestroyWindow) failed.');
+  end;
+
+  if h_Wnd <> 0 then
+  begin
+    OSCheckWarning(DestroyWindow(h_Wnd), 'DestroyWindow');
     h_Wnd := 0;
-  finally InCloseBackend := false; end;
+  end;
+
+  (Container.PointerLock as TCastleWindowsPointerLock).WindowClosing;
 end;
 
 procedure TCastleWindow.SetCaption(const Part: TCaptionPart; const Value: String);
@@ -1433,8 +1484,14 @@ begin
   end;
 end;
 
+function TCastleWindow.CreateContainer: TCastleContainer;
+begin
+  Result := TWindowWindowsContainer.Create(Self);
+end;
+
 procedure TCastleWindow.CreateBackend;
 begin
+  ForcedProcessingState.Window := Self;
 end;
 
 function TCastleWindow.BackendFileDialog(const Title: String; var FileName: String;
@@ -1907,6 +1964,10 @@ var
   WindowClass: TWndClassW;
   C: TMouseCursor;
 begin
+  {$ifdef CASTLE_DEBUG_WINAPI_MESSAGES}
+  InitializeWindowsMessageNames;
+  {$endif}
+
   RegisterClipboard(TWinApiClipboard.Create);
 
   appActive := true;
@@ -1933,23 +1994,33 @@ begin
   WindowClass.style := CS_HREDRAW or CS_VREDRAW or CS_OWNDC;
   WindowClass.lpfnWndProc := @WndProc;
   WindowClass.hInstance := hInstance;
-  { sprobuj zaladowac ikone z pliku EXE, tzn. z naszego resource;
-    w ten sposob mozesz ja latwo zmieniac w IDE delphi a mozesz sam stworzyc
-    odpowiedni resource przez windres, no i twoja ikona bedzie widoczna dla innych
-    programow.
-    Jesli nie znajdzie ikonki w resource to zaladuj ikone ze zbioru Windowsa
-    idi_application. }
+  { try to load icon from EXE file, i.e. from our resource;
+    this way you can easily change it in Delphi IDE and you can create
+    appropriate resource through windres, and your icon will be visible to other
+    programs.
+    If it doesn't find icon in resource then load icon from Windows collection
+    IDI_APPLICATION. }
   WindowClass.hIcon := LoadIconW(hInstance, 'MAINICON');
   if WindowClass.hIcon = 0 then
     WindowClass.hIcon := LoadIconW(0, PWideChar(IDI_APPLICATION));
   WindowClass.hCursor := CursorHandles[mcStandard].Handle;
   WindowClass.lpszClassName := PWideChar(WndClassName);
   OSCheck( Windows.RegisterClassW(WindowClass) <> 0, 'RegisterClassW');
+  WndClassNameRegistered := true;
 end;
 
 procedure TCastleApplication.DestroyBackend;
 begin
-  OSCheck( Windows.UnregisterClassW(PWideChar(WndClassName), hInstance), 'UnregisterClassW');
+  { Check WndClassNameRegistered to have better behavior in case something
+    in TCastleApplication.CreateBackend fails: we want then to get original
+    exception, not an error from UnregisterClassW that we try to unregister
+    class that wasn't registered. }
+  if WndClassNameRegistered then
+    OSCheck( Windows.UnregisterClassW(PWideChar(WndClassName), hInstance), 'UnregisterClassW');
+
+  {$ifdef CASTLE_DEBUG_WINAPI_MESSAGES}
+  FreeAndNil(WindowsMessageNames);
+  {$endif}
 end;
 
 procedure TCastleApplication.VideoReset;
@@ -2062,12 +2133,12 @@ end;
 
 procedure TCastleApplication.SetAppActive(value: boolean);
 begin
-  { ponizej : gdy fappActive zmienia sie z true na false musimy
-    wykonac ChangeDisplaySettings(nil, 0) bez wzgledu na to czy
-    DisplaySettingsChanged. W ten sposob unikamy bledu Windowsa
-    z zostawaniem przycisku po oknie fullscreen na pasku zadan.
-    W rezultacie musimy tez odnawiac nasz Video mode jesli potem
-    wracamy do naszej aplikacji. }
+  { below: when fappActive changes from true to false we must
+    execute ChangeDisplaySettings(nil, 0) regardless of whether
+    DisplaySettingsChanged. This way we avoid Windows bug
+    with button remaining after fullscreen window on taskbar.
+    As a result we must also refresh our Video mode if later
+    we return to our application. }
   if value and not appActive then
   begin
     if DisplaySettingsChanged then VideoChange(true);
@@ -2076,15 +2147,6 @@ begin
     ChangeDisplaySettings({$ifdef FPC}nil{$else}TDeviceMode(nil^){$endif} , 0);
 
   fappActive := value;
-
-  { in this simple case, this can just control Container.Focused }
-  if OpenWindowsCount = 1 then
-  begin
-    OpenWindows[0].FFocused := Value;
-    { right after changing Focused, it's safest to consider mouse position
-      not suitable for mouse look }
-    OpenWindows[0].Container.MouseLookIgnoreNextMotion;
-  end;
 end;
 
 function TCastleApplication.ScreenWidth: integer;
@@ -2118,6 +2180,13 @@ begin
   { Confirmed using window_events example that it is "true" for GTK
     (press "5", OnMotion is generated). }
   Result := true;
+end;
+
+{ TWindowWindowsContainer -------------------------------------------------------- }
+
+function TWindowWindowsContainer.CreatePointerLock: TCastleAbstractPointerLock;
+begin
+  Result := TCastleWindowsPointerLock.Create(Self);
 end;
 
 {$endif read_implementation}

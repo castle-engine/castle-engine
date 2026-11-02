@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -22,9 +22,9 @@ interface
 
 {$ifndef MSWINDOWS}
 { To make it easier to organize Lazarus packages
-  (to keep this unit in castle_base.lpk, since it doesn't depend on TCastleWindow,
+  (to keep this unit in castle_engine_base.lpk, since it doesn't depend on TCastleWindow,
   but at the same time this unit cannot have "<AddToUsesPkgSection Value="False"/>"
-  in castle_base.lpk because castle_window.lpk expects to use this unit
+  in castle_engine_base.lpk because castle_engine_window.lpk expects to use this unit
   without recompiling...) ->
   this unit compiles even for platforms that don't have wgl (non-Windows),
   the unit just doesn't define anything in this case. }

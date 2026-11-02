@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -45,13 +45,13 @@
         TCasScriptFloat.Create(false, 1)
       ]);
 
-    Writeln((Expr.Execute as TKamStringFloat).Value); // calculate "sin(3) + 10 + 1"
+    Writeln((Expr.Execute as TCasScriptFloat).Value); // calculate "sin(3) + 10 + 1"
 
     MyVariable.Value := 4;
-    Writeln((Expr.Execute as TKamStringFloat).Value); // calculate "sin(4) + 10 + 1"
+    Writeln((Expr.Execute as TCasScriptFloat).Value); // calculate "sin(4) + 10 + 1"
 
     MyVariable.Value := 5;
-    Writeln((Expr.Execute as TKamStringFloat).Value); // calculate "sin(5) + 10 + 1"
+    Writeln((Expr.Execute as TCasScriptFloat).Value); // calculate "sin(5) + 10 + 1"
   #)
 
   Note that generally each TCasScriptExpression owns it's children
@@ -2358,7 +2358,7 @@ class procedure TCasScriptWhile.HandleWhile(
     Condition := AFunction.Args[0].CoreExecute;
     if Condition is TCasScriptBoolean then
       Result := TCasScriptBoolean(Condition).Value else
-      raise ECasScriptError.Create('"if" function "condition" must return a boolean value');
+      raise ECasScriptError.Create('"while" function "condition" must return a boolean value');
   end;
 
 begin

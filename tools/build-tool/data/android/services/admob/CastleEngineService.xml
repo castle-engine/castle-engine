@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Google Mobile Ads SDK requires min SDK 23 since its version 24. -->
+<service min_min_sdk_version="23">
+</service>

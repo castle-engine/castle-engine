@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -254,7 +254,7 @@ begin
     TempRow := GetMem(RowSize);
 
     LowerRow := PtrUInt(RawPixels);
-    UpperRow := PtrUInt(RawPixels) + RowSize * (Height div 4 - 1);
+    UpperRow := PtrUInt(RawPixels) + RowSize * PtrUInt(Height div 4 - 1);
 
     while LowerRow < UpperRow do
     begin
@@ -268,6 +268,11 @@ begin
       Inc(LowerRow, RowSize);
       Dec(UpperRow, RowSize);
     end;
+
+    { When (Height div 4) is odd, e.g. we have Height=12, then the middle
+      row also needs to be flipped. }
+    if LowerRow = UpperRow then
+      FlipRow(LowerRow, FlipBlock[4]);
 
     FreeMem(TempRow);
   end else

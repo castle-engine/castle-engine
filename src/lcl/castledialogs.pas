@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -208,7 +208,7 @@ end;
 
 function CleanupFileName(const FileName: String): String;
 begin
-  { Using GTK 2 file open dialog under Ubuntu Mate,
+  { Using GTK file open dialog under Ubuntu Mate,
     you can get filenames with // .
     They are mostly harmless (opening such filenames with various
     routines work) but they make MaybeUseDataProtocol less often possible

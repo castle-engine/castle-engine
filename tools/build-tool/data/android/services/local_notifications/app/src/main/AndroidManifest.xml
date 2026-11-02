@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This manifest will be merged with main integrated/AndroidManifest.xml
+     by the build tool. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Required since Android 13 to show any notification.
+         Requested at runtime too, by ServiceLocalNotifications. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- To schedule again the pending notifications after a reboot. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <application>
+        <!-- Shows the notification when its time comes.
+             Not exported: only our own alarms start it. -->
+        <receiver android:name="io.castleengine.LocalNotificationReceiver"
+            android:exported="false" />
+
+        <!-- Reschedule the notifications, once device rebooted
+             or the application was updated.
+
+             Note: This implies that the application will start
+             automatically after a device reboot, to execute LocalNotificationBootReceiver.
+             This seems to be standard behavior for local notification plugins:
+             - Cordova: https://github.com/katzer/cordova-plugin-local-notifications
+             - Godot Engine: https://github.com/godot-mobile-plugins/godot-notification-scheduler/blob/main/android/src/main/AndroidManifest.xml
+
+             To limit this, the receiver is disabled by default (android:enabled="false").
+             ServiceLocalNotifications.updateBootReceiverEnabled enables it
+             (using PackageManager.setComponentEnabledSetting) only while some
+             notification is pending, and disables it again when none are.
+             So the application starts after a reboot only when it has something
+             to reschedule. This follows what AndroidX WorkManager does with its
+             RescheduleReceiver.
+        -->
+        <receiver android:name="io.castleengine.LocalNotificationBootReceiver"
+            android:enabled="false"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>

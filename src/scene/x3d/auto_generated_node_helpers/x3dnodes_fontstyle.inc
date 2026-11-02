@@ -1,10 +1,10 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2025 Michalis Kamburelis.
+  Copyright 2015-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -118,6 +118,7 @@
     public property FdBlending: TSFBool read FFdBlending;
     {  }
     property Blending: Boolean read GetBlending write SetBlending;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -267,6 +268,13 @@ begin
   FFdBlending := TSFBool.Create(Self, False, 'blending', true);
    FdBlending.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdBlending);
+end;
+
+procedure TFontStyleNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  if not FdBlending.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdBlending.X3DName);
 end;
 
 {$endif read_implementation}

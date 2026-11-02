@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -14,12 +14,18 @@
   ----------------------------------------------------------------------------
 }
 
-{ Handle http, https URLs using Android service. }
+{ Handle http, https URLs using Android service.
 
-{$ifdef ANDROID}
+  Only for FPC: this communicates (using CastleMessaging) with the Java
+  service "download_urls" that is part of the Android application
+  built by our build tool. Applications built using Delphi for Android
+  don't have this service (and CastleMessaging does nothing there),
+  so they use TDelphiHttpReader instead, just like Delphi on other platforms. }
+
+{$if defined(ANDROID) and defined(FPC)}
 
 {$ifdef read_implementation_uses}
-CastleAndroidInternalAssetStream, CastleMessaging,
+CastleMessaging,
 {$endif read_implementation_uses}
 
 {$ifdef read_implementation}
@@ -41,23 +47,18 @@ type
   public
     procedure Start; override;
     destructor Destroy; override;
+    procedure UpdateOnlySynchronous; override;
   end;
 
 procedure THttpAndroidReader.Start;
+const
+  HttpMethodNames: array[THttpMethod] of String = (
+    'GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD'
+  );
 
   function HttpMethodName: String;
   begin
-    case HttpMethod of
-      hmGet: Result := 'GET';
-      hmPost: Result := 'POST';
-      hmPut: Result := 'PUT';
-      hmDelete: Result := 'DELETE';
-      hmOptions: Result := 'OPTIONS';
-      hmHead: Result := 'HEAD';
-      {$ifndef COMPILER_CASE_ANALYSIS}
-      else raise EInternalError.Create('HttpMethod=?');
-      {$endif}
-    end;
+    Result := HttpMethodNames[HttpMethod];
   end;
 
   function HttpRequestBodyStr: String;
@@ -152,6 +153,8 @@ function THttpAndroidReader.HandleDownloadMessages(const Received: TCastleString
   end;
 
 begin
+  Result := false;
+
   if (Received.Count = 3) and
      (Received[0] = 'download-error') and
      (Received[1] = IntToStr(DownloadId)) then
@@ -159,6 +162,9 @@ begin
     Status := dsError;
     ErrorMessage := Received[2];
     Result := true;
+    Contents.Position := 0; // rewind
+    DownloadedBytes := Contents.Size;
+    TotalBytes := Contents.Size;
   end;
 
   if (Received.Count >= 2) and
@@ -212,7 +218,13 @@ begin
   inherited;
 end;
 
+procedure THttpAndroidReader.UpdateOnlySynchronous;
+begin
+  inherited;
+  ApplicationProperties._Update;
+end;
+
 {$endif read_implementation}
 
-{$endif ANDROID}
+{$endif defined(ANDROID) and defined(FPC)}
 

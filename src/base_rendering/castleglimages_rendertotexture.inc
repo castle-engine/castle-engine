@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -301,9 +301,21 @@ var
   BoundFboStack: TGLFramebufferList;
 
   { The FBO id meaning "the screen".
-    This is 0 (GLObjectNone for WebGL) in usual circumstances,
-    except on iOS and iPhone Simulator it can be non-zero:
-    (see https://stackoverflow.com/questions/11617013/why-would-glbindframebuffergl-framebuffer-0-result-in-blank-screen-in-cocos2d)
+
+    This is 0 (GLObjectNone for WebGL) in usual circumstances, except it can
+    be non-zero in some special cases:
+
+    - iOS, iPhone Simulator
+      https://stackoverflow.com/questions/11617013/why-would-glbindframebuffergl-framebuffer-0-result-in-blank-screen-in-cocos2d
+
+    - GTK3:
+      https://stackoverflow.com/questions/62422683/framebuffer-issue-render-to-texture-with-gtk3-glarea-vs-glfw-identical-opengl#62436181
+
+    - Qt6:
+      https://doc.qt.io/qt-6/qopenglfunctions.html
+      "Note that Qt will translate a framebuffer argument of 0 to the currently bound QOpenGLContext's defaultFramebufferObject()."
+      https://doc.qt.io/qt-6/qopenglcontext.html#defaultFramebufferObject
+      "On some platforms (for instance, iOS) the default framebuffer object depends on the surface being rendered to, and might be different from 0."
   }
   ScreenFbo: TGLFramebuffer;
   ScreenFboQueried: boolean;
@@ -343,19 +355,11 @@ begin
     ScreenFbo := glGetInteger(GL_FRAMEBUFFER_BINDING);
     {$endif}
     if ScreenFbo <> GLObjectNone then
-      { See about GTK3:
-        https://stackoverflow.com/questions/62422683/framebuffer-issue-render-to-texture-with-gtk3-glarea-vs-glfw-identical-opengl#62436181
-
-        See about Qt6:
-        https://doc.qt.io/qt-6/qopenglfunctions.html
-        "Note that Qt will translate a framebuffer argument of 0 to the currently bound QOpenGLContext's defaultFramebufferObject()."
-        https://doc.qt.io/qt-6/qopenglcontext.html#defaultFramebufferObject
-        "On some platforms (for instance, iOS) the default framebuffer object depends on the surface being rendered to, and might be different from 0."
-      }
       WritelnLog('The screen FBO is not 0, it is %d. This known to happen on iOS, iPhone Simulator, GTK 3, Qt6.',
         [ScreenFbo]);
   end;
   BoundFboStack.Add(Fbo);
+  RenderContext.InternalControlRectIgnore := BoundFboStack.Count;
 
   if GLFeatures.Framebuffer then
     glBindFramebuffer(GL_FRAMEBUFFER, Fbo);
@@ -381,6 +385,7 @@ begin
   if (BoundFboStack <> nil) and (BoundFboStack.Count <> 0) then
   begin
     BoundFboStack.Count := BoundFboStack.Count - 1;
+    RenderContext.InternalControlRectIgnore := BoundFboStack.Count;
     if BoundFboStack.Count <> 0 then
       PreviousFbo := BoundFboStack.Last
     else
@@ -572,30 +577,26 @@ begin
       use one renderbuffer or one texture with combined depth/stencil info.
       Other possibilities may be not available at all,
       as OpenGL only guarantees we can create FBO matching current screen configuration. }
-    {$ifndef OpenGLES}
+    {$if not defined(OpenGLES)}
     if Stencil and GLFeatures.PackedDepthStencil then
     begin
       DepthBufferFormatPacked := GL_DEPTH_STENCIL;
       DepthAttachmentWithStencil := true;
       DepthAttachmentPacked := GL_DEPTH_STENCIL_ATTACHMENT;
     end else
-    // TODO-es This is probably needed on gles too?
-    // we have GL_DEPTH_STENCIL_OES.
+    {$elseif defined(CASTLE_WEBGL)}
+    { WebGL 2.0 has GL_DEPTH24_STENCIL8 and GL_DEPTH_STENCIL_ATTACHMENT as core.
+      PackedDepthStencil is true on WebGL 2.0 (see FPackedDepthStencil detection). }
+    if Stencil and GLFeatures.PackedDepthStencil then
+    begin
+      DepthBufferFormatPacked := GL_DEPTH24_STENCIL8;
+      DepthAttachmentWithStencil := true;
+      DepthAttachmentPacked := GL_DEPTH_STENCIL_ATTACHMENT;
+    end else
+    // TODO: non-WebGL OpenGLES may also need packed depth+stencil (GL_DEPTH_STENCIL_OES).
     {$endif}
     begin
-      DepthBufferFormatPacked :=
-        { OpenGLES notes:
-          - When depth is a texture, GL_DEPTH_COMPONENT works just as well
-            as GL_DEPTH_COMPONENT16. Our depth textures use UNSIGNED_SHORT,
-            so they match 16 bits. Although when we use UNSIGNED_INT for
-            depth for screen effects it also works...
-            So it really doesn't seem to matter, at least for Mesa OpenGLES
-            everything works.
-          - For renderbuffer, we really need to use the enum with 16 suffix.
-            Otherwise (on Mesa OpenGLES) we'll get FBO incomplete errors. }
-        {$ifdef OpenGLES} GL_DEPTH_COMPONENT16
-        {$else} GL_DEPTH_COMPONENT
-        {$endif};
+      DepthBufferFormatPacked := GLFeatures.DepthBufferFormat;
       DepthAttachmentPacked := GL_DEPTH_ATTACHMENT;
       DepthAttachmentWithStencil := false;
     end;

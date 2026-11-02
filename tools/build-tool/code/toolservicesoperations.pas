@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -31,10 +31,23 @@ type
     type
       TServiceCopy = class
         Source, Target: String;
+        { If not empty, do this copy only when the project defines
+          (with non-empty value) the service parameter with this key.
+          Otherwise the copy is silently skipped.
+          Allows a service to accept an optional file from the project.
+
+          Lowercase, as the service parameter keys are not case-sensitive.
+          Read from if_parameter attribute of <copy>. }
+        IfParameter: String;
       end;
       TServiceCopyList = specialize TObjectList<TServiceCopy>;
     var
       PackageOperations: TServiceCopyList;
+
+      { Minimum value of the project's Android min_sdk_version
+        required by this service, or 0 if the service has no such requirement.
+        Read from min_min_sdk_version attribute of <service>. }
+      MinMinSdkVersion: Cardinal;
 
     constructor Create(const AService: TService);
     destructor Destroy; override;
@@ -43,18 +56,39 @@ type
     { Call all package operations for this service.
       OutputPath is passed from PackageServices. }
     procedure Package(const Project: TCastleProject; const OutputPath: String);
+
+    property Service: TService read FService;
   end;
+
+  TServiceManifestList = specialize TObjectList<TServiceManifest>;
+
+{ Load CastleEngineService.xml of all services.
+  The result must be freed by the caller.
+
+  UrlServicesPath must be an absolute URL (may, but doesn't have to, end with /)
+  pointing to the CGE read-only files of services. }
+function LoadServices(const Services: TServiceList;
+  const UrlServicesPath: String): TServiceManifestList;
 
 { Call all package operations for all services,
   realizing the instructions from service CastleEngineService.xml.
 
-  UrlServicesPath must be an absolute URL (may, but doesn't have to, end with /)
-  pointing to the CGE read-only files of services.
+  ServiceManifests should come from LoadServices.
 
   OutputPath must be an absolute path (may, but doesn't have to, end with PathDelim)
   pointing to the writeable files where service templates are unpacked now. }
-procedure PackageServices(const Project: TCastleProject; const Services: TServiceList;
-  const UrlServicesPath, OutputPath: String);
+procedure PackageServices(const Project: TCastleProject;
+  const ServiceManifests: TServiceManifestList; const OutputPath: String);
+
+{ Raise the project's Android min SDK version, if any service requires it
+  (has min_min_sdk_version in CastleEngineService.xml).
+  Makes an exception if the resulting min SDK version would be larger
+  than target SDK version.
+
+  Must be called before generating files from templates
+  (that use ANDROID_MIN_SDK_VERSION macro). }
+procedure ApplyServicesAndroidMinSdkVersion(const Project: TCastleProject;
+  const ServiceManifests: TServiceManifestList);
 
 implementation
 
@@ -86,6 +120,7 @@ var
   CopyOperation: TServiceCopy;
 begin
   PackageOperations.Clear;
+  MinMinSdkVersion := 0;
 
   UrlServiceManifest := CombineURI(URIIncludeSlash(UrlServicePath), 'CastleEngineService.xml');
   if URIFileExists(UrlServiceManifest) then
@@ -96,6 +131,7 @@ begin
         raise Exception.CreateFmt('Root element of CastleEngineService.xml must be <service>, not "%s"', [
           Doc.DocumentElement.TagName8
         ]);
+      MinMinSdkVersion := Doc.DocumentElement.AttributeCardinalDef('min_min_sdk_version', 0);
       PackageElement := Doc.DocumentElement.Child('package', false);
       if PackageElement <> nil then
       begin
@@ -110,6 +146,7 @@ begin
             CopyOperation := TServiceCopy.Create;
             CopyOperation.Source := I.Current.AttributeString('source');
             CopyOperation.Target := I.Current.AttributeString('target');
+            CopyOperation.IfParameter := LowerCase(I.Current.AttributeStringDef('if_parameter', ''));
             PackageOperations.Add(CopyOperation);
           end;
         finally FreeAndNil(I) end;
@@ -121,10 +158,23 @@ end;
 procedure TServiceManifest.Package(const Project: TCastleProject; const OutputPath: String);
 var
   C: TServiceCopy;
-  Source, Target: String;
+  Source, Target, ParameterValue: String;
 begin
   for C in PackageOperations do
   begin
+    if (C.IfParameter <> '') and not (
+         FService.Parameters.TryGetValue(C.IfParameter, ParameterValue) and
+         (ParameterValue <> '')
+       ) then
+    begin
+      WritelnVerbose(Format('Packaging service %s: Skipped copying %s, as the project does not define service parameter "%s"', [
+        FService.Name,
+        C.Source,
+        C.IfParameter
+      ]));
+      Continue;
+    end;
+
     (* Copy.Source may be something like '${IOS.FMOD.LIBRARY_PATH}' and the macro
       may expand to an absolute path, or a path relative to the project. *)
     Source := CombinePaths(Project.Path, Project.ReplaceMacros(C.Source));
@@ -139,7 +189,8 @@ begin
         Target
       ]);
     if RegularFileExists(Target) then
-      raise Exception.CreateFmt('Service file "%s" already exists, specified by multiple services: %s', [
+      raise Exception.CreateFmt('Packaging service %s: File "%s" already exists, it was already copied by another service or another <copy> of this service', [
+        FService.Name,
         Target
       ]);
 
@@ -155,20 +206,56 @@ end;
 
 { routines ------------------------------------------------------------------- }
 
-procedure PackageServices(const Project: TCastleProject; const Services: TServiceList;
-  const UrlServicesPath, OutputPath: String);
+function LoadServices(const Services: TServiceList;
+  const UrlServicesPath: String): TServiceManifestList;
 var
   Service: TService;
   ServiceManifest: TServiceManifest;
 begin
-  for Service in Services do
-  begin
-    ServiceManifest := TServiceManifest.Create(Service);
-    try
+  Result := TServiceManifestList.Create(true);
+  try
+    for Service in Services do
+    begin
+      ServiceManifest := TServiceManifest.Create(Service);
+      Result.Add(ServiceManifest);
       ServiceManifest.Load(CombineURI(URIIncludeSlash(UrlServicesPath), Service.Name));
-      ServiceManifest.Package(Project, OutputPath);
-    finally FreeAndNil(ServiceManifest) end;
+    end;
+  except
+    FreeAndNil(Result);
+    raise;
   end;
+end;
+
+procedure PackageServices(const Project: TCastleProject;
+  const ServiceManifests: TServiceManifestList; const OutputPath: String);
+var
+  ServiceManifest: TServiceManifest;
+begin
+  for ServiceManifest in ServiceManifests do
+    ServiceManifest.Package(Project, OutputPath);
+end;
+
+procedure ApplyServicesAndroidMinSdkVersion(const Project: TCastleProject;
+  const ServiceManifests: TServiceManifestList);
+var
+  ServiceManifest: TServiceManifest;
+begin
+  for ServiceManifest in ServiceManifests do
+    if ServiceManifest.MinMinSdkVersion > Project.AndroidMinSdkVersion then
+    begin
+      Writeln(Format('Bumping project''s Android min SDK version to %d (from %d) because service "%s" requires it', [
+        ServiceManifest.MinMinSdkVersion,
+        Project.AndroidMinSdkVersion,
+        ServiceManifest.Service.Name
+      ]));
+      Project.AndroidMinSdkVersionFromServices := ServiceManifest.MinMinSdkVersion;
+    end;
+
+  if Project.AndroidMinSdkVersion > Project.AndroidTargetSdkVersion then
+    raise Exception.CreateFmt('Android min SDK version %d (required by services) is larger than target_sdk_version %d, this is incorrect. Increase target_sdk_version in CastleEngineManifest.xml.', [
+      Project.AndroidMinSdkVersion,
+      Project.AndroidTargetSdkVersion
+    ]);
 end;
 
 end.

@@ -36,12 +36,7 @@ object RegionDesignDialog: TRegionDesignDialog
     Top = 0
     Width = 1280
     Align = alClient
-    Options = []
     TabOrder = 1
-    OnRender = CastleControl1Render
-    OnPress = CastleControl1Press
-    OnRelease = CastleControl1Release
-    OnMotion = CastleControl1Motion
   end
   object StatusBar1: TStatusBar
     Left = 0

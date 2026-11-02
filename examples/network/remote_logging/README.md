@@ -34,12 +34,6 @@ If you really must do it manually, get the 2 necessary DLLs from these locations
 
 - Win32: https://github.com/castle-engine/castle-engine/tree/master/tools/build-tool/data/external_libraries/i386-win32/openssl
 
-## FPC + HTTPS + Linux
-
-If you use FPC on Linux, note that older FPC (including 3.2.2) does not handle latest OpenSSL library versions.
-
-If you get errors related to OpenSSL, upgrade to latest FPC (from GitLab) e.g. using [fpcupdeluxe](https://castle-engine.io/fpcupdeluxe).
-
 ## Building
 
 Compile by:

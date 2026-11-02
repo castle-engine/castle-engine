@@ -1,9 +1,9 @@
 {
-  Copyright 2014-2025 Michalis Kamburelis.
+  Copyright 2014-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -25,12 +25,12 @@
 
 uses SysUtils,
   ToolDisableDynamicLibraries, //< use this unit early, before any other CGE unit
-  CastleUtils, CastleParameters, CastleFindFiles, CastleLog,
+  CastleUtils, CastleParameters, CastleFindFiles, CastleLog, CastleClassUtils,
   CastleFilesUtils, CastleUriUtils, CastleStringUtils,
   CastleApplicationProperties, CastleInternalProjectLocalSettings,
-  CastleInternalArchitectures,
+  CastleInternalArchitectures, CastleInternalProcess,
   ToolPackageFormat, ToolProject, ToolCompile, ToolIOS, ToolAndroid, ToolManifest,
-  ToolNintendoSwitch, ToolCommonUtils, ToolUtils, ToolProcess,
+  ToolNintendoSwitch, ToolCommonUtils, ToolUtils,
   { For ForcePipesPassthrough, necessary for Windows. } ToolProcessRun,
   ToolCache, ToolCompilerInfo, ToolMacOS;
 
@@ -59,7 +59,7 @@ var
   RemoveMask: String = '';
 
 const
-  Options: array [0..29] of TOption =
+  Options: array [0..32] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: 'v'; Long: 'version'; Argument: oaNone),
@@ -90,7 +90,10 @@ const
     (Short: #0 ; Long: 'project-parent-dir'; Argument: oaRequired),
     (Short: #0 ; Long: 'project-caption'; Argument: oaRequired),
     (Short: #0 ; Long: 'project-main-view'; Argument: oaRequired),
-    (Short: #0 ; Long: 'remove-mask'; Argument: oaRequired)
+    (Short: #0 ; Long: 'remove-mask'; Argument: oaRequired),
+    (Short: #0 ; Long: 'use-delphi-dcc'; Argument: oaNone),
+    (Short: #0 ; Long: 'delphi-version'; Argument: oaRequired),
+    (Short: #0 ; Long: 'msbuild-dont-pass-engine-paths'; Argument: oaNone)
   );
 
 procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
@@ -203,14 +206,19 @@ begin
             '    Internal. 2nd part of "editor" command.' + NL +
             NL+
             'output' +NL+
-            '    Output some project information (from the manifest).' + NL +
+            '    Output some project information (determined by the manifest).' + NL +
             '    Next parameter determines the information:' + NL +
+            '      author' + NL +
+            '      caption' + NL +
             '      executable-name' + NL +
             '      name' + NL +
+            '      package-name' + NL +
             '      pascal-name' + NL +
+            '      qualified-name' + NL +
+            '      qualified-name-ios' + NL +
             '      search-paths' + NL +
-            '      version' + NL +
             '      version-code' + NL +
+            '      version' + NL +
             NL+
             'output-environment' +NL+
             '    Output some environment information (independent of any project).' + NL +
@@ -284,6 +292,12 @@ begin
               'Only on Windows (ignored on other systems): Force using less performant, but more robust, way to run child processes with "passthrough", like for "castle-engine run". Useful to run "castle-engine run" from PowerShell, outside of CGE editor.') + NL +
             OptionDescription('--remove-mask',
               'Use only with "unused-data" command. Removes files that match the given mask. For example, --remove-mask=*.png will remove all PNG files detected as unused. --remove-mask=* will remove all files detected as unused.') + NL +
+            OptionDescription('--use-delphi-dcc',
+              'When compiling with Delphi, use the historic approach of calling the "dccXXX" compiler directly, instead of using msbuild on the generated .dproj.') + NL +
+            OptionDescription('--delphi-version=VERSION',
+              'When compiling with Delphi, use the given Delphi version. The version provided is the "Product Version", corresponding to the subdirectories of "C:\Program Files (x86)\Embarcadero\Studio", like 37.0 for Delphi 13. By default, the tool automatically detects the latest installed Delphi version.') + NL +
+            OptionDescription('--msbuild-dont-pass-engine-paths',
+              'When compiling with Delphi using msbuild, do not pass engine paths to msbuild. Useful to avoid hitting the 32k command-line limit with msbuild.') + NL +
             TargetOptionHelp +
             NL +
             OSOptionHelp +
@@ -318,7 +332,16 @@ begin
           CPU := StringToCPU(Argument);
           PlatformFromCommandLine := true;
         end;
-    5 : Verbose := true;
+    5 : begin
+          Verbose := true;
+          { Log of e.g. CastleInternalProcess, with full commmands,
+            is done using WritelnLog.
+            TODO: This is not ideal, because in effect both Writeln
+            (some guarded by "if Verbose", some not) and WritelnLog
+            go to stdout, and the content may be interleaved, depending
+            on who does flushing when. }
+          InitializeLog(StdOutStream);
+        end;
     6 : Mode := StringToMode(Argument);
     7 : AssumeCompiled := true;
     8 : Fast := true;
@@ -343,6 +366,9 @@ begin
     27: ProjectCaption := Argument;
     28: ProjectMainView := Argument;
     29: RemoveMask := Argument;
+    30: CompileDelphiUsingDcc := true;
+    31: ForceDelphiVersion := TDelphiVersion.FromString(Argument);
+    32: MSBuildPassEnginePaths := false;
     else raise EInternalError.Create('OptionProc');
   end;
 end;
@@ -495,19 +521,19 @@ begin
             Project.DoClean;
           Project.DoCompile(OverrideCompiler, Target, OS, CPU, Mode, CompilerExtraOptions);
         end;
-        Project.DoPackage(Target, OS, CPU, Mode, PackageFormat, PackageNameIncludeVersion, UpdateOnlyCode);
+        Project.DoPackage(OverrideCompiler, Target, OS, CPU, Mode, PackageFormat, PackageNameIncludeVersion, UpdateOnlyCode);
       end else
       if Command = 'install' then
-        Project.DoInstall(Target, OS, CPU, Mode, PackageFormat, PackageNameIncludeVersion)
+        Project.DoInstall(OverrideCompiler, Target, OS, CPU, Mode, PackageFormat, PackageNameIncludeVersion)
       else
       if Command = 'uninstall' then
-        Project.DoUnInstall(Target, OS, CPU)
+        Project.DoUnInstall(OverrideCompiler, Target, OS, CPU, Mode)
       else
       if Command = 'run' then
       begin
         RestOfParameters := CreateRunParameters;
         try
-          Project.DoRun(Target, OS, CPU, RestOfParameters);
+          Project.DoRun(OverrideCompiler, Target, OS, CPU, Mode, RestOfParameters);
         finally FreeAndNil(RestOfParameters) end;
       end else
       if Command = 'compile-run' then
@@ -515,7 +541,7 @@ begin
         Project.DoCompile(OverrideCompiler, Target, OS, CPU, Mode, CompilerExtraOptions);
         RestOfParameters := CreateRunParameters;
         try
-          Project.DoRun(Target, OS, CPU, RestOfParameters);
+          Project.DoRun(OverrideCompiler, Target, OS, CPU, Mode, RestOfParameters);
         finally FreeAndNil(RestOfParameters) end;
       end
       else
@@ -548,7 +574,7 @@ begin
       if Command = 'output' then
       begin
         Parameters.CheckHigh(2);
-        Project.DoOutput(Parameters[2]);
+        Project.DoOutput(Parameters[2], Target, OS, CPU, PackageFormat, PackageNameIncludeVersion);
       end else
       if Command = 'unused-data' then
         Project.DoUnusedData(RemoveMask)

@@ -1,9 +1,9 @@
 {
-  Copyright 2014-2025 Michalis Kamburelis.
+  Copyright 2014-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -22,7 +22,7 @@ interface
 
 uses SysUtils, Classes, Generics.Collections,
   CastleFindFiles, CastleStringUtils, CastleUtils, CastleInternalTools,
-  CastleInternalArchitectures,
+  CastleInternalArchitectures, CastleInternalProcess,
   ToolCompile, ToolUtils, ToolServices, ToolAssocDocTypes,
   ToolPackage, ToolManifest, ToolProcess, ToolPackageFormat;
 
@@ -46,6 +46,7 @@ type
     FLaunchImageStoryboardInitialized: Boolean;
     FLaunchImageStoryboardWidth, FLaunchImageStoryboardHeight: Integer;
     FGuidFromName: Boolean;
+    FAndroidMinSdkVersionFromServices: Cardinal;
 
     procedure DeleteFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
     function PackageName(const Target: TTarget; const OS: TOS; const CPU: TCPU;
@@ -94,8 +95,23 @@ type
       const TemplateRelativeUrl, TargetRelativePath, ErrorMessageMissingGameUnits: string;
       const CreateIfNecessary: boolean);
 
-    function AndroidSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
-    function IOSSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
+    { Determine the final compiler: use OverrideCompiler (specified on
+      command-line), then compiler specified in CastleEngineManifest.xml,
+      then autodetect.
+
+      @param(DefaultToFpc Assume FPC if no compiler was found.
+        See FinishDetectingCompiler. Use this for commands that use
+        the compilation output, without compiling.) }
+    function FinalizeCompiler(const OverrideCompiler: TCompiler;
+      const DefaultToFpc: Boolean = false): TCompilerDetected;
+
+    { Android CPU used by Delphi compilation, see CompileAndroid. }
+    function DelphiAndroidCPU(const Target: TTarget; const CPU: TCPU): TCPU;
+
+    function AndroidSourceFile(const FinalCompiler: TCompilerDetected;
+      const AbsolutePath, CreateIfNecessary: boolean): string;
+    function IOSSourceFile(const FinalCompiler: TCompilerDetected;
+      const AbsolutePath, CreateIfNecessary: boolean): string;
     function NXSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
     function StandaloneSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
 
@@ -150,16 +166,22 @@ type
       const Target: TTarget; const OS: TOS; const CPU: TCPU;
       const Mode: TCompilationMode; const CompilerExtraOptions: TStrings = nil;
       const AllowCache: Boolean = true);
-    procedure DoPackage(const Target: TTarget;
-      const OS: TOS; const CPU: TCPU; const Mode: TCompilationMode;
+    procedure DoPackage(const OverrideCompiler: TCompiler;
+      const Target: TTarget; const OS: TOS; const CPU: TCPU;
+      const Mode: TCompilationMode;
       const PackageFormat: TPackageFormat;
       const PackageNameIncludeVersion, UpdateOnlyCode: Boolean);
-    procedure DoInstall(const Target: TTarget; const OS: TOS; const CPU: TCPU;
+    procedure DoInstall(const OverrideCompiler: TCompiler;
+      const Target: TTarget; const OS: TOS; const CPU: TCPU;
       const Mode: TCompilationMode;
       const PackageFormat: TPackageFormat;
       const PackageNameIncludeVersion: Boolean);
-    procedure DoUnInstall(const Target: TTarget; const OS: TOS; const CPU: TCPU);
-    procedure DoRun(const Target: TTarget; const OS: TOS; const CPU: TCPU;
+    procedure DoUnInstall(const OverrideCompiler: TCompiler;
+      const Target: TTarget; const OS: TOS; const CPU: TCPU;
+      const Mode: TCompilationMode);
+    procedure DoRun(const OverrideCompiler: TCompiler;
+      const Target: TTarget; const OS: TOS; const CPU: TCPU;
+      const Mode: TCompilationMode;
       const Params: TCastleStringList);
     procedure DoPackageSource(
       const PackageFormat: TPackageFormat;
@@ -171,7 +193,10 @@ type
     procedure DoEditor;
     procedure DoEditorRebuildIfNeeded;
     procedure DoEditorRun(const WaitForProcessId: TProcessId);
-    procedure DoOutput(const OutputKey: String);
+    procedure DoOutput(const OutputKey: String;
+      const Target: TTarget; const OS: TOS; const CPU: TCPU;
+      const PackageFormat: TPackageFormatNoDefault;
+      const PackageNameIncludeVersion: Boolean);
     procedure DoUnusedData(const RemoveMask: String);
 
     { Information about the project, derived from CastleEngineManifest.xml. }
@@ -180,6 +205,8 @@ type
     function Version: TProjectVersion;
     function ManifestCompiler: TCompiler;
     function QualifiedName: string;
+    { QualifiedName for iOS: either qualified_name, or ios.override_qualified_name. }
+    function IOSQualifiedName: string;
     function Dependencies: TDependencies;
     function Name: string;
     { Project path. Always ends with path delimiter, like a slash or backslash. }
@@ -194,15 +221,25 @@ type
     function FullscreenImmersive: boolean;
     function ScreenOrientation: TScreenOrientation;
     function AndroidCompileSdkVersion: Cardinal;
+    { Android min SDK version.
+      This is the maximum of min_sdk_version from CastleEngineManifest.xml
+      and AndroidMinSdkVersionFromServices. }
     function AndroidMinSdkVersion: Cardinal;
     function AndroidTargetSdkVersion: Cardinal;
     function Icons: TImageFileNames;
     function LaunchImages: TImageFileNames;
     function AndroidServices: TServiceList;
     function IOSServices: TServiceList;
+    function IOSOverrideIconFullUrl: String;
     function AssociateDocumentTypes: TAssociatedDocTypeList;
     function LocalizedAppNames: TLocalizedAppNameList;
     function LaunchImageStoryboard: TLaunchImageStoryboard;
+
+    { Minimum Android min SDK version required by the used services
+      (min_min_sdk_version in their CastleEngineService.xml), 0 if none.
+      Set by ApplyServicesAndroidMinSdkVersion when packaging for Android. }
+    property AndroidMinSdkVersionFromServices: Cardinal
+      read FAndroidMinSdkVersionFromServices write FAndroidMinSdkVersionFromServices;
 
     function ReplaceMacros(const Source: string): string;
 
@@ -233,8 +270,19 @@ type
       otherwise a complete absolute path.
 
       CPU should be one of CPUs supported on Android platform (arm, aarch64)
-      or cpuNone to get the library name without the CPU suffix. }
+      or cpuNone to get the library name without the CPU suffix.
+
+      This should only be used when compiler is FPC.
+      With Delphi, we rely on building with msbuild, from the project file
+      to ready-made APK. }
     function AndroidLibraryFile(const CPU: TCPU; const AbsolutePath: boolean = true): string;
+
+    { Directory with Android compilation output of Delphi (msbuild),
+      as configured by DPROJ. Absolute, ends with path delimiter. }
+    function DelphiAndroidOutputPath(const CPU: TCPU; const Mode: TCompilationMode): String;
+
+    { APK created by Delphi (msbuild). Absolute path. }
+    function DelphiAndroidApkFile(const CPU: TCPU; const Mode: TCompilationMode): String;
 
     { Get platform-independent files that should be included in a package,
       remove files that should be excluded.
@@ -256,7 +304,11 @@ type
 
     { Output iOS library resulting from compilation.
       Relative to @link(Path) if AbsolutePath = @false,
-      otherwise a complete absolute path. }
+      otherwise a complete absolute path.
+
+      This should only be used when compiler is FPC.
+      With Delphi, we rely on building with msbuild, from the project file
+      to ready-made IPA. }
     function IOSLibraryFile(const AbsolutePath: boolean = true): string;
 
     { Output Nintendo Switch library resulting from compilation.
@@ -308,7 +360,7 @@ type
 implementation
 
 uses {$ifdef UNIX} BaseUnix, {$endif}
-  StrUtils, DOM, Process,
+  StrUtils, DOM,
   CastleUriUtils, CastleXmlUtils, CastleLog, CastleFilesUtils, CastleImages,
   CastleTimeUtils, CastleComponentSerialize, CastleColors,
   ToolResources, ToolAndroid, ToolMacOS, ToolWeb,
@@ -532,10 +584,51 @@ procedure TCastleProject.DoCompile(const OverrideCompiler: TCompiler; const Targ
     finally FreeAndNil(List) end;
   end;
 
+  function GetLazarusProject: String;
+  begin
+    { If manifest has lazarus_project or standalone_source: }
+    Result := Manifest.LazarusProject;
+    { Otherwise, calculate it using ExplicitStandaloneFile logic,
+      which will add "_standalone.lpi" to the NamePascal. }
+    if Result = '' then
+      Result := ExplicitStandaloneFile('.lpi');
+  end;
+
+  { Adjust executable path in SourceExe (must be an absolute path
+    and have exe extension) to follow Delphi conventions.
+    Delphi conventions are to put executable within a subdirectory
+    like Win32\Debug or Win64\Release, depending on OS/CPU/Mode.
+
+    Note that we attempt this always when SourceExe does not seem
+    to exist after compilation. For now, we don't check whether
+    the actual compiler used was Delphi. }
+  procedure AdjustSourceExeForDelphi(var SourceExe: String;
+    const OS: TOS; const CPU: TCPU; const Mode: TCompilationMode);
+  var
+    Platform, Subdir, NewSourceExe: String;
+  begin
+    if not RegularFileExists(SourceExe) then
+    begin
+      Platform := DelphiPlatform(OS, CPU, false);
+      if Platform = '' then
+        Exit; // OS/CPU not supported by Delphi, nothing to do
+      Subdir := Platform + PathDelim + DelphiConfig(Mode);
+      NewSourceExe := CombinePaths(ExtractFilePath(SourceExe),
+        Subdir + PathDelim + ExtractFileName(SourceExe));
+      if RegularFileExists(NewSourceExe) then
+      begin
+        SourceExe := NewSourceExe;
+        WritelnVerbose(Format('Found executable in a subdirectory "%s", following Delphi conventions.', [
+          Subdir
+        ]));
+      end;
+    end;
+  end;
+
 var
   SourceExe, DestExe, MainSource: string;
   CompilerOptions: TCompilerOptions;
-  FinalCompiler: TCompiler;
+  FinalCompiler: TCompilerDetected;
 begin
   Writeln(Format('Compiling project "%s" for %s in mode "%s".',
     [Name, TargetCompleteToString(Target, OS, CPU), ModeToString(Mode)]));
@@ -557,26 +650,27 @@ begin
     { TODO: "lazbuild" should be another Compiler option, called "lazbuild (calls FPC using options from LPI file)" }
     if Manifest.BuildUsingLazbuild then
     begin
-      CompileLazbuild(Path, Manifest.LazarusProject, CompilerOptions);
+      CompileLazbuild(Path, GetLazarusProject, CompilerOptions);
       Exit;
     end;
 
-    { use compiler specified in CastleEngineManifest.xml,
-      overridden by Compiler specified on command-line (given as parameter). }
-    FinalCompiler := OverrideCompiler;
-    if FinalCompiler = coAutodetect then
-      FinalCompiler := ManifestCompiler;
+    FinalCompiler := FinalizeCompiler(OverrideCompiler);
 
     case Target of
       targetAndroid:
         begin
-          CompileAndroid(FinalCompiler, Self, Path, AndroidSourceFile(true, true), CompilerOptions);
+          CompileAndroid(FinalCompiler, Self, Path,
+            AndroidSourceFile(FinalCompiler, true, true), CompilerOptions);
         end;
       targetIOS:
         begin
-          CompileIOS(FinalCompiler, Path, IOSSourceFile(true, true), CompilerOptions);
-          LinkIOSLibrary(FinalCompiler, Path, IOSLibraryFile);
-          Writeln('Compiled library for iOS in ', IOSLibraryFile(false));
+          CompileIOS(FinalCompiler, Path,
+            IOSSourceFile(FinalCompiler, true, true), CompilerOptions);
+          if FinalCompiler = coFpc then
+          begin
+            LinkIOSLibrary(FinalCompiler, Path, IOSLibraryFile);
+            Writeln('Compiled library for iOS in ', IOSLibraryFile(false));
+          end;
         end;
       targetNintendoSwitch:
         begin
@@ -592,11 +686,15 @@ begin
           case OS of
             Android:
               begin
-                Compile(FinalCompiler, Path, AndroidSourceFile(true, true), CompilerOptions);
-                { Our default compilation output doesn't contain CPU suffix,
-                  but we need the CPU suffix to differentiate between Android/ARM and Android/Aarch64. }
-                CheckRenameFile(AndroidLibraryFile(cpuNone), AndroidLibraryFile(CPU));
-                Writeln('Compiled library for Android in ', AndroidLibraryFile(CPU, false));
+                Compile(FinalCompiler, Path,
+                  AndroidSourceFile(FinalCompiler, true, true), CompilerOptions);
+                if FinalCompiler = coFpc then
+                begin
+                  { Our default compilation output doesn't contain CPU suffix,
+                    but we need the CPU suffix to differentiate between Android/ARM and Android/Aarch64. }
+                  CheckRenameFile(AndroidLibraryFile(cpuNone), AndroidLibraryFile(CPU));
+                  Writeln('Compiled library for Android in ', AndroidLibraryFile(CPU, false));
+                end;
               end;
             else
               begin
@@ -605,7 +703,7 @@ begin
                   raise Exception.Create('standalone_source property for project not defined, cannot compile standalone version');
 
                 if MakeAutoGeneratedResources(Self, Path + ExtractFilePath(MainSource), OS, CPU) then
-                  CompilerOptions.ExtraOptions.Add('-dCASTLE_AUTO_GENERATED_RESOURCES');
+                  CompilerOptions.Defines.Add('CASTLE_AUTO_GENERATED_RESOURCES');
 
                 if Target = targetMacOS then
                   CompileMacOS(FinalCompiler, Path, MainSource, CompilerOptions)
@@ -614,6 +712,8 @@ begin
 
                 SourceExe := CombinePaths(Path,
                   ChangeFileExt(MainSource, ExeExtensionOS(OS)));
+                AdjustSourceExeForDelphi(SourceExe,
+                  CompilerOptions.OS, CompilerOptions.CPU, CompilerOptions.Mode);
                 DestExe := CombinePaths(OutputPath,
                   ChangeFileExt(ExecutableName, ExeExtensionOS(OS)));
                 AddExternalLibraries(OutputPath);
@@ -722,7 +822,8 @@ begin
   end;
 end;
 
-procedure TCastleProject.DoPackage(const Target: TTarget;
+procedure TCastleProject.DoPackage(
+  const OverrideCompiler: TCompiler; const Target: TTarget;
   const OS: TOS; const CPU: TCPU;
   const Mode: TCompilationMode; const PackageFormat: TPackageFormat;
   const PackageNameIncludeVersion, UpdateOnlyCode: Boolean);
@@ -844,13 +945,52 @@ var
     finally FreeAndNil(Pack) end;
   end;
 
+  { Create APK using Delphi: run msbuild with "Deploy" target.
+    The project must be already compiled. }
+  procedure PackageAndroidDelphi(const PackageFormat: TPackageFormatNoDefault);
+  var
+    DelphiCPU: TCPU;
+    Options: TCompilerOptions;
+    MainSource, DeployProjFile, ApkFile: String;
+  begin
+    if PackageFormat <> pfAndroidApk then
+      raise Exception.Create('Creating Android package other than APK is not implemented with Delphi');
+
+    { Only Delphi IDE can generate .deployproj, and it is necessary
+      for msbuild to have "Deploy" target. }
+    MainSource := AndroidSourceFile(coDelphi, true, false);
+    DeployProjFile := ChangeFileExt(MainSource, '.deployproj');
+    if not RegularFileExists(DeployProjFile) then
+      raise Exception.CreateFmt('Cannot find "%s". You need to deploy the project once from Delphi IDE, to create this file. See https://castle-engine.io/delphi_mobile for details.', [
+        DeployProjFile
+      ]);
+
+    DelphiCPU := DelphiAndroidCPU(Target, CPU);
+
+    Options := TCompilerOptions.Create;
+    try
+      Options.OS := Android;
+      Options.CPU := DelphiCPU;
+      Options.Mode := Mode;
+      RunDelphiMSBuild(Path, MainSource, 'Deploy', Options);
+    finally FreeAndNil(Options) end;
+
+    ApkFile := DelphiAndroidApkFile(DelphiCPU, Mode);
+    if not RegularFileExists(ApkFile) then
+      raise Exception.CreateFmt('Delphi did not create the expected APK: "%s"', [ApkFile]);
+    Writeln('Build ' + ApkFile);
+  end;
+
 var
   PackageFormatFinal: TPackageFormatNoDefault;
   WantsIOSArchive: Boolean;
   IOSArchiveType: TIosArchiveType;
   PackName: String;
+  FinalCompiler: TCompilerDetected;
 begin
   PackageFormatFinal := PackageFormatFinalize(Target, OS, CPU, PackageFormat);
+
+  FinalCompiler := FinalizeCompiler(OverrideCompiler, true);
 
   Writeln(Format('Packaging project "%s" for %s (platform: %s).' + NL + 'Format: %s.', [
     Name,
@@ -862,6 +1002,9 @@ begin
   case PackageFormatFinal of
     pfIosXcodeProject, pfIosArchiveDevelopment, pfIosArchiveAdHoc, pfIosArchiveAppStore:
       begin
+        if FinalCompiler = coDelphi then
+          raise Exception.Create('"package" command is not implemented for Delphi with iOS');
+
         // set IOSExportMethod early, as it determines IOS_EXPORT_METHOD macro
         WantsIOSArchive := PackageFormatWantsIOSArchive(PackageFormatFinal, IOSArchiveType, IOSExportMethod);
         PackageIOS(Self, UpdateOnlyCode);
@@ -870,11 +1013,16 @@ begin
       end;
     pfAndroidApk, pfAndroidAppBundle:
       begin
-        if Target = targetAndroid then
-          AndroidCPUS := DetectAndroidCPUS
+        if FinalCompiler = coDelphi then
+          PackageAndroidDelphi(PackageFormatFinal)
         else
-          AndroidCPUS := [CPU];
-        PackageAndroid(Self, OS, AndroidCPUS, Mode, PackageFormatFinal, PackageNameIncludeVersion);
+        begin
+          if Target = targetAndroid then
+            AndroidCPUS := DetectAndroidCPUS
+          else
+            AndroidCPUS := [CPU];
+          PackageAndroid(Self, OS, AndroidCPUS, Mode, PackageFormatFinal, PackageNameIncludeVersion);
+        end;
       end;
     pfNintendoSwitchProject:
       PackageNintendoSwitch(Self);
@@ -904,7 +1052,28 @@ begin
   end;
 end;
 
-procedure TCastleProject.DoInstall(const Target: TTarget;
+function TCastleProject.FinalizeCompiler(const OverrideCompiler: TCompiler;
+  const DefaultToFpc: Boolean): TCompilerDetected;
+var
+  FinalCompiler: TCompiler;
+begin
+  FinalCompiler := OverrideCompiler;
+  if FinalCompiler = coAutodetect then
+    FinalCompiler := ManifestCompiler;
+  FinishDetectingCompiler(FinalCompiler, DefaultToFpc);
+  Result := FinalCompiler;
+end;
+
+function TCastleProject.DelphiAndroidCPU(const Target: TTarget; const CPU: TCPU): TCPU;
+begin
+  if Target = targetAndroid then
+    Result := Aarch64
+  else
+    Result := CPU;
+end;
+
+procedure TCastleProject.DoInstall(const OverrideCompiler: TCompiler;
+  const Target: TTarget;
   const OS: TOS; const CPU: TCPU; const Mode: TCompilationMode;
   const PackageFormat: TPackageFormat;
   const PackageNameIncludeVersion: Boolean);
@@ -918,7 +1087,9 @@ begin
 
   case PackageFormatFinal of
     pfAndroidApk, pfAndroidAppBundle:
-      InstallAndroid(Self, Mode, PackageFormatFinal, PackageNameIncludeVersion);
+      InstallAndroid(Self, FinalizeCompiler(OverrideCompiler, true),
+        DelphiAndroidCPU(Target, CPU), Mode,
+        PackageFormatFinal, PackageNameIncludeVersion);
     else
       //raise Exception.Create('The "install" command is not useful for this target / OS / CPU right now. Install the application manually.');
       // Less generic message, hardcoding that only Android makes sense now.
@@ -926,22 +1097,25 @@ begin
   end;
 end;
 
-procedure TCastleProject.DoUnInstall(const Target: TTarget;
-  const OS: TOS; const CPU: TCPU);
+procedure TCastleProject.DoUnInstall(const OverrideCompiler: TCompiler;
+  const Target: TTarget; const OS: TOS; const CPU: TCPU;
+  const Mode: TCompilationMode);
 begin
   Writeln(Format('Uninstalling project "%s" for %s.',
     [Name, TargetCompleteToString(Target, OS, CPU)]));
 
   if (Target = targetAndroid) or (OS = Android) then
-    UninstallAndroid(Self)
+    UninstallAndroid(Self, FinalizeCompiler(OverrideCompiler, true),
+      DelphiAndroidCPU(Target, CPU), Mode)
   else
     //raise Exception.Create('The "uninstall" command is not useful for this target / OS / CPU right now.');
     // Less generic message, hardcoding that only Android makes sense now.
     raise Exception.Create('The "uninstall" command is only useful on Android now (change target platform to Android)');
 end;
 
-procedure TCastleProject.DoRun(const Target: TTarget;
-  const OS: TOS; const CPU: TCPU;
+procedure TCastleProject.DoRun(const OverrideCompiler: TCompiler;
+  const Target: TTarget; const OS: TOS; const CPU: TCPU;
+  const Mode: TCompilationMode;
   const Params: TCastleStringList);
 
   procedure MaybeUseWrapperToRun(var ExeName: String);
@@ -1019,6 +1193,19 @@ procedure TCastleProject.DoRun(const Target: TTarget;
     end;
   end;
 
+  { Like @link(ExecuteCommandSimple) but override environment to set CASTLE_LOG=stdout. }
+  procedure ExecuteCommandLogStdout(const CurrentDirectory: String;
+    const ExeName: String; const Options: array of string);
+  var
+    OverrideEnvironment: TStringList;
+  begin
+    OverrideEnvironment := EnvironmentStrings;
+    try
+      OverrideEnvironment.Values['CASTLE_LOG'] := 'stdout';
+      ExecuteCommandSimple(CurrentDirectory, ExeName, Options, OverrideEnvironment);
+    finally FreeAndNil(OverrideEnvironment) end;
+  end;
+
 var
   RunWorkingDir: String;
   ExeName: string;
@@ -1029,12 +1216,15 @@ begin
 
   case Target of
     targetIOS: RunIOS(Self);
-    targetAndroid: RunAndroid(Self);
+    targetAndroid:
+      RunAndroid(Self, FinalizeCompiler(OverrideCompiler, true),
+        DelphiAndroidCPU(Target, CPU), Mode);
     targetWeb: RunWeb(Self);
     targetCustom:
       begin
         if OS = Android then
-          RunAndroid(Self)
+          RunAndroid(Self, FinalizeCompiler(OverrideCompiler, true),
+            DelphiAndroidCPU(Target, CPU), Mode)
         else
         begin
           ExeName := Path + ChangeFileExt(ExecutableName, ExeExtensionOS(OS));
@@ -1048,8 +1238,10 @@ begin
             MaybeUseWineToRun(ExeName, NewParams);
             MaybeRunThroughMacAppBundle(RunWorkingDir, ExeName, NewParams);
             Flush(Output); // needed to see "Running Windows EXE on Unix, trying to use WINE." in right order in editor
-            { We set current path to Path, not OutputPath, because data/ subdirectory is under Path. }
-            RunCommandSimple(RunWorkingDir, ExeName, NewParams.ToArray, 'CASTLE_LOG', 'stdout');
+
+            { Note: We set current path to Path (RunWorkingDir), not OutputPath,
+              because data/ subdirectory is under Path. }
+            ExecuteCommandLogStdout(RunWorkingDir, ExeName, NewParams.ToArray);
           finally FreeAndNil(NewParams) end;
         end;
       end;
@@ -1182,7 +1374,8 @@ begin
   // just ignore RelativeResult, AbsoluteResult output values
 end;
 
-function TCastleProject.AndroidSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
+function TCastleProject.AndroidSourceFile(const FinalCompiler: TCompilerDetected;
+  const AbsolutePath, CreateIfNecessary: boolean): string;
 
   procedure InvalidAndroidSource(const FinalAndroidSource: string);
   begin
@@ -1201,19 +1394,33 @@ begin
     AbsoluteResult := Path + RelativeResult;
   end else
   begin
-    TemplateRelativeUrl := 'android/library_template_integrated.lpr';
-    GeneratedSourceFile(TemplateRelativeUrl,
-      'android' + PathDelim + NamePascal + '_android.lpr',
-      ErrorMessageMissingGameUnits,
-      CreateIfNecessary, RelativeResult, AbsoluteResult);
-    GeneratedSourceFile('castleautogenerated_template.pas',
-      'android' + PathDelim + 'castleautogenerated.pas',
-      ErrorMessageMissingGameUnits,
-      CreateIfNecessary);
+    case FinalCompiler of
+      coDelphi:
+        begin
+          { In case of Delphi, just use StandaloneSource.
+            With Delphi, Android source is the same DPR as for desktops, by default. }
+          Exit(StandaloneSourceFile(AbsolutePath, CreateIfNecessary));
+        end;
+      coFpc:
+        begin
+          TemplateRelativeUrl := 'android/library_template_integrated.lpr';
+          GeneratedSourceFile(TemplateRelativeUrl,
+            'android' + PathDelim + NamePascal + '_android.lpr',
+            ErrorMessageMissingGameUnits,
+            CreateIfNecessary, RelativeResult, AbsoluteResult);
+          GeneratedSourceFile('castleautogenerated_template.pas',
+            'android' + PathDelim + 'castleautogenerated.pas',
+            ErrorMessageMissingGameUnits,
+            CreateIfNecessary);
+        end;
+      else raise EInternalError.Create('AndroidSourceFile:FinalCompiler unexpected');
+    end;
   end;
 
-  // for speed, do not check correctness if CreateIfNecessary = false
-  if CreateIfNecessary then
+  { Check correctness of the Android source file, with FPC it must have
+    certain exports.
+    For speed, do not check correctness if CreateIfNecessary = false. }
+  if CreateIfNecessary and (FinalCompiler = coFpc) then
   begin
     { check Android lpr file correctness.
       For now, do it even if we generated Android project from our own template
@@ -1231,7 +1438,8 @@ begin
     Result := RelativeResult;
 end;
 
-function TCastleProject.IOSSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
+function TCastleProject.IOSSourceFile(const FinalCompiler: TCompilerDetected;
+  const AbsolutePath, CreateIfNecessary: boolean): string;
 const
   ErrorMessageMissingGameUnits = 'You must specify game_units="..." in the CastleEngineManifest.xml to enable build tool to create an iOS project. Alternatively, you can specify ios_source="..." in the CastleEngineManifest.xml, to explicitly indicate the iOS library source code.';
 var
@@ -1243,14 +1451,25 @@ begin
     AbsoluteResult := Path + RelativeResult;
   end else
   begin
-    GeneratedSourceFile('ios/library_template.lpr',
-      'ios' + PathDelim + NamePascal + '_ios.lpr',
-      ErrorMessageMissingGameUnits,
-      CreateIfNecessary, RelativeResult, AbsoluteResult);
-    GeneratedSourceFile('castleautogenerated_template.pas',
-      'ios' + PathDelim + 'castleautogenerated.pas',
-      ErrorMessageMissingGameUnits,
-      CreateIfNecessary);
+    case FinalCompiler of
+      coDelphi:
+        begin
+          { In case of Delphi, just use StandaloneSource. }
+          Exit(StandaloneSourceFile(AbsolutePath, CreateIfNecessary));
+        end;
+      coFpc:
+        begin
+          GeneratedSourceFile('ios/library_template.lpr',
+            'ios' + PathDelim + NamePascal + '_ios.lpr',
+            ErrorMessageMissingGameUnits,
+            CreateIfNecessary, RelativeResult, AbsoluteResult);
+          GeneratedSourceFile('castleautogenerated_template.pas',
+            'ios' + PathDelim + 'castleautogenerated.pas',
+            ErrorMessageMissingGameUnits,
+            CreateIfNecessary);
+        end;
+      else raise EInternalError.Create('IOSSourceFile:FinalCompiler unexpected');
+    end;
   end;
 
   if AbsolutePath then
@@ -1314,18 +1533,47 @@ end;
 
 function TCastleProject.AndroidLibraryFile(const CPU: TCPU;
   const AbsolutePath: boolean): string;
+const
+  AssumeCompiler = coFpc;
 var
   Ext: String;
 begin
   Ext := '.so';
   if CPU <> cpuNone then
     Ext := '_' + CPUToString(CPU) + Ext;
-  Result := InsertLibPrefix(ChangeFileExt(AndroidSourceFile(AbsolutePath, false), Ext));
+  Result := InsertLibPrefix(ChangeFileExt(
+    AndroidSourceFile(AssumeCompiler, AbsolutePath, false), Ext));
+end;
+
+function TCastleProject.DelphiAndroidOutputPath(const CPU: TCPU;
+  const Mode: TCompilationMode): String;
+var
+  DelphiWorkingPath: String;
+begin
+  { The DPROJ output directories are relative to DPROJ, which is alongside the DPR. }
+  DelphiWorkingPath := ExtractFilePath(AndroidSourceFile(coDelphi, true, false));
+  Result := TempOutputPath(DelphiWorkingPath, false) +
+    'delphi' + PathDelim +
+    DelphiPlatform(Android, CPU) + PathDelim +
+    DelphiConfig(Mode) + PathDelim;
+end;
+
+function TCastleProject.DelphiAndroidApkFile(const CPU: TCPU;
+  const Mode: TCompilationMode): String;
+var
+  ProjectName: String;
+begin
+  ProjectName := ChangeFileExt(ExtractFileName(AndroidSourceFile(coDelphi, true, false)), '');
+  Result := DelphiAndroidOutputPath(CPU, Mode) +
+    ProjectName + PathDelim + 'bin' + PathDelim + ProjectName + '.apk';
 end;
 
 function TCastleProject.IOSLibraryFile(const AbsolutePath: boolean): string;
+const
+  AssumeCompiler = coFpc;
 begin
-  Result := InsertLibPrefix(ChangeFileExt(IOSSourceFile(AbsolutePath, false), '.a'));
+  Result := InsertLibPrefix(ChangeFileExt(
+    IOSSourceFile(AssumeCompiler, AbsolutePath, false), '.a'));
 end;
 
 function TCastleProject.NXLibraryFile(const AbsolutePath: boolean): string;
@@ -1342,7 +1590,7 @@ procedure TCastleProject.DoClean;
     begin
       if Verbose then
         Writeln('Deleting ' + FileName);
-      CheckDeleteFile(FileName);
+      CheckDeleteFile(FileName, false, true);
       Inc(DeletedFiles);
     end;
   end;
@@ -1537,9 +1785,9 @@ begin
     ExtractTemplate('custom_editor_template/', EditorPath, true);
 
     // use lazbuild to compile CGE packages and CGE editor
-    RunLazbuild(Path, [CgePath + 'packages/castle_base.lpk']);
-    RunLazbuild(Path, [CgePath + 'packages/castle_components.lpk']);
-    RunLazbuild(Path, [CgePath + 'packages/castle_editor_components.lpk']);
+    RunLazbuild(Path, [CgePath + 'packages/lazarus/castle_engine_base.lpk']);
+    RunLazbuild(Path, [CgePath + 'packages/lazarus/castle_engine_lcl.lpk']);
+    RunLazbuild(Path, [CgePath + 'packages/lazarus/castle_engine_editor_components.lpk']);
     RunLazbuild(Path, [EditorPath + 'castle_editor_automatic_package.lpk']);
     RunLazbuild(Path, [EditorPath + 'castle_editor.lpi']);
   end;
@@ -1711,18 +1959,35 @@ begin
     Running editor should not "lock" the project DLLs on Windows.
     We should have a system of services for desktop, to manage DLLs, including custom
     DLLs like Effekseer and FMOD. }
-  RunCommandNoWait(Path, EditorExe, [ManifestFile], [], NewEnvironment);
+  ExecuteCommandNoWait(Path, EditorExe, [ManifestFile], [], NewEnvironment);
+
+  FreeAndNil(NewEnvironment);
 end;
 
-procedure TCastleProject.DoOutput(const OutputKey: String);
+procedure TCastleProject.DoOutput(const OutputKey: String;
+  const Target: TTarget; const OS: TOS; const CPU: TCPU;
+  const PackageFormat: TPackageFormatNoDefault;
+  const PackageNameIncludeVersion: Boolean);
+var
+  PackageFormatFinal: TPackageFormatNoDefault;
 begin
   case OutputKey of
+    // keep this alphabetical (because there's no other obvious ordering)
+    'author': Writeln(Author);
+    'caption': Writeln(Caption);
     'executable-name': Writeln(ExecutableName);
     'name': Writeln(Name);
+    'package-name':
+      begin
+        PackageFormatFinal := PackageFormatFinalize(Target, OS, CPU, PackageFormat);
+        Writeln(PackageName(Target, OS, CPU, PackageFormatFinal, PackageNameIncludeVersion));
+      end;
     'pascal-name': Writeln(NamePascal);
+    'qualified-name': Writeln(QualifiedName);
+    'qualified-name-ios': Writeln(IOSQualifiedName);
     'search-paths': Writeln(Manifest.SearchPaths.Text);
-    'version': Writeln(Manifest.Version.DisplayValue);
     'version-code': Writeln(Manifest.Version.Code);
+    'version': Writeln(Manifest.Version.DisplayValue);
     else raise Exception.CreateFmt('Unsupported output key: "%s"', [OutputKey]);
   end;
 end;
@@ -1863,11 +2128,14 @@ const
       Result := SAppendPart(Result, ' ', CPUToAndroidArchitecture(CPU));
   end;
 
+const
+  AssumeCompiler = coFpc;
 var
   AndroidLibraryName: string;
   Service: TService;
 begin
-  AndroidLibraryName := ChangeFileExt(ExtractFileName(AndroidSourceFile(true, false)), '');
+  AndroidLibraryName := ChangeFileExt(ExtractFileName(
+    AndroidSourceFile(AssumeCompiler, true, false)), '');
   Macros.Add('ANDROID_LIBRARY_NAME'                , AndroidLibraryName);
   Macros.Add('ANDROID_ACTIVITY_THEME'              , AndroidActivityTheme);
   Macros.Add('ANDROID_SCREEN_ORIENTATION'          , AndroidScreenOrientation[ScreenOrientation]);
@@ -1904,15 +2172,6 @@ const
     #9#9#9#9#9#9#9'com.apple.%s = {' + NL +
     #9#9#9#9#9#9#9#9'enabled = 1;' + NL +
     #9#9#9#9#9#9#9'};' + NL;
-
-  { QualifiedName for iOS: either qualified_name, or ios.override_qualified_name. }
-  function IOSQualifiedName: string;
-  begin
-    if Manifest.IOSOverrideQualifiedName <> '' then
-      Result := Manifest.IOSOverrideQualifiedName
-    else
-      Result := QualifiedName;
-  end;
 
   procedure LaunchImageStoryboardInitialize;
   var
@@ -1994,7 +2253,7 @@ begin
   Macros.Add('IOS_STATUSBAR_HIDDEN', Iff(FullscreenImmersive, 'YES', 'NO'));
   Macros.Add('IOS_SCREEN_ORIENTATION', IOSScreenOrientation[ScreenOrientation]);
   InfoPList := SAppendPart(InfoPList, NL,
-    AssociateDocumentTypes.ToPListSection(IOSQualifiedName, 'AppIcon'));
+    AssociateDocumentTypes.ToPListSection(IOSQualifiedName, Caption, 'AppIcon'));
   if not Manifest.UsesNonExemptEncryption then
     InfoPList := SAppendPart(InfoPList, NL,
       '<key>ITSAppUsesNonExemptEncryption</key> <false/>');
@@ -2092,22 +2351,46 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
     end;
 
   var
-    RelativeEnginePaths: Boolean;
     S, EnginePathPrefix: String;
   begin
-    RelativeEnginePaths := IsPrefix(
+    Result := '';
+
+    { Put paths to the engine in DPROJ.
+      But only for projects inside the engine (our examples/tools),
+      in which case it can be relative path.
+
+      Note: In the past, we used to do this for all projects,
+      adding absolute paths to CGE in DPROJ (for projects outside of the engine
+      as well), doing
+        EnginePathPrefix := CastleEnginePath + 'src/'
+
+      But this was not good:
+      - makes DPROJ specific to given user on a given machine,
+        assumes specific engine installation path,
+        so not suitable to be put in a version control system.
+      - It also makes DPROJ specific to a given CGE version,
+        as we change engine paths between versions.
+
+      New approach: DPROJ for projects (outside of CGE examples/tools,
+      which is a special case to make example run out-of-the-box in all
+      possible cases) don't contain CGE paths. We rely on:
+      - from Delphi IDE: user must do "Configure Delphi to Use Engine".
+      - from castle-engine build tool, invoked also from castle-editor:
+        we provide search paths to find CGE (in both dcc and msbuild approaches)
+        on the command-line. }
+
+    if IsPrefix(
       ExpandFileName(CastleEnginePath),
       ExpandFileName(Path),
-      not FileNameCaseSensitive);
-    if RelativeEnginePaths then
-      EnginePathPrefix := ExtractRelativePath(Path, CastleEnginePath) + 'src/'
-    else
-      EnginePathPrefix := CastleEnginePath + 'src/';
-    Result := '';
-    for S in EnginePaths do
-      Result := SAppendPart(Result, ';', PathNormalizeDelimiter(EnginePathPrefix + S));
-    for S in EnginePathsDelphi do
-      Result := SAppendPart(Result, ';', PathNormalizeDelimiter(EnginePathPrefix + S));
+      not FileNameCaseSensitive) then
+    begin
+      EnginePathPrefix := ExtractRelativePath(Path, CastleEnginePath) + 'src/';
+      for S in EnginePaths do
+        Result := SAppendPart(Result, ';', PathNormalizeDelimiter(EnginePathPrefix + S));
+      for S in EnginePathsDelphi do
+        Result := SAppendPart(Result, ';', PathNormalizeDelimiter(EnginePathPrefix + S));
+    end;
+
     for S in Manifest.SearchPaths do
       Result := SAppendPart(Result, ';', PathNormalizeDelimiter(S));
   end;
@@ -2208,7 +2491,7 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
     to deploy programs with their data using PAServer.
 
     Sample:
-      <DeployFile LocalName="data\Dino.gltf" Configuration="Debug" Class="File">
+      <DeployFile LocalName="data\Dino.gltf" Class="File">
           <Platform Name="Linux64">
               <RemoteDir>./data/</RemoteDir>
               <RemoteName>Dino.gltf</RemoteName>
@@ -2216,33 +2499,39 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
           </Platform>
           ... // repeat for all platforms
       </DeployFile>
-      // repeat for release too
+
+    We don't specify Configuration="..." attribute,
+    so the DeployFile applies to all configurations (Debug, Release).
+    This makes DPROJ much smaller than listing all files for each configuration
+    ( which matters, see
+    https://forum.castle-engine.io/t/there-is-a-problem-with-generating-files-for-testing-new-features/1264/6 ).
   }
   function DelphiDprojDeployFiles: String;
   const
-    AllDelphiPlatformNames: array [0..2] of String = (
-      { For now, commented out platforms that we don't use.
-        These platforms make DPROJ extra large
+    AllDelphiPlatformNames: array [0..8] of String = (
+      { In the past: we commented out platforms that we don't use.
+        These platforms made DPROJ extra large
         ( see https://forum.castle-engine.io/t/there-is-a-problem-with-generating-files-for-testing-new-features/1264/6 )
-        so for now, at least make it smaller but commenting out platforms that we don't use. }
-      // 'Android',
-      // 'Android64',
-      // 'iOSDevice64',
-      // 'iOSSimARM64',
+        In the past, we could make it smaller but commenting out platforms
+        that we don't use.
+        TODO: Now, we need a new solution, likely we should deploy zip
+        for non-Windows platforms with Delphi? }
+      'Android',
+      'Android64',
+      'iOSDevice64',
+      'iOSSimARM64',
       'Linux64',
-      // 'OSX64',
-      // 'OSXARM64',
+      'OSX64',
+      'OSXARM64',
       'Win32',
       'Win64'
     );
-    AllDelphiConfigNames: array [0..1] of String = (
-      'Debug',
-      'Release'
-    );
   var
-    ConfigName, PlatformName, FileRelativeName: String;
+    PlatformName, FileRelativeName: String;
     Files: TStringList;
     ResultBuilder: TStringBuilder;
+    RemoteDirBase, RemoteDir, RemoteName, LocalName: String;
+    I: Integer;
   begin
     ResultBuilder := TStringBuilder.Create;
     try
@@ -2252,8 +2541,19 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
           to have the `castle-engine generate-program`
           output fully deterministic for a given project,
           and independent from source OS, undefined ordef of FindFiles etc.
-          This avoids diffs in version control if nothing changed. }
+          This avoids diffs in version control if nothing changed.
+
+          We want order the same on all OSes (to have DPROJs reproducible
+          and comparable, regardless of the operating system on which they
+          were generated). So:
+          - Use / as path delimiter (before sorting), on all OSes.
+          - Do not use locale-aware comparison (which on Windows
+            seems case-insensitive), just compare bytes. }
+        if PathDelim <> '/' then
+          for I := 0 to Files.Count - 1 do
+            Files[I] := SReplaceChars(Files[I], PathDelim, '/');
         Files.CaseSensitive := true;
+        Files.UseLocale := false;
         Files.Sort;
 
         { Note that we try to minimize output below, as it may get really
@@ -2272,31 +2572,74 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
             '-->' + NL);
         end;
 
-        for ConfigName in AllDelphiConfigNames do
+        for FileRelativeName in Files do
         begin
-          for FileRelativeName in Files do
+          { LocalName uses \ as path delimiter, on all OSes,
+            as Delphi (running on Windows) uses it. }
+          LocalName := TCastleManifest.DataName + '\' +
+            SReplaceChars(FileRelativeName, '/', '\');
+          ResultBuilder.Append(Format(
+            '<DeployFile LocalName="%s" Class="File">' + NL, [
+              LocalName
+            ]));
+          for PlatformName in AllDelphiPlatformNames do
           begin
+            { calculate RemoteDir and RemoteDirBase }
+            if ArrayContainsString(PlatformName, ['Android', 'Android64']) then
+            begin
+              { We need assets prefix, since Delphi puts this in any
+                chosen subdirectory of Android project, and we specifically
+                want to later access it using CastleAndroidInternalAssetStream .
+
+                On Android, RemoteDir must be like "assets\subdir":
+                using \ as path delimiter, without the leading "./"
+                and without the trailing path delimiter.
+
+                Reason: Delphi generates assets/deployinfo/deployedassets.txt
+                in the APK, with lines ".\" + RemoteDir + "\" + RemoteName.
+                Delphi's System.StartUpCopy (used by default in Delphi FMX
+                applications) reads this file at application start,
+                and (after replacing "\" with "/" and removing "./")
+                opens each listed asset. So RemoteDir like
+                "./assets/subdir/" results in line
+                ".\./assets/subdir/\file.txt", and System.StartUpCopy tries to
+                open asset "subdir//file.txt", which fails
+                with EStartUpCopyException ("Cannot deploy, ... file not
+                found in assets") raised from unit initialization,
+                and the application hangs at start.
+
+                Note that we don't need, and actually don't want these copies.
+                What System.StartUpCopy is doing is wasteful and CGE doesn't need it.
+                But we cooperate with it, since Delphi uses it by default in
+                FMX applications. }
+              RemoteDirBase := 'assets';
+              RemoteDir := RemoteDirBase + '\' +
+                SReplaceChars(ExtractFilePath(FileRelativeName), '/', '\');
+              RemoteDir := SuffixRemoveChars(RemoteDir, ['\', '/']);
+            end else
+            begin
+              RemoteDirBase := './' + TCastleManifest.DataName;
+              { FileRelativeName uses / as path delimiter (see above),
+                which is also what we want in RemoteDir. }
+              RemoteDir := RemoteDirBase + '/' +
+                ExtractFilePath(FileRelativeName);
+            end;
+
+            RemoteName := ExtractFileName(FileRelativeName);
+
             ResultBuilder.Append(Format(
-              '<DeployFile LocalName="%s\%s" Configuration="%s" Class="File">' + NL, [
-                TCastleManifest.DataName,
-                FileRelativeName,
-                ConfigName
+              ' <Platform Name="%s">' + NL +
+              '  <RemoteDir>%s</RemoteDir>' + NL +
+              '  <RemoteName>%s</RemoteName>' + NL +
+              '  <Overwrite>true</Overwrite>' + NL +
+              ' </Platform>' + NL, [
+                PlatformName,
+                RemoteDir,
+                RemoteName
               ]));
-            for PlatformName in AllDelphiPlatformNames do
-              ResultBuilder.Append(Format(
-                ' <Platform Name="%s">' + NL +
-                '  <RemoteDir>./%s/%s</RemoteDir>' + NL +
-                '  <RemoteName>%s</RemoteName>' + NL +
-                '  <Overwrite>true</Overwrite>' + NL +
-                ' </Platform>' + NL, [
-                  PlatformName,
-                  TCastleManifest.DataName,
-                  ExtractFilePath(FileRelativeName),
-                  ExtractFileName(FileRelativeName)
-                ]));
-            ResultBuilder.Append(
-              '</DeployFile>' + NL);
           end;
+          ResultBuilder.Append(
+            '</DeployFile>' + NL);
         end;
       finally FreeAndNil(Files) end;
       Result := ResultBuilder.ToString;
@@ -2304,8 +2647,7 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
   end;
 
   { Add macros specifically useful by Delphi project files. }
-  procedure AddMacrosDproj(const Macros: TStringStringMap;
-    const StandaloneSource: String);
+  procedure AddMacrosDproj(const Macros: TStringStringMap);
   var
     WelcomePageFile, IncludedFiles, WelcomePageXml: String;
     // PascalFiles unused -- see comment below
@@ -2360,17 +2702,17 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
       finally FreeAndNil(PascalFiles) end;
       *)
 
-      { Add lines like this to define files:
+      { Note that we deliberately do not add lines like this:
           <None Include="README.md"/>
           <None Include="play_animation_standalone.dpr"/>
-        This allows to easily open them from IDE, also it seems "welcome page"
-        (see below) has to be listed here to work. }
-      if WelcomePageFile <> '' then
-        IncludedFiles := SAppendPart(IncludedFiles, NL,
-          '        <None Include="' + WelcomePageFile + '"/>');
-      if StandaloneSource <> '' then
-        IncludedFiles := SAppendPart(IncludedFiles, NL,
-          '        <None Include="' + StandaloneSource + '"/>');
+        They allow to easily open these files from IDE.
+        But Delphi also deploys all such files on Android
+        (to assets/internal/ in APK) and iOS (to StartUp/Documents/),
+        using deployment class "ProjectFile".
+        And we cannot disable this deployment in the DPROJ we generate:
+        Delphi (tested with 13) discards DeployFile with class "ProjectFile"
+        that we would write, and adds own (enabled) DeployFile when the platform
+        is added to the project. }
       Macros.Add('DPROJ_INCLUDED_FILES', IncludedFiles);
     end;
 
@@ -2458,13 +2800,13 @@ begin
     Macros.Add('ICO_PATH', IcoPath);
     Macros.Add('PROJECT_GUID', ProjectGuid);
     Macros.Add('APPLE_BUNDLE_SIGNATURE', Copy(ExecutableName + '????', 1, 4));
-    Macros.Add('APPLE_ASSOCIATE_DOCUMENT_TYPES', AssociateDocumentTypes.ToPListSection(QualifiedName, Name));
+    Macros.Add('APPLE_ASSOCIATE_DOCUMENT_TYPES', AssociateDocumentTypes.ToPListSection(QualifiedName, Caption, Name));
     Macros.Add('RANDOM_URL_SUFFIX', '?random_suffix_to_avoid_cache=' + RandomString);
 
     AddMacrosAndroid(Macros);
     AddMacrosIOS(Macros);
     AddMacrosLazarusProject(Macros);
-    AddMacrosDproj(Macros, StandaloneSource);
+    AddMacrosDproj(Macros);
     AddMacrosWeb(Macros);
 
     Result := ToolMacros.ReplaceMacros(Macros, Source);
@@ -2541,10 +2883,11 @@ var
   BinaryFile: boolean;
 begin
   { Do not copy README.adoc, most services define it and would just overwrite each other.
-    It is for informational purposes in CGE sources.
-    Similarly do not copy CastleEngineService.xml, most services define it,
-    it is internal info for build tool. }
-  if SameText(DestinationRelativeFileName, 'README.adoc') or
+    It is for informational purposes in CGE sources. Same for:
+    - other docs of a service, like README_messages.adoc.
+    - CastleEngineService.xml (most services define it,
+      it is internal info for build tool). }
+  if IsWild(DestinationRelativeFileName, 'README*.adoc', true) or
      SameText(DestinationRelativeFileName, 'CastleEngineService.xml') then
     Exit;
 
@@ -2786,6 +3129,14 @@ begin
   Result := Manifest.QualifiedName;
 end;
 
+function TCastleProject.IOSQualifiedName: string;
+begin
+  if Manifest.IOSOverrideQualifiedName <> '' then
+    Result := Manifest.IOSOverrideQualifiedName
+  else
+    Result := QualifiedName;
+end;
+
 function TCastleProject.Dependencies: TDependencies;
 begin
   Result := Manifest.Dependencies;
@@ -2844,6 +3195,8 @@ end;
 function TCastleProject.AndroidMinSdkVersion: Cardinal;
 begin
   Result := Manifest.AndroidMinSdkVersion;
+  if Result < AndroidMinSdkVersionFromServices then
+    Result := AndroidMinSdkVersionFromServices;
 end;
 
 function TCastleProject.AndroidTargetSdkVersion: Cardinal;
@@ -2869,6 +3222,14 @@ end;
 function TCastleProject.IOSServices: TServiceList;
 begin
   Result := Manifest.IOSServices;
+end;
+
+function TCastleProject.IOSOverrideIconFullUrl: String;
+begin
+  if Manifest.IOSOverrideIcon <> '' then
+    Result := CombineUri(Manifest.PathUrl, Manifest.IOSOverrideIcon)
+  else
+    Result := '';
 end;
 
 function TCastleProject.AssociateDocumentTypes: TAssociatedDocTypeList;

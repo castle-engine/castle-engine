@@ -35,6 +35,7 @@ FontStyle : X3DFontStyleNode {
 
   # CASTLE GAME ENGINE EXTENSIONS:
   SFBool   []       blending    TRUE
+    is-extension: true
 }
 
 Text : X3DGeometryNode {
@@ -62,4 +63,5 @@ Text : X3DGeometryNode {
   SFNode     [in,out]      texCoord    NULL
     range: TextureCoordinateGenerator, ProjectedTextureCoordinate, MultiGeneratedTextureCoordinate
     change: chGeometry
+    is-extension: true
 }

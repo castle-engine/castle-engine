@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -52,7 +52,7 @@ var
 {$ifdef ANDROID}
 procedure Java_io_castleengine_MainActivity_jniLanguage(Env: PJNIEnv; This: jobject; JavaLanguageCode: jstring); cdecl;
 var
-  JavaLanguageCodeStr: PChar;
+  JavaLanguageCodeStr: PAnsiChar;
   Dummy: JBoolean;
 begin
   if (JavaLanguageCode <> nil) and (Env^^.GetStringUTFLength(Env, JavaLanguageCode) <> 0) then
@@ -60,7 +60,7 @@ begin
     Dummy := 0;
     JavaLanguageCodeStr := Env^^.GetStringUTFChars(Env, JavaLanguageCode,{$ifdef VER2}Dummy{$else}@Dummy{$endif});
     try
-      MobileSystemLanguage := AnsiString(JavaLanguageCodeStr); // will copy characters
+      MobileSystemLanguage := Utf8String(JavaLanguageCodeStr); // will copy characters
     finally Env^^.ReleaseStringUTFChars(Env, JavaLanguageCode, JavaLanguageCodeStr) end;
   end;
 end;

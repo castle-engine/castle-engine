@@ -47,7 +47,13 @@
           },
           {
             "$$ClassName" : "TCastleTiledMap",
-            "Name" : "TiledMap"
+            "Name" : "TiledMap",
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastleTransform",
+                "Name" : "TestMapObjects"
+              }
+            ]
           }
         ]
       },
@@ -311,7 +317,7 @@
                   "Name" : "ButtonAnimations",
                   "TranslationPersistent" : {
                     "$$ClassName" : "TCastleVector2Persistent",
-                    "X" : 1.4999998474121094E+002
+                    "X" : 1.5000000000000000E+002
                   },
                   "VerticalAnchorParent" : "vpMiddle",
                   "VerticalAnchorSelf" : "vpMiddle"

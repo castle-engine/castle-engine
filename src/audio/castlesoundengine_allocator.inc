@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -116,7 +116,8 @@
     { All allocated (not necessarily used) sources.
       Accessing this is useful only for debugging tasks,
       in normal circumstances this is internal.
-      This is @nil when ContextOpen was not yet called. }
+      This is @nil when ContextOpen was not yet called.
+      @exclude }
     property InternalAllocatedSources: TInternalSoundSourceList read FAllocatedSources;
 
     { Do we have active sound rendering context.
@@ -147,7 +148,10 @@ begin
   FMinAllocatedSources := DefaultMinAllocatedSources;
   FMaxAllocatedSources := DefaultMaxAllocatedSources;
 
+  {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_SOX} UseSOXSoundBackend; {$endif}
   {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_OPENAL} UseOpenALSoundBackend; {$endif}
+  {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_WEBAUDIO} UseWebAudioSoundBackend; {$endif}
+  {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_MEDIA_PLAYER} UseMediaPlayerSoundBackend; {$endif}
 end;
 
 destructor TSoundAllocator.Destroy;
@@ -165,6 +169,10 @@ begin
   for I := 0 to FAllocatedSources.Count - 1 do
     FAllocatedSources[I] := TInternalSoundSource.Create(Backend);
 
+  { Initialize LastSoundRefresh now, otherwise the 1st Update would calculate
+    a huge SecondsPassed (TimerSeconds from zero-initialized LastSoundRefresh). }
+  LastSoundRefresh := Timer;
+
   ApplicationProperties.OnUpdate.Add({$ifdef FPC}@{$endif} Update);
 end;
 
@@ -178,7 +186,7 @@ begin
     for I := 0 to FAllocatedSources.Count - 1 do
       { Although usually we are sure that every FAllocatedSources[I] <> nil,
         in this case we must take into account that maybe our constructor
-        raise ENonMoreSources and so some FAllocatedSources[I] were
+        raise ENoMoreSources and so some FAllocatedSources[I] were
         not initialized. }
       if FAllocatedSources[I] <> nil then
       begin
@@ -262,7 +270,7 @@ begin
 
     Note that if FAllocatedSources[MinPriorityIndex].Priority
     is equal to Priority, we *do* interrupt already playing sound.
-    The assumption is here that the newer sound is more imoportant. }
+    The assumption is here that the newer sound is more important. }
   if (Result = nil) and
      (FAllocatedSources[MinPriorityIndex].Priority <= Priority) then
   begin

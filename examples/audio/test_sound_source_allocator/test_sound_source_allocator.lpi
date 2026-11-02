@@ -30,7 +30,7 @@
     </RunParams>
     <RequiredPackages Count="2">
       <Item1>
-        <PackageName Value="castle_components"/>
+        <PackageName Value="castle_engine_lcl"/>
       </Item1>
       <Item2>
         <PackageName Value="LCL"/>
@@ -52,6 +52,9 @@
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
+    <SearchPaths>
+      <UnitOutputDirectory Value="castle-engine-output/standalone/lazarus-lib/$(TargetCPU)-$(TargetOS)"/>
+    </SearchPaths>
     <Parsing>
       <SyntaxOptions>
         <IncludeAssertionCode Value="True"/>

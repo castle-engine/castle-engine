@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -40,7 +40,10 @@ begin
     Doc.LoadFromStream(Stream);
   except
     on E: Exception do
+    begin
+      FreeAndNil(Doc); // do not leak Doc when loading failed
       raise EXMLReadError.Create('Error when reading XML: ' + E.Message);
+    end;
   end;
 end;
 
@@ -52,7 +55,10 @@ begin
     Doc.LoadFromStream(Stream);
   except
     on E: Exception do
+    begin
+      FreeAndNil(Doc); // do not leak Doc when loading failed
       raise EXMLReadError.Create('Error when reading XML: ' + E.Message);
+    end;
   end;
 end;
 

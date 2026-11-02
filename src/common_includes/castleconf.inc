@@ -1,9 +1,9 @@
 {
-  Copyright 2002-2025 Michalis Kamburelis.
+  Copyright 2002-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -37,16 +37,14 @@
 
 { Compiler version check ----------------------------------------------------- }
 
-{$ifndef PASDOC} // Avoid Pasdoc warnings, as Pasdoc cannot calculate $if below
-  {$ifdef FPC}
-    {$if defined(VER2) or defined(VER3_0)}
-      {$fatal You need FPC version >= 3.2.0 to compile Castle Game Engine. See https://castle-engine.io/supported_compilers.php}
-    {$endif}
-  {$else}
-    // See http://delphi.wikia.com/wiki/CompilerVersion_Constant
-    {$if CompilerVersion < 32}
-      {$message fatal 'Use Delphi >= 10.2.1 to compile Castle Game Engine. See https://castle-engine.io/delphi'}
-    {$endif}
+{$ifdef FPC}
+  {$if defined(VER2) or defined(VER3_0)}
+    {$fatal You need FPC version >= 3.2.0 to compile Castle Game Engine. See https://castle-engine.io/supported_compilers}
+  {$endif}
+{$else}
+  // See http://delphi.wikia.com/wiki/CompilerVersion_Constant
+  {$if CompilerVersion < 32}
+    {$message fatal 'Use Delphi >= 10.2.1 to compile Castle Game Engine. See https://castle-engine.io/delphi'}
   {$endif}
 {$endif}
 
@@ -91,8 +89,15 @@
   {$ifdef CPUX86} {$define cpu386} {$define cpui386} {$endif}
   {$ifdef CPUARM64} {$define CPUAARCH64} {$endif}
 
-  { Define in Delphi UNIX when LINUX, like FPC does. }
+  { Define Darwin for a common Apple OS in macOS, iOS etc.
+    See https://en.wikipedia.org/wiki/Darwin_(operating_system).
+    Compatible with FPC. }
+  {$ifdef MACOS} {$define DARWIN} {$endif}
+
+  { Define in Delphi UNIX when LINUX or other UNIXes are, like FPC does. }
   {$ifdef LINUX} {$define UNIX} {$endif}
+  {$ifdef ANDROID} {$define UNIX} {$endif}
+  {$ifdef DARWIN} {$define UNIX} {$endif}
 {$endif}
 
 { Traditionally, CGE defined CPUARM64 also for 64-bit iOS.
@@ -120,7 +125,7 @@
   {$endif}
 {$endif}
 
-{ Define various necessary things -------------------------------------------- }
+{ Extended-related symbols --------------------------------------------------- }
 
 (*EXTENDED_EQUALS_DOUBLE should be defined when Extended type is
   the same thing as Double type on this platform.
@@ -162,11 +167,11 @@
   Delphi, even when Extended = Double, still treats Extended
   like a different type, for choosing overloads.
   It even requires Extended overloads e.g. for MinVar(Extended, ...). }
-{$ifndef PASDOC}
-  {$if not (defined(FPC) and defined(EXTENDED_EQUALS_DOUBLE))}
-    {$define EXTENDED_OVERLOADS}
-  {$endif}
+{$if not (defined(FPC) and defined(EXTENDED_EQUALS_DOUBLE))}
+  {$define EXTENDED_OVERLOADS}
 {$endif}
+
+{ inline related symbols --------------------------------------------------------- }
 
 { We used to disable inline functions/methods when compiling from
   Lazarus package (when CASTLE_ENGINE_LAZARUS_PACKAGE),
@@ -178,7 +183,7 @@
 
   But with FPC 3.0.2 everything seems to work cool even with "inline",
   so let's try defining it always now.
-  We only support FPC >= 3.0.0 now.
+  We only support FPC >= 3.2.0 now, see https://castle-engine.io/supported_compilers .
 }
 {$define SUPPORTS_INLINE}
 
@@ -190,7 +195,7 @@
   {$define INLINE_GENERIC_VECTORS}
 {$endif}
 
-{$define TOBJECT_HAS_EQUALS}
+{ Delphi verbosity ----------------------------------------------------------- }
 
 { Delphi reports many hints/warnings that are known to be harmless in our case. }
 {$ifndef FPC}
@@ -210,19 +215,58 @@
   {$warn SYMBOL_DEPRECATED off}
 {$endif}
 
+{ Symbols related to Generics.Collections ------------------------------------ }
+
 { If GENERICS_CONSTREF is defined, then various routines used with Generics.Collections
   (like callbacks we pass to TComparer, or OnNotify callback or Notify virtual method)
   should have "constref" parameter, not "const".
-  This was the case of FPC<= 3.2.0, FPC changed it in
-  https://gitlab.com/freepascal.org/fpc/source/-/commit/693491048bf2c6f9122a0d8b044ad0e55382354d }
+  This was the case in FPC <= 3.2.0.
+  FPC changed constref->const in
+  https://gitlab.com/freepascal.org/fpc/source/-/commit/693491048bf2c6f9122a0d8b044ad0e55382354d
+  and the change is present in FPC fixes branch 3.2.3 and later 3.2.4(rc1). }
 {$ifdef VER3_0} {$define GENERICS_CONSTREF} {$endif}
-{$ifdef VER3_2} {$define GENERICS_CONSTREF} {$endif}
-{$if defined(VER3_2_3)}
-  { FPC 3.2.3 (fixes_3_2 branch, as of 2023-12-23) no longer uses "constref".
-    Confirmed on Linux/Arm32, Linux/Arm64(Aarch64), Linux/x86_64,
-    see also sources:
-    https://gitlab.com/freepascal.org/fpc/source/-/blob/fixes_3_2/packages/rtl-generics/src/generics.collections.pas?ref_type=heads. }
-  {$undef GENERICS_CONSTREF}
+{$ifdef VER3_2_0} {$define GENERICS_CONSTREF} {$endif}
+{$ifdef VER3_2_2} {$define GENERICS_CONSTREF} {$endif}
+
+{ FPC 3.2.3 on 32-bit ARM (Raspberry Pi) has wrong List.IndexOf by default
+  (due to constref / const changes in the Generics.Collections ?), workaround.
+
+  TODO: submit to FPC. }
+{$if defined(FPC) and defined(VER3_2) and defined(LINUX) and defined(CPUarm)}
+  {$define CASTLE_LIST_METHODS_WORKAROUND}
+{$endif}
+
+{ FPC 3.2.3 (fixes_3_2 branch) fails
+
+    Result := inherited Items[AKey];
+
+  or even
+
+    if not TryGetValue(AKey, Result) then
+      raise EListError.CreateFmt('Dictionary key "%s" does not exist', [AKey]);
+
+  Testcase: TTestX3DNodes.TestRootNodeMeta .
+  Fixed already in FPC 3.3.1 .
+  TODO: submit to FPC to merge into fixes_3_2 branch.
+}
+{$if defined(DARWIN) and defined(CPUX86_64) and defined(VER3_2_3)}
+  {$define CASTLE_WORKAROUND_DICTIONARY_FIND}
+{$endif}
+
+{ CASTLE_DEFORMAT_BUGGY ------------------------------------------------------ }
+
+{ TODO: macOS/Aarch64 (at least with FPC 3.2.3, unknown with 3.3.1)
+  fails on DeFormat usage,
+  at least:
+  - TTestCastleVectors.TestVectorStr:
+    Vectors (TVector3) are not equal: expected: -Inf -Inf -Inf, actual: 126.162086486816 408.326904296875
+  - TTestCastleStringUtils.TestDeFormat
+    (unspecified assertion failure)
+  For now, do not use DeFormat there, we can avoid it.
+  TODO: workaround properly in CGE.
+  TODO: submit to FPC devs. }
+{$if defined(DARWIN) and defined(CPUAARCH64)}
+  {$define CASTLE_DEFORMAT_BUGGY}
 {$endif}
 
 { Define CASTLE_IOS when appropriate ----------------------------------------- }
@@ -238,32 +282,52 @@
 {$ifdef VER3_0} {$undef HAS_SEPARATE_IOS} {$endif}
 {$ifdef VER3_2_0} {$undef HAS_SEPARATE_IOS} {$endif}
 
-{$ifndef PASDOC} // Avoid Pasdoc warnings, as Pasdoc cannot calculate $if below
-  {$ifdef HAS_SEPARATE_IOS}
-    {$if defined(iPHONESIM) or defined(iOS)}
-      {$define CASTLE_IOS}
-    {$endif}
-  {$else}
-    {$if defined(iPHONESIM) or (defined(DARWIN) and (defined(CPUARM) or defined(CPUAARCH64)))}
-      {$define CASTLE_IOS}
-    {$endif}
+{$ifdef HAS_SEPARATE_IOS}
+  {$if defined(iPHONESIM) or defined(iOS)}
+    {$define CASTLE_IOS}
+  {$endif}
+{$else}
+  {$if defined(iPHONESIM) or (defined(DARWIN) and (defined(CPUARM) or defined(CPUAARCH64)))}
+    {$define CASTLE_IOS}
   {$endif}
 {$endif}
 
 { Define COMPILER_CASE_ANALYSIS when appropriate --------------------------- }
 
-{ Compiler automatically detects and warns when "case" doesn't cover
-  all possibilities. This means we do not have to, and actually
+{ FPC > 3.2 detects and warns when "case" doesn't cover
+  all possibilities.
+
+  This means we do not have to, and actually
   we should not have to (as it would cause "Warning: Unreachable code" warning),
   add a clause like "else raise EInternalError.Create('xxx');"
   to "case" statements that should always have a matching possibility.
 
-  This is true for FPC >= 3.2 now. }
+  See https://castle-engine.io/coding_conventions#case_analysis .
+
+  After some experimenting,
+  we just disable the related warnings (see lower $warn off.. in this file),
+  because in some cases there's just no good solution.
+  And it makes it hard to write code that also works
+  for compilers without case analysis, like FPC 3.2.x and Delphi.
+
+  We still define COMPILER_CASE_ANALYSIS, because when it is undefined
+  -- another FPC problem strikes, $warning off + $warning on
+  seems to reset the state of warnings, so the warning "Unreachable code"
+  is reported for all "else ..." for case that exhausts all options.
+
+  Looks like the only way to have sane behavior with FPC 3.3.1
+  (no flood of warnings, and code that works with various compilers)
+  is to behave as if COMPILER_CASE_ANALYSIS, but also have
+  "$warn 6060 off" // case statement does not handle all possible cases
+  lower.
+}
 
 {$ifdef FPC}
   {$ifndef VER3_0}
     {$ifndef VER3_1}
-      {$define COMPILER_CASE_ANALYSIS}
+      {$ifndef VER3_2}
+        {$define COMPILER_CASE_ANALYSIS}
+      {$endif}
     {$endif}
   {$endif}
 {$endif}
@@ -278,7 +342,7 @@
   {$undef ANDROID}
 {$endif CASTLE_NINTENDO_SWITCH}
 
-{ Platform specific adjustments ---------------------------------------------- }
+{ ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION -------------------------------------- }
 
 { On some Android versions, you cannot call dlopen (load dynamic libraries)
   from the initialization section of units. You have to wait for
@@ -436,31 +500,28 @@
     - On macOS, see https://castle-engine.io/macos .
 
     - On Android, we have a "png" service with libpng included.
-      See ../../tools/build-tool/data/android/integrated-services/png/README.adoc .
+      See ../../tools/build-tool/data/android/services/png/README.adoc .
 
   3.If CASTLE_PNG_STATIC is defined, we statically link to libpng.
-    The presense of static libpng library (libpng.a on Unix) is then
+    The presence of static libpng library (libpng.a on Unix) is then
     required at compile-time.
     This is necessary on some platforms, e.g. iOS. The CGE build tool
     automatically uses this flag when necessary.
 }
 
-{$ifndef PASDOC} // Avoid Pasdoc warnings, as Pasdoc cannot calculate $if below
+{ On most platforms, try dynamic libpng (will fallback on FpImage at runtime).
+  Except on platforms where we know it would not work. }
+{$if not (defined(CASTLE_IOS) or defined(CASTLE_NINTENDO_SWITCH))}
+  {$define CASTLE_PNG_DYNAMIC}
+{$endif}
 
-  { On most platforms, try dynamic libpng (will fallback on FpImage at runtime).
-    Except on platforms where we know it would not work. }
-  {$if not (defined(CASTLE_IOS) or defined(CASTLE_NINTENDO_SWITCH))}
-    {$define CASTLE_PNG_DYNAMIC}
-  {$endif}
+{$if defined(CASTLE_PNG_DYNAMIC) and defined(CASTLE_PNG_STATIC)}
+  {$error Cannot define both CASTLE_PNG_DYNAMIC and CASTLE_PNG_STATIC. Define at most one of them.}
+{$endif}
 
-  {$if defined(CASTLE_PNG_DYNAMIC) and defined(CASTLE_PNG_STATIC)}
-    {$error Cannot define both CASTLE_PNG_DYNAMIC and CASTLE_PNG_STATIC. Define at most one of them.}
-  {$endif}
-
-  {$if defined(CASTLE_DISABLE_LIBPNG)}
-    {$undef CASTLE_PNG_DYNAMIC}
-    {$undef CASTLE_PNG_STATIC}
-  {$endif}
+{$if defined(CASTLE_DISABLE_LIBPNG)}
+  {$undef CASTLE_PNG_DYNAMIC}
+  {$undef CASTLE_PNG_STATIC}
 {$endif}
 
 { LIBPNG_CDECL is relevant only if we use libpng (dynamic or static).
@@ -586,7 +647,8 @@
   {$define UNIX_WITH_X}
 {$endif}
 
-{ FPC 3.3.1 produces many false warnings. }
+{ FPC 3.3.1 produces many false warnings ------------------------------------- }
+
 {$ifdef FPC}
   {$ifndef VER3_0}
     {$ifndef VER3_2}
@@ -635,38 +697,86 @@
   CASTLE_PARAMSTR_BUGGY. }
 {.$define CASTLE_ANDROID_ARGV_LOGGING}
 
+{ Process -------------------------------------------------------------------- }
+
+{ When CASTLE_PROCESS_AVAILABLE is defined, TCastleProcess interface
+  and implementation are functional.
+
+  Otherwise, TCastleProcess is an empty class, with no properties and methods.
+  So you can use CastleInternalProcess, and declaration of TCastleProcess
+  will compile, but actual usage will not compile and should be guarded by
+  "$ifdef CASTLE_PROCESS_AVAILABLE". }
+{$if defined(FPC) and not defined(WASI)}
+  {$define CASTLE_PROCESS_AVAILABLE}
+{$endif}
+
+{$if defined(DELPHI) and (defined(MSWINDOWS) or defined(UNIX))}
+  {$define CASTLE_PROCESS_AVAILABLE}
+{$endif}
+
+{ String encoding ------------------------------------------------------------ }
+
+{ Check symbols
+  CASTLE_ANSISTRING_FORCE_UTF8 and
+  CASTLE_ANSISTRING_UNCHANGED.
+  See doc/miscellaneous_notes/ansistring_encoding.md for documentation
+  what they do. }
+
+// Error if both are defined
+{$if defined(CASTLE_ANSISTRING_FORCE_UTF8) and defined(CASTLE_ANSISTRING_UNCHANGED)}
+  {$message fatal 'Cannot define both CASTLE_ANSISTRING_FORCE_UTF8 and CASTLE_ANSISTRING_UNCHANGED. Define only one of them, or none (to use default).'}
+{$endif}
+
+// Set default, if none defined.
+//
+// We define 1 of the 2 symbols always, so the rest of the code
+// can just test for CASTLE_ANSISTRING_UNCHANGED
+// or CASTLE_ANSISTRING_FORCE_UTF8, whichever is more natural.
+{$if (not defined(CASTLE_ANSISTRING_FORCE_UTF8)) and (not defined(CASTLE_ANSISTRING_UNCHANGED))}
+  {$if defined(FPC)}
+    {$define CASTLE_ANSISTRING_FORCE_UTF8}
+  {$else}
+    {$define CASTLE_ANSISTRING_UNCHANGED}
+  {$endif}
+{$endif}
+
+// Error if CASTLE_ANSISTRING_UNCHANGED used with (non-Unicode) FPC
+{$if defined(FPC) and
+     defined(CASTLE_ANSISTRING_UNCHANGED) and
+     (not defined(FPC_UNICODESTRINGS)) and
+     (not defined(I_UNDERSTAND_THAT_NON_ASCII_CHARACTERS_ARE_BROKEN))}
+  {$message fatal 'CASTLE_ANSISTRING_UNCHANGED is only supported with Delphi (or FPC Unicode RTL).'}
+{$endif}
+
+{ fonts ---------------------------------------------------------------------- }
+
+{ Use pure Pascal implementation of a subset of FreeType API
+  (CastleInternalOpenTypeFont and CastleInternalGlyphRasterizer units).
+
+  This is by default used for Delphi on Android and iOS,
+  where we don't deploy the FreeType library.
+  You can also define CASTLE_FREETYPE_PASCAL on other platforms,
+  e.g. to test it on desktops and compare with the FreeType library. }
+{$if defined(DELPHI) and (defined(ANDROID) or defined(CASTLE_IOS))}
+  {$define CASTLE_FREETYPE_PASCAL}
+{$endif}
+
+{ FMX ------------------------------------------------------------------------ }
+
+{ Handle FMX touch (TCustomForm.OnTouch) to detect touches with finger indexes
+  on mobile platforms. This requires Delphi 12.0 Athens (CompilerVersion = 36)
+  as it added TTouch.Id and TTouch.Action, on which we rely.
+
+  We limit the condition to Android and iOS, even though on Windows
+  FMX can also make multi-touch events.
+  But our TFmxTouchDispatcher is not ready for this (right now,
+  it can deal with various bugginess of FMX multi-touch on Android and iOS only). }
+{$ifndef PASDOC}
+  {$if defined(DELPHI) and (defined(ANDROID) or defined(IOS)) and (CompilerVersion >= 36)}
+    {$define CASTLE_HANDLE_FMX_TOUCH}
+  {$endif}
+{$endif}
+
+// -----------------------------------------------------------------------------
+// keep this line at the end of the file
 {$endif not CASTLE_CONF_INCLUDED}
-
-{ Model formats support ------------------------------------------------------
-  Disable support for some model formats to make the exe smaller.
-
-  Note: Don't define these symbols in castleconf.inc,
-  as this would mean you need to maintain your CGE modification,
-  and it affects all projects (including CGE examples that may rely on specific
-  formats).
-
-  Rather, define these symbols in your project, e.g. using <defines> in the
-  CastleEngineManifest.xml.
-  See https://castle-engine.io/project_manifest#_compiler_options_and_paths .
-  Like:
-
-  <compiler_options>
-    <defines>
-      <define>CASTLE_COLLADA_SUPPORT_DISABLE</define>
-      <define>CASTLE_IFC_SUPPORT_DISABLE</define>
-    </defines>
-  </compiler_options>
-}
-{$ifdef CASTLE_GEO_SUPPORT_DISABLE}{$INFO 'GEO support disabled'}{$endif}
-{$ifdef CASTLE_OBJ_SUPPORT_DISABLE}{$INFO 'OBJ support disabled'}{$endif}
-{$ifdef CASTLE_COLLADA_SUPPORT_DISABLE}{$INFO 'COLLADA support disabled'}{$endif}
-{$ifdef CASTLE_SPINE_SUPPORT_DISABLE}{$INFO 'SPINE support disabled'}{$endif}
-{$ifdef CASTLE_STL_SUPPORT_DISABLE}{$INFO 'STL support disabled'}{$endif}
-{$ifdef CASTLE_MD3_SUPPORT_DISABLE}{$INFO 'MD3 support disabled'}{$endif}
-{$ifdef CASTLE_GLTF_SUPPORT_DISABLE}{$INFO 'GLTF support disabled'}{$endif}
-{$ifdef CASTLE_IMAGE_SUPPORT_DISABLE}{$INFO 'IMAGE support disabled'}{$endif}
-{$ifdef CASTLE_COCOS2D_SUPPORT_DISABLE}{$INFO 'COCOS2D support disabled'}{$endif}
-{$ifdef CASTLE_SPRITESHEET_SUPPORT_DISABLE}{$INFO 'SPRITESHEET support disabled'}{$endif}
-{$ifdef CASTLE_TILED_MAP_SUPPORT_DISABLE}{$INFO 'TILED_MAP support disabled'}{$endif}
-{$ifdef CASTLE_IFC_SUPPORT_DISABLE}{$INFO 'IFC support disabled'}{$endif}
-{$ifdef CASTLE_3DS_SUPPORT_DISABLE}{$INFO '3DS support disabled'}{$endif}

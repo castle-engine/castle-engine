@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -41,6 +41,12 @@ implementation
   - Define CASTLE_DELPHI_NET_HTTP_CLIENT to use System.Net.HttpClient
     and TNetHTTPClient with Delphi.
 
+    Tested that it works on
+    - Windows
+    - Linux
+    - iOS
+    - Android
+
     Doesn't require any external DLLs on Windows.
 
     But it is very slow to download larger files on Windows.
@@ -48,13 +54,17 @@ implementation
   - Do not define CASTLE_DELPHI_NET_HTTP_CLIENT to use IdHttp, Indy.
     Requires OpenSSL DLLs.
 
+    Tested that it works on
+    - Windows
+    - Linux
+
     Has a big problem on Linux:
     It seems Indy requires really old OpenSSL library version (1.0 ?),
     not available in latest Ubuntu. And it's not even 1.1,
     so https://gist.github.com/joulgs/c8a85bb462f48ffc2044dd878ecaa786 will not help.
     The PR to support newer OpenSSL was never merged https://github.com/IndySockets/Indy/pull/299 .
 }
-{$if defined(DELPHI) and defined(LINUX)}
+{$if defined(DELPHI) and not defined(MSWINDOWS)}
   {$define CASTLE_DELPHI_NET_HTTP_CLIENT}
 {$endif}
 
@@ -64,10 +74,15 @@ uses URIParser, Math, Generics.Collections,
   {$I castledownload_url_http_fphttpclient.inc}
   {$I castledownload_url_http_delphi_net.inc}
   {$I castledownload_url_http_indy.inc}
+  {$I castledownload_url_http_web.inc}
   {$undef read_implementation_uses}
   {$if defined(VER3_2) and defined(DARWIN) and not defined(CASTLE_IOS)}
     { for ESocketError } SSockets,
   {$endif}
+  { Unit used by TUrlCastleAndroidAssets, by both FPC and Delphi.
+    This unit is needed independently from how we handle http URLs
+    (which differs between FPC and Delphi). }
+  {$ifdef ANDROID} CastleAndroidInternalAssetStream, {$endif}
   CastleUtils, CastleLog, CastleInternalZStream,
   CastleClassUtils, CastleInternalDataUri, CastleStringUtils,
   CastleInternalDirectoryInformation, CastleApplicationProperties,
@@ -89,6 +104,7 @@ uses URIParser, Math, Generics.Collections,
 {$I castledownload_url_http_fphttpclient.inc}
 {$I castledownload_url_http_delphi_net.inc}
 {$I castledownload_url_http_indy.inc}
+{$I castledownload_url_http_web.inc}
 
 {$I castledownload_register.inc}
 {$I castledownload_synchronous.inc}

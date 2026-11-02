@@ -1,10 +1,10 @@
 {%MainUnit castleifc.pas}
 {
-  Copyright 2024-2025 Michalis Kamburelis.
+  Copyright 2024-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -31,6 +31,7 @@
     var
       FBaseUrl: String;
       FRootNode: TX3DRootNode;
+      FOwnsRootNode: Boolean;
 
       { Map X3D shape nodes to IFC products.
 
@@ -114,15 +115,25 @@
       The BaseUrl will be used to resolve relative URLs,
       e.g. texture URLs mentioned in IFC information.
 
-      After calling this (and before destroying this class or calling
-      @link(Load) again) remember to free the resulting @link(RootNode),
-      it is not freed automatically by this class (because in all practical
-      use-cases, you want to keep the X3D node around,
-      e.g. to be owned by TCastleScene or freed manually later). }
+      If OwnsRootNode = @false (which is the default state),
+      then after calling this (and before destroying this class or calling
+      @link(Load) again) remember to free the resulting @link(RootNode).
+      It is not freed automatically by this class (OwnsRootNode = @false by
+      default) because in most practical use-cases,
+      you want to keep the X3D node around,
+      e.g. to be owned by TCastleScene or freed manually later. }
     procedure Load(const Ifc: TIfcFile; const ABaseUrl: String);
 
     { Latest X3D root node, built from the latest IFC instance. }
     property RootNode: TX3DRootNode read FRootNode;
+
+    { Should this class (TCastleIfcMapping) free the @link(RootNode)
+      when loading new one or when destroying this class.
+
+      By default this @false, so you're responsible for freeing the @link(RootNode)
+      yourself after calling @link(Load).
+      See @link(Load) for more explanation. }
+    property OwnsRootNode: Boolean read FOwnsRootNode write FOwnsRootNode default false;
 
     { Update the nodes in @link(RootNode) based on the new IFC contents.
       Call this only after calling @link(Load) once.
@@ -139,7 +150,7 @@
       Assumes that the nodes have been updated to reflect the latest state
       of the IFC classes using @link(Update).
 
-      @seealso ProductToNode }
+      @seealso ProductToNodes }
     function NodeToProduct(const Node: TAbstractShapeNode): TIfcProduct;
 
     { For IFC product, return the corresponding shape nodes.
@@ -265,6 +276,8 @@ begin
       Shape.RemoveDestructionNotification({$ifdef FPC}@{$endif} ShapeDestroyed);
     FreeAndNil(ShapeToProduct);
   end;
+  if FOwnsRootNode then
+    FreeAndNil(FRootNode);
   inherited;
 end;
 
@@ -440,7 +453,9 @@ end;
 
 procedure TCastleIfcMapping.Load(const Ifc: TIfcFile; const ABaseUrl: String);
 begin
-  { Node that we don't free previous FRootNode, we don't own it. }
+  if FOwnsRootNode then
+    FreeAndNil(FRootNode);
+
   FBaseUrl := ABaseUrl;
   FRootNode := CreateRootNode(Ifc);
 end;
@@ -1606,6 +1621,273 @@ begin
   Result := Transform;
 end;
 
+{ Create TFontStyleNode expressing the IFC text writing direction
+  (TIfcTextLiteral.Path) and text alignment
+  (TIfcTextLiteralWithExtent.BoxAlignment). }
+function TextLiteralFontStyle(const BaseUrl: String; const Path: TIfcTextPath;
+  const BoxAlignment: TIfcBoxAlignment): TFontStyleNode;
+type
+  { Which edge of the text, along one axis, lies at the placement origin.
+    Min is the
+    - left edge (for the horizontal axis)
+    - or the bottom edge (for the vertical axis).
+
+    Unspecified means we have no alignment information: this is a plain
+    TIfcTextLiteral (not TIfcTextLiteralWithExtent, so there's no
+    BoxAlignment at all) or the BoxAlignment value is invalid.
+    We follow then the X3D defaults, which mean: the text begins
+    at the placement, with the baseline of the 1st line at the placement.
+
+    This is also what the other applications effectively do:
+
+    - BonsaiBIM, when BoxAlignment is absent, falls back to 'bottom-left':
+      https://github.com/IfcOpenShell/IfcOpenShell/blob/v0.9.0/src/bonsai/bonsai/tool/drawing.py#L1284-L1293
+      And 'bottom' means there the text *baseline*, not the bottom of the text
+      bounding box: it positions the text using Blender blf (which places
+      the baseline)
+      https://github.com/IfcOpenShell/IfcOpenShell/blob/v0.9.0/src/bonsai/bonsai/bim/module/drawing/decoration.py#L427-L451
+      and it writes SVG with "dominant-baseline: baseline"
+      https://github.com/IfcOpenShell/IfcOpenShell/blob/v0.9.0/src/bonsai/bonsai/bim/module/drawing/svgwriter.py#L930-L966
+      So BonsaiBIM's default is exactly the X3D fjBegin + fjFirst.
+
+    - FreeCAD never uses BoxAlignment at all. It always writes a plain
+      IfcTextLiteral
+      https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/BIM/importers/exportIFC.py#L2766
+      and when reading it just creates a Draft Text at the literal placement,
+      with the default (left) justification
+      https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/BIM/importers/importIFCHelper.py#L935
+
+    Note that we deliberately do *not* map Unspecified to Min, even though
+    BonsaiBIM's fallback is spelled 'bottom-left'. Our Min (vertical) is
+    the bottom of the text bounding box (X3D fjEnd), not the baseline,
+    because that is what the IFC box model means: the text lies inside
+    the extent box, so the descenders are inside the box too. This also
+    keeps multi-line texts correct: with fjEnd the extra lines extend
+    *upwards* from a 'bottom-...' placement, as the IfcBoxAlignment spec
+    figure requires, while with the baseline (fjFirst) they would extend
+    downwards (which is indeed what BonsaiBIM does, deviating from the spec). }
+  TAlignEdge = (Unspecified, Min, Middle, Max);
+  TAlignEdges = record
+    Horizontal, Vertical: TAlignEdge;
+  end;
+
+  { Parse the IFC box alignment, like 'bottom-left'. }
+  function ParseBoxAlignment(S: String): TAlignEdges;
+  var
+    Dash: Integer;
+    VerticalStr, HorizontalStr: String;
+  begin
+    { Defaults, used when there's no alignment information
+      or when the parsing fails. }
+    Result.Horizontal := TAlignEdge.Unspecified;
+    Result.Vertical := TAlignEdge.Unspecified;
+
+    S := LowerCase(Trim(S));
+
+    if S = '' then
+      Exit; // no information, follow default alignment
+
+    { 'center' is the IFC spelling of what would be 'middle-middle',
+      it is the only valid IfcBoxAlignment value without a dash. }
+    if S = 'center' then
+    begin
+      Result.Horizontal := TAlignEdge.Middle;
+      Result.Vertical := TAlignEdge.Middle;
+      Exit;
+    end;
+
+    Dash := Pos('-', S);
+    if Dash = 0 then
+    begin
+      WritelnWarning('IFC', 'Invalid IfcBoxAlignment for TIfcTextLiteralWithExtent: "%s" (it is neither "center" nor "<vertical>-<horizontal>")',
+        [S]);
+      Exit;
+    end;
+    VerticalStr := Copy(S, 1, Dash - 1);
+    HorizontalStr := SEnding(S, Dash + 1);
+
+    if VerticalStr = 'top' then
+      Result.Vertical := TAlignEdge.Max
+    else
+    if VerticalStr = 'middle' then
+      Result.Vertical := TAlignEdge.Middle
+    else
+    if VerticalStr = 'bottom' then
+      Result.Vertical := TAlignEdge.Min
+    else
+      WritelnWarning('IFC', 'Invalid vertical alignment for TIfcTextLiteralWithExtent: %s',
+        [VerticalStr]);
+
+    if HorizontalStr = 'left' then
+      Result.Horizontal := TAlignEdge.Min
+    else
+    if HorizontalStr = 'middle' then
+      Result.Horizontal := TAlignEdge.Middle
+    else
+    if HorizontalStr = 'right' then
+      Result.Horizontal := TAlignEdge.Max
+    else
+      WritelnWarning('IFC', 'Invalid horizontal alignment for TIfcTextLiteralWithExtent: %s',
+        [HorizontalStr]);
+  end;
+
+  { Convert the edge, that lies at the placement origin, to the X3D justify.
+
+    BeginAtMin says whether the text along this axis starts at the minimum
+    coordinate, which is true for the left-to-right text (horizontal axis)
+    and for the bottom-to-top text (vertical axis).
+
+    UnspecifiedJustify is used when we have no alignment information,
+    pass the X3D default justify of this axis, see TAlignEdge.Unspecified. }
+  function EdgeToJustify(const Edge: TAlignEdge; const BeginAtMin: Boolean;
+    const UnspecifiedJustify: TX3DFontJustify): TX3DFontJustify;
+  begin
+    case Edge of
+      TAlignEdge.Unspecified:
+        Result := UnspecifiedJustify;
+      TAlignEdge.Min:
+        if BeginAtMin then
+          Result := fjBegin
+        else
+          Result := fjEnd;
+      TAlignEdge.Middle:
+        Result := fjMiddle;
+      TAlignEdge.Max:
+        if BeginAtMin then
+          Result := fjEnd
+        else
+          Result := fjBegin;
+      {$ifndef COMPILER_CASE_ANALYSIS}
+      else raise EInternalError.Create('EdgeToJustify: Invalid TAlignEdge value');
+      {$endif}
+    end;
+  end;
+
+var
+  AlignEdges: TAlignEdges;
+begin
+  Result := TFontStyleNode.Create('', BaseUrl);
+
+  { Express the IFC Path (writing direction).
+
+    Note: Our renderer ignores horizontal, leftToRight, topToBottom for now,
+    it always renders horizontal left-to-right text. But we set these fields
+    anyway, to have correct X3D data and be ready for future X3D renderer. }
+  case Path of
+    { Unknown is not a valid IFC value, it only exists to always write out
+      Path (see TIfcTextPath). Should it ever be set, treat it
+      like the usual Right. }
+    TIfcTextPath.Unknown,
+    TIfcTextPath.Right:
+      begin
+        Result.Horizontal := true;
+        Result.LeftToRight := true;
+        Result.TopToBottom := true;
+      end;
+    TIfcTextPath.Left:
+      begin
+        Result.Horizontal := true;
+        Result.LeftToRight := false;
+        Result.TopToBottom := true;
+      end;
+    TIfcTextPath.Down:
+      begin
+        Result.Horizontal := false;
+        Result.LeftToRight := true;
+        Result.TopToBottom := true;
+      end;
+    TIfcTextPath.Up:
+      begin
+        Result.Horizontal := false;
+        Result.LeftToRight := true;
+        Result.TopToBottom := false;
+      end;
+    {$ifndef COMPILER_CASE_ANALYSIS}
+    else raise EInternalError.Create('TextLiteralFontStyle: Invalid TIfcTextPath value');
+    {$endif}
+  end;
+
+  AlignEdges := ParseBoxAlignment(BoxAlignment);
+
+  if Result.Horizontal then
+  begin
+    Result.Justify := EdgeToJustify(AlignEdges.Horizontal, Result.LeftToRight,
+      TFontStyleNode.DefaultJustify);
+    Result.JustifyMinor := EdgeToJustify(AlignEdges.Vertical, not Result.TopToBottom,
+      TFontStyleNode.DefaultJustifyMinor);
+  end else
+  begin
+    { For vertical text (IFC Path is UP or DOWN) the X3D major direction
+      is the vertical one, and the minor direction is the horizontal one. }
+    Result.Justify := EdgeToJustify(AlignEdges.Vertical, not Result.TopToBottom,
+      TFontStyleNode.DefaultJustify);
+    Result.JustifyMinor := EdgeToJustify(AlignEdges.Horizontal, Result.LeftToRight,
+      TFontStyleNode.DefaultJustifyMinor);
+  end;
+end;
+
+function TIfcTextLiteral.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
+var
+  TextNode: TTextNode;
+  Shape: TShapeNode;
+  Transform: TTransformNode;
+  Lines: TCastleStringList;
+  Translation: TVector3;
+  Rotation: TVector4;
+  FontStyle: TFontStyleNode;
+  FontSize: Single;
+begin
+  TextNode := TTextNode.Create('', Mapping.BaseUrl);
+
+  { The IFC specification doesn't define any way to have a multi-line text.
+    But the authoring applications just place newlines inside the literal,
+    so honor them. }
+  Lines := TCastleStringList.Create;
+  try
+    Lines.Text := Literal;
+    TextNode.SetText(Lines);
+  finally FreeAndNil(Lines) end;
+
+  TextNode.Solid := false;
+  FontStyle := TextLiteralFontStyle(Mapping.BaseUrl, Path, GetBoxAlignment);
+  { Use font size from IfcTextStyle }
+  if TryGetFontSize(FontSize) then
+  begin
+    if FontSize > 0 then
+      FontStyle.Size := FontSize
+    else
+      WritelnWarning('IFC', 'Invalid (non-positive) font size %f of text "%s", ignoring', [
+        FontSize,
+        Literal
+      ]);
+  end;
+  TextNode.FontStyle := FontStyle;
+
+  Shape := TShapeNode.Create('', Mapping.BaseUrl);
+  Shape.Geometry := TextNode;
+  Shape.Appearance := UnlitAppearance;
+  SetMetadata(Shape, 'IFC_ClassName', ClassName);
+
+  Mapping.ConnectShapeAndProduct(Shape, ParentProduct);
+
+  { Note: Authoring applications like BonsaiBIM and FreeCAD
+    leave Placement as identity, and instead move the containing
+    TIfcAnnotation using TIfcProduct.ObjectPlacement.
+    Both approaches are valid, and we support both. }
+  Transform := TTransformNode.Create('', Mapping.BaseUrl);
+  if Placement <> nil then
+  begin
+    Placement.GetTransform(Translation, Rotation);
+    Transform.Translation := Translation;
+    Transform.Rotation := Rotation;
+  end;
+  Transform.AddChildren(Shape);
+
+  Result := Transform;
+end;
+
 function TIfcMappedItem.BuildNode(const Mapping: TCastleIfcMapping;
   const ParentProduct: TIfcProduct;
   const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
@@ -2065,7 +2347,8 @@ begin
 end;
 
 { Main routine that converts IFC -> X3D nodes, doing most of the work. }
-function LoadIfc(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
+function LoadIfc(const Stream: TStream; const BaseUrl: String;
+  const LoadOptions: TCastleSceneLoadOptions): TX3DRootNode;
 
   { Debug save back IFC and X3D.
     Save URL is similar to BaseUrl but with -debug-roundtrip.ifcjson,
@@ -2099,7 +2382,7 @@ var
   Json: TJsonData;
   IfcFile: TIfcFile;
 begin
-  JsonParser := TJsonParser.Create(Stream, [joComments]);
+  JsonParser := TJsonParser.Create(Stream, [joComments, joUTF8]);
   try
     Json := JsonParser.Parse;
     try

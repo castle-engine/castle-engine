@@ -5,7 +5,7 @@ var NewColor: TVector3;
     i: integer;
 begin
  p := PPixel(RawPixels);
- for i := 1 to Width * Height do
+ for i := 1 to Width * Height * Depth do
  begin
   NewColor.X := Matrix.Data[0, 0]*p^.X + Matrix.Data[1, 0]*p^.Y+ Matrix.Data[2, 0]*p^.Z;
   NewColor.Y := Matrix.Data[0, 1]*p^.X + Matrix.Data[1, 1]*p^.Y+ Matrix.Data[2, 1]*p^.Z;

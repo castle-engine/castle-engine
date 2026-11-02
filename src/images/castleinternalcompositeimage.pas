@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -259,6 +259,13 @@ const
   CompositeTypeToString: array [TCompositeType] of string =
   ( 'Texture', 'CubeMap', 'Volume' );
 
+var
+  { If yes, KTX will log important information:
+    do we use fast or slow speed-path for loading / saving.
+    "Fast speed path" means we can use 1x ReadBuffer call to move entire data
+    between TStream and TEncodedImage.RawPixels, so this is ideal situation. }
+  LogVerboseKtx: Boolean = false;
+
 implementation
 
 uses SysUtils, Math,
@@ -320,13 +327,9 @@ procedure TCompositeImage.LoadFromStream(Stream: TStream; const Url: String;
   const Options: TLoadImageOptions = []);
 var
   Handler: TCompositeFormatHandler;
+  Image: TEncodedImage;
 begin
   Close;
-
-  if liFlipVertically in Options then
-    WritelnWarning('ImageTexture.flipVertically for DDS/KTX not implemented yet, the image will be inverted: %s', [
-      UriDisplay(Url)
-    ]);
 
   if MimeType = '' then
     MimeType := UriMimeType(Url);
@@ -342,6 +345,12 @@ begin
 
   try
     Handler.LoadFromStream(Stream, Url);
+
+    if liFlipVertically in Options then
+    begin
+      for Image in Images do
+        Image.FlipVertical;
+    end;
   finally FreeAndNil(Handler) end;
 end;
 
@@ -368,7 +377,7 @@ begin
     Handler := TDDSHandler.Create(Self)
   else
   if MimeType = 'image/ktx' then
-    raise EInvalidCompositeImage.Create('Cannot save to the KTX format now')
+    Handler := TKTXHandler.Create(Self)
   else
     raise EInvalidCompositeImage.CreateFmt('Cannot recognize composite image MIME type: %s',
       [MimeType]);

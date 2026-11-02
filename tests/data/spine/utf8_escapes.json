@@ -1,0 +1,10 @@
+{
+  "skeleton": { "spine": "3.8.05-beta" },
+  "bones": [ { "name": "root" } ],
+  "slots": [ { "name": "slot", "bone": "root" } ],
+  "skins": [ { "name": "default", "attachments": { } } ],
+  "animations": {
+    "literal-żółć😀": {},
+    "escaped-\u017C\u00F3\u0142\u0107\uD83D\uDE00": {}
+  }
+}

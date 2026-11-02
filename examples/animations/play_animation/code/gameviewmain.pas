@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -151,11 +151,6 @@ end;
 procedure TViewMain.ClickButtonOpen3D(Sender: TObject);
 begin
   OpenScene('castle-data:/gltf_knight/knight.gltf');
-
-  { Note: TransitionDuration is not supported for castle-anim-frames.
-    TransitionDuration is supported on other model formats (in particular
-    glTF, Spine, X3D support animations too). }
-  //OpenScene('../../deprecated_resource_animations/data/deprecated/knight_single_castle_anim_frames/knight.castle-anim-frames');
 end;
 
 procedure TViewMain.ClickButtonOpen2DSpine(Sender: TObject);
@@ -310,8 +305,6 @@ begin
     See examples/animations/optimize_animations_test/ for more notes
     about optimizing. }
   Viewport.DynamicBatching := SliderOptimization.Value > 0;
-  InternalFastTransformUpdate := SliderOptimization.Value > 0;
-  OptimizeExtensiveTransformations := SliderOptimization.Value > 0;
   case SliderOptimization.Value of
     0, 1: Scene.AnimateSkipTicks := 0;
     2: Scene.AnimateSkipTicks := 1;

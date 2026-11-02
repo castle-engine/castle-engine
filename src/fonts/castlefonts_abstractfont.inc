@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -468,6 +468,9 @@ begin
   if ApplicationProperties <> nil then
     ApplicationProperties.OnGLContextCloseObject.Remove({$ifdef FPC}@{$endif}GLContextCloseEvent);
   GLContextClose;
+  if (FPropertiesStack <> nil) and
+     (FPropertiesStack.Count <> 0) then
+    WritelnWarning('TCastleAbstractFont.FPropertiesStack not empty, possibly internal error: Push/PopProperties calls not balanced, or we break because of exception in the middle of rendering');
   FreeAndNil(FPropertiesStack);
   FreeAndNil(FFontSizeNotifications);
   inherited;

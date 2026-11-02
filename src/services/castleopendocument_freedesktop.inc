@@ -4,11 +4,11 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
   Parts of this file are based on Lazarus LCL code, which has
   exactly the same license as our "Castle Game Engine":
-  LGPL with static linking exception, see COPYING.txt for details.
+  LGPL with static linking exception, see COPYING.md for details.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -21,7 +21,7 @@
   XDG https://www.freedesktop.org/wiki/ , in practice:
   desktop Unix like Linux, FreeBSD. }
 
-// Relies on RunCmdFromPath
+// for ExecuteCommandNoWait
 {$I castleopendocument_process.inc}
 
 {$ifdef read_implementation}
@@ -66,10 +66,10 @@ begin
       Exit(OpenDocument(FileName));
   end;
 
-  Result := FindDefaultBrowser(ABrowser) and FileExists(ABrowser) and FileIsExecutable(ABrowser);
+  Result := FindDefaultBrowser(ABrowser) and FileExists(ABrowser);
   if not Result then
     Exit;
-  RunCmdFromPath(ABrowser, AUrl);
+  ExecuteCommandNoWait(ABrowser, [AUrl]);
 end;
 
 // Open a document with the default application associated with it in the system
@@ -89,7 +89,7 @@ begin
   if lApp='' then
     Exit(False);
 
-  RunCmdFromPath(lApp,APath);
+  ExecuteCommandNoWait(lApp, [APath]);
 end;
 
 {$endif read_implementation}

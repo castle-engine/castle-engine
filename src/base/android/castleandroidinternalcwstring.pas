@@ -11,7 +11,7 @@
     the same as used by the "Castle Game Engine": LGPL (version 2.1)
     with "static linking exception" (with exactly the same wording
     of the "static linking exception").
-    See the file COPYING.txt, included in this distribution, for details about
+    See the file COPYING.md, included in this distribution, for details about
     the copyright of "Castle Game Engine".
     See http://www.freepascal.org/faq.var#general-license about the copyright
     of FPC RTL.
@@ -923,7 +923,7 @@ begin
     if GetProcedureAddress(hlibICU, TestProcName) = nil then begin
       // Unable to get ICU version
       UnloadICU;
-      AndroidLog(alWarn, 'Cannot use libicuuc.so --- no versioned ucnv_open found, and unversioned ucnv_open not available. . WideString conversion will fail for special UTF-8 characters');
+      AndroidLog(alWarn, 'Cannot use libicuuc.so --- no versioned ucnv_open found, and unversioned ucnv_open not available. WideString conversion will fail for special UTF-8 characters');
       exit;
     end;
   end;

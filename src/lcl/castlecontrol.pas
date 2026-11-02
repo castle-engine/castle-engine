@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -675,7 +675,7 @@ begin
     EventBeforeRender;
     EventRender;
   end;
-  Result := SaveScreen_NoFlush(PixelsRect, Parent.SaveScreenBuffer);
+  Result := SaveScreen_NoFlush(SaveRect, Parent.SaveScreenBuffer);
 end;
 
 { TCastleControl -------------------------------------------------- }
@@ -965,7 +965,7 @@ begin
     if MouseButton in Container.MousePressed then
       CastleMouseUp(MouseButton);
 
-  Container.MouseLookIgnoreNextMotion;
+  Container.PointerLock.InternalIgnoreNextMotion;
 end;
 
 procedure TCastleControl.UpdateShiftState(const Shift: TShiftState);

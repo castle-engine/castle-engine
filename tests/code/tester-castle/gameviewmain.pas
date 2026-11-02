@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -70,7 +70,7 @@ implementation
 
 uses SysUtils,
   CastleColors, CastleUtils, CastleTesterParameters, CastleLog,
-  CastleApplicationProperties;
+  CastleApplicationProperties, CastleStringUtils;
 
 { TViewMain ----------------------------------------------------------------- }
 
@@ -107,10 +107,8 @@ end;
 
 procedure TViewMain.LogFailure(const AMessage: String);
 begin
-  if LabelFailedTests.Caption = '' then
-    LabelFailedTests.Caption :=  AMessage
-  else
-    LabelFailedTests.Caption := LabelFailedTests.Caption + NL + AMessage;
+  WritelnWarning('Test failed: ' + AMessage);
+  LabelFailedTests.Caption := SAppendPart(LabelFailedTests.Caption, NL, AMessage);
 end;
 
 procedure TViewMain.Start;

@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -31,7 +31,7 @@
     procedure InsertBackIfNotExists(const NewItem: TCastleUserInterface);
     procedure InsertBack(const NewItems: TCastleUserInterfaceList); overload;
 
-    { Insert, honoring @link(TCastleUserInterface.KeepInFront). }
+    { Insert at Index, honoring @link(TCastleUserInterface.KeepInFront). }
     procedure InsertWithZOrder(Index: Integer; const Item: TCastleUserInterface);
   end;
 

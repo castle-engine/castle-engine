@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -29,13 +29,27 @@
 type
   TUrlCastleAndroidAssets = class
     class function Read(const Url: String; out MimeType: string): TStream;
+    class function Exists(const Url: String): TUriExists;
+    class procedure FindFiles(const UrlPath, Mask: String;
+      const FileEvent: TFoundFileMethod; var StopSearch: Boolean);
   end;
 
 class function TUrlCastleAndroidAssets.Read(const Url: String; out MimeType: string): TStream;
 begin
   CheckFileAccessSafe(Url);
-  Result := TReadAssetStream.Create(URIToAssetPath(Url));
+  Result := TReadAssetStream.Create(UriToAssetPath(Url));
   MimeType := UriMimeType(Url);
+end;
+
+class function TUrlCastleAndroidAssets.Exists(const Url: String): TUriExists;
+begin
+  Result := AndroidAssetExists(UriToAssetPath(Url));
+end;
+
+class procedure TUrlCastleAndroidAssets.FindFiles(const UrlPath, Mask: String;
+  const FileEvent: TFoundFileMethod; var StopSearch: Boolean);
+begin
+  FindFilesInAndroidAssets(UriToAssetPath(UrlPath), Mask, FileEvent, StopSearch);
 end;
 
 {$endif ANDROID}

@@ -21,11 +21,24 @@ beating_that_thing
     by oldkyx https://opengameart.org/users/oldkyx
     License(s): CC0
 
-The sound files here have been converted by SOX into various formats/sampling rates,
-to test that CastleSoundEngine can play various combinations OK.
+interact.mp3
+
+    from https://opengameart.org/content/interaction-sound
+    by therewasafightondelancey https://opengameart.org/users/therewasafightondelancey
+    License(s): CC0
+
+swosh-05.flac
+
+    from https://opengameart.org/content/swish-bamboo-stick-weapon-swhoshes
+    by qubodup https://opengameart.org/users/qubodup
+    License(s): CC0
+
+Some of these sound files here have been converted by SOX into various
+formats/sampling rates,
+to test that Castle Game Engine can play various combinations OK.
 Some of these conversions degrade sound file quality,
-e.g. I made some sounds mono or decrease their frequency.
-Again, this is just to test that these sounds work.
+e.g. we made some sounds mono or decreased their frequency.
+Again, this is just to test that these sounds still work with the engine.
 
 If you want to use these sounds in your own games,
 follow the links above to download the files in original quality.

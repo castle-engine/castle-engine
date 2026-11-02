@@ -1,10 +1,10 @@
 {%MainUnit castlewindow.pas}
 {
-  Copyright 2004-2024 Michalis Kamburelis.
+  Copyright 2004-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -15,31 +15,65 @@
 }
 
 {$ifdef read_interface_uses}
-CastleInternalJobWeb,
+Job.Js, CastleInternalJobWeb,
 {$endif}
 
 {$ifdef read_implementation_uses}
+CastleInternalWebUtils,
 {$endif}
 
 {$ifdef read_window_interface}
 strict private
-  Canvas: IJSHTMLCanvasElement;
+  FCanvas: IJSHTMLCanvasElement;
   LastClientRectHeight, LastClientRectWidth, LastDevicePixelRatio: Double;
+  DoneWarningCursor: Boolean;
+
   { Get mouse position from JS event, convert it to CGE coordinates. }
-  function JsMousePositionToCastle(const Event: IJSPointerEvent): TVector2;
+  function JsMousePositionToCastle(const Event: IJSMouseEvent): TVector2;
+
   function PointerDown(BaseEvent: IJSEvent): Boolean;
   function PointerUp(BaseEvent: IJSEvent): Boolean;
   function PointerMove(BaseEvent: IJSEvent): Boolean;
+
+  { Handlers for legacy mouse events, used only while pointer lock is effective,
+    because Chromium does not deliver pointerdown / pointerup during pointer lock. }
+  function MouseDown(BaseEvent: IJSEvent): Boolean;
+  function MouseUp(BaseEvent: IJSEvent): Boolean;
+
+  function MouseOrPointerDown(const Event: IJSMouseEvent): Boolean;
+  function MouseOrPointerUp(const Event: IJSMouseEvent): Boolean;
   function LostPointerCapture(BaseEvent: IJSEvent): Boolean;
   function KeyDown(BaseEvent: IJSEvent): Boolean;
   function KeyUp(BaseEvent: IJSEvent): Boolean;
   function ContextMenu(BaseEvent: IJSEvent): Boolean;
+
+  { Called when the window loses focus, e.g. because the user switched
+    to another application (Alt+Tab) or browser tab (Ctrl+Tab).
+    We will not receive keyup events then, and we don't want to keep
+    considering keys like "Ctrl" or "Alt" being pressed forever,
+    this would also block navigation.
+
+    Testcase: TCastleWalkNavigation in examples/terrain will not move player
+    by AWSD after Ctrl+Tab (and go back to tab by mouse click)
+    if it thinks Ctrl/Alt are pressed.
+
+    See https://developer.mozilla.org/en-US/docs/Web/API/Window/blur_event .
+
+    We could alternatively (or additionally) watch
+    https://developer.mozilla.org/en-US/docs/Web/API/Document/visibilitychange_event }
+  function Blur(BaseEvent: IJSEvent): Boolean;
+
+  { Shortcut to query our PointerLock implementation, casted to TCastleWebPointerLock. }
+  function PointerLockEffective: Boolean;
+private
+  property Canvas: IJSHTMLCanvasElement read FCanvas;
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
 strict private
   CanvasAnimationHandler: Integer;
   WasFrameRendered: Boolean;
+  FPageUrlParametersInitialized: Boolean;
   { Callback for requestAnimationFrame
     ( https://developer.mozilla.org/en-US/docs/Web/API/Window/requestAnimationFrame ) }
   procedure AnimationFrame(Time: TDOMHighResTimeStamp);
@@ -47,7 +81,114 @@ strict private
 
 {$ifdef read_implementation}
 
-{ TCastleWindow ------------------------------------------------------------------ }
+const
+  CanvasElementId = 'castle-canvas';
+
+{ Declare TWindowWebContainer and TCastleWebPointerLock ---------------------- }
+
+type
+  TWindowWebContainer = class(TWindowContainer)
+  protected
+    function CreatePointerLock: TCastleAbstractPointerLock; override;
+  end;
+
+  { Pointer lock implementation on web.
+
+    Request "pointer lock" from the browser, which means that
+    1. the mouse cursor is hidden and 2. mouse movement is unbounded
+    and 3. mouse move is only reported as a delta.
+
+    This is what we need to implement @link(TCastleContainer.PointerLock)
+    on the web.
+    On the web, SetCursor and setting MousePosition don't work (and it would
+    be confusing if we would automatically start pointer lock e.g.
+    on setting cursor to none), so pointer lock has to be requested explicitly
+    by @code(Container.PointerLock.Active:=true)
+    (and it works on all platforms).
+
+    The request is not applied immediately, user may reject it.
+    User may also exit pointer lock at any time, e.g. by pressing Escape key.
+    We expose @link(Effective) to communicate this.
+    So treat PointerLock.Active only as "wants to have pointer lock",
+    while @link(Effective) is "actually has pointer lock now".
+
+    See @url(https://developer.mozilla.org/en-US/docs/Web/API/Pointer_Lock_API
+    pointer lock API docs). }
+  TCastleWebPointerLock = class(TCastleAbstractPointerLock)
+  strict private
+    FEffective: Boolean;
+
+    { Did the browser reject the UnadjustedMovement pointer lock option
+      with NotSupportedError. Once we learn it's unsupported,
+      RequestPointerLockNow does not request it again.
+
+      Note that this can only be set @true on browsers that return
+      Promise from requestPointerLock. This includes Chrome and Vivaldi on Linux,
+      but not Firefox on Linux. Luckily, Firefox on Linux supports
+      UnadjustedMovement. }
+    FUnadjustedMovementUnsupported: Boolean;
+
+    { Promise of the last RequestPointerLock call, so we can observe its
+      rejection (LockPromiseRejected) and unregister callbacks when no longer relevant.
+
+      Note that this is only assigned (i.e. non-nil; check with "= nil")
+      on browsers that return
+      Promise from requestPointerLock. This includes Chrome and Vivaldi on Linux,
+      but not Firefox on Linux. }
+    FRequestPromise: IJSPromise;
+
+    { We detected that browser doesn't return Promise from requestPointerLock
+      (like Firefox on Linux now). }
+    FPromiseUnsupported: Boolean;
+
+    { Listener for document.pointerlockchange event. }
+    function PointerLockChange(BaseEvent: IJSEvent): Boolean;
+
+    { Listener for document.pointerlockerror event, used only
+      with browsers that don't return Promise from requestPointerLock
+      (like Firefox on Linux now). }
+    function PointerLockError(BaseEvent: IJSEvent): Boolean;
+
+    { Rejection handler (OnRejected for RegisterPromiseCallbacks)
+      of the RequestPointerLock promise. }
+    function LockPromiseRejected(const aValue: Variant): Variant;
+
+    { Request pointer lock from the browser now.
+      Includes the UnadjustedMovement option, unless we already learned
+      (FUnadjustedMovementUnsupported) that this browser rejects it. }
+    procedure RequestPointerLockNow;
+  protected
+    procedure ActiveChanged; override;
+    function Delta(const Event: TInputMotion): TVector2; override;
+  public
+    destructor Destroy; override;
+
+    procedure RegisterListeners;
+
+    { Is the pointer lock, requested or cancelled by setting @link(Active),
+      currently effective.
+
+      This can only be @true if @link(Active) is also @true.
+
+      The @link(TInputMotion.InternalWebDelta) is useful (non-zero)
+      only when this is true.
+
+      Moreover, do not depend on @link(TInputMotion.Position) and
+      @link(TInputMotion.OldPosition) when this is true. Right now,
+      browsers will just report them as if mouse never moved at all. }
+    property Effective: Boolean read FEffective;
+
+    { Calculate proper Delta from IJSPointerEvent, at each PointerMove. }
+    procedure CalculateDelta(var SendMotion: TInputMotion;
+      const Event: IJSPointerEvent);
+  end;
+
+{ TCastleWindow -------------------------------------------------------------- }
+
+function TCastleWindow.CreateContainer: TCastleContainer;
+begin
+  Result := TWindowWebContainer.Create(Self);
+end;
 
 procedure TCastleWindow.CreateBackend;
 begin
@@ -119,14 +260,36 @@ var
 begin
   { Note that we first check if something is nil, only later we use Cast.
     Because the Cast seems to fail if original is nil, unlike "as" operator. }
-  CanvasBase := JSDocument.getElementById('castle-canvas');
+  CanvasBase := JSDocument.getElementById(CanvasElementId);
   if CanvasBase = nil then
-    raise Exception.Create('Failed to find canvas element with id="castle-canvas"');
-  Canvas := TJSHTMLCanvasElement.Cast(CanvasBase);
+    raise Exception.CreateFmt('Failed to find canvas element with id="%s"', [
+      CanvasElementId
+    ]);
+  FCanvas := TJSHTMLCanvasElement.Cast(CanvasBase);
 
   ContextOptions := TJSWebGLContextAttributes.Create;
+
+  { We need alpha = false to avoid subtle issues.
+    Default value alpha = true causes blending to be applied to the whole canvas,
+    so it's blended with the final page color (like white) when the pixel
+    written to screen happens to have alpha < 1.0.
+
+    Testcases where we have issues without this fix:
+    - if a screen effect writes fragment alpha < 1.0
+    - when rendering 3D shapes with blending, like:
+      - cat hair in castle-model-viewer-mobile
+      - trees' leaves in walking_adventure
+    - when rendering text and 2D images with blending, like:
+      - outline of "credits" text in platformer
+      - outline of assets in platformer in fullscreen
+      - heart that is invisible (once you lose health) in platformer
+      - around cge logo in buttons on component_gallery
+      - around "The Unholy Society" assets (when no screen effects active) }
+  ContextOptions.Alpha := false;
+
   { Seems to have no effect. }
   ContextOptions.Antialias := false;
+
   { This is critical to have correct text rendering.
     By default premultipliedAlpha is true, we don't want this,
     we assume not premultiplied in all our operations, including when delivering
@@ -159,6 +322,7 @@ begin
   DebugLog;
 
   Application.OpenWindowsAdd(Self);
+  SetFocused(true);
 
   Canvas.addEventListener('pointerdown', @PointerDown);
   Canvas.addEventListener('pointerup', @PointerUp);
@@ -166,11 +330,30 @@ begin
   Canvas.addEventListener('pointermove', @PointerMove);
   Canvas.addEventListener('contextmenu', @ContextMenu);
 
+  { Pointer events for down/up are not delivered during pointer lock in Chromium.
+
+    The Pointer Lock spec only guarantees MouseEvents in lock mode, see
+    https://www.w3.org/TR/pointerlock-2/ ,
+    """The pointer-lock target receives all relevant user generated MouseEvent
+    events: namely, all user-generated mousemove, mousedown..."""
+    And see issue https://github.com/w3c/pointerlock/issues/97 .
+
+    So we additionally listen to
+    legacy mousedown / mouseup, but use them only while pointer lock is effective.
+    Conversely, PointerDown / PointerUp ignore events while pointer lock is
+    effective, so we never report a single click twice (e.g. in Firefox, which
+    delivers both pointer and mouse events during lock). }
+  Canvas.addEventListener('mousedown', @MouseDown);
+  Canvas.addEventListener('mouseup', @MouseUp);
+
   { Catching key events on canvas doesn't work, as the canvas needs to be focused,
     see https://developer.mozilla.org/en-US/docs/Web/API/Element/keydown_event .
     For now, we catch key events on the whole window. }
   JSWindow.addEventListener('keydown', @KeyDown);
   JSWindow.addEventListener('keyup', @KeyUp);
+  JSWindow.addEventListener('blur', @Blur);
+
+  (Container.PointerLock as TCastleWebPointerLock).RegisterListeners;
 
   // TODO: web: initialize initial cursor position, set initial cursor, initialize DPI if possible
   // GetInitialCursorPos;
@@ -181,6 +364,11 @@ end;
 procedure TCastleWindow.CloseBackend;
 begin
   { One doesn't close WebGL context. }
+end;
+
+function TCastleWindow.PointerLockEffective: Boolean;
+begin
+  Result := (Container.PointerLock as TCastleWebPointerLock).Effective;
 end;
 
 function JsMouseButtonToCastle(const JsButton: Integer;
@@ -201,7 +389,7 @@ begin
   end;
 end;
 
-function TCastleWindow.JsMousePositionToCastle(const Event: IJSPointerEvent): TVector2;
+function TCastleWindow.JsMousePositionToCastle(const Event: IJSMouseEvent): TVector2;
 begin
   { Some info about various positions:
     https://stephendoddtech.com/blog/game-design/mouse-event-listener-input-html-canvas
@@ -214,15 +402,13 @@ begin
     GL.DrawingBufferHeight - Event.OffsetY * Canvas.Height / Canvas.OffsetHeight);
 end;
 
-function TCastleWindow.PointerDown(BaseEvent: IJSEvent): Boolean;
+function TCastleWindow.MouseOrPointerDown(const Event: IJSMouseEvent): Boolean;
 var
-  Event: IJSPointerEvent;
   Button: TCastleMouseButton;
   FingerIndex: TFingerIndex;
   Position: TVector2;
 begin
   Result := true; // assume not handled, in case of early exit
-  Event := TJSPointerEvent.Cast(BaseEvent);
 
   if not JsMouseButtonToCastle(Event.Button, Button) then
     Exit;
@@ -239,15 +425,13 @@ begin
   Result := false;
 end;
 
-function TCastleWindow.PointerUp(BaseEvent: IJSEvent): Boolean;
+function TCastleWindow.MouseOrPointerUp(const Event: IJSMouseEvent): Boolean;
 var
-  Event: IJSPointerEvent;
   Button: TCastleMouseButton;
   FingerIndex: TFingerIndex;
   Position: TVector2;
 begin
   Result := true; // assume not handled, in case of early exit
-  Event := TJSPointerEvent.Cast(BaseEvent);
 
   if not JsMouseButtonToCastle(Event.Button, Button) then
     Exit;
@@ -256,6 +440,38 @@ begin
   DoMouseUp(Position, Button, FingerIndex);
 
   Result := false;
+end;
+
+function TCastleWindow.PointerDown(BaseEvent: IJSEvent): Boolean;
+begin
+  Result := true; // assume not handled, in case of early exit
+  if PointerLockEffective then
+    Exit; // clicks are handled by MouseDown
+  Result := MouseOrPointerDown(TJSPointerEvent.Cast(BaseEvent));
+end;
+
+function TCastleWindow.PointerUp(BaseEvent: IJSEvent): Boolean;
+begin
+  Result := true; // assume not handled, in case of early exit
+  if PointerLockEffective then
+    Exit; // clicks are handled by MouseUp
+  Result := MouseOrPointerUp(TJSPointerEvent.Cast(BaseEvent));
+end;
+
+function TCastleWindow.MouseDown(BaseEvent: IJSEvent): Boolean;
+begin
+  Result := true; // assume not handled, in case of early exit
+  if not PointerLockEffective then
+    Exit; // clicks are handled by PointerDown
+  Result := MouseOrPointerDown(TJSMouseEvent.Cast(BaseEvent));
+end;
+
+function TCastleWindow.MouseUp(BaseEvent: IJSEvent): Boolean;
+begin
+  Result := true; // assume not handled, in case of early exit
+  if not PointerLockEffective then
+    Exit; // clicks are handled by PointerUp
+  Result := MouseOrPointerUp(TJSMouseEvent.Cast(BaseEvent));
 end;
 
 function TCastleWindow.LostPointerCapture(BaseEvent: IJSEvent): Boolean;
@@ -277,13 +493,49 @@ var
   Event: IJSPointerEvent;
   FingerIndex: TFingerIndex;
   Position: TVector2;
+  SendMotion: TInputMotion;
 begin
   Result := true; // assume not handled, in case of early exit
   Event := TJSPointerEvent.Cast(BaseEvent);
 
+  { TODO: Report FPC/WebAssembly bug: Format %f hangs when given integer
+    value. Below, it is critical we use %d for MovementX/MovementY.
+
+  WritelnLog('TCastleWindow.PointerMove: offset %f %f, movement %d %d, screen %f %f, button: %d', [
+    Event.OffsetX, Event.OffsetY,
+    Event.MovementX, Event.MovementY,
+    Event.ScreenX, Event.ScreenY,
+    Event.Button
+  ]);
+  }
+
+  { Firefox (tested on Linux) sends wrong PointerMove events during pointer lock,
+    right *before* sending PointerDown/Up events. It seems it synthesizes
+    "mouse moved to center of the screen" and sends them before sending
+    the actual PointerDown/Up events.
+    Since they are send before (not after) we cannot detect them by easy flag
+    like FIgnoreNextMotion.
+
+    Luckily, they contain Button <> -1 (which normal move events never do).
+    So we just reject them in this case.
+
+    Note that Chromium-based browsers (Vivaldi tested, also on Linux) also seem
+    to send such events with Button=0, but they always contain MovementX=MovementY=0,
+    so they would be harmless even if not ignored.
+
+    Effectively, when either Firefox or Chromium-based browsers send PointerMove
+    with Button <> -1 -> it's useless and we ignore it.
+    Note that normal movement during mouse look, even with mouse button pressed,
+    has Button=-1. }
+  if Event.Button <> -1 then
+    Exit(false);
+
   FingerIndex := 0;
   Position := JsMousePositionToCastle(Event);
-  DoMotion(InputMotion(Container.MousePosition, Position, Container.MousePressed, FingerIndex));
+  SendMotion := InputMotion(Container.MousePosition, Position,
+    Container.MousePressed, FingerIndex);
+  (Container.PointerLock as TCastleWebPointerLock).CalculateDelta(SendMotion, Event);
+  DoMotion(SendMotion);
 
   Result := false;
 end;
@@ -436,6 +688,14 @@ begin
   Result := false;
 end;
 
+function TCastleWindow.Blur(BaseEvent: IJSEvent): Boolean;
+begin
+  // TODO: It would be nicer to just do SetFocused(false) here,
+  // but then make sure you handle some message to do SetFocused(true) reliably.
+  ReleaseAllKeysAndMouse;
+  Result := false;
+end;
+
 function TCastleWindow.ContextMenu(BaseEvent: IJSEvent): Boolean;
 begin
   { Prevent browsers from showing their context menu,
@@ -468,7 +728,10 @@ begin
   begin
     FCursor := Value;
     if not Closed then
-      { TODO: web: UpdateCursor - is this possible on web at all? };
+    begin
+      WritelnWarningOnce(DoneWarningCursor, 'Web',
+        'Changing mouse cursor on the web is not possible. If you want to hide the cursor for pointer lock, the "Container.PointerLock.Active := true" is sufficient.');
+    end;
   end;
 end;
 
@@ -479,7 +742,9 @@ end;
 
 procedure TCastleWindow.SystemSetMousePosition(const Value: TVector2);
 begin
-  { TODO: web: is this possible? we need it for MouseLook. }
+  { Repositioning the mouse on the web is not possible,
+    so this will never be implemented.
+    See PointerLock, which addresses a similar need, but in a different way. }
 end;
 
 procedure TCastleWindow.UpdateFullScreenBackend;
@@ -739,13 +1004,291 @@ begin
   Result := false;
 end;
 
+function TCastleApplication.PageUrl: String;
+begin
+  Result := JSWindow.Location.Href;
+end;
+
+function TCastleApplication.PageUrlQuery: String;
+begin
+  Result := JSWindow.Location.Search;
+end;
+
+function TCastleApplication.PageUrlParameters: TStringStringMap;
+begin
+  if not FPageUrlParametersInitialized then
+  begin
+    // for now, TCastleApplication.Create creates a useless instance that we'll discard here
+    FreeAndNil(FPageUrlParameters);
+    FPageUrlParameters := UrlQueryParameters(PageUrlQuery);
+    FPageUrlParametersInitialized := true;
+  end;
+
+  Result := FPageUrlParameters;
+end;
+
 { TWindowContainer ----------------------------------------------------------- }
 
 function TWindowContainer.SettingMousePositionCausesMotion: Boolean;
 begin
-  { TODO: web: check, using window_events example, what is the correct value
-    (press "5", see if OnMotion is generated). }
+  { On the web, setting MousePosition does nothing, in particular it doesn't
+    generate Motion events. }
+  Result := false;
+end;
+
+{ TWindowWebContainer -------------------------------------------------------- }
+
+function TWindowWebContainer.CreatePointerLock: TCastleAbstractPointerLock;
+begin
+  Result := TCastleWebPointerLock.Create(Self);
+end;
+
+{ TCastleWebPointerLock ------------------------------------------------------ }
+
+destructor TCastleWebPointerLock.Destroy;
+begin
+  UnregisterPromiseAndNil(FRequestPromise);
+  JSDocument.removeEventListener('pointerlockchange', @PointerLockChange);
+  JSDocument.removeEventListener('pointerlockerror', @PointerLockError);
+  inherited;
+end;
+
+procedure TCastleWebPointerLock.RegisterListeners;
+begin
+  { Pointer Lock API: observe the pointer lock state
+    https://developer.mozilla.org/en-US/docs/Web/API/Pointer_Lock_API }
+  JSDocument.addEventListener('pointerlockchange', @PointerLockChange);
+
+  { Note: We do not listen for the 'pointerlockerror' event.
+
+    - When FPromiseUnsupported = @false (so requestPointerLock returns a Promise):
+
+        A failed RequestPointerLock also rejects the returned promise, and only
+        the promise rejection carries the reason (error.name), which we need to
+        distinguish "UnadjustedMovement unsupported" from other failures.
+        So we handle all failures in LockPromiseRejected instead.
+
+    - When FPromiseUnsupported = @true (so requestPointerLock does not return a Promise):
+
+        We will register 'pointerlockerror' listener in
+        RequestPointerLockNow, when we detect that FPromiseUnsupported
+        should be true.
+  }
+end;
+
+function TCastleWebPointerLock.PointerLockChange(BaseEvent: IJSEvent): Boolean;
+var
+  NewEffective: Boolean;
+begin
+  NewEffective :=
+    (JSDocument.PointerLockElement <> nil) and
+    (JSDocument.PointerLockElement.Id = CanvasElementId);
+
+  // log NewEffective and JSDocument.PointerLockElement
+  if JSDocument.PointerLockElement <> nil then
+    WritelnLog('Pointer locked to element: tag=%s id=%s class=%s. This is our canvas: %s', [
+      JSDocument.PointerLockElement.TagName,
+      JSDocument.PointerLockElement.Id,
+      JSDocument.PointerLockElement.ClassName_,
+      BoolToStr(NewEffective, true)
+    ])
+  else
+    WritelnLog('Pointer not locked to any element.');
+
+  if Active then
+  begin
+    FEffective := NewEffective;
+    if not NewEffective then
+      CancelActive;
+    Assert(Active = Effective);
+  end else
+  begin
+    if NewEffective then
+      WritelnWarning('Web', 'Browser reports pointer lock became effective, but it was not requested by setting PointerLock.Active. Ignoring.');
+  end;
+
   Result := true;
+end;
+
+function TCastleWebPointerLock.PointerLockError(BaseEvent: IJSEvent): Boolean;
+begin
+  WritelnWarning('Web', 'Pointer lock error');
+  FEffective := false;
+  if Active then
+    CancelActive;
+  Result := true;
+end;
+
+function TCastleWebPointerLock.LockPromiseRejected(const aValue: Variant): Variant;
+var
+  Error: IJSDOMException;
+  ErrorName: String;
+begin
+  Result := aValue;
+
+  { If user no longer wants pointer lock, ignore this rejection. }
+  if not Active then
+    Exit;
+
+  Error := TJSDOMException.Cast(aValue);
+  ErrorName := Error.Name;
+
+  if (ErrorName = 'NotSupportedError') and (not FUnadjustedMovementUnsupported) then
+  begin
+    { The UnadjustedMovement option is not supported on this browser/OS.
+      Remember it (to not request it again) and retry now without it. }
+    WritelnLog('Web', 'Pointer lock UnadjustedMovement option not supported, retrying without it');
+    FUnadjustedMovementUnsupported := true;
+    RequestPointerLockNow;
+  end else
+  begin
+    { Pointer lock request failed for some other reason,
+      e.g. request was not within / right after a user gesture.
+      We cannot recover, so reset the "wants pointer lock" intent and notify
+      listeners (e.g. to turn off MouseLook). }
+    WritelnWarning('Web', 'Pointer lock request failed: %s (%s)', [
+      ErrorName,
+      Error.Message
+    ]);
+    FEffective := false;
+    CancelActive;
+  end;
+end;
+
+procedure TCastleWebPointerLock.RequestPointerLockNow;
+var
+  Window: TCastleWindow;
+  Options: IJSPointerLockOptions;
+begin
+  Window := (Container as TWindowContainer).Parent;
+
+  { Use UnadjustedMovement to avoid OS mouse acceleration,
+    get raw precise movement.
+
+    Not all browsers/platforms support it. Google Chrome and Vivaldi
+    (also based on Chromium) on Linux reject such request with NotSupportedError:
+
+      """Uncaught (in promise) NotSupportedError: The options asked for in this
+      request are not supported on this platform."""
+
+    Tested with fail:
+    - Vivaldi 8.0.4033.46 (latest on 2026-06-13), Linux/x86_64
+    - Google Chrome 149.0.7827.114 (latest on 2026-06-13), Linux/x86_64
+
+    Firefox on Linux supports it. Tested with success:
+    - Firefox 151.0.4 (latest on 2026-06-13), Linux/x86_64
+
+    See https://web.dev/articles/disable-mouse-acceleration
+    where it's confirmed that UnadjustedMovement is not supported on Linux
+    by Chromium-based browsers.
+  }
+  if not FUnadjustedMovementUnsupported then
+  begin
+    Options := TJSPointerLockOptions.Create;
+    Options.UnadjustedMovement := true;
+    FRequestPromise := Window.Canvas.RequestPointerLock(Options);
+  end else
+    FRequestPromise := Window.Canvas.RequestPointerLock;
+
+  { Did JS return a Promise or null/undefined?
+
+    requestPointerLock is declared to return IJSPromise (a Pascal interface),
+    so when the browser returns no promise (JS null/undefined), Job.Js gives us
+    a nil interface (see TJSObject.InvokeJSObjectResult) -- so we check "= nil".
+
+    Note: do *not* use VarIsNull here. The VarIsNull / Variants.Null advice
+    from https://wiki.lazarus.freepascal.org/WebAssembly/DOM applies only
+    to JS values fetched as Variant, where JS null becomes Variants.Null.
+    Checking here VarIsNull(FRequestPromise) would be useless
+    (always return false). }
+  if FRequestPromise = nil then
+  begin
+    if not FPromiseUnsupported then
+    begin
+      FPromiseUnsupported := true;
+      WritelnLog('Web', 'Browser does not return a promise from requestPointerLock, using pointerlockerror for error handling.');
+      { We assign PointerLockError listener then.
+        We don't use it with browsers that return a promise, to avoid
+        double-calling the error handler. }
+      JSDocument.addEventListener('pointerlockerror', @PointerLockError);
+    end;
+  end else
+  begin
+    { Observe the rejection. We don't need an accepted callback: a successful
+      lock is reported by the pointerlockchange event (PointerLockChange). }
+    RegisterPromiseCallbacks(FRequestPromise, nil, @LockPromiseRejected);
+  end;
+end;
+
+procedure TCastleWebPointerLock.ActiveChanged;
+begin
+  if Active then
+  begin
+    { Note: We considered a mechanism to "schedule" pointer lock request
+      in case this is called outside of user gesture (like
+      "WalkNavigation.MouseLook := buttonRight in Container.MousePressed"
+      in Update of examples/creature_behaviors/ ).
+      But
+
+      - This scheduling is not really a solution. In the above example,
+        Update happens after mouse click, so the "scheduled activation"
+        would not happen anytime soon.
+
+      - It seems it's also not necessary, as browsers allow pointer lock
+        requests also a bit later after user gesture, not necessarily
+        in the same event handler.
+        See https://developer.mozilla.org/en-US/docs/Glossary/Transient_activation
+        "Transient activation expires after a timeout (if not renewed by
+        further interaction)".
+    }
+    RequestPointerLockNow;
+  end else
+  begin
+    { Stop observing any pending request promise, so a late rejection
+      (e.g. NotSupportedError) won't trigger a retry after we no longer
+      want the lock. }
+    UnregisterPromiseAndNil(FRequestPromise);
+    JSDocument.ExitPointerLock;
+    FEffective := false;
+  end;
+end;
+
+function TCastleWebPointerLock.Delta(const Event: TInputMotion): TVector2;
+begin
+  if Effective then
+    Result := Event.InternalWebDelta
+  else
+    Result := TVector2.Zero;
+end;
+
+procedure TCastleWebPointerLock.CalculateDelta(var SendMotion: TInputMotion;
+  const Event: IJSPointerEvent);
+begin
+  { What to use for deltas?
+
+    - movementX/Y are designed for this
+
+    - experiment rejected: Since
+      https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/movementX
+      https://github.com/w3c/pointerlock/issues/42
+      says their coordinates are unreliable and suggests to calculate deltas
+      ourselves, by comparing screenX/Y.
+      But that's wrong advise, as of 2026-06: screenX/Y
+      - in Firefox 151.0.4 is mostly zero,
+      - and reports horizontal-only deltas in Vivaldi 8.0.4033.46 .
+
+    - experiment rejected: we tried scaling them just like we scale position
+      in JsMousePositionToCastle,
+        SendMotion.InternalWebDelta := Vector2(
+           Event.MovementX * Canvas.Width / Canvas.OffsetWidth,
+          -Event.MovementY * Canvas.Height / Canvas.OffsetHeight);
+      but this resulted in speed being *less* consistent with how MousePosition
+      changes in Firefox in dragging_test, when zoomed in/out.
+
+    All in all, just using movementX/Y is most reliable now.
+  }
+  if FEffective then
+    SendMotion.InternalWebDelta := Vector2(Event.MovementX, -Event.MovementY);
 end;
 
 {$endif read_implementation}

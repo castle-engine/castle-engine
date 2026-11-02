@@ -14,5 +14,19 @@ See https://castle-engine.io/project_manifest for documentation of this file.
     <search_paths>
       <path value="code/" />
     </search_paths>
+    <defines>
+      <!--
+        Define PLAY_SOUNDS_TEST_FMOD to use FMOD sound backend
+        https://castle-engine.io/fmod .
+
+        Note: To make it work, you still need FMOD library (dll, so...)
+        and follow the rest of instructions at https://castle-engine.io/fmod .
+        If you miss the FMOD library, the application will still work,
+        but will use the default sound backend (OpenAL on most platforms,
+        WebAudio on web) and you will see a message in log
+        "FMOD library not available, aborting setting FMOD as sound backend".
+      -->
+      <!-- define>PLAY_SOUNDS_TEST_FMOD</define -->
+    </defines>
   </compiler_options>
 </project>

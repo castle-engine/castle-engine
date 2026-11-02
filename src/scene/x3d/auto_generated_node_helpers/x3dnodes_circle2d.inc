@@ -1,10 +1,10 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2025 Michalis Kamburelis.
+  Copyright 2015-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -52,6 +52,7 @@
     public property FdSlices: TSFInt32 read FFdSlices;
     { How much to subdivide the circle. Larger values result in a shape that looks smoother (like a correct circle), but also mean that we need to render more triangles. The default value, 0 means to use the global @link(DefaultTriangulationSlices) parameter. }
     property Slices: Integer read GetSlices write SetSlices;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -111,6 +112,15 @@ begin
   FFdSlices := TSFInt32.Create(Self, True, 'slices', 0);
    FdSlices.ChangeAlways := chGeometry;
   AddField(FFdSlices);
+end;
+
+procedure TCircle2DNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  if not FdRadiusY.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdRadiusY.X3DName);
+  if not FdSlices.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdSlices.X3DName);
 end;
 
 {$endif read_implementation}

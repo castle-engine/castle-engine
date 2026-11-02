@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -19,8 +19,10 @@ unit AddTorqueBehavior;
 interface
 
 uses
-  Classes, SysUtils, CastleTransform, CastleBehaviors, CastleVectors,
-  CastleComponentSerialize, CastleClassUtils, AbstractTimeDurationBehavior;
+  Classes, SysUtils,
+  CastleTransform, CastleBehaviors, CastleVectors, CastleUtils,
+  CastleComponentSerialize, CastleClassUtils,
+  AbstractTimeDurationBehavior;
 
 type
   TAddTorqueBehavior = class(TAbstractTimeDurationBehavior)
@@ -95,15 +97,15 @@ end;
 function TAddTorqueBehavior.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
-  if (PropertyName = 'Torque') then
+  if ArrayContainsString(PropertyName, [
+       'TorquePersistent'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
 end;
 
 initialization
-
-RegisterSerializableComponent(TAddTorqueBehavior, 'Add Torque Behavior');
-
+  RegisterSerializableComponent(TAddTorqueBehavior, 'Add Torque Behavior');
 end.
 

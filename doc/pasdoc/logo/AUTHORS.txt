@@ -8,4 +8,4 @@ Distributed on the same license as the Castle Game Engine itself:
 - Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)
   https://creativecommons.org/licenses/by-sa/4.0/deed.en
   (suitable for Wikipedia)
-- see ../../COPYING.txt for details.
+- see COPYING.md for details.

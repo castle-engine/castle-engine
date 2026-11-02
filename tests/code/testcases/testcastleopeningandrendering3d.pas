@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -129,6 +129,10 @@ begin
   { do not check files in "errors" subdir, these are known to cause trouble }
   ParentDirName := ExtractFileName(ExclPathDelim(ExtractFileDir(FileInfo.AbsoluteName)));
   if ParentDirName = 'errors' then Exit;
+  { do not check files in "proto_reuse_first_node" subdir,
+    these are known to cause memory leaks.
+    See TTestX3DNodes.TestProtoReuseFirstNode for explanation. }
+  if ParentDirName = 'proto_reuse_first_node' then Exit;
 
   TestScene(FileInfo.AbsoluteName);
 end;

@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -37,11 +37,6 @@ var
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
 begin
-  { This is an optimization useful when you animate a hierarchy of Transform
-    nodes (which often happens in case of Spine animation).
-    The animation blending should work the same, regardless if this is false or true. }
-  // OptimizeExtensiveTransformations := true;
-
   { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 

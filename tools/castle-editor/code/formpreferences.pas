@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -24,8 +24,10 @@ uses
 
 type
   TPreferencesForm = class(TForm)
+    ButtonOpenCgePath: TButton;
     ButtonRegisterLazarusPackages: TButton;
     ButtonPanel1: TButtonPanel;
+    CheckBoxMSBuildDontPassEnginePaths: TCheckBox;
     CheckBoxMuteOnRun: TCheckBox;
     DirectoryEditAndroidHome: TDirectoryEdit;
     DirectoryEditJavaHome: TDirectoryEdit;
@@ -48,6 +50,8 @@ type
     LabelCodeEditorLazarus: TLabel;
     LabelCodeEditorDelphi: TLabel;
     LabelCompilerFpc: TLabel;
+    LabelDontPassEnginePathsDocsWww: TLabel;
+    LabelDontPassEnginePathsHint: TLabel;
     LabelCodeEditorVSCode: TLabel;
     LabelCgePath: TLabel;
     LabelCgePathAutoDetected: TLabel;
@@ -87,6 +91,7 @@ type
     RadioCompilerFpc: TRadioButton;
     RadioCodeEditorVSCode: TRadioButton;
     TrackVolume: TTrackBar;
+    procedure ButtonOpenCgePathClick(Sender: TObject);
     procedure ButtonRegisterLazarusPackagesClick(Sender: TObject);
     procedure DirectoryEditAndroidHomeAcceptDirectory(Sender: TObject;
       var Value: String);
@@ -103,6 +108,7 @@ type
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormShow(Sender: TObject);
     procedure LabelAndroidDocsWwwClick(Sender: TObject);
+    procedure LabelDontPassEnginePathsDocsWwwClick(Sender: TObject);
     procedure LabelLazarusWebsiteClick(Sender: TObject);
     procedure ListPagesClick(Sender: TObject);
     procedure RadioCodeEditorAnyChange(Sender: TObject);
@@ -122,6 +128,7 @@ implementation
 
 uses CastleOpenDocument, CastleUtils, CastleLog, CastleSoundEngine,
   CastleStringUtils, CastleFilesUtils, CastleUriUtils,
+  CastleInternalProcess,
   ToolCompilerInfo, ToolFpcVersion, ToolCommonUtils, ToolManifest,
   ToolProcessRun,
   EditorUtils, ProjectUtils;
@@ -173,6 +180,10 @@ begin
   CgePathStatus(CastleEnginePath, CgePathStatusText);
   LabelCgePathAutoDetected.Caption := CgePathAutodetectedLine + CgePathStatusText;
 
+  ButtonOpenCgePath.Enabled :=
+    (CastleEnginePath <> '') or
+    (CastleEngineOverridePath <> '');
+
   FpcExe := '';
   try
     FpcExe := FindExeFpcCompiler;
@@ -203,6 +214,22 @@ begin
       WritelnLog('Cannot determine Lazarus executable, error: ' + ExceptMessage(E));
       LabelLazarusAutoDetected.Caption :=
         'Cannot determine Lazarus executable.' + NL +
+        'Make sure Lazarus is installed, and available on $PATH or configured above.';
+    end;
+
+    on E: EWindowsSmartAppControlProtection do
+    begin
+      WritelnLog('Cannot determine Lazarus version, error: ' + ExceptMessage(E));
+      LabelLazarusAutoDetected.Caption :=
+        'Cannot determine Lazarus version, Smart App Control blocked us.' + NL +
+        'Turn it temporarily off using "Windows Security -> App and browser control -> Smart App Control".';
+    end;
+
+    on E: Exception do
+    begin
+      WritelnLog('Cannot determine Lazarus version, error: ' + ExceptMessage(E));
+      LabelLazarusAutoDetected.Caption :=
+        'Cannot determine Lazarus version.' + NL +
         'Make sure Lazarus is installed, and available on $PATH or configured above.';
     end;
   end;
@@ -295,6 +322,7 @@ begin
     coDelphi    : RadioCompilerDelphi.Checked := true;
     else raise EInternalError.Create('Compiler?');
   end;
+  CheckBoxMSBuildDontPassEnginePaths.Checked := MSBuildDontPassEnginePaths;
 
   // sound tab
   TrackVolume.Position := Round(EditorVolume * TrackVolume.Max);
@@ -304,6 +332,11 @@ end;
 procedure TPreferencesForm.LabelAndroidDocsWwwClick(Sender: TObject);
 begin
   OpenUrl('https://castle-engine.io/android');
+end;
+
+procedure TPreferencesForm.LabelDontPassEnginePathsDocsWwwClick(Sender: TObject);
+begin
+  OpenUrl('https://castle-engine.io/delphi_packages');
 end;
 
 procedure TPreferencesForm.FormClose(Sender: TObject;
@@ -378,6 +411,7 @@ begin
       Compiler := coDelphi
     else
       raise EInternalError.Create('Cannot determine Compiler choice, no radio selected');
+    MSBuildDontPassEnginePaths := CheckBoxMSBuildDontPassEnginePaths.Checked;
 
     // sound tab
     EditorVolume := TrackVolume.Position / TrackVolume.Max;
@@ -438,14 +472,16 @@ procedure TPreferencesForm.ButtonRegisterLazarusPackagesClick(Sender: TObject);
     PackageFileName := CastleEnginePath + LpkFileName;
 
     WritelnLog('Executing: lazbuild --add-package-link "' + PackageFileName + '"');
-    MyRunCommandIndir(
-      GetCurrentDir { no better directory, but also should not matter },
+    ExecuteCommandCapture('' { no better directory, but also should not matter },
       LazbuildExe, [
         '--add-package-link',
         PackageFileName
       ], LazbuildOutput, LazbuildExitStatus);
 
-    WritelnLog('Execution finished: lazbuild status %d, output:' + NL + '%s', [LazbuildExitStatus, LazbuildOutput]);
+    WritelnLog('Execution finished: lazbuild status %d, output:' + NL + '%s', [
+      LazbuildExitStatus,
+      LazbuildOutput
+    ]);
 
     if (LazbuildExitStatus <> 0) or
        (Pos('Invalid option', LazbuildOutput) <> 0) { lazbuild has exit status 0 in this case } then
@@ -454,18 +490,29 @@ procedure TPreferencesForm.ButtonRegisterLazarusPackagesClick(Sender: TObject);
 
 begin
   try
-    RegisterPackage('packages/castle_base.lpk');
-    RegisterPackage('packages/castle_window.lpk');
-    RegisterPackage('packages/castle_components.lpk');
-    RegisterPackage('packages/castle_editor_components.lpk');
-    RegisterPackage('packages/alternative_castle_window_based_on_lcl.lpk');
-    RegisterPackage('packages/castle_indy.lpk');
+    RegisterPackage('packages/lazarus/castle_engine_base.lpk');
+    RegisterPackage('packages/lazarus/castle_engine_window.lpk');
+    RegisterPackage('packages/lazarus/castle_engine_lcl.lpk');
+    RegisterPackage('packages/lazarus/castle_engine_editor_components.lpk');
+    RegisterPackage('packages/lazarus/alternative_castle_engine_window_based_on_lcl.lpk');
+    RegisterPackage('packages/lazarus/castle_engine_indy.lpk');
 
     ShowMessage('Lazarus packages registered successfully.');
   except
     on E: Exception do
       ErrorBox(E.Message);
   end;
+end;
+
+procedure TPreferencesForm.ButtonOpenCgePathClick(Sender: TObject);
+begin
+  if (CastleEngineOverridePath <> '') and DirectoryExists(CastleEngineOverridePath) then
+    OpenDocument(CastleEngineOverridePath)
+  else
+  if (CastleEnginePath <> '') and DirectoryExists(CastleEnginePath) then
+    OpenDocument(CastleEnginePath)
+  else
+    ErrorBox('No valid engine path detected.');
 end;
 
 procedure TPreferencesForm.DirectoryEditAndroidHomeAcceptDirectory(

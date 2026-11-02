@@ -1,9 +1,9 @@
 {
-  Copyright 2018-2024 Michalis Kamburelis.
+  Copyright 2018-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -20,9 +20,10 @@ unit EditorUtils;
 
 interface
 
-uses Classes, Types, Controls, StdCtrls, Process, Menus, Generics.Collections,
-  Dialogs, Contnrs,
+uses Classes, Types, Controls, StdCtrls, Menus, Generics.Collections,
+  Dialogs, Contnrs, ActnList,
   CastleStringUtils, CastleInternalTools, CastleInternalArchitectures,
+  CastleInternalProcess,
   ToolManifest, ToolProcess;
 
 type
@@ -70,7 +71,7 @@ type
     sending output to TOutputList. }
   TAsynchronousProcess = class
   strict private
-    Process: TProcess;
+    Process: TCastleProcess;
     { Text read from Process output, but not passed to OutputList yet. }
     PendingLines: String;
     FRunning: Boolean;
@@ -166,7 +167,8 @@ function YesNoBox(const Message: String): Boolean;
 function YesNoBox(const Caption, Message: String): Boolean;
 
 { Set both C.Enabled and C.Exists. }
-procedure SetEnabledVisible(const C: TControl; const Value: Boolean);
+procedure SetEnabledVisible(const C: TControl; const Value: Boolean); overload;
+procedure SetEnabledVisible(const Action: TAction; const Value: Boolean); overload;
 
 const
   FpcRtlApiReferenceUrl = 'https://www.freepascal.org/docs-html/rtl/';
@@ -225,6 +227,8 @@ var
 var
   { Which compiler to use (passed to build tool). Current user preference. }
   Compiler: TCompiler;
+  { Do not pass engine paths when calling MSBuild with Delphi. Current user preference. }
+  MSBuildDontPassEnginePaths: Boolean;
 
 const
   DefaultMuteOnRun = true;
@@ -474,7 +478,7 @@ begin
     Environment.Values['JAVA_HOME'] := JavaHome;
 
   { create Process and call Process.Execute }
-  Process := TProcess.Create(nil);
+  Process := TCastleProcess.Create(nil);
   Process.Executable := ExeName;
   if CurrentDirectory <> '' then
     Process.CurrentDirectory := CurrentDirectory;
@@ -856,6 +860,12 @@ procedure SetEnabledVisible(const C: TControl; const Value: Boolean);
 begin
   C.Enabled := Value;
   C.Visible := Value;
+end;
+
+procedure SetEnabledVisible(const Action: TAction; const Value: Boolean);
+begin
+  Action.Enabled := Value;
+  Action.Visible := Value;
 end;
 
 function ApiReferenceUrl: String;

@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -551,7 +551,9 @@ const
   end;
 
 var
-  FirstLine: AnsiString;
+  { Keep FirstLine as 8-bit string, not (potentially 16-bit) String,
+    as we check later the first bytes to detect gzip. }
+  FirstLine: Utf8String;
   Line: String;
 begin
   CreateCommonBegin(AStream, AOwnsStream);
@@ -639,7 +641,7 @@ constructor TX3DLexer.CreateForPartialStream(const S: string;
 var
   StringStream: TStringStream;
 begin
-  StringStream := TStringStream.Create(S);
+  StringStream := TStringStream.Create(S, TEncoding.UTF8);
   CreateForPartialStream(
     TBufferedReadStream.Create(StringStream, true), true, AVersion);
 end;

@@ -1,9 +1,9 @@
 /*
-  Copyright 2013-2017 Jan Adamec, Michalis Kamburelis.
+  Copyright 2013-2025 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in the "Castle Game Engine" distribution,
   for details about the copyright.
 
@@ -23,6 +23,7 @@
     /* Services (integrations with 3rd party services).
        Array of ServiceAbstract instances. */
     NSMutableArray* services;
+    NSDictionary* appLaunchOptions;    // keep a reference to simulate application:didFinishLaunchingWithOptions: on services with UISceneDelegate
 }
 - (void)messageReceived:(const char *)message;
 
@@ -32,7 +33,13 @@
 - (void)onPurchase:(AvailableProduct*) product
   withTransaction:(SKPaymentTransaction*) transaction;
 
-@property (strong, nonatomic) UIWindow *window;
+- (void)initializeRootViewControllerInWindow:(UIWindow*)sceneWindow;
+- (void)onSceneDidFinishLaunching;
+- (void)onSceneDidEnterBackground;
+- (void)onSceneDidBecomeActive;
+- (BOOL)onOpenURLContexts:(NSSet<UIOpenURLContext *> *)URLContexts  API_AVAILABLE(ios(13.0));
+
+@property (strong, nonatomic) UIWindow *window;  // is valid for apps before iOS 13 (without SceneDelegate)
 
 @end
 

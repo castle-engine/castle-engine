@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -322,18 +322,20 @@
 
     { Notify this collider that given TCastleTransform changed.
       It can provoke AutoSize recalculation (if Parent changed)
-      or other reactions (e.g. mesh update, if TransformChanged corresponds to Mesh). }
+      or other reactions (e.g. mesh update, if TransformChanged corresponds to Mesh).
+      @exclude }
     procedure InternalTransformChanged(const TransformChanged: TCastleTransform); virtual;
 
-    { Create collider visualization. }
+    { Create collider visualization. @exclude }
     procedure InternalDesigningBegin; virtual;
-    { Destroy collider visualization. }
+    { Destroy collider visualization. @exclude }
     procedure InternalDesigningEnd; virtual;
 
     procedure ParentBeforeDetach; override;
 
     { Recalculate collider size using parent bounding box, only if @link(AutoSize) says we should recalculate.
       Ignored if not @link(AutoSize). }
+    { @exclude }
     procedure InternalAutoSize;
 
     { Calculate collider size to reflect parent bounding box now.
@@ -706,6 +708,7 @@
       FDuringSettingTransformationFromPhysicsEngine: Boolean;
 
       FLayer: TPhysicsLayer;
+      DoneWarningMultipleReferencesInWorld: Boolean;
 
       { List of collisions from previous step. }
       FPrevCollisions: TCastleRigidBodyList;
@@ -732,6 +735,9 @@
     { Changes Kraft GravityScale based on Gravity property. Used in SetGravity
       and InitializeEngineRigidBody. }
     procedure UpdateKraftGravity;
+
+    { Check Parent.InternalWorldReferences <= 1, warning if not. }
+    procedure CheckTransformationUnique;
   private
     FKraftBody: TKraftRigidBody;
     FGravity: Boolean;
@@ -1198,8 +1204,12 @@
       that the player can "consume" by colliding with it.
 
       Triggers report collisions through the same events as other rigid bodies:
-      (@link(TCastleRigidBody.OnCollisionEnter), @link(TCastleRigidBody.OnCollisionStay),
-      @link(TCastleRigidBody.OnCollisionExit)). }
+      @unorderedList(
+        @item @link(TCastleRigidBody.OnCollisionEnter),
+        @item @link(TCastleRigidBody.OnCollisionStay),
+        @item @link(TCastleRigidBody.OnCollisionExit).
+      )
+    }
     property Trigger: Boolean read FTrigger write SetTrigger default false;
 
     { Sets CollisionDetectionMode in rigid body to Discrete or ContinuousSweep. }
@@ -2885,6 +2895,9 @@ begin
   if Parent = nil then
     raise Exception.Create('Cannot initialize physics in behavior not added to transform.');
 
+  // reset warning state
+  DoneWarningMultipleReferencesInWorld := false;
+
   { We don't really need to access Parent.Parent, but
 
     - We need WorldTransform (so unique Parent.Parent or Parent.Parent = nil)
@@ -2895,10 +2908,8 @@ begin
     So in practice we need Parent.Parent <> nil. }
   if Parent.Parent = nil then
     raise EMultipleReferencesInWorld.CreateFmt('Cannot use physics on %s. Reason is either:' + NL +
-      NL +
-      '1. It is the root transformation (Viewport.Items). You should instead: move the rigid body and collider behaviors to some child TCastleTransform.' + NL +
-      NL +
-      '2  It is inserted multiple times into the Viewport.Items. You should instead: Duplicate (clone) the instance. Or use TCastleTransformReference to refer to the TCastleTransform multiple times (and attach collider/rigid body to TCastleTransformReference).', [
+      '  1. It is the root transformation (Viewport.Items). You should instead: move the rigid body and collider behaviors to some child TCastleTransform.' + NL +
+      '  2  It is inserted multiple times into the Viewport.Items. You should instead: Duplicate (clone) the instance.' + ' Or use TCastleTransformReference to refer to the TCastleTransform multiple times (and attach collider/rigid body to TCastleTransformReference).', [
         Parent.Name
       ]);
 
@@ -3557,6 +3568,41 @@ begin
   FAngularVelocity := VectorFromKraft(FKraftBody.AngularVelocity);
 end;
 
+procedure TCastleRigidBody.CheckTransformationUnique;
+begin
+  { Check Parent.InternalWorldReferences.
+
+    Note that in InitializePhysicsEngineObjects we already check
+    that Parent.Parent <> nil.
+    So this eliminated the case when
+    Parent.InternalWorldReferences > 1 because Parent is multiple times
+    in viewport without TCastleTransformReference (because then Parent.Parent
+    would be nil).
+
+    So if Parent.InternalWorldReferences > 1 now,
+    it means we are added through TCastleTransformReference.
+
+    This prevents physics from working correctly. Even though we have
+    Parent.Parent <> nil and even WorldTransform (not guaranteed, but right
+    now calculated, following transform outside TCastleTransformReference),
+    but it still makes no sense to use physics on such transform:
+    it is present multiple times in world, in different transformations.
+
+    See https://forum.castle-engine.io/t/domino-physics-demo-problems-with-transformreference/1973/2 }
+  if Parent.InternalWorldReferences > 1 then
+  begin
+    WritelnWarningOnce(DoneWarningMultipleReferencesInWorld,
+      'Physics on %s cannot work reliably. Reason: it is present multiple times inside the Viewport, because it is inside "TCastleTransformReference.Reference".' + NL +
+      '  Possible solutions:' + NL +
+      '  A. Duplicate (clone) the instance, thus not use TCastleTransformReference.' + NL +
+      '  B. Alternatively, keep using TCastleTransformReference, but attach the TCastleXxxCollider and TCastleRigidBody components to a transformation higher in the tree, that is: not within the "TCastleTransformReference.Reference".', [
+        // true, but too long:
+         // E.g. adding the TCastleXxxCollider and TCastleRigidBody components to the "TCastleTransformReference" itself is allowed.
+        Parent.Name
+      ]);
+  end;
+end;
+
 procedure TCastleRigidBody.SetWorldTransformation(const WorldTransform: TMatrix4);
 var
   Translation, Scale: TVector3;
@@ -3570,6 +3616,8 @@ begin
 
   if FState <> stateReady then
     Exit;
+
+  CheckTransformationUnique;
 
   { Remove scale from world transform because using scale in kraft
     leads to an undefined state. }
@@ -3678,6 +3726,7 @@ begin
 
   if Dynamic then
   begin
+    CheckTransformationUnique;
     TransformationFromKraft;
     SynchronizeFromKraft;
   end

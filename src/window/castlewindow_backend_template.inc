@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -29,6 +29,11 @@
 {$ifdef read_implementation}
 
 { TCastleWindow ------------------------------------------------------------------ }
+
+function TCastleWindow.CreateContainer: TCastleContainer;
+begin
+  Result := TWindowContainer.Create(Self);
+end;
 
 procedure TCastleWindow.CreateBackend;
 begin
@@ -118,6 +123,17 @@ begin
   end;
 
   Application.OpenWindowsAdd(Self);
+
+  if Visible then
+  begin
+    // TODO: Make window actually appear
+
+    { Call SetFocused(true) now, *unless* your backend will reliably inform
+      us when window is initially focused (like WinAPI, GTK, Xlib do).
+      If you will get reliable message about this, then no need to set
+      Focused to true explicitly here. }
+    SetFocused(true);
+  end;
 
   // TODO
   // GetInitialCursorPos;
