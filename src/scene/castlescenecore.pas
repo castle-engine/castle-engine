@@ -618,7 +618,7 @@ type
       in certain situations, see @link(DefaultCameraRadius) for explanation. }
     function SensibleCameraRadius(
       const NavigationInfoNode: TNavigationInfoNode;
-      out RadiusAutoCalculated: Boolean): Single;
+      out RadiusFromNavigationInfo: Boolean): Single;
 
     { Apply TransformationDirty effect
       (necessary to update transformations calculated in the Shapes tree,
@@ -7060,10 +7060,10 @@ end;
 
 function TCastleSceneCore.SensibleCameraRadius(
   const NavigationInfoNode: TNavigationInfoNode;
-  out RadiusAutoCalculated: Boolean): Single;
+  out RadiusFromNavigationInfo: Boolean): Single;
 begin
   Result := 0;
-  RadiusAutoCalculated := false;
+  RadiusFromNavigationInfo := true;
 
   if (NavigationInfoNode <> nil) and
      (NavigationInfoNode.FdAvatarSize.Count >= 1) then
@@ -7074,7 +7074,7 @@ begin
   if Result <= 0 then
   begin
     Result := DefaultCameraRadius;
-    RadiusAutoCalculated := true;
+    RadiusFromNavigationInfo := false;
   end;
 end;
 
@@ -7084,7 +7084,7 @@ var
   NavigationNode: TNavigationInfoNode;
   ViewpointNode: TAbstractViewpointNode;
   Radius: Single;
-  RadiusAutoCalculated: Boolean;
+  RadiusFromNavigationInfo: Boolean;
 
   procedure UpdateWalkNavigation(const Navigation: TCastleWalkNavigation);
   begin
@@ -7145,7 +7145,7 @@ begin
   ViewpointNode := ViewpointStack.Top;
 
   { calculate Radius }
-  Radius := SensibleCameraRadius(NavigationNode, RadiusAutoCalculated);
+  Radius := SensibleCameraRadius(NavigationNode, RadiusFromNavigationInfo);
   Navigation.Radius := Radius;
 
   if Navigation is TCastleWalkNavigation then
@@ -7163,7 +7163,7 @@ var
   AUp: TVector3;
   GravityUp: TVector3;
   Radius, OriginX, OriginY: Single;
-  RadiusAutoCalculated: Boolean;
+  RadiusFromNavigationInfo: Boolean;
   ViewpointNode: TAbstractViewpointNode;
   NavigationNode: TNavigationInfoNode;
   FieldOfView: TSingleList;
@@ -7171,20 +7171,38 @@ begin
   ViewpointNode := ViewpointStack.Top;
   NavigationNode := NavigationInfoStack.Top;
 
-  Radius := SensibleCameraRadius(NavigationNode, RadiusAutoCalculated);
+  Radius := SensibleCameraRadius(NavigationNode, RadiusFromNavigationInfo);
 
   if (ViewpointNode <> nil) and
      (ViewpointNode.NearDistance > 0) then
     ACamera.ProjectionNear := ViewpointNode.NearDistance
   else
   // if ViewpointNode.NearDistance <= 0, calculate ACamera.ProjectionNear based on radius
-  if RadiusAutoCalculated then
+  if not RadiusFromNavigationInfo then
     { Set ProjectionNear to zero, this way we avoid serializing value
       when it is not necessary to serialize it
       (because it can be calculated by each TCastleViewport.CalculateProjection). }
     ACamera.ProjectionNear := 0
   else
-    ACamera.ProjectionNear := Radius * RadiusToProjectionNear;
+  begin
+    { Projection near must be always smaller than Radius,
+      so we use below "Radius * RadiusToProjectionNear".
+      Moreover, we allow "DefaultCameraRadius * RadiusToProjectionNear"
+      to make the result even smaller: this way merely adding
+      NavigationInfo node to the scene, with or without default avatarSize,
+      will not cause ProjectionNear to be larger (which could clip some geometry).
+
+      We encourage in practice to control this explicitly by
+      - Setting ViewpointNode.NearDistance in X3D.
+        Will work when TCastleViewport.AutoCamera=true, for X3D viewers.
+      - Or by setting TCastleCamera.ProjectionNear when using CGE components.
+        Will work when TCastleViewport.AutoCamera=false, in typical CGE usage
+        for games. }
+    ACamera.ProjectionNear := Min(
+      Radius * RadiusToProjectionNear,
+      DefaultCameraRadius * RadiusToProjectionNear
+    );
+  end;
 
   { Default projection parameters.
     Reset here anything that is determined by TCastleSceneCore.InternalUpdateCamera. }
