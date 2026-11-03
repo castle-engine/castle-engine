@@ -605,7 +605,20 @@ type
     { Call SetTime on all things in TimeDependentList. }
     procedure UpdateTimeDependentList(const TimeIncrease: TFloatTime; const ResetTime: boolean);
 
-    function SensibleCameraRadius(out RadiusAutoCalculated: Boolean): Single;
+    { Sensible @link(TCastleCamera.Radius) determined by the information
+      in given TNavigationInfoNode.
+      The given node should be "currently bound" (in X3D terminology) nodes,
+      i.e. @code(NavigationInfoStack.Top).
+
+      The function falls back on using @link(DefaultCameraRadius),
+      which is a simple reasonable hardcoded default.
+
+      This function @bold(does not) make decisions based on
+      the scene bounding box. This was fragile and could be unexpected
+      in certain situations, see @link(DefaultCameraRadius) for explanation. }
+    function SensibleCameraRadius(
+      const NavigationInfoNode: TNavigationInfoNode;
+      out RadiusAutoCalculated: Boolean): Single;
 
     { Apply TransformationDirty effect
       (necessary to update transformations calculated in the Shapes tree,
@@ -7045,17 +7058,16 @@ end;
 
 { camera ------------------------------------------------------------------ }
 
-function TCastleSceneCore.SensibleCameraRadius(out RadiusAutoCalculated: Boolean): Single;
-var
-  NavigationNode: TNavigationInfoNode;
+function TCastleSceneCore.SensibleCameraRadius(
+  const NavigationInfoNode: TNavigationInfoNode;
+  out RadiusAutoCalculated: Boolean): Single;
 begin
   Result := 0;
   RadiusAutoCalculated := false;
 
-  NavigationNode := NavigationInfoStack.Top;
-  if (NavigationNode <> nil) and
-     (NavigationNode.FdAvatarSize.Count >= 1) then
-    Result := NavigationNode.FdAvatarSize.Items[0];
+  if (NavigationInfoNode <> nil) and
+     (NavigationInfoNode.FdAvatarSize.Count >= 1) then
+    Result := NavigationInfoNode.FdAvatarSize.Items[0];
 
   { if avatarSize doesn't specify Radius, or specifies invalid <= 0,
     use DefaultCameraRadius. }
@@ -7133,7 +7145,7 @@ begin
   ViewpointNode := ViewpointStack.Top;
 
   { calculate Radius }
-  Radius := SensibleCameraRadius(RadiusAutoCalculated);
+  Radius := SensibleCameraRadius(NavigationNode, RadiusAutoCalculated);
   Navigation.Radius := Radius;
 
   if Navigation is TCastleWalkNavigation then
@@ -7159,7 +7171,7 @@ begin
   ViewpointNode := ViewpointStack.Top;
   NavigationNode := NavigationInfoStack.Top;
 
-  Radius := SensibleCameraRadius(RadiusAutoCalculated);
+  Radius := SensibleCameraRadius(NavigationNode, RadiusAutoCalculated);
 
   if (ViewpointNode <> nil) and
      (ViewpointNode.NearDistance > 0) then
