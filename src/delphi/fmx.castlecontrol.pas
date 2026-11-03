@@ -88,6 +88,11 @@ type
         class procedure UpdatingEnable; override;
         class procedure UpdatingDisable; override;
         procedure SystemSetMousePosition(const Value: TVector2); override;
+        {$ifdef USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
+        procedure SystemShowOnScreenKeyboard(
+          const CurrentText: String; const PasswordMode: Boolean); override;
+        procedure SystemHideOnScreenKeyboard; override;
+        {$endif USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
       public
         constructor Create(AParent: TCastleControl); reintroduce;
         procedure Invalidate; override;
@@ -240,6 +245,9 @@ procedure Register;
 implementation
 
 uses FMX.Presentation.Factory, Types, FMX.Graphics,
+  {$ifdef USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
+  FMX.Platform, FMX.VirtualKeyboard,
+  {$endif}
   CastleRenderOptions, CastleApplicationProperties,
   CastleRectangles, CastleUtils, CastleUIControls, CastleInternalDelphiUtils,
   CastleLog;
@@ -350,6 +358,25 @@ begin
     - And implement equivalent for Windows.
   }
 end;
+
+{$ifdef USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
+procedure TCastleControl.TContainer.SystemShowOnScreenKeyboard(
+  const CurrentText: String; const PasswordMode: Boolean);
+var
+  KeyboardService: IFMXVirtualKeyboardService;
+begin
+  if TPlatformServices.Current.SupportsPlatformService(IFMXVirtualKeyboardService, KeyboardService) then
+    KeyboardService.ShowVirtualKeyboard(Parent);
+end;
+
+procedure TCastleControl.TContainer.SystemHideOnScreenKeyboard;
+var
+  KeyboardService: IFMXVirtualKeyboardService;
+begin
+  if TPlatformServices.Current.SupportsPlatformService(IFMXVirtualKeyboardService, KeyboardService) then
+    KeyboardService.HideVirtualKeyboard;
+end;
+{$endif USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
 
 { TCastleControl ---------------------------------------------------- }
 

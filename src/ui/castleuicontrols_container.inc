@@ -216,6 +216,14 @@
       Descendants note: This is called from constructor,
       so it should not rely on any fields of the container being initialized yet. }
     function CreatePointerLock: TCastleAbstractPointerLock; virtual;
+
+    { Show or hide the on-screen keyboard.
+      These perform the lower-level job of @link(ShowOnScreenKeyboard) and
+      @link(HideOnScreenKeyboard).
+      The Container.ForceCaptureInput is already checked/set around them. }
+    procedure SystemShowOnScreenKeyboard(
+      const CurrentText: String; const PasswordMode: Boolean); virtual;
+    procedure SystemHideOnScreenKeyboard; virtual;
   public
     var
       { Optimize rendering of user interface.
@@ -1167,6 +1175,62 @@
 
     { @exclude }
     procedure InternalSetSafeBorderScaled(const Value: TVector4);
+
+    { Display the on-screen keyboard, sending following events to
+      the indicated control.
+      This control is also set as @link(TCastleContainer.ForceCaptureInput).
+
+      Support depends on the compiler:
+
+      @unorderedList(
+        @item(With FPC, this only works on Android.
+
+          For iOS: see issue https://github.com/castle-engine/castle-engine/issues/554 .
+
+          This also requires adding @code(<service name="keyboard" />)
+          to the Android services in @code(CastleEngineManifest.xml).
+          See example
+          @url(https://github.com/castle-engine/castle-engine/tree/master/examples/mobile/on_screen_keyboard examples/mobile/on_screen_keyboard)
+          and the @url(https://castle-engine.io/android_services Android service) documentation
+          for @url(https://github.com/castle-engine/castle-engine/tree/master/tools/build-tool/data/android/services/keyboard/README.adoc keyboard)
+          service.
+        )
+
+        @item(With Delphi, this works with both Android and iOS using FireMonkey
+          IFMXVirtualKeyboardService.)
+      )
+
+      Note: This will act regardless of the @link(TCastleApplicationProperties.TouchDevice
+      ApplicationProperties.TouchDevice) value. So, if one day we will enable
+      on-screen keyboards also on non-mobile devices, this will also show
+      the keyboard when requested.
+      To limit this to only work on mobile devices, simply call this only
+      when @link(TCastleApplicationProperties.TouchDevice
+      ApplicationProperties.TouchDevice).
+
+      Note: The @link(TCastleEdit) automatically does this,
+      when @link(TCastleEdit.AutoOnScreenKeyboard) is @true.
+      We expect that future UI controls also will handle this automatically,
+      so you should seldom need to call this explicitly.
+
+      @param(KeyboardTarget The control that should receive
+        the on-screen keyboard input.)
+
+      @param(CurrentText The current value of text to be edited.
+        TODO: Ignored with Delphi for now.)
+
+      @param(PasswordMode Indicates whether the text being edited is a password,
+        so it should not be displayed in plain text.
+        TODO: Ignored with Delphi for now.) }
+    procedure ShowOnScreenKeyboard(const KeyboardTarget: TCastleUserInterface;
+      const CurrentText: String; const PasswordMode: Boolean);
+
+    { Hides the on-screen keyboard.
+
+      Acts only when @link(TCastleContainer.ForceCaptureInput) points to
+      the same control. So it will be ignored unless @link(ShowOnScreenKeyboard)
+      was last used on the same control. }
+    procedure HideOnScreenKeyboard(const KeyboardTarget: TCastleUserInterface);
   end;
 
 {$endif read_interface}
@@ -3479,6 +3543,45 @@ end;
 function TCastleContainer.CreatePointerLock: TCastleAbstractPointerLock;
 begin
   Result := TCastleDesktopPointerLock.Create(Self);
+end;
+
+procedure TCastleContainer.ShowOnScreenKeyboard(
+  const KeyboardTarget: TCastleUserInterface;
+  const CurrentText: String; const PasswordMode: Boolean);
+begin
+  { Remove focus from another control }
+  if (ForceCaptureInput <> nil) and
+     (ForceCaptureInput <> KeyboardTarget) then
+    ForceCaptureInput.Focused := false;
+
+  { Set ForceCaptureInput to control that will show keyboard }
+  ForceCaptureInput := KeyboardTarget;
+
+  { Send message to open keyboard. }
+  SystemShowOnScreenKeyboard(CurrentText, PasswordMode);
+end;
+
+procedure TCastleContainer.HideOnScreenKeyboard(
+  const KeyboardTarget: TCastleUserInterface);
+begin
+  { Don't hide keyboard if another control has displayed it }
+  if ForceCaptureInput = KeyboardTarget then
+  begin
+    SystemHideOnScreenKeyboard;
+    ForceCaptureInput := nil;
+  end;
+end;
+
+procedure TCastleContainer.SystemShowOnScreenKeyboard(
+  const CurrentText: String; const PasswordMode: Boolean);
+begin
+  Messaging.Send(['castle-show-keyboard', CurrentText,
+    Iff(PasswordMode, 'true', 'false')]);
+end;
+
+procedure TCastleContainer.SystemHideOnScreenKeyboard;
+begin
+  Messaging.Send(['castle-hide-keyboard']);
 end;
 
 {$endif read_implementation}

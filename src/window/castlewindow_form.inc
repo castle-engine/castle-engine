@@ -187,6 +187,7 @@
     FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs,
     FMX.StdCtrls, FMX.Menus, FMX.Platform,
     {$ifdef SUBSCRIBE_FormsCreatedMessage} System.Messaging, {$endif}
+    {$ifdef USE_FMX_VIRTUAL_KEYBOARD_SERVICE} FMX.VirtualKeyboard, {$endif}
     // CGE
     Fmx.CastleInternalGLControl, CastleInternalDelphiUtils,
     CastleFmxUtils, CastleInternalFmxUtils,
@@ -431,11 +432,62 @@ begin
 end;
 {$endif}
 
+{ TWindowFormContainer -------------------------------------------------------- }
+
+type
+  { Container for CASTLE_WINDOW_FORM backend.
+    Adds features specific to this backend,
+    like on-screen keyboard using FMX IFMXVirtualKeyboardService. }
+  TWindowFormContainer = class(TWindowContainer)
+  {$ifdef USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
+  protected
+    procedure SystemShowOnScreenKeyboard(
+      const CurrentText: String; const PasswordMode: Boolean); override;
+    procedure SystemHideOnScreenKeyboard; override;
+  {$endif USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
+  end;
+
+{$ifdef USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
+procedure TWindowFormContainer.SystemShowOnScreenKeyboard(
+  const CurrentText: String; const PasswordMode: Boolean);
+var
+  KeyboardService: IFMXVirtualKeyboardService;
+begin
+  { Note: We don't use CurrentText, PasswordMode for now.
+    The FMX virtual keyboard service doesn't have parameters for them.
+    TODO: Password mode could be communicated by implementing
+    IVirtualKeyboardControl (IsPassword),
+    see https://docwiki.embarcadero.com/Libraries/Athens/en/FMX.Types.IVirtualKeyboardControl.IsPassword . }
+
+  { OpenGLControl may be nil if window is not open (or already closed). }
+  if Parent.OpenGLControl = nil then
+  begin
+    WritelnWarning('Cannot show on-screen keyboard when window is not open');
+    Exit;
+  end;
+
+  if TPlatformServices.Current.SupportsPlatformService(
+       IFMXVirtualKeyboardService, KeyboardService) then
+    KeyboardService.ShowVirtualKeyboard(Parent.OpenGLControl)
+  else
+    WritelnWarning('FMX IFMXVirtualKeyboardService not available, cannot show on-screen keyboard');
+end;
+
+procedure TWindowFormContainer.SystemHideOnScreenKeyboard;
+var
+  KeyboardService: IFMXVirtualKeyboardService;
+begin
+  if TPlatformServices.Current.SupportsPlatformService(
+       IFMXVirtualKeyboardService, KeyboardService) then
+    KeyboardService.HideVirtualKeyboard;
+end;
+{$endif USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
+
 { TCastleWindow ------------------------------------------------------------------ }
 
 function TCastleWindow.CreateContainer: TCastleContainer;
 begin
-  Result := TWindowContainer.Create(Self);
+  Result := TWindowFormContainer.Create(Self);
 end;
 
 procedure TCastleWindow.CreateBackend;
