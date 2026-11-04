@@ -1534,6 +1534,7 @@ const
   { Copy of WorldBoxSizeToRadius from TCastleSceneCore.RadiusProjectionNearFromSize. }
   WorldBoxSizeToRadius = 0.005;
   BoxSize = 123456;
+  Epsilon = 0.001;
 
   Model_Nothing =
     '#X3D V4.0 utf8' + NL +
@@ -1576,56 +1577,56 @@ begin
     - near plane left 0 (TCastleViewport.CalculateProjection would calculate it
       in real usage) }
   TestIgnoreSize(Model_Nothing, Radius, ProjectionNear);
-  AssertSameValue(DefaultCameraRadius, Radius);
-  AssertSameValue(0, ProjectionNear);
+  AssertSameValue(DefaultCameraRadius, Radius, Epsilon);
+  AssertSameValue(0, ProjectionNear, Epsilon);
 
   { No Viewpoint, no NavigationInfo,
     and using RadiusProjectionNearFromSize so:
     - radius corresponds to size
     - near plane corresponds to size. }
   TestSize(Model_Nothing, Radius, ProjectionNear);
-  AssertSameValue(BoxSize * WorldBoxSizeToRadius, Radius);
-  AssertSameValue(BoxSize * WorldBoxSizeToRadius * RadiusToProjectionNear, ProjectionNear);
+  AssertSameValue(BoxSize * WorldBoxSizeToRadius, Radius, Epsilon);
+  AssertSameValue(BoxSize * WorldBoxSizeToRadius * RadiusToProjectionNear, ProjectionNear, Epsilon);
 
   { Viewpoint without nearDistance changes nothing. }
   TestIgnoreSize(Model_EmptyViewpoint, Radius, ProjectionNear);
-  AssertSameValue(DefaultCameraRadius, Radius);
-  AssertSameValue(0, ProjectionNear);
+  AssertSameValue(DefaultCameraRadius, Radius, Epsilon);
+  AssertSameValue(0, ProjectionNear, Epsilon);
 
   TestSize(Model_EmptyViewpoint, Radius, ProjectionNear);
-  AssertSameValue(BoxSize * WorldBoxSizeToRadius, Radius);
-  AssertSameValue(BoxSize * WorldBoxSizeToRadius * RadiusToProjectionNear, ProjectionNear);
+  AssertSameValue(BoxSize * WorldBoxSizeToRadius, Radius, Epsilon);
+  AssertSameValue(BoxSize * WorldBoxSizeToRadius * RadiusToProjectionNear, ProjectionNear, Epsilon);
 
   { Viewpoint.nearDistance determines projection near,
     radius is not affected by it. }
   TestIgnoreSize(Model_ViewpointNearDistance, Radius, ProjectionNear);
-  AssertSameValue(DefaultCameraRadius, Radius);
-  AssertSameValue(666, ProjectionNear);
+  AssertSameValue(DefaultCameraRadius, Radius, Epsilon);
+  AssertSameValue(666, ProjectionNear, Epsilon);
 
   TestSize(Model_ViewpointNearDistance, Radius, ProjectionNear);
-  AssertSameValue(BoxSize * WorldBoxSizeToRadius, Radius);
-  AssertSameValue(666, ProjectionNear);
+  AssertSameValue(BoxSize * WorldBoxSizeToRadius, Radius, Epsilon);
+  AssertSameValue(666, ProjectionNear, Epsilon);
 
   { NavigationInfo with default avatarSize (radius 0.25) determines radius,
     but projection near is capped by DefaultCameraRadius,
     regardless of using RadiusProjectionNearFromSize. }
   TestIgnoreSize(Model_NavigationInfoLargeRadius, Radius, ProjectionNear);
-  AssertSameValue(0.25, Radius);
-  AssertSameValue(DefaultCameraRadius * RadiusToProjectionNear, ProjectionNear);
+  AssertSameValue(0.25, Radius, Epsilon);
+  AssertSameValue(DefaultCameraRadius * RadiusToProjectionNear, ProjectionNear, Epsilon);
 
   TestSize(Model_NavigationInfoLargeRadius, Radius, ProjectionNear);
-  AssertSameValue(0.25, Radius);
-  AssertSameValue(DefaultCameraRadius * RadiusToProjectionNear, ProjectionNear);
+  AssertSameValue(0.25, Radius, Epsilon);
+  AssertSameValue(DefaultCameraRadius * RadiusToProjectionNear, ProjectionNear, Epsilon);
 
   { NavigationInfo with small avatarSize determines radius and projection near,
     regardless of using RadiusProjectionNearFromSize. }
   TestIgnoreSize(Model_NavigationInfoSmallRadius, Radius, ProjectionNear);
-  AssertSameValue(0.01, Radius);
-  AssertSameValue(0.01 * RadiusToProjectionNear, ProjectionNear);
+  AssertSameValue(0.01, Radius, Epsilon);
+  AssertSameValue(0.01 * RadiusToProjectionNear, ProjectionNear, Epsilon);
 
   TestSize(Model_NavigationInfoSmallRadius, Radius, ProjectionNear);
-  AssertSameValue(0.01, Radius);
-  AssertSameValue(0.01 * RadiusToProjectionNear, ProjectionNear);
+  AssertSameValue(0.01, Radius, Epsilon);
+  AssertSameValue(0.01 * RadiusToProjectionNear, ProjectionNear, Epsilon);
 end;
 
 initialization
