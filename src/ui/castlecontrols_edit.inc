@@ -629,19 +629,12 @@ begin
   if FAutoOnScreenKeyboard and ApplicationProperties.TouchDevice and
      (Event.IsMouseButton(TCastleMouseButton.buttonLeft)) then
   begin
-    { If Edit is focused but ForceCaptureInput is not set to it that means
-      we need set focus again to show keyboard. }
-    if Container.ForceCaptureInput = nil then
-    begin
-      Focused := true;
-    end else
+    { If ForceCaptureInput is not set to this edit (it is nil, or another
+      control shows the keyboard) then focus this edit, to show keyboard for it.
+      Note that Container.ShowOnScreenKeyboard (called by SetFocused)
+      takes care of unfocusing the other control. }
     if Container.ForceCaptureInput <> Self then
-    begin
-      { Only when other edit shows keyboard (or none), change it focus to false
-        and focus/open keyboard for current edit }
-      Container.ForceCaptureInput.Focused := false;
       Focused := true;
-    end;
   end;
 end;
 

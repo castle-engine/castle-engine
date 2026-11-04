@@ -3548,14 +3548,24 @@ end;
 procedure TCastleContainer.ShowOnScreenKeyboard(
   const KeyboardTarget: TCastleUserInterface;
   const CurrentText: String; const PasswordMode: Boolean);
+var
+  OldKeyboardTarget: TCastleUserInterface;
 begin
-  { Remove focus from another control }
-  if (ForceCaptureInput <> nil) and
-     (ForceCaptureInput <> KeyboardTarget) then
-    ForceCaptureInput.Focused := false;
+  OldKeyboardTarget := ForceCaptureInput;
 
-  { Set ForceCaptureInput to control that will show keyboard }
+  { Set ForceCaptureInput to control that will show keyboard.
+    Do this before unfocusing the previous control
+    ("OldKeyboardTarget.Focused := false" below),
+    so that its HideOnScreenKeyboard does nothing.
+    This way switching between e.g. two TCastleEdit doesn't hide and immediately
+    show the keyboard again (which causes flicker, and with FMX causes
+    a delayed "keyboard hidden" notification that would unfocus the new control). }
   ForceCaptureInput := KeyboardTarget;
+
+  { Remove focus from another control }
+  if (OldKeyboardTarget <> nil) and
+     (OldKeyboardTarget <> KeyboardTarget) then
+    OldKeyboardTarget.Focused := false;
 
   { Send message to open keyboard. }
   SystemShowOnScreenKeyboard(CurrentText, PasswordMode);

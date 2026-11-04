@@ -479,14 +479,33 @@ type
     like on-screen keyboard using FMX IFMXVirtualKeyboardService. }
   TWindowFormContainer = class(TWindowContainer)
   {$ifdef USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
+  strict private
+    FOnScreenKeyboard: TFmxOnScreenKeyboard;
   protected
     procedure SystemShowOnScreenKeyboard(
       const CurrentText: String; const PasswordMode: Boolean); override;
     procedure SystemHideOnScreenKeyboard; override;
+  public
+    constructor Create(AParent: TCastleWindow); reintroduce;
+    destructor Destroy; override;
   {$endif USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
   end;
 
 {$ifdef USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
+constructor TWindowFormContainer.Create(AParent: TCastleWindow);
+begin
+  inherited Create(AParent);
+  FOnScreenKeyboard := TFmxOnScreenKeyboard.Create(Self);
+end;
+
+destructor TWindowFormContainer.Destroy;
+begin
+  inherited;
+  { Free after inherited, as inherited destructor may unfocus TCastleEdit
+    (e.g. when stopping the view), which calls SystemHideOnScreenKeyboard. }
+  FreeAndNil(FOnScreenKeyboard);
+end;
+
 procedure TWindowFormContainer.SystemShowOnScreenKeyboard(
   const CurrentText: String; const PasswordMode: Boolean);
 begin
@@ -502,12 +521,12 @@ begin
     Exit;
   end;
 
-  FmxShowOnScreenKeyboard(Parent.OpenGLControl);
+  FOnScreenKeyboard.Show(Parent.OpenGLControl);
 end;
 
 procedure TWindowFormContainer.SystemHideOnScreenKeyboard;
 begin
-  FmxHideOnScreenKeyboard;
+  FOnScreenKeyboard.Hide;
 end;
 {$endif USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
 

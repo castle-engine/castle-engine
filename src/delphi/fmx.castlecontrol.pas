@@ -79,6 +79,9 @@ type
       TContainer = class(TCastleControlContainer)
       private
         Parent: TCastleControl;
+        {$ifdef USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
+        FOnScreenKeyboard: TFmxOnScreenKeyboard;
+        {$endif}
         {$ifdef USE_TIMER}
         class var
           UpdatingTimer: TTimer;
@@ -96,6 +99,7 @@ type
         {$endif USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
       public
         constructor Create(AParent: TCastleControl); reintroduce;
+        destructor Destroy; override;
         procedure Invalidate; override;
         function PixelsWidth: Integer; override;
         function PixelsHeight: Integer; override;
@@ -311,6 +315,19 @@ constructor TCastleControl.TContainer.Create(AParent: TCastleControl);
 begin
   inherited Create(AParent); // AParent must be a component Owner to show published properties of container in LFM
   Parent := AParent;
+  {$ifdef USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
+  FOnScreenKeyboard := TFmxOnScreenKeyboard.Create(Self);
+  {$endif}
+end;
+
+destructor TCastleControl.TContainer.Destroy;
+begin
+  inherited;
+  {$ifdef USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
+  { Free after inherited, as inherited destructor may unfocus TCastleEdit
+    (e.g. when unloading design), which calls SystemHideOnScreenKeyboard. }
+  FreeAndNil(FOnScreenKeyboard);
+  {$endif}
 end;
 
 procedure TCastleControl.TContainer.AdjustContext(const PlatformContext: TGLContext);
@@ -374,12 +391,12 @@ procedure TCastleControl.TContainer.SystemShowOnScreenKeyboard(
 begin
   { Note: We don't use CurrentText, PasswordMode for now.
     FMX applies password mode only for controls implementing ITextInput. }
-  FmxShowOnScreenKeyboard(Parent);
+  FOnScreenKeyboard.Show(Parent);
 end;
 
 procedure TCastleControl.TContainer.SystemHideOnScreenKeyboard;
 begin
-  FmxHideOnScreenKeyboard;
+  FOnScreenKeyboard.Hide;
 end;
 {$endif USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
 
