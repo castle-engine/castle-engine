@@ -775,6 +775,13 @@
   {$if defined(DELPHI) and (defined(ANDROID) or defined(IOS)) and (CompilerVersion >= 36)}
     {$define CASTLE_HANDLE_FMX_TOUCH}
   {$endif}
+
+  { Use FMX.VirtualKeyboard. Define this on platforms where we use
+    FMX with Castle Game Engine (through TCastleWindow or TCastleControl)
+    and that have on-screen keyboards. }
+  {$if defined(DELPHI) and (defined(ANDROID) or defined(IOS))}
+    {$define USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
+  {$endif}
 {$endif}
 
 // -----------------------------------------------------------------------------

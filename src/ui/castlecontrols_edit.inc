@@ -1,6 +1,6 @@
 {%MainUnit castlecontrols.pas}
 {
-  Copyright 2017-2024 Michalis Kamburelis.
+  Copyright 2017-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -143,16 +143,7 @@
     { Shows the software (on-screen) keyboard on mobile devices automatically
       when the edit box gets focused.
 
-      For now, this only works on Android (not iOS yet -- see
-      https://github.com/castle-engine/castle-engine/issues/554).
-
-      This requires adding @code(<service name="keyboard" />)
-      to the Android services in @code(CastleEngineManifest.xml).
-      See example
-      @url(https://github.com/castle-engine/castle-engine/tree/master/examples/mobile/on_screen_keyboard examples/mobile/on_screen_keyboard)
-      and the @url(https://castle-engine.io/android_services Android service) documentation
-      for @url(https://github.com/castle-engine/castle-engine/tree/master/tools/build-tool/data/android/services/keyboard/README.adoc keyboard)
-      service. }
+      @seealso TCastleContainer.ShowOnScreenKeyboard }
     property AutoOnScreenKeyboard: Boolean
       read FAutoOnScreenKeyboard write FAutoOnScreenKeyboard
       default DefaultAutoOnScreenKeyboard;
@@ -281,44 +272,6 @@
 
 const
   CaretChar = '|';
-
-{ These routines may be public at some point. }
-
-{ Displays the keyboard on Android. It requires the current text to be edited
-  and the target user interface to which the events will be send. }
-procedure ShowOnScreenKeyboard(const KeyboardTarget: TCastleUserInterface;
-  const CurrentText: String; PasswordMode: Boolean); forward;
-
-{ Hides keyboard on Android but only when KeyboardTarget and ForceCaptureInput
-  is the same object. }
-procedure HideOnScreenKeyboard(const KeyboardTarget: TCastleUserInterface); forward;
-
-procedure ShowOnScreenKeyboard(const KeyboardTarget: TCastleUserInterface;
-  const CurrentText: String; PasswordMode: Boolean);
-begin
-  { Remove focus from another control }
-  if (KeyboardTarget.Container.ForceCaptureInput <> nil) and
-     (KeyboardTarget.Container.ForceCaptureInput <> KeyboardTarget) then
-    KeyboardTarget.Container.ForceCaptureInput.Focused := false;
-
-  { Set ForceCaptureInput to control that will show keyboard }
-  KeyboardTarget.Container.ForceCaptureInput := KeyboardTarget;
-
-  { Send message to open keyboard. }
-  Messaging.Send(['castle-show-keyboard', CurrentText,
-    Iff(PasswordMode, 'true', 'false')]);
-end;
-
-procedure HideOnScreenKeyboard(const KeyboardTarget: TCastleUserInterface);
-begin
-  { Don't hide keyboard if another TCastleEdit has displayed it }
-  if KeyboardTarget.Container.ForceCaptureInput = KeyboardTarget then
-  begin
-    Messaging.Send(['castle-hide-keyboard']);
-    KeyboardTarget.Container.ForceCaptureInput := nil;
-  end;
-end;
-
 
 { TCastleEdit --------------------------------------------------------------- }
 
@@ -676,19 +629,12 @@ begin
   if FAutoOnScreenKeyboard and ApplicationProperties.TouchDevice and
      (Event.IsMouseButton(TCastleMouseButton.buttonLeft)) then
   begin
-    { If Edit is focused but ForceCaptureInput is not set to it that means
-      we need set focus again to show keyboard. }
-    if Container.ForceCaptureInput = nil then
-    begin
-      Focused := true;
-    end else
+    { If ForceCaptureInput is not set to this edit (it is nil, or another
+      control shows the keyboard) then focus this edit, to show keyboard for it.
+      Note that Container.ShowOnScreenKeyboard (called by SetFocused)
+      takes care of unfocusing the other control. }
     if Container.ForceCaptureInput <> Self then
-    begin
-      { Only when other edit shows keyboard (or none), change it focus to false
-        and focus/open keyboard for current edit }
-      Container.ForceCaptureInput.Focused := false;
       Focused := true;
-    end;
   end;
 end;
 
@@ -713,10 +659,11 @@ begin
     in other cases.}
   if FAutoOnScreenKeyboard and ApplicationProperties.TouchDevice then
   begin
+    Assert(Container <> nil);
     if Value then
-      ShowOnScreenKeyboard(Self, Text, PasswordChar <> #0)
+      Container.ShowOnScreenKeyboard(Self, Text, PasswordChar <> #0)
     else
-      HideOnScreenKeyboard(Self);
+      Container.HideOnScreenKeyboard(Self);
   end;
 end;
 

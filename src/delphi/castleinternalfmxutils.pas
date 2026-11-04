@@ -39,7 +39,7 @@ uses Types, Generics.Collections, UITypes, System.Messaging,
   {$ifdef LINUX} FMX.Platform.Linux, {$endif}
   {$ifdef CASTLE_MOBILE_FMX} CastleGLES, {$endif}
   CastleInternalContextBase, CastleVectors, CastleRenderContext,
-  CastleKeysMouse;
+  CastleKeysMouse, CastleUiControls;
 
 type
   THandleEvent = procedure of object;
@@ -329,12 +329,65 @@ type
 
 {$endif CASTLE_HANDLE_FMX_TOUCH}
 
+{$ifdef USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
+
+type
+  { Show and hide the on-screen keyboard using FMX IFMXVirtualKeyboardService,
+    for the given CGE container.
+
+    Also reacts when the user hides the keyboard
+    (e.g. by Android "back" key or iOS "dismiss keyboard" key):
+    then it clears the container's ForceCaptureInput and unfocuses it,
+    like castlewindow_android.inc does for
+    castle-keyboard-hide-remove-force-capture-input.
+    Otherwise, tapping the same TCastleEdit would not show the keyboard again,
+    making it impossible for user to input there something (if it's the only
+    edit in view).
+
+    Each container that shows the keyboard using FMX
+    should own an instance of this class. }
+  TFmxOnScreenKeyboard = class
+  strict private
+    FContainer: TCastleContainer;
+    { We showed the keyboard (by @link(Show)) and it was not hidden since.
+      This makes us ignore keyboard state changes not caused by us,
+      e.g. by a regular FMX TEdit on the same form. }
+    FShown: Boolean;
+    procedure VirtualKeyboardStateChange(const Sender: TObject; const M: TMessage);
+  public
+    constructor Create(const AContainer: TCastleContainer);
+    destructor Destroy; override;
+
+    { Show the on-screen keyboard,
+      with the keyboard input delivered (as KeyDown / KeyUp) to the given Control.
+
+      The Control should be a styled (not platform-native) FMX control
+      that does not implement ITextInput,
+      so FMX directs the keyboard to the form's view and delivers characters
+      as form key events to the FMX-focused control.
+      It should implement IVirtualKeyboardControl (required by Delphi 10.4 on iOS). }
+    procedure Show(const Control: TControl);
+
+    { Hide the on-screen keyboard. }
+    procedure Hide;
+  end;
+
+{$endif USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
+
 implementation
 
 uses SysUtils,
   {$if defined(CASTLE_HANDLE_FMX_TOUCH) and defined(ANDROID)}
   // for FAndroidTouchListener in TFmxTouchDispatcher
-  Androidapi.Input, FMX.Platform.Android, FMX.Platform.UI.Android,
+  Androidapi.Input,
+  {$endif}
+  {$if (defined(CASTLE_HANDLE_FMX_TOUCH) or defined(USE_FMX_VIRTUAL_KEYBOARD_SERVICE)) and defined(ANDROID)}
+  { For FAndroidTouchListener in TFmxTouchDispatcher,
+    and for accessing form's view in TFmxOnScreenKeyboard.Show. }
+  FMX.Platform.Android, FMX.Platform.UI.Android,
+  {$endif}
+  {$ifdef USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
+  FMX.Platform, FMX.VirtualKeyboard,
   {$endif}
   {$ifdef CASTLE_MOBILE_FMX}
   FMX.Canvas.GPU, FMX.Types3D,
@@ -846,5 +899,114 @@ begin
 end;
 
 {$endif CASTLE_HANDLE_FMX_TOUCH}
+
+{ on-screen keyboard --------------------------------------------------------- }
+
+{$ifdef USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
+
+constructor TFmxOnScreenKeyboard.Create(const AContainer: TCastleContainer);
+begin
+  inherited Create;
+  FContainer := AContainer;
+  TMessageManager.DefaultManager.SubscribeToMessage(TVKStateChangeMessage,
+    VirtualKeyboardStateChange);
+end;
+
+destructor TFmxOnScreenKeyboard.Destroy;
+begin
+  TMessageManager.DefaultManager.Unsubscribe(TVKStateChangeMessage,
+    VirtualKeyboardStateChange);
+  inherited;
+end;
+
+procedure TFmxOnScreenKeyboard.VirtualKeyboardStateChange(
+  const Sender: TObject; const M: TMessage);
+var
+  KeyboardTarget: TCastleUserInterface;
+begin
+  { FMX sends TVKStateChangeMessage also when keyboard size changes
+    (still visible), and also when the keyboard is hidden by our own @link(Hide)
+    (on Android: asynchronously, a bit later).
+    In the latter case FShown is already false, so we ignore it.
+
+    Note: We cannot check IFMXVirtualKeyboardService.VirtualKeyboardState
+    here to make sure the keyboard is really hidden:
+    on iOS, the message about hiding is sent from UIKeyboardWillHideNotification,
+    when the state still says it's visible. }
+  if FShown and not (M as TVKStateChangeMessage).KeyboardVisible then
+  begin
+    FShown := false;
+    KeyboardTarget := FContainer.ForceCaptureInput;
+    FContainer.ForceCaptureInput := nil;
+    { Unfocus, so that next press on it (e.g. TCastleEdit.Press)
+      shows the keyboard again. Note that TCastleEdit.SetFocused(false)
+      will not hide the keyboard again, as ForceCaptureInput is already nil. }
+    if KeyboardTarget <> nil then
+      KeyboardTarget.Focused := false;
+  end;
+end;
+
+procedure TFmxOnScreenKeyboard.Show(const Control: TControl);
+var
+  KeyboardService: IFMXVirtualKeyboardService;
+  {$ifdef ANDROID}
+  Form: TCommonCustomForm;
+  {$endif}
+begin
+  if not TPlatformServices.Current.SupportsPlatformService(
+       IFMXVirtualKeyboardService, KeyboardService) then
+  begin
+    WritelnWarning('FMX IFMXVirtualKeyboardService not available, cannot show on-screen keyboard');
+    Exit;
+  end;
+
+  { Make Control focused in FMX, so that FMX delivers key events to it.
+
+    This is necessary on iOS: the FMX form view refuses to become
+    the first responder (so the keyboard doesn't show) when the form has
+    no focused control (TFMXViewBase.canBecomeFirstResponder).
+    And we may be called from FMX OnTouch, which on iOS happens before
+    FMX MouseDown (that would focus the control).
+    Also, after the user hides the keyboard, iOS FMX clears the focused control.
+
+    On Android, FMX ShowVirtualKeyboard does this too. }
+  if not Control.IsFocused then
+    Control.SetFocus;
+
+  {$ifdef ANDROID}
+  { Make the form's Android view focused.
+
+    The Android will not show the keyboard for a view that is not focused
+    (logcat says "Ignoring showSoftInput() as view=...FormView... is not served").
+    FMX ShowVirtualKeyboard directs the keyboard to form's view
+    (for controls not being ITextInput),
+    but FMX never makes this view focused for Android: the view doesn't get focus on touch
+    (FormView.onTouchEvent doesn't call inherited),
+    and since Android 9 views don't get initial focus in touch mode.
+
+    This is about "focus for Android", as seen by Android Java API.
+    It's not about FMX focus. }
+  Assert(Control.Root <> nil, 'Control must be on a form to show on-screen keyboard');
+  Form := Control.Root.GetObject as TCommonCustomForm;
+  WindowHandleToPlatform(Form.Handle).View.requestFocus;
+  {$endif}
+
+  FShown := true;
+  KeyboardService.ShowVirtualKeyboard(Control);
+end;
+
+procedure TFmxOnScreenKeyboard.Hide;
+var
+  KeyboardService: IFMXVirtualKeyboardService;
+begin
+  { Set this before HideVirtualKeyboard, as on iOS it may synchronously
+    send TVKStateChangeMessage, that should be ignored. }
+  FShown := false;
+  if TPlatformServices.Current.SupportsPlatformService(
+       IFMXVirtualKeyboardService, KeyboardService) then
+    KeyboardService.HideVirtualKeyboard;
+end;
+
+{$endif USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
 
 end.

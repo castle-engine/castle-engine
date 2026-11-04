@@ -59,7 +59,7 @@ var
   RemoveMask: String = '';
 
 const
-  Options: array [0..32] of TOption =
+  Options: array [0..33] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: 'v'; Long: 'version'; Argument: oaNone),
@@ -93,7 +93,8 @@ const
     (Short: #0 ; Long: 'remove-mask'; Argument: oaRequired),
     (Short: #0 ; Long: 'use-delphi-dcc'; Argument: oaNone),
     (Short: #0 ; Long: 'delphi-version'; Argument: oaRequired),
-    (Short: #0 ; Long: 'msbuild-dont-pass-engine-paths'; Argument: oaNone)
+    (Short: #0 ; Long: 'msbuild-dont-pass-engine-paths'; Argument: oaNone),
+    (Short: #0 ; Long: 'msbuild-profile'; Argument: oaRequired)
   );
 
 procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
@@ -298,6 +299,8 @@ begin
               'When compiling with Delphi, use the given Delphi version. The version provided is the "Product Version", corresponding to the subdirectories of "C:\Program Files (x86)\Embarcadero\Studio", like 37.0 for Delphi 13. By default, the tool automatically detects the latest installed Delphi version.') + NL +
             OptionDescription('--msbuild-dont-pass-engine-paths',
               'When compiling with Delphi using msbuild, do not pass engine paths to msbuild. Useful to avoid hitting the 32k command-line limit with msbuild.') + NL +
+            OptionDescription('--msbuild-profile=PROFILE',
+              'When using Delphi msbuild, pass the given connection profile (to PAServer), as configured in Delphi IDE. Necessary e.g. to package for iOS with Delphi.') + NL +
             TargetOptionHelp +
             NL +
             OSOptionHelp +
@@ -369,6 +372,7 @@ begin
     30: CompileDelphiUsingDcc := true;
     31: ForceDelphiVersion := TDelphiVersion.FromString(Argument);
     32: MSBuildPassEnginePaths := false;
+    33: MSBuildProfile := Argument;
     else raise EInternalError.Create('OptionProc');
   end;
 end;

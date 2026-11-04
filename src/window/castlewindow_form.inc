@@ -237,7 +237,20 @@ private
 
     { Like TOpenGLControl but sets Invalidated:=true on Window,
       so that Window knows when it's invalidated by the OS. }
-    TGoodOpenGLControl = class(TOpenGLControl)
+    TGoodOpenGLControl = class(TOpenGLControl
+      {$ifdef USE_FMX_VIRTUAL_KEYBOARD_SERVICE}, IVirtualKeyboardControl{$endif})
+    {$ifdef USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
+    private
+      { IVirtualKeyboardControl implementation.
+        FMX requires this interface on the focused control to show
+        the on-screen keyboard with Delphi 10.4 on iOS.
+        The values are not actually used by FMX for controls without ITextInput. }
+      procedure SetKeyboardType(Value: TVirtualKeyboardType);
+      function GetKeyboardType: TVirtualKeyboardType;
+      procedure SetReturnKeyType(Value: TReturnKeyType);
+      function GetReturnKeyType: TReturnKeyType;
+      function IsPassword: Boolean;
+    {$endif USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
     public
       Window: TCastleWindow;
       procedure Invalidate; override;
@@ -431,11 +444,97 @@ begin
 end;
 {$endif}
 
+{$ifdef USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
+procedure TCastleWindow.TGoodOpenGLControl.SetKeyboardType(Value: TVirtualKeyboardType);
+begin
+  // ignored, FMX doesn't use it for controls without ITextInput
+end;
+
+function TCastleWindow.TGoodOpenGLControl.GetKeyboardType: TVirtualKeyboardType;
+begin
+  Result := TVirtualKeyboardType.Default;
+end;
+
+procedure TCastleWindow.TGoodOpenGLControl.SetReturnKeyType(Value: TReturnKeyType);
+begin
+  // ignored, FMX doesn't use it for controls without ITextInput
+end;
+
+function TCastleWindow.TGoodOpenGLControl.GetReturnKeyType: TReturnKeyType;
+begin
+  Result := TReturnKeyType.Default;
+end;
+
+function TCastleWindow.TGoodOpenGLControl.IsPassword: Boolean;
+begin
+  Result := false;
+end;
+{$endif USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
+
+{ TWindowFormContainer -------------------------------------------------------- }
+
+type
+  { Container for CASTLE_WINDOW_FORM backend.
+    Adds features specific to this backend,
+    like on-screen keyboard using FMX IFMXVirtualKeyboardService. }
+  TWindowFormContainer = class(TWindowContainer)
+  {$ifdef USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
+  strict private
+    FOnScreenKeyboard: TFmxOnScreenKeyboard;
+  protected
+    procedure SystemShowOnScreenKeyboard(
+      const CurrentText: String; const PasswordMode: Boolean); override;
+    procedure SystemHideOnScreenKeyboard; override;
+  public
+    constructor Create(AParent: TCastleWindow); reintroduce;
+    destructor Destroy; override;
+  {$endif USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
+  end;
+
+{$ifdef USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
+constructor TWindowFormContainer.Create(AParent: TCastleWindow);
+begin
+  inherited Create(AParent);
+  FOnScreenKeyboard := TFmxOnScreenKeyboard.Create(Self);
+end;
+
+destructor TWindowFormContainer.Destroy;
+begin
+  inherited;
+  { Free after inherited, as inherited destructor may unfocus TCastleEdit
+    (e.g. when stopping the view), which calls SystemHideOnScreenKeyboard. }
+  FreeAndNil(FOnScreenKeyboard);
+end;
+
+procedure TWindowFormContainer.SystemShowOnScreenKeyboard(
+  const CurrentText: String; const PasswordMode: Boolean);
+begin
+  { Note: We don't use CurrentText, PasswordMode for now.
+    The FMX virtual keyboard service doesn't have parameters for them.
+    TODO: Password mode is applied by FMX only for controls implementing
+    ITextInput (with a TTextService), so it would require implementing that. }
+
+  { OpenGLControl may be nil if window is not open (or already closed). }
+  if Parent.OpenGLControl = nil then
+  begin
+    WritelnWarning('Cannot show on-screen keyboard when window is not open');
+    Exit;
+  end;
+
+  FOnScreenKeyboard.Show(Parent.OpenGLControl);
+end;
+
+procedure TWindowFormContainer.SystemHideOnScreenKeyboard;
+begin
+  FOnScreenKeyboard.Hide;
+end;
+{$endif USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
+
 { TCastleWindow ------------------------------------------------------------------ }
 
 function TCastleWindow.CreateContainer: TCastleContainer;
 begin
-  Result := TWindowContainer.Create(Self);
+  Result := TWindowFormContainer.Create(Self);
 end;
 
 procedure TCastleWindow.CreateBackend;

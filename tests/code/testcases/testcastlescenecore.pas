@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestSceneCore" -*-
 {
-  Copyright 2020-2025 Michalis Kamburelis.
+  Copyright 2020-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -74,6 +74,7 @@ type
     procedure TestValidScene;
     procedure TestInternalDetectedWholeSceneManifold;
     procedure TestMaterialInfo;
+    procedure TestRadiusProjectionNearFromSizeOrNot;
   end;
 
 implementation
@@ -81,7 +82,8 @@ implementation
 uses X3DLoad, CastleVectors, CastleShapes,
   CastleTimeUtils, CastleStringUtils, X3DFields, CastleViewport, CastleBoxes,
   CastleFilesUtils, CastleScene, CastleTransform, CastleApplicationProperties,
-  CastleUriUtils, CastleColors, CastleRenderOptions, CastleTestUtils;
+  CastleUriUtils, CastleColors, CastleRenderOptions, CastleTestUtils,
+  CastleCameras, CastleUtils;
 
 procedure TTestSceneCore.TestBorderManifoldEdges;
 var
@@ -1473,6 +1475,158 @@ begin
     AssertTrue((ShapesList[0].State.MainTexture as TImageTextureNode).FdUrl.Count = 1);
     AssertTrue((ShapesList[0].State.MainTexture as TImageTextureNode).FdUrl.Items[0] = 'test_texture_from_material.png');
   finally FreeAndNil(Scene) end;
+end;
+
+procedure TTestSceneCore.TestRadiusProjectionNearFromSizeOrNot;
+
+  function LoadX3DClassicFromString(const FileContents: string): TX3DRootNode;
+  var
+    Stream: TStringStream;
+  begin
+    Stream := TStringStream.Create(FileContents);
+    try
+      Result := LoadNode(Stream, '', 'model/x3d+vrml');
+    finally FreeAndNil(Stream) end;
+  end;
+
+  { Note: Scenes below are not part of any viewport (world), so we cannot use
+    Scene.WorldBoundingBox (would raise ENotAddedToWorld).
+    Scene.LocalBoundingBox is equal, as scene is not transformed. }
+
+  { Test Scene.InternalUpdateCamera/Navigation. }
+  procedure TestIgnoreSize(const Model: String; out Radius, ProjectionNear: Single);
+  var
+    Scene: TCastleSceneCore;
+    Camera: TCastleCamera;
+    Navigation: TCastleNavigation;
+  begin
+    Scene := TCastleSceneCore.Create(nil);
+    try
+      Camera := TCastleCamera.Create(Scene);
+      Navigation := TCastleNavigation.Create(Scene);
+      Scene.Load(LoadX3DClassicFromString(Model), true);
+      Scene.InternalUpdateCamera(Camera, Scene.LocalBoundingBox, false, false);
+      Scene.InternalUpdateNavigation(Navigation);
+      Radius := Navigation.Radius;
+      ProjectionNear := Camera.ProjectionNear;
+    finally FreeAndNil(Scene) end;
+  end;
+
+  { Test Scene.RadiusProjectionNearFromSize. }
+  procedure TestSize(const Model: String; out Radius, ProjectionNear: Single);
+  var
+    Scene: TCastleSceneCore;
+    Camera: TCastleCamera;
+    Navigation: TCastleNavigation;
+  begin
+    Scene := TCastleSceneCore.Create(nil);
+    try
+      Camera := TCastleCamera.Create(Scene);
+      Navigation := TCastleNavigation.Create(Scene);
+      Scene.Load(LoadX3DClassicFromString(Model), true);
+      Scene.RadiusProjectionNearFromSize(Scene.LocalBoundingBox, Camera, Navigation);
+      Radius := Navigation.Radius;
+      ProjectionNear := Camera.ProjectionNear;
+    finally FreeAndNil(Scene) end;
+  end;
+
+const
+  { Copy of WorldBoxSizeToRadius from TCastleSceneCore.RadiusProjectionNearFromSize. }
+  WorldBoxSizeToRadius = 0.005;
+  BoxSize = 123456;
+  Epsilon = 0.001;
+
+  Model_Nothing =
+    '#X3D V4.0 utf8' + NL +
+    'PROFILE Interchange' + NL +
+    'Shape { geometry Box { size 123456 123456 123456 } }';
+
+  Model_EmptyViewpoint =
+    '#X3D V4.0 utf8' + NL +
+    'PROFILE Interchange' + NL +
+    'Viewpoint {}' + NL + // no Viewpoint.nearDistance, so it affects nothing
+    'Shape { geometry Box { size 123456 123456 123456 } }';
+
+  Model_ViewpointNearDistance =
+    '#X3D V4.0 utf8' + NL +
+    'PROFILE Interchange' + NL +
+    'Viewpoint { nearDistance 666 }' + NL +
+    'Shape { geometry Box { size 123456 123456 123456 } }';
+
+  Model_NavigationInfoLargeRadius =
+    '#X3D V4.0 utf8' + NL +
+    'PROFILE Interchange' + NL +
+    // avatarSize affects radius, but does not make projection near larger,
+    // to not cause clipping by adding NavigationInfo.
+    'NavigationInfo {}' + NL +
+    'Shape { geometry Box { size 123456 123456 123456 } }';
+
+  Model_NavigationInfoSmallRadius =
+    '#X3D V4.0 utf8' + NL +
+    'PROFILE Interchange' + NL +
+    // avatarSize affects radius, and forces projection near to also be smaller.
+    'NavigationInfo { avatarSize [0.01 1.6 0.75] }' + NL +
+    'Shape { geometry Box { size 123456 123456 123456 } }';
+
+var
+  Radius, ProjectionNear: Single;
+begin
+  { No Viewpoint, no NavigationInfo,
+    and using InternalUpdateCamera/Navigation so:
+    - default radius (independent of size)
+    - near plane left 0 (TCastleViewport.CalculateProjection would calculate it
+      in real usage) }
+  TestIgnoreSize(Model_Nothing, Radius, ProjectionNear);
+  AssertSameValue(DefaultCameraRadius, Radius, Epsilon);
+  AssertSameValue(0, ProjectionNear, Epsilon);
+
+  { No Viewpoint, no NavigationInfo,
+    and using RadiusProjectionNearFromSize so:
+    - radius corresponds to size
+    - near plane corresponds to size. }
+  TestSize(Model_Nothing, Radius, ProjectionNear);
+  AssertSameValue(BoxSize * WorldBoxSizeToRadius, Radius, Epsilon);
+  AssertSameValue(BoxSize * WorldBoxSizeToRadius * RadiusToProjectionNear, ProjectionNear, Epsilon);
+
+  { Viewpoint without nearDistance changes nothing. }
+  TestIgnoreSize(Model_EmptyViewpoint, Radius, ProjectionNear);
+  AssertSameValue(DefaultCameraRadius, Radius, Epsilon);
+  AssertSameValue(0, ProjectionNear, Epsilon);
+
+  TestSize(Model_EmptyViewpoint, Radius, ProjectionNear);
+  AssertSameValue(BoxSize * WorldBoxSizeToRadius, Radius, Epsilon);
+  AssertSameValue(BoxSize * WorldBoxSizeToRadius * RadiusToProjectionNear, ProjectionNear, Epsilon);
+
+  { Viewpoint.nearDistance determines projection near,
+    radius is not affected by it. }
+  TestIgnoreSize(Model_ViewpointNearDistance, Radius, ProjectionNear);
+  AssertSameValue(DefaultCameraRadius, Radius, Epsilon);
+  AssertSameValue(666, ProjectionNear, Epsilon);
+
+  TestSize(Model_ViewpointNearDistance, Radius, ProjectionNear);
+  AssertSameValue(BoxSize * WorldBoxSizeToRadius, Radius, Epsilon);
+  AssertSameValue(666, ProjectionNear, Epsilon);
+
+  { NavigationInfo with default avatarSize (radius 0.25) determines radius,
+    but projection near is capped by DefaultCameraRadius,
+    regardless of using RadiusProjectionNearFromSize. }
+  TestIgnoreSize(Model_NavigationInfoLargeRadius, Radius, ProjectionNear);
+  AssertSameValue(0.25, Radius, Epsilon);
+  AssertSameValue(DefaultCameraRadius * RadiusToProjectionNear, ProjectionNear, Epsilon);
+
+  TestSize(Model_NavigationInfoLargeRadius, Radius, ProjectionNear);
+  AssertSameValue(0.25, Radius, Epsilon);
+  AssertSameValue(DefaultCameraRadius * RadiusToProjectionNear, ProjectionNear, Epsilon);
+
+  { NavigationInfo with small avatarSize determines radius and projection near,
+    regardless of using RadiusProjectionNearFromSize. }
+  TestIgnoreSize(Model_NavigationInfoSmallRadius, Radius, ProjectionNear);
+  AssertSameValue(0.01, Radius, Epsilon);
+  AssertSameValue(0.01 * RadiusToProjectionNear, ProjectionNear, Epsilon);
+
+  TestSize(Model_NavigationInfoSmallRadius, Radius, ProjectionNear);
+  AssertSameValue(0.01, Radius, Epsilon);
+  AssertSameValue(0.01 * RadiusToProjectionNear, ProjectionNear, Epsilon);
 end;
 
 initialization

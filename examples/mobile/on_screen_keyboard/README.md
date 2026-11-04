@@ -1,14 +1,16 @@
-# On-screen keyboard test on Android
+# On-screen keyboard test
 
-This is an example of using the on-screen keyboard on Android:
+This is an example of using the on-screen keyboard:
 
 - tap edit to show the keyboard
+- tap another edit to switch focus to it
 - third edit shows password mode
 
 To make the `TCastleEdit` receive focus and open on-screen keyboard correctly in your applications:
 
-- Use `<service name="keyboard" />` in the `CastleEngineManifest.xml`
-- Set `AutoOnScreenKeyboard` to `true` on the `TCastleEdit` instance (you can set it from the editor, or from code).
+- With FPC, use `<service name="keyboard" />` in the `CastleEngineManifest.xml`. See [keyboard service documentation](https://github.com/castle-engine/castle-engine/blob/master/tools/build-tool/data/android/services/keyboard/README.adoc). TODO: It is only available for Android for now.
+- With Delphi, adding the service doesn't matter. We rely on FireMonkey for this and it works with both Android and iOS.
+- Set [AutoOnScreenKeyboard](https://castle-engine.io/api?id=TCastleEdit.AutoOnScreenKeyboard) to `true` on the `TCastleEdit` instance (you can set it from the editor, or from code).
 - If you want to focus the edit before user touches it, do it by `Edit1.Focused := true`
 
 Using [Castle Game Engine](https://castle-engine.io/).
