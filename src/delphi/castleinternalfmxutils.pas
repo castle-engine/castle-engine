@@ -329,12 +329,37 @@ type
 
 {$endif CASTLE_HANDLE_FMX_TOUCH}
 
+{$ifdef USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
+
+{ Show the on-screen keyboard using FMX IFMXVirtualKeyboardService,
+  with the keyboard input delivered (as KeyDown / KeyUp) to the given Control.
+
+  The Control should be a styled (not platform-native) FMX control
+  that does not implement ITextInput,
+  so FMX directs the keyboard to the form's view and delivers characters
+  as form key events to the FMX-focused control.
+  It should implement IVirtualKeyboardControl (required by Delphi 10.4 on iOS). }
+procedure FmxShowOnScreenKeyboard(const Control: TControl);
+
+{ Hide the on-screen keyboard using FMX IFMXVirtualKeyboardService. }
+procedure FmxHideOnScreenKeyboard;
+
+{$endif USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
+
 implementation
 
 uses SysUtils,
   {$if defined(CASTLE_HANDLE_FMX_TOUCH) and defined(ANDROID)}
   // for FAndroidTouchListener in TFmxTouchDispatcher
-  Androidapi.Input, FMX.Platform.Android, FMX.Platform.UI.Android,
+  Androidapi.Input,
+  {$endif}
+  {$if (defined(CASTLE_HANDLE_FMX_TOUCH) or defined(USE_FMX_VIRTUAL_KEYBOARD_SERVICE)) and defined(ANDROID)}
+  { For FAndroidTouchListener in TFmxTouchDispatcher,
+    and for accessing form's view in FmxShowOnScreenKeyboard. }
+  FMX.Platform.Android, FMX.Platform.UI.Android,
+  {$endif}
+  {$ifdef USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
+  FMX.Platform, FMX.VirtualKeyboard,
   {$endif}
   {$ifdef CASTLE_MOBILE_FMX}
   FMX.Canvas.GPU, FMX.Types3D,
@@ -846,5 +871,68 @@ begin
 end;
 
 {$endif CASTLE_HANDLE_FMX_TOUCH}
+
+{ on-screen keyboard --------------------------------------------------------- }
+
+{$ifdef USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
+
+procedure FmxShowOnScreenKeyboard(const Control: TControl);
+var
+  KeyboardService: IFMXVirtualKeyboardService;
+  {$ifdef ANDROID}
+  Form: TCommonCustomForm;
+  {$endif}
+begin
+  if not TPlatformServices.Current.SupportsPlatformService(
+       IFMXVirtualKeyboardService, KeyboardService) then
+  begin
+    WritelnWarning('FMX IFMXVirtualKeyboardService not available, cannot show on-screen keyboard');
+    Exit;
+  end;
+
+  { Make Control focused in FMX, so that FMX delivers key events to it.
+
+    This is necessary on iOS: the FMX form view refuses to become
+    the first responder (so the keyboard doesn't show) when the form has
+    no focused control (TFMXViewBase.canBecomeFirstResponder).
+    And we may be called from FMX OnTouch, which on iOS happens before
+    FMX MouseDown (that would focus the control).
+    Also, after the user hides the keyboard, iOS FMX clears the focused control.
+
+    On Android, FMX ShowVirtualKeyboard does this too. }
+  if not Control.IsFocused then
+    Control.SetFocus;
+
+  {$ifdef ANDROID}
+  { Make the form's Android view focused.
+
+    The Android will not show the keyboard for a view that is not focused
+    (logcat says "Ignoring showSoftInput() as view=...FormView... is not served").
+    FMX ShowVirtualKeyboard directs the keyboard to form's view
+    (for controls not being ITextInput),
+    but FMX never makes this view focused for Android: the view doesn't get focus on touch
+    (FormView.onTouchEvent doesn't call inherited),
+    and since Android 9 views don't get initial focus in touch mode.
+
+    This is about "focus for Android", as seen by Android Java API.
+    It's not about FMX focus. }
+  Assert(Control.Root <> nil, 'Control must be on a form to show on-screen keyboard');
+  Form := Control.Root.GetObject as TCommonCustomForm;
+  WindowHandleToPlatform(Form.Handle).View.requestFocus;
+  {$endif}
+
+  KeyboardService.ShowVirtualKeyboard(Control);
+end;
+
+procedure FmxHideOnScreenKeyboard;
+var
+  KeyboardService: IFMXVirtualKeyboardService;
+begin
+  if TPlatformServices.Current.SupportsPlatformService(
+       IFMXVirtualKeyboardService, KeyboardService) then
+    KeyboardService.HideVirtualKeyboard;
+end;
+
+{$endif USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
 
 end.

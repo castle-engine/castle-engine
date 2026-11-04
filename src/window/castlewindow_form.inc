@@ -187,7 +187,6 @@
     FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs,
     FMX.StdCtrls, FMX.Menus, FMX.Platform,
     {$ifdef SUBSCRIBE_FormsCreatedMessage} System.Messaging, {$endif}
-    {$ifdef USE_FMX_VIRTUAL_KEYBOARD_SERVICE} FMX.VirtualKeyboard, {$endif}
     // CGE
     Fmx.CastleInternalGLControl, CastleInternalDelphiUtils,
     CastleFmxUtils, CastleInternalFmxUtils,
@@ -238,7 +237,20 @@ private
 
     { Like TOpenGLControl but sets Invalidated:=true on Window,
       so that Window knows when it's invalidated by the OS. }
-    TGoodOpenGLControl = class(TOpenGLControl)
+    TGoodOpenGLControl = class(TOpenGLControl
+      {$ifdef USE_FMX_VIRTUAL_KEYBOARD_SERVICE}, IVirtualKeyboardControl{$endif})
+    {$ifdef USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
+    private
+      { IVirtualKeyboardControl implementation.
+        FMX requires this interface on the focused control to show
+        the on-screen keyboard with Delphi 10.4 on iOS.
+        The values are not actually used by FMX for controls without ITextInput. }
+      procedure SetKeyboardType(Value: TVirtualKeyboardType);
+      function GetKeyboardType: TVirtualKeyboardType;
+      procedure SetReturnKeyType(Value: TReturnKeyType);
+      function GetReturnKeyType: TReturnKeyType;
+      function IsPassword: Boolean;
+    {$endif USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
     public
       Window: TCastleWindow;
       procedure Invalidate; override;
@@ -432,6 +444,33 @@ begin
 end;
 {$endif}
 
+{$ifdef USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
+procedure TCastleWindow.TGoodOpenGLControl.SetKeyboardType(Value: TVirtualKeyboardType);
+begin
+  // ignored, FMX doesn't use it for controls without ITextInput
+end;
+
+function TCastleWindow.TGoodOpenGLControl.GetKeyboardType: TVirtualKeyboardType;
+begin
+  Result := TVirtualKeyboardType.Default;
+end;
+
+procedure TCastleWindow.TGoodOpenGLControl.SetReturnKeyType(Value: TReturnKeyType);
+begin
+  // ignored, FMX doesn't use it for controls without ITextInput
+end;
+
+function TCastleWindow.TGoodOpenGLControl.GetReturnKeyType: TReturnKeyType;
+begin
+  Result := TReturnKeyType.Default;
+end;
+
+function TCastleWindow.TGoodOpenGLControl.IsPassword: Boolean;
+begin
+  Result := false;
+end;
+{$endif USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
+
 { TWindowFormContainer -------------------------------------------------------- }
 
 type
@@ -450,14 +489,11 @@ type
 {$ifdef USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
 procedure TWindowFormContainer.SystemShowOnScreenKeyboard(
   const CurrentText: String; const PasswordMode: Boolean);
-var
-  KeyboardService: IFMXVirtualKeyboardService;
 begin
   { Note: We don't use CurrentText, PasswordMode for now.
     The FMX virtual keyboard service doesn't have parameters for them.
-    TODO: Password mode could be communicated by implementing
-    IVirtualKeyboardControl (IsPassword),
-    see https://docwiki.embarcadero.com/Libraries/Athens/en/FMX.Types.IVirtualKeyboardControl.IsPassword . }
+    TODO: Password mode is applied by FMX only for controls implementing
+    ITextInput (with a TTextService), so it would require implementing that. }
 
   { OpenGLControl may be nil if window is not open (or already closed). }
   if Parent.OpenGLControl = nil then
@@ -466,20 +502,12 @@ begin
     Exit;
   end;
 
-  if TPlatformServices.Current.SupportsPlatformService(
-       IFMXVirtualKeyboardService, KeyboardService) then
-    KeyboardService.ShowVirtualKeyboard(Parent.OpenGLControl)
-  else
-    WritelnWarning('FMX IFMXVirtualKeyboardService not available, cannot show on-screen keyboard');
+  FmxShowOnScreenKeyboard(Parent.OpenGLControl);
 end;
 
 procedure TWindowFormContainer.SystemHideOnScreenKeyboard;
-var
-  KeyboardService: IFMXVirtualKeyboardService;
 begin
-  if TPlatformServices.Current.SupportsPlatformService(
-       IFMXVirtualKeyboardService, KeyboardService) then
-    KeyboardService.HideVirtualKeyboard;
+  FmxHideOnScreenKeyboard;
 end;
 {$endif USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
 

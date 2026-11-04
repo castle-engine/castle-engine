@@ -70,7 +70,8 @@ uses // standard units
 
 type
   { Control rendering "Castle Game Engine" on FMX form. }
-  TCastleControl = class(TPresentedControl)
+  TCastleControl = class(TPresentedControl
+    {$ifdef USE_FMX_VIRTUAL_KEYBOARD_SERVICE}, IVirtualKeyboardControl{$endif})
   strict private
     type
       { Non-abstract implementation of TCastleControlContainer that cooperates with
@@ -141,6 +142,17 @@ type
   private
     procedure CreateHandle;
     procedure DestroyHandle;
+    {$ifdef USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
+    { IVirtualKeyboardControl implementation.
+      FMX requires this interface on the focused control to show
+      the on-screen keyboard with Delphi 10.4 on iOS.
+      The values are not actually used by FMX for controls without ITextInput. }
+    procedure SetKeyboardType(Value: TVirtualKeyboardType);
+    function GetKeyboardType: TVirtualKeyboardType;
+    procedure SetReturnKeyType(Value: TReturnKeyType);
+    function GetReturnKeyType: TReturnKeyType;
+    function IsPassword: Boolean;
+    {$endif USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
   protected
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState;
       X, Y: Single); override;
@@ -245,9 +257,6 @@ procedure Register;
 implementation
 
 uses FMX.Presentation.Factory, Types, FMX.Graphics,
-  {$ifdef USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
-  FMX.Platform, FMX.VirtualKeyboard,
-  {$endif}
   CastleRenderOptions, CastleApplicationProperties,
   CastleRectangles, CastleUtils, CastleUIControls, CastleInternalDelphiUtils,
   CastleLog;
@@ -362,19 +371,15 @@ end;
 {$ifdef USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
 procedure TCastleControl.TContainer.SystemShowOnScreenKeyboard(
   const CurrentText: String; const PasswordMode: Boolean);
-var
-  KeyboardService: IFMXVirtualKeyboardService;
 begin
-  if TPlatformServices.Current.SupportsPlatformService(IFMXVirtualKeyboardService, KeyboardService) then
-    KeyboardService.ShowVirtualKeyboard(Parent);
+  { Note: We don't use CurrentText, PasswordMode for now.
+    FMX applies password mode only for controls implementing ITextInput. }
+  FmxShowOnScreenKeyboard(Parent);
 end;
 
 procedure TCastleControl.TContainer.SystemHideOnScreenKeyboard;
-var
-  KeyboardService: IFMXVirtualKeyboardService;
 begin
-  if TPlatformServices.Current.SupportsPlatformService(IFMXVirtualKeyboardService, KeyboardService) then
-    KeyboardService.HideVirtualKeyboard;
+  FmxHideOnScreenKeyboard;
 end;
 {$endif USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
 
@@ -982,6 +987,33 @@ function TCastleControl.GetContainer: TCastleControlContainer;
 begin
   Result := FContainer;
 end;
+
+{$ifdef USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
+procedure TCastleControl.SetKeyboardType(Value: TVirtualKeyboardType);
+begin
+  // ignored, FMX doesn't use it for controls without ITextInput
+end;
+
+function TCastleControl.GetKeyboardType: TVirtualKeyboardType;
+begin
+  Result := TVirtualKeyboardType.Default;
+end;
+
+procedure TCastleControl.SetReturnKeyType(Value: TReturnKeyType);
+begin
+  // ignored, FMX doesn't use it for controls without ITextInput
+end;
+
+function TCastleControl.GetReturnKeyType: TReturnKeyType;
+begin
+  Result := TReturnKeyType.Default;
+end;
+
+function TCastleControl.IsPassword: Boolean;
+begin
+  Result := false;
+end;
+{$endif USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
 
 (*
 procedure TCastleControl.DoRootChanged;
