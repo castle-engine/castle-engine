@@ -945,6 +945,20 @@ var
     finally FreeAndNil(Pack) end;
   end;
 
+  { Check .deployproj file exists.
+    Only Delphi IDE can generate it, and it is necessary
+    for msbuild to use "Deploy" target. }
+  procedure CheckDeployProjExists(const MainSource: String);
+  var
+    DeployProjFile: String;
+  begin
+    DeployProjFile := ChangeFileExt(MainSource, '.deployproj');
+    if not RegularFileExists(DeployProjFile) then
+      raise Exception.CreateFmt('Cannot find "%s". You need to deploy the project once from Delphi IDE, to create this file. See https://castle-engine.io/delphi_mobile for details.', [
+        DeployProjFile
+      ]);
+  end;
+
   { Create APK using Delphi: run msbuild with "Deploy" target.
     The project must be already compiled. }
   procedure PackageAndroidDelphi(const PackageFormat: TPackageFormatNoDefault);
@@ -956,14 +970,8 @@ var
     if PackageFormat <> pfAndroidApk then
       raise Exception.Create('Creating Android package other than APK is not implemented with Delphi');
 
-    { Only Delphi IDE can generate .deployproj, and it is necessary
-      for msbuild to have "Deploy" target. }
     MainSource := AndroidSourceFile(coDelphi, true, false);
-    DeployProjFile := ChangeFileExt(MainSource, '.deployproj');
-    if not RegularFileExists(DeployProjFile) then
-      raise Exception.CreateFmt('Cannot find "%s". You need to deploy the project once from Delphi IDE, to create this file. See https://castle-engine.io/delphi_mobile for details.', [
-        DeployProjFile
-      ]);
+    CheckDeployProjExists(MainSource);
 
     DelphiCPU := DelphiAndroidCPU(Target, CPU);
 
@@ -979,6 +987,38 @@ var
     if not RegularFileExists(ApkFile) then
       raise Exception.CreateFmt('Delphi did not create the expected APK: "%s"', [ApkFile]);
     Writeln('Build ' + ApkFile);
+  end;
+
+  { Run msbuild with "Deploy" target for iOS (makes IPA, or whatever else Delphi
+    iOS target points to).
+    The project must be already compiled. }
+  procedure PackageIOSDelphi(const PackageFormat: TPackageFormatNoDefault);
+  var
+    DelphiCPU: TCPU;
+    Options: TCompilerOptions;
+    MainSource, DeployProjFile: String;
+  begin
+    if not (PackageFormat in [
+        { All these formats are considered equal for Delphi,
+          we just run MSBuild "Deploy" target, it does what is was configured
+          for in Delphi IDE. }
+        pfIosXcodeProject,
+        pfIosArchiveDevelopment,
+        pfIosArchiveAdHoc,
+        pfIosArchiveAppStore
+      ]) then
+      raise Exception.Create('Creating iOS package other than Xcode project or IPA is not implemented with Delphi');
+
+    MainSource := IOSSourceFile(coDelphi, true, false);
+    CheckDeployProjExists(MainSource);
+
+    Options := TCompilerOptions.Create;
+    try
+      Options.OS := Ios;
+      Options.CPU := Aarch64;
+      Options.Mode := Mode;
+      RunDelphiMSBuild(Path, MainSource, 'Deploy', Options);
+    finally FreeAndNil(Options) end;
   end;
 
 var
@@ -1002,14 +1042,17 @@ begin
   case PackageFormatFinal of
     pfIosXcodeProject, pfIosArchiveDevelopment, pfIosArchiveAdHoc, pfIosArchiveAppStore:
       begin
-        if FinalCompiler = coDelphi then
-          raise Exception.Create('"package" command is not implemented for Delphi with iOS');
-
         // set IOSExportMethod early, as it determines IOS_EXPORT_METHOD macro
         WantsIOSArchive := PackageFormatWantsIOSArchive(PackageFormatFinal, IOSArchiveType, IOSExportMethod);
-        PackageIOS(Self, UpdateOnlyCode);
-        if WantsIOSArchive then
-          ArchiveIOS(Self, IOSArchiveType);
+
+        if FinalCompiler = coDelphi then
+          PackageIOSDelphi(PackageFormatFinal)
+        else
+        begin
+          PackageIOS(Self, UpdateOnlyCode);
+          if WantsIOSArchive then
+            ArchiveIOS(Self, IOSArchiveType);
+        end;
       end;
     pfAndroidApk, pfAndroidAppBundle:
       begin
