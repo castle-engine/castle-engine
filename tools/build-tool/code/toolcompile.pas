@@ -148,6 +148,12 @@ var
     (see delphi_dcc_vs_msbuild.md ). }
   MSBuildPassEnginePaths: Boolean = true;
 
+  { Delphi connection profile (to PAServer) to pass to MSBuild
+    as "/p:Profile=...". Empty (default) means to not pass it.
+    Necessary e.g. for "Deploy" target for iOS, otherwise it fails with
+    "Missing profile name. Unable to get a valid profile from environment options file". }
+  MSBuildProfile: String;
+
 const
   CompilationModeToStr: array [TCompilationMode] of string = (
     'release',
@@ -1255,7 +1261,7 @@ procedure RunDelphiMSBuild(
   const ExtraDefines, ExtraUnitSearchPath: String);
 var
   DelphiPath, RsVars, DprojFileAbsolute: String;
-  MSBuildPlatform, MSBuildConfig: String;
+  MSBuildPlatform, MSBuildConfig, MSBuildProfileParam: String;
   WrapperBat, WrapperBatContents, OutPath, MSBuildOutput: String;
   ComSpec, MsBuildVerbosity: String;
   MSBuildExitStatus: Integer;
@@ -1273,6 +1279,11 @@ begin
 
   MSBuildPlatform := DelphiPlatform(Options.OS, Options.CPU);
   MSBuildConfig := DelphiConfig(Options.Mode);
+
+  if MSBuildProfile <> '' then
+    MSBuildProfileParam := ' "/p:Profile=' + MSBuildProfile + '"'
+  else
+    MSBuildProfileParam := '';
 
   { Write bat that sets up the Delphi environment (calling rsvars.bat)
     then runs msbuild. }
@@ -1298,6 +1309,7 @@ begin
       ' /target:' + MSBuildTarget +
       ' /p:Config=' + MSBuildConfig +
       ' /p:Platform=' + MSBuildPlatform +
+      MSBuildProfileParam +
       ' ' + MsBuildVerbosity + NL +
     'exit /b %errorlevel%' + NL;
   StringToFile(FilenameToUriSafe(WrapperBat), WrapperBatContents);
