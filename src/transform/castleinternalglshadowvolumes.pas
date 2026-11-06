@@ -804,6 +804,14 @@ begin
       glStencilFunc(GL_EQUAL, 0, StencilShadowBits);
       glEnable(GL_STENCIL_TEST);
 
+        { each light's pass its own InternalPass: the shapes keep a shader
+          program per pass, and each light needs other shaders (its type,
+          its effects), so with a shared pass every shape would change (and
+          link again) its program for every light, every frame }
+        if I + 1 < High(TInternalRenderingPass) then
+          Params.InternalPass := I + 1
+        else
+          Params.InternalPass := High(TInternalRenderingPass);
         PassParams.Init;
         PassParams.UsingBlending := false;
         PassParams.FilterShadowVolumesReceivers := [true];
@@ -817,6 +825,7 @@ begin
     RenderContext.DepthBufferUpdate := SavedDepthBufferUpdate;
     RenderContext.DepthFunc := SavedDepthFunc;
   end;
+  Params.InternalPass := 1;
 
   FCountCasters := SumCasters;
   FCountShadowsNotVisible := SumShadowsNotVisible;

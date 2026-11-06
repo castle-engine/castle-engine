@@ -88,8 +88,12 @@
   );
 
   { @exclude Internal.
-    Rendering pass, for multi-pass rendering, like for shadow volumes. }
-  TInternalRenderingPass = 0..1;
+    Rendering pass, for multi-pass rendering, like for shadow volumes:
+    0 is the normal pass, 1 the passes with shadow volumes;
+    with several shadow volume lights (TCastleViewport.ShadowVolumesMaxLights)
+    the light passes use 1, 2... up to the last value (one per light, so each
+    light's shaders stay cached in TShape; more lights share the last one). }
+  TInternalRenderingPass = 0..8;
 
   { Rendering pass, for user purposes.
     Useful to keep shaders cached when you render the same scene multiple times
