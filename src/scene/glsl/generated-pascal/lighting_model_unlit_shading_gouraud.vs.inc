@@ -6,5 +6,10 @@
 '{' + LineEnding +
 '  /* In case of UnlitMaterial, Color/ColorRGBA replaces emissive color.*/' + LineEnding +
 '  result = castle_apply_color_per_vertex(castle_MaterialEmissiveAlpha);' + LineEnding +
+'' + LineEnding +
+'  #ifdef CASTLE_LIGHT_CONTRIBUTION_ONLY' + LineEnding +
+'  /* Unlit shapes are not affected by lights, the base pass draws them. */' + LineEnding +
+'  result.rgb = vec3(0.0);' + LineEnding +
+'  #endif' + LineEnding +
 '}' + LineEnding +
 ''

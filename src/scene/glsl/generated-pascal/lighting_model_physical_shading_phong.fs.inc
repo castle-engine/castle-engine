@@ -185,9 +185,11 @@
 '' + LineEnding +
 '  /* PLUG: material_occlusion (result) */' + LineEnding +
 '' + LineEnding +
+'#ifndef CASTLE_LIGHT_CONTRIBUTION_ONLY' + LineEnding +
 '  vec3 emissive = castle_MaterialEmissive;' + LineEnding +
 '  /* PLUG: material_emissive (emissive) */' + LineEnding +
 '  result.rgb += emissive;' + LineEnding +
+'#endif' + LineEnding +
 '' + LineEnding +
 '  // TODO: No need for this in PBR?' + LineEnding +
 '  // TODO: No need for this in Phong lighting with Phong shading, too?' + LineEnding +

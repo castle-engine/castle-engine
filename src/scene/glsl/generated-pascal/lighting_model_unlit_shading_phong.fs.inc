@@ -10,5 +10,10 @@
 '  /* In case of UnlitMaterial, main texture (emissiveTexture or Appearance.texture)' + LineEnding +
 '     is mixed with emissive color. */' + LineEnding +
 '  main_texture_apply(result, normal_eye);' + LineEnding +
+'' + LineEnding +
+'  #ifdef CASTLE_LIGHT_CONTRIBUTION_ONLY' + LineEnding +
+'  /* Unlit shapes are not affected by lights, the base pass draws them. */' + LineEnding +
+'  result.rgb = vec3(0.0);' + LineEnding +
+'  #endif' + LineEnding +
 '}' + LineEnding +
 ''

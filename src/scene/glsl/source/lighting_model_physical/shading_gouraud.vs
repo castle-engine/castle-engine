@@ -23,7 +23,12 @@ void calculate_lighting(out vec4 result, const in vec4 vertex_eye, const in vec3
 
   material_base_alpha = castle_apply_color_per_vertex(castle_MaterialBaseAlpha);
 
+#ifdef CASTLE_LIGHT_CONTRIBUTION_ONLY
+  /* The emissive color is added by the base pass. */
+  result = vec4(0.0, 0.0, 0.0, material_base_alpha.a);
+#else
   result = vec4(castle_EmissiveColor, material_base_alpha.a);
+#endif
 
   "This GLSL code should never be used, since PhysicalMaterial requires Phong shading.
   Uncommented, to break compilation in case this is accidentally used."
