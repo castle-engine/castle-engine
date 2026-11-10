@@ -72,7 +72,7 @@
     strict private FFdFractionIncreasing: TSFBool;
     { Internal wrapper for property @code(FractionIncreasing). This wrapper API may change, we advise to access simpler @code(FractionIncreasing) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdFractionIncreasing: TSFBool read FFdFractionIncreasing;
-    { @deprecated When @false, plays animation in reverse. Use @link(reverse) instead. }
+    { @deprecated When @false, plays animation in reverse. Use @link(Reverse) instead. }
     property FractionIncreasing: Boolean read GetFractionIncreasing write SetFractionIncreasing;
 
     strict private FFdDetectAffectedFields: TSFBool;

@@ -41,7 +41,7 @@ TimeSensor : X3DTimeDependentNode, X3DSensorNode {
   SFBool [in,out] fractionIncreasing TRUE
     is-extension: true
     doc: """
-      @deprecated When @false, plays animation in reverse. Use @link(reverse) instead.
+      @deprecated When @false, plays animation in reverse. Use @link(Reverse) instead.
     """
 
   # CGE extension, see https://castle-engine.io/x3d_implementation_time_extensions.php

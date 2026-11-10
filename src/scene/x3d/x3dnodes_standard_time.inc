@@ -888,7 +888,7 @@ begin
   Check(Scene <> nil, 'TTimeSensorNode.Start can only be called when node is part of scene');
 
   Loop := ALoop;
-  Reverse := not AFractionIncreasing; // TimeSensor.Reverse is now the way to implement AFractionIncreasing
+  Reverse := not AFractionIncreasing; // AFractionIncreasing = false is implemented by setting Reverse
   FractionIncreasing := true; // the deprecated FractionIncreasing should always remain at default
   Enabled := true; // since Stop changes Enabled to false
 
