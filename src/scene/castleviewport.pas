@@ -20,7 +20,7 @@ unit CastleViewport;
 
 interface
 
-uses SysUtils, Classes, Generics.Collections,
+uses SysUtils, Classes, Generics.Collections, Contnrs,
   {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleVectors, X3DNodes, CastleInternalBaseTriangleOctree, CastleScene,
   CastleSceneCore, CastleCameras, CastleRenderOptions,
@@ -113,6 +113,11 @@ type
 
       FShadowVolumes: boolean;
       FShadowVolumesRender: boolean;
+      FShadowVolumesMaxLights: Cardinal;
+      { Lights casting shadow volumes this frame, when ShadowVolumesMaxLights > 1,
+        and their positions in world space. Calculated by ShadowVolumesLights. }
+      FShadowVolumesLights: Contnrs.TObjectList;
+      FShadowVolumesLightPositions: array of TVector4;
 
       FScreenSpaceAmbientOcclusion: boolean;
       SSAOShader: TSSAOScreenEffect;
@@ -349,6 +354,15 @@ type
       Returns light position (or direction, if W = 0) in world space. }
     function MainLightForShadowVolumes(out AMainLightPosition: TVector4): boolean;
 
+    { Find the lights casting shadow volumes, when ShadowVolumesMaxLights > 1:
+      lights in GlobalLights (from scenes with TCastleScene.CastGlobalLights,
+      TCastle*Light components, MainScene) that are on
+      and have shadowVolumes = shadowVolumesMain = TRUE,
+      at most ShadowVolumesMaxLights, in the order of GlobalLights.
+      Sets FShadowVolumesLights and FShadowVolumesLightPositions,
+      returns their count. }
+    function ShadowVolumesLights(const GlobalLights: TAbstractLightInstancesList): Integer;
+
     { Pass pointing device (mouse or touch) press event
       to TCastleTransform instances in @link(Items).
       Depends that MouseRayHit, MouseRayOrigin, MouseRayDirection are already updated. }
@@ -445,6 +459,7 @@ type
       DefaultUseGlobalLights = true;
       DefaultUseGlobalFog = true;
       DefaultShadowVolumes = true;
+      DefaultShadowVolumesMaxLights = 1;
       DefaultBackgroundColor: TVector4 = (X: 0.1; Y: 0.1; Z: 0.1; W: 1);
       {$warnings off} // referencing deprecated in deprecated
       Default2DProjectionFar = CastleTransform.Default2DProjectionFar deprecated 'this default is not used; ProjectionFar in orthographic projection is now automatically adjusted to what you display';
@@ -1140,6 +1155,54 @@ type
       as yellow blended polygons. }
     property ShadowVolumesRender: boolean read FShadowVolumesRender write FShadowVolumesRender default false;
 
+    { How many lights can cast shadow volumes at the same time.
+
+      With the default value 1, only the main light casts shadow volumes:
+      the first light found with shadowVolumes = shadowVolumesMain = TRUE
+      (see https://castle-engine.io/shadow_volumes ).
+      Other lights with shadowVolumes = TRUE are turned off in its shadow.
+
+      With a value > 1, every light that is on and has
+      shadowVolumes = shadowVolumesMain = TRUE casts its own shadows,
+      up to this many lights (the first ones found).
+      For example set @link(TCastlePunctualLight.Shadows) on several
+      @link(TCastlePointLight), @link(TCastleSpotLight) or
+      @link(TCastleDirectionalLight).
+      Each light then costs one more rendering pass of the shadow receivers
+      and of the shadow volumes, like in Doom 3:
+      first the shadow receivers are rendered with these lights turned off,
+      then for each light the stencil buffer is cleared,
+      filled with the shadow volumes of this light,
+      and the contribution of only this light is added (blending "one, one")
+      where the stencil is 0.
+
+      Notes:
+      @unorderedList(
+        @item(Only lights in @link(TCastleScene.CastGlobalLights) scenes
+          (this includes TCastle*Light components) are considered
+          when this is > 1.)
+        @item(Lights with shadowVolumes = TRUE that don't cast
+          (shadowVolumesMain = FALSE, or over this limit)
+          light everything, without shadows.)
+        @item(The contribution of each light is added in the color buffer,
+          after gamma correction and tone mapping.
+          Since gamma(a) + gamma(b) > gamma(a + b), shapes rendered with
+          gamma correction (@link(ColorSpace) = csLinear, or the default
+          csLinearWhenPhysicalMaterial with physical (PBR) materials)
+          or tone mapping are too bright where several lights overlap.
+          The result is exact (except that colors are clamped to 1 per pass)
+          for Phong and unlit materials with the default @link(ColorSpace),
+          and for all materials with @link(ColorSpace) = csSRGB.)
+        @item(The "fake light" trick (main light with on = FALSE)
+          works only when no other light is found to cast shadows,
+          since lights that are off are not counted.)
+        @item(When only one light is found (in a given frame),
+          rendering is the same as with ShadowVolumesMaxLights = 1.)
+      ) }
+    property ShadowVolumesMaxLights: Cardinal
+      read FShadowVolumesMaxLights write FShadowVolumesMaxLights
+      default DefaultShadowVolumesMaxLights;
+
     { Background (like a skybox) to display behind the @link(Items).
       Displayed only when not @link(Transparent).
       See https://castle-engine.io/background }
@@ -1504,6 +1567,8 @@ begin
   FPrepareParams := TPrepareParams.Create;
   FRenderWithoutScreenEffectsRenderingCamera := TRenderingCamera.Create;
   FShadowVolumes := DefaultShadowVolumes;
+  FShadowVolumesMaxLights := DefaultShadowVolumesMaxLights;
+  FShadowVolumesLights := Contnrs.TObjectList.Create(false);
   FScreenSpaceReflectionsSurfaceGlossiness := DefaultScreenSpaceReflectionsSurfaceGlossiness;
   FClearDepth := true;
   InternalDistortFieldOfViewY := 1;
@@ -1715,6 +1780,7 @@ begin
 
   FreeAndNil(FRenderParams);
   FreeAndNil(FPrepareParams);
+  FreeAndNil(FShadowVolumesLights);
   FreeAndNil(FRenderWithoutScreenEffectsRenderingCamera);
   FreeAndNil(AllShapesCollector);
   FreeAndNil(FilteredShapesCollector);
@@ -2565,6 +2631,34 @@ begin
   {$warnings on}
 end;
 
+function TCastleViewport.ShadowVolumesLights(const GlobalLights: TAbstractLightInstancesList): Integer;
+var
+  Lights: TLightInstancesList;
+  L: PLightInstance;
+  I: Integer;
+begin
+  FShadowVolumesLights.Clear;
+  SetLength(FShadowVolumesLightPositions, 0);
+  Lights := GlobalLights as TLightInstancesList;
+  for I := 0 to Lights.Count - 1 do
+  begin
+    if Cardinal(FShadowVolumesLights.Count) >= ShadowVolumesMaxLights then
+      Break;
+    L := PLightInstance(Lights.Ptr(I));
+    if (L^.Node is TAbstractPunctualLightNode) and
+       L^.Node.FdOn.Value and
+       TAbstractPunctualLightNode(L^.Node).FdShadowVolumes.Value and
+       TAbstractPunctualLightNode(L^.Node).FdShadowVolumesMain.Value then
+    begin
+      FShadowVolumesLights.Add(L^.Node);
+      SetLength(FShadowVolumesLightPositions, Length(FShadowVolumesLightPositions) + 1);
+      { GlobalLights are in world space, see TCastleViewport.AddGlobalLightsFromScene. }
+      FShadowVolumesLightPositions[High(FShadowVolumesLightPositions)] := L^.Position;
+    end;
+  end;
+  Result := FShadowVolumesLights.Count;
+end;
+
 procedure TCastleViewport.RenderOnePass(const Params: TRenderParams;
   const PassParams: TRenderOnePassParams);
 
@@ -2776,9 +2870,15 @@ procedure TCastleViewport.RenderFromView3D(const Params: TRenderParams);
     end;
     FShadowVolumeRenderer.DebugRender := ShadowVolumesRender;
     FShadowVolumeRenderer.InitFrustumAndLight(Params.RenderingCamera.Frustum, MainLightPosition);
-    FShadowVolumeRenderer.Render(Params,
-      {$ifdef FPC}@{$endif}RenderOnePass,
-      {$ifdef FPC}@{$endif}RenderShadowVolume);
+    if FShadowVolumesLights.Count > 1 then
+      FShadowVolumeRenderer.RenderSeveralLights(Params,
+        {$ifdef FPC}@{$endif}RenderOnePass,
+        {$ifdef FPC}@{$endif}RenderShadowVolume,
+        FShadowVolumesLights, FShadowVolumesLightPositions)
+    else
+      FShadowVolumeRenderer.Render(Params,
+        {$ifdef FPC}@{$endif}RenderOnePass,
+        {$ifdef FPC}@{$endif}RenderShadowVolume);
   end;
 
 var
@@ -2791,10 +2891,20 @@ begin
   AllShapesCollector.Clear;
   Assert(Params.Collector = AllShapesCollector);
   Params.Frustum := @Params.RenderingCamera.Frustum;
-  Params.UsingShadowVolumes :=
-    GLFeatures.ShadowVolumesPossible and
-    ShadowVolumes and
-    MainLightForShadowVolumes(MainLightPosition);
+  FShadowVolumesLights.Clear;
+  if GLFeatures.ShadowVolumesPossible and
+     ShadowVolumes and
+     (ShadowVolumesMaxLights > 1) and
+     (ShadowVolumesLights(Params.GlobalLights) > 0) then
+  begin
+    Params.UsingShadowVolumes := true;
+    { With one light found, render like ShadowVolumesMaxLights = 1. }
+    MainLightPosition := FShadowVolumesLightPositions[0];
+  end else
+    Params.UsingShadowVolumes :=
+      GLFeatures.ShadowVolumesPossible and
+      ShadowVolumes and
+      MainLightForShadowVolumes(MainLightPosition);
   Items.Render(Params);
 
   // call RenderOnePass multiple times, filtering AllShapesCollector in different ways

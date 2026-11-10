@@ -26,8 +26,14 @@ uniform vec4 castle_UnlitColor;
 /* Material ambient color * global (light model) ambient. */
 vec3 get_ambient_color()
 {
+#ifdef CASTLE_LIGHT_CONTRIBUTION_ONLY
+  /* When rendering only the light contribution (additive pass of shadow
+     volumes from several lights), the ambient term is added by the base pass. */
+  return vec3(0.0);
+#else
   vec3 ambient = castle_MaterialAmbient;
   return ambient * castle_GlobalAmbient;
+#endif
 }
 
 void calculate_lighting(out vec4 result, const in vec4 vertex_eye, const in vec3 normal_eye)
@@ -84,8 +90,10 @@ void calculate_lighting(out vec4 result, const in vec4 vertex_eye, const in vec3
 
   /* PLUG: add_light (result, vertex_eye, normal_eye, material_info) */
 
+#ifndef CASTLE_LIGHT_CONTRIBUTION_ONLY
   vec3 emissive = castle_MaterialEmissive;
   result.rgb += emissive;
+#endif
 
   /* Clamp sum of lights colors to be <= 1. See template_phong.fs for comments. */
   result.rgb = min(result.rgb, 1.0);
@@ -94,5 +102,9 @@ void calculate_lighting(out vec4 result, const in vec4 vertex_eye, const in vec3
      See shading_phong.fs for comments when this is used.
   */
   result = castle_UnlitColor;
+  #ifdef CASTLE_LIGHT_CONTRIBUTION_ONLY
+  /* Unlit shapes are not affected by lights, the base pass draws them. */
+  result.rgb = vec3(0.0);
+  #endif
 #endif
 }
