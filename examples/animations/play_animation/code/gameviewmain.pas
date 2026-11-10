@@ -35,7 +35,7 @@ type
     Scene: TCastleScene;
     ButtonOpen3D, ButtonOpen2DSpine, ButtonOpen2DStarling, ButtonOpen2DCocos2d, ButtonOpen2DImage, ButtonOpenDialog: TCastleButton;
     SceneAnimationButtons: TCastleUserInterface;
-    CheckboxForward, CheckboxLoop, CheckboxMagFilterNearest, CheckboxMinFilterNearest, CheckboxAnimationNamingLoadOpt: TCastleCheckbox;
+    CheckboxReverse, CheckboxLoop, CheckboxMagFilterNearest, CheckboxMinFilterNearest, CheckboxAnimationNamingLoadOpt: TCastleCheckbox;
     SliderTransition, SliderScale, SliderFPSLoadOpt: TCastleFloatSlider;
     SliderOptimization: TCastleIntegerSlider;
   private
@@ -223,7 +223,7 @@ begin
   Params := TPlayAnimationParameters.Create;
   try
     Params.Name := AnimationName;
-    Params.Forward := CheckboxForward.Checked;
+    Params.Reverse := CheckboxReverse.Checked;
     Params.Loop := CheckboxLoop.Checked;
     Params.TransitionDuration := SliderTransition.Value;
     Scene.PlayAnimation(Params);
@@ -291,7 +291,7 @@ begin
     Params := TPlayAnimationParameters.Create;
     try
       Params.Name := AnimationName;
-      Params.Forward := CheckboxForward.Checked;
+      Params.Reverse := CheckboxReverse.Checked;
       Params.Loop := CheckboxLoop.Checked;
       Params.TransitionDuration := SliderTransition.Value;
       Scene.PlayAnimation(Params);
