@@ -40,9 +40,11 @@ interface
   {$ifdef unix}
     {$linklib c}
   {$endif}
-  {$PACKRECORDS 4}
+  { Records laid out like the C compiler does (natural alignment, trailing
+    padding), to match zlib's z_stream on every platform. }
+  {$PACKRECORDS C}
 {$else}
-  {$ALIGN 4}
+  {$ALIGN ON}
 {$endif}
 
 uses CTypes;
@@ -51,13 +53,13 @@ const
   ZLIB_VERSION = '1.1.3';
 
 type
-  { Compatible with paszlib }
-  { }
-  Uint    = CInt32;
-  Ulong   = CInt32;
-  Ulongf  = CInt32;
+  { C types of zlib.h. uLong is C "unsigned long": 32-bit on Windows
+    (also 64-bit Windows), 64-bit on 64-bit Unix. }
+  Uint    = CUInt;
+  Ulong   = CULong;
+  Ulongf  = CULong;
   Pulongf = ^Ulongf;
-  z_off_t = CInt32;
+  z_off_t = CLong;
 
   TAllocfunc = function (opaque:pointer; items:uInt; size:uInt):pointer;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   TFreeFunc = procedure (opaque:pointer; address:pointer);{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
@@ -133,9 +135,9 @@ var
   inflateSetDictionary: function(var strm:TZStream;dictionary : PByte; dictLength:uInt):CInt32;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   inflateSync: function(var strm:TZStream):CInt32;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   inflateReset: function(var strm:TZStream):CInt32;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  compress: function(dest:PByte;destLen:uLongf; source : PByte; sourceLen:uLong):CInt32;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  compress2: function(dest:PByte;destLen:uLongf; source : PByte; sourceLen:uLong; level:CInt32):CInt32;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  uncompress: function(dest:PByte;destLen:uLongf; source : PByte; sourceLen:uLong):CInt32;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  compress: function(dest:PByte;destLen:PuLongf; source : PByte; sourceLen:uLong):CInt32;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  compress2: function(dest:PByte;destLen:PuLongf; source : PByte; sourceLen:uLong; level:CInt32):CInt32;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  uncompress: function(dest:PByte;destLen:PuLongf; source : PByte; sourceLen:uLong):CInt32;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   gzopen: function(path:PAnsiChar; mode:PAnsiChar):gzFile;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   gzdopen: function(fd:CInt32; mode:PAnsiChar):gzFile;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   gzsetparams: function(thefile:gzFile; level:CInt32; strategy:CInt32):CInt32;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
