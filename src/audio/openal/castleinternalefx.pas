@@ -18,9 +18,10 @@
   Documentation is in OpenAL SDK for Windows (installable under Linux
   through wine).
 
-  TODO: This functionality is NOT yet available through the public
-  Castle Game Engine API in CastleSoundEngine. For now, you need to use
-  this unit directly, see efx_demo in engine examples. }
+  The reverb is available through the public Castle Game Engine API:
+  @link(TSoundEngine.Reverb), see examples/audio/sound_reverb.
+  Other effects (chorus, echo, filters...) are not available through
+  the public API yet, you need to use this unit directly for them. }
 unit CastleInternalEFX;
 
 {$I castleconf.inc}

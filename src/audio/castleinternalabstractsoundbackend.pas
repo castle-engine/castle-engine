@@ -225,6 +225,16 @@ type
     procedure SetDistanceModel(const Value: TSoundDistanceModel); virtual; abstract;
     procedure SetDopplerFactor(const Value: Single); virtual; abstract;
     procedure SetListener(const Position, Direction, Up: TVector3); virtual; abstract;
+    { Can this backend add reverb (see @link(SetReverb)).
+      Called only after successful ContextOpen.
+      By default @false. }
+    function ReverbSupported: Boolean; virtual;
+
+    { Set the reverb added to spatial sounds.
+      Called after successful ContextOpen, and whenever the reverb changes.
+      By default does nothing. }
+    procedure SetReverb(const Value: TSoundReverbParameters); virtual;
+
     { Do something when user interaction happens.
       Used to resume playback when user interacts with the page on WebAudio
       backend, likely not useful with other backends. }
@@ -376,6 +386,16 @@ begin
 end;
 
 procedure TSoundEngineBackend.UserInteraction;
+begin
+  // do nothing
+end;
+
+function TSoundEngineBackend.ReverbSupported: Boolean;
+begin
+  Result := false;
+end;
+
+procedure TSoundEngineBackend.SetReverb(const Value: TSoundReverbParameters);
 begin
   // do nothing
 end;

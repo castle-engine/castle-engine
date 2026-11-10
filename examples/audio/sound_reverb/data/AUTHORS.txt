@@ -1,0 +1,6 @@
+blip.wav
+
+    Copy of examples/audio/play_sounds/data/sounds/positive-44100Hz-16bit-mono.wav,
+    from https://opengameart.org/content/gui-sound-effects
+    by Lokif https://opengameart.org/users/lokif
+    License(s): CC0
