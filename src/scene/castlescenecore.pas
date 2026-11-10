@@ -269,6 +269,10 @@ type
     Don't worry, time of creation/destruction of it really doesn't matter
     in practice, thanks to fast FPC memory allocator. }
   TPlayAnimationParameters = class
+  strict private
+    function GetForward: Boolean;
+    procedure SetForward(const Value: Boolean);
+  public
     { Animation name.
       You have to set at least this field, otherwise calling
       @link(TCastleSceneCore.PlayAnimation) with this is useless. }
@@ -277,8 +281,8 @@ type
     { Should we play in a loop, default @false which means to play just once. }
     Loop: boolean;
 
-    { Does animation play forward, default @true. }
-    Forward: boolean;
+    { Does animation play in reverse, default @false. }
+    Reverse: boolean;
 
     { Notification when the animation finished playing,
       which happens if the animation was non-looping and it reached the end,
@@ -316,7 +320,9 @@ type
       regardless of InitialTime. }
     InitialTime: TFloatTime;
 
-    constructor Create;
+    { @deprecated Alias for @code(not Reverse). }
+    property Forward: Boolean read GetForward write SetForward;
+      {$ifdef FPC} deprecated 'use Reverse'; {$endif}
   end;
 
   { Possible options for @link(TCastleSceneCore.Load). }
@@ -506,7 +512,7 @@ type
     NewPlayingAnimationUse: boolean;
     NewPlayingAnimationNode: TTimeSensorNode;
     NewPlayingAnimationLoop: boolean;
-    NewPlayingAnimationForward: boolean;
+    NewPlayingAnimationReverse: boolean;
     NewPlayingAnimationStopNotification: TStopAnimationEvent;
     NewPlayingAnimationTransitionDuration: TFloatTime;
     NewPlayingAnimationInitialTime: TFloatTime;
@@ -521,7 +527,7 @@ type
 
     PreviousPlayingAnimation: TTimeSensorNode;
     PreviousPlayingAnimationLoop: boolean;
-    PreviousPlayingAnimationForward: boolean;
+    PreviousPlayingAnimationReverse: boolean;
     PreviousPlayingAnimationTimeInAnimation: TFloatTime;
 
     PreviousPartialAffectedFields: TX3DFieldList;
@@ -2985,11 +2991,14 @@ end;
 
 { TPlayAnimationParameters --------------------------------------------------- }
 
-constructor TPlayAnimationParameters.Create;
+function TPlayAnimationParameters.GetForward: Boolean;
 begin
-  inherited;
-  Loop := false;
-  Forward := true;
+  Result := not Reverse;
+end;
+
+procedure TPlayAnimationParameters.SetForward(const Value: Boolean);
+begin
+  Reverse := not Value;
 end;
 
 { TDetectAffectedFields ------------------------------------------------------ }
@@ -6337,7 +6346,7 @@ begin
     if PreviousPlayingAnimation <> nil then
     begin
       PreviousPlayingAnimationLoop := PreviousPlayingAnimation.Loop;
-      PreviousPlayingAnimationForward := PreviousPlayingAnimation.FractionIncreasing;
+      PreviousPlayingAnimationReverse := PreviousPlayingAnimation.Reverse;
       PreviousPlayingAnimationTimeInAnimation := PreviousPlayingAnimation.TimeFunctionality.ElapsedTime;
     end;
 
@@ -6426,7 +6435,7 @@ begin
 
       PlayingAnimationNode.Start(
         NewPlayingAnimationLoop,
-        NewPlayingAnimationForward,
+        { AFractionIncreasing } not NewPlayingAnimationReverse,
         NewPlayingAnimationInitialTime);
 
       PlayingAnimationNode.EventIsActive.AddNotification(
@@ -6828,7 +6837,7 @@ begin
       PreviousPlayingAnimation.FakeTime(PreviousPlayingAnimationTimeInAnimation
         + (T - PlayingAnimationStartTime),
         PreviousPlayingAnimationLoop,
-        PreviousPlayingAnimationForward,
+        { FractionIncreasing } not PreviousPlayingAnimationReverse,
         NextEventTime,
         PartialSend);
     end;
@@ -8129,7 +8138,7 @@ begin
       NewPlayingAnimationNode.FakeTime(
         NewPlayingAnimationInitialTime,
         NewPlayingAnimationLoop,
-        NewPlayingAnimationForward,
+        { FractionIncreasing } not NewPlayingAnimationReverse,
         NextEventTime);
       FinishTransformationChanges;
     end;
@@ -8145,7 +8154,7 @@ begin
   try
     Params.Name := AnimationName;
     Params.Loop := Loop;
-    Params.Forward := Forward;
+    Params.Reverse := not Forward;
     if PlayingAnimationNode <> nil then
       Params.TransitionDuration := DefaultAnimationTransition;
     Result := PlayAnimation(Params);
@@ -8200,7 +8209,7 @@ begin
     FCurrentAnimation := FAnimationsList.Objects[Index] as TTimeSensorNode;
     NewPlayingAnimationNode := FCurrentAnimation;
     NewPlayingAnimationLoop := Parameters.Loop;
-    NewPlayingAnimationForward := Parameters.Forward;
+    NewPlayingAnimationReverse := Parameters.Reverse;
     NewPlayingAnimationStopNotification := Parameters.StopNotification;
     NewPlayingAnimationTransitionDuration := Parameters.TransitionDuration;
     NewPlayingAnimationInitialTime := Parameters.InitialTime;

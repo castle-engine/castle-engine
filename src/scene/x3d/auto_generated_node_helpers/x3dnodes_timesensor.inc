@@ -26,6 +26,8 @@
   strict private
     function GetCycleInterval: TFloatTime;
     procedure SetCycleInterval(const Value: TFloatTime);
+    function GetReverse: Boolean;
+    procedure SetReverse(const Value: Boolean);
     function GetEnabled: Boolean;
     procedure SetEnabled(const Value: Boolean);
     function GetFractionIncreasing: Boolean;
@@ -55,6 +57,12 @@
     {  }
     public property EventTime: TSFTimeEvent read FEventTime;
 
+    strict private FFdReverse: TSFBool;
+    { Internal wrapper for property @code(Reverse). This wrapper API may change, we advise to access simpler @code(Reverse) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdReverse: TSFBool read FFdReverse;
+    { If @true, the animations driven by this sensor will play in reverse. This is achieved by sending (using the @link(EventFraction_Changed)) the value of @code( 1 - currentFraction) instead of the normal @code(currentFraction). }
+    property Reverse: Boolean read GetReverse write SetReverse;
+
     strict private FFdEnabled: TSFBool;
     { Internal wrapper for property @code(Enabled). This wrapper API may change, we advise to access simpler @code(Enabled) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdEnabled: TSFBool read FFdEnabled;
@@ -64,7 +72,7 @@
     strict private FFdFractionIncreasing: TSFBool;
     { Internal wrapper for property @code(FractionIncreasing). This wrapper API may change, we advise to access simpler @code(FractionIncreasing) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdFractionIncreasing: TSFBool read FFdFractionIncreasing;
-    {  }
+    { @deprecated When @false, plays animation in reverse. Use @link(reverse) instead. }
     property FractionIncreasing: Boolean read GetFractionIncreasing write SetFractionIncreasing;
 
     strict private FFdDetectAffectedFields: TSFBool;
@@ -88,6 +96,16 @@ end;
 procedure TTimeSensorNode.SetCycleInterval(const Value: TFloatTime);
 begin
   FdCycleInterval.Send(Value);
+end;
+
+function TTimeSensorNode.GetReverse: Boolean;
+begin
+  Result := FdReverse.Value;
+end;
+
+procedure TTimeSensorNode.SetReverse(const Value: Boolean);
+begin
+  FdReverse.Send(Value);
 end;
 
 function TTimeSensorNode.GetEnabled: Boolean;
@@ -141,6 +159,10 @@ begin
 
   FEventTime := TSFTimeEvent.Create(Self, 'time', false);
   AddEvent(FEventTime);
+
+  FFdReverse := TSFBool.Create(Self, True, 'reverse', false);
+   FdReverse.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdReverse);
 
   FFdEnabled := TSFBool.Create(Self, True, 'enabled', true);
    FdEnabled.ChangeAlways := chVisibleNonGeometry;
