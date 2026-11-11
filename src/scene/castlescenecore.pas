@@ -4349,6 +4349,13 @@ begin
     FreeAndNil(FShapes);
     FShapes := TShapeTreeGroup.Create(Self);
     ShapeLODs.Clear;
+    { The shape tree was freed, so forget the TShapeTreeTransform instances
+      scheduled in TransformationDirty (by Transform node changes done
+      before this ChangedAll). Otherwise FinishTransformationChanges would
+      call FastTransformUpdate on freed instances.
+      The new shape tree is created with the current transformations anyway.
+      Testcase: TTestSceneCore.TestTransformChangeThenChangedAll. }
+    TransformationDirty.Clear;
     InternalGlobalLights.Clear;
     FViewpointsArray.Clear;
     FAnimationsList.Clear;
