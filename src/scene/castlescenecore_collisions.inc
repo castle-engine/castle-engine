@@ -214,6 +214,56 @@ begin
   end;
 end;
 
+{ The scene's bounding box, checked before asking the octree
+  about a collision. It matters for worlds with many small scenes:
+  the octree of a scene with a few triangles is a single leaf,
+  and without this check every such scene would test all its triangles
+  with every query, also the queries far away from it.
+
+  The box is a little larger (1% of its largest size on each side)
+  than the bounding box, so that the check never rejects what the octree
+  would accept: the triangle collision routines have their own tolerances,
+  e.g. a ray that touches an edge lying on the bounding box side
+  is a collision. }
+function CollisionRejectionBox(const Box: TBox3D): TBox3D;
+var
+  Margin: Single;
+begin
+  Result := Box;
+  if not Box.IsEmpty then
+  begin
+    { calculated here, without calling Box.MaxSize and Box.Grow:
+      this is done for every scene at every collision query }
+    Margin := Box.Data[1].X - Box.Data[0].X;
+    if Box.Data[1].Y - Box.Data[0].Y > Margin then
+      Margin := Box.Data[1].Y - Box.Data[0].Y;
+    if Box.Data[1].Z - Box.Data[0].Z > Margin then
+      Margin := Box.Data[1].Z - Box.Data[0].Z;
+    Margin := Margin * 0.01;
+    Result.Data[0].X := Result.Data[0].X - Margin;
+    Result.Data[0].Y := Result.Data[0].Y - Margin;
+    Result.Data[0].Z := Result.Data[0].Z - Margin;
+    Result.Data[1].X := Result.Data[1].X + Margin;
+    Result.Data[1].Y := Result.Data[1].Y + Margin;
+    Result.Data[1].Z := Result.Data[1].Z + Margin;
+  end;
+end;
+
+{ Can a segment reach the box: do their axis-aligned extents overlap.
+  A conservative and very cheap test (the segment may still miss the box). }
+function SegmentMayReachBox(const Box: TBox3D; const Pos1, Pos2: TVector3): Boolean;
+var
+  I: Integer;
+begin
+  if Box.IsEmpty then
+    Exit(false);
+  for I := 0 to 2 do
+    if ((Pos1.Data[I] < Box.Data[0].Data[I]) and (Pos2.Data[I] < Box.Data[0].Data[I])) or
+       ((Pos1.Data[I] > Box.Data[1].Data[I]) and (Pos2.Data[I] > Box.Data[1].Data[I])) then
+      Exit(false);
+  Result := true;
+end;
+
 function TCastleSceneCore.LocalSegmentCollision(const Pos1, Pos2: TVector3;
   const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
   const ALineOfSight: boolean): boolean;
@@ -224,8 +274,9 @@ begin
   begin
     if UseInternalOctreeCollisions then
     begin
-      Result := InternalOctreeCollisions.IsSegmentCollision(
-        Pos1, Pos2, nil, false, TrianglesToIgnoreFunc)
+      Result := SegmentMayReachBox(CollisionRejectionBox(LocalBoundingBoxNoChildren), Pos1, Pos2) and
+        InternalOctreeCollisions.IsSegmentCollision(
+          Pos1, Pos2, nil, false, TrianglesToIgnoreFunc)
     end else
     begin
       Result := LocalBoundingBoxNoChildren.SegmentCollision(Pos1, Pos2);
@@ -246,8 +297,9 @@ begin
   begin
     if UseInternalOctreeCollisions then
     begin
-      Result := InternalOctreeCollisions.IsSphereCollision(
-        Pos, Radius, nil, TrianglesToIgnoreFunc)
+      Result := CollisionRejectionBox(LocalBoundingBoxNoChildren).SphereCollision(Pos, Radius) and
+        InternalOctreeCollisions.IsSphereCollision(
+          Pos, Radius, nil, TrianglesToIgnoreFunc)
     end else
     begin
       Result := LocalBoundingBoxNoChildren.SphereCollision(Pos, Radius);
@@ -320,8 +372,9 @@ begin
   begin
     if UseInternalOctreeCollisions then
     begin
-      Result := InternalOctreeCollisions.IsBoxCollision(
-        Box,  nil, TrianglesToIgnoreFunc);
+      Result := CollisionRejectionBox(LocalBoundingBoxNoChildren).Collision(Box) and
+        InternalOctreeCollisions.IsBoxCollision(
+          Box,  nil, TrianglesToIgnoreFunc);
     end else
     begin
       Result := LocalBoundingBoxNoChildren.Collision(Box);
@@ -340,6 +393,7 @@ var
   IntersectionDistance: Single;
   NewNode: PRayCollisionNode;
   NewResult: TRayCollision;
+  LocalBox: TBox3D;
 begin
   Result := nil;
 
@@ -347,11 +401,18 @@ begin
   begin
     if UseInternalOctreeCollisions then
     begin
-      Triangle := InternalOctreeCollisions.RayCollision(
-        Intersection, IntersectionDistance, RayOrigin, RayDirection,
-        { ReturnClosestIntersection } true,
-        { TriangleToIgnore } nil,
-        { IgnoreMarginAtStart } false, TrianglesToIgnoreFunc);
+      { A ray that starts outside the bounding box and never enters it
+        cannot hit anything: don't ask the octree (see CollisionRejectionBox). }
+      LocalBox := CollisionRejectionBox(LocalBoundingBoxNoChildren);
+      if (not LocalBox.IsEmpty) and
+         LocalBox.TryRayEntrance(Intersection, IntersectionDistance, RayOrigin, RayDirection) then
+        Triangle := InternalOctreeCollisions.RayCollision(
+          Intersection, IntersectionDistance, RayOrigin, RayDirection,
+          { ReturnClosestIntersection } true,
+          { TriangleToIgnore } nil,
+          { IgnoreMarginAtStart } false, TrianglesToIgnoreFunc)
+      else
+        Triangle := nil;
       if Triangle <> nil then
       begin
         Result := TRayCollision.Create;
