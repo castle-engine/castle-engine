@@ -49,6 +49,7 @@
       This way the same Effect node used on a different light number
       (or texture unit) results in a different hash.
       Must be non-zero. }
+    procedure AddEffect(const Effect: TEffectNode; const Multiplier: UInt32 = 1);
     procedure AddEffects(Nodes: TX3DNodeList; const Multiplier: UInt32 = 1); overload;
     procedure AddEffects(Nodes: TMFNode; const Multiplier: UInt32 = 1); overload;
 
@@ -119,22 +120,41 @@ begin
   Sum := Sum + (Round(F * 1000) + 1) * UniquePrimeNumber;
 end;
 
-{$include norqcheckend.inc}
-
-procedure TShaderCodeHash.AddEffects(Nodes: TX3DNodeList; const Multiplier: UInt32);
+procedure TShaderCodeHash.AddEffect(const Effect: TEffectNode; const Multiplier: UInt32);
 var
-  I: Integer;
+  Code, Value: UInt32;
 begin
   { We add to hash actual Effect node references (pointers), this way ensuring
     that to share the same shader, effect nodes must be the same.
     Merely equal GLSL source code is not enough (because effects with equal
     source code may still have different uniform values, and sharing them
     would not be handled correctly here --- we set uniform values on change,
-    not every time before rendering shape). }
+    not every time before rendering shape).
+
+    An effect without any uniforms of its own (no interface declarations)
+    is different: it is fully described by its code. For it we add the hash
+    of the code, so equal effects in different scenes, or created again
+    later (e.g. when a level is loaded again), share one shader program. }
+  if Effect.InternalCodeHash(Code) then
+  begin
+    Assert(Multiplier <> 0);
+    Value := (Code or 1) * Multiplier;
+    Sum := Sum + Value;
+    XorValue := XorValue xor Value;
+  end else
+    AddPointer(Effect, Multiplier);
+end;
+
+{$include norqcheckend.inc}
+
+procedure TShaderCodeHash.AddEffects(Nodes: TX3DNodeList; const Multiplier: UInt32);
+var
+  I: Integer;
+begin
   for I := 0 to Nodes.Count - 1 do
     if (Nodes[I] is TEffectNode) and
        TEffectNode(Nodes[I]).FdEnabled.Value then
-      AddPointer(Nodes[I], Multiplier);
+      AddEffect(TEffectNode(Nodes[I]), Multiplier);
 end;
 
 procedure TShaderCodeHash.AddEffects(Nodes: TMFNode; const Multiplier: UInt32);
@@ -144,7 +164,7 @@ begin
   for I := 0 to Nodes.Count - 1 do
     if (Nodes[I] is TEffectNode) and
        TEffectNode(Nodes[I]).FdEnabled.Value then
-      AddPointer(Nodes[I], Multiplier);
+      AddEffect(TEffectNode(Nodes[I]), Multiplier);
 end;
 
 function TShaderCodeHash.ToString: String;

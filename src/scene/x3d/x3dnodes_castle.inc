@@ -151,6 +151,17 @@
     procedure GroupBeforeTraverse(const State: TX3DGraphTraverseState; var WasPointingDeviceSensor: Boolean); override;
   public
     constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
+
+    { Hash of the effect's shader code (language, shader libraries, parts'
+      types and contents), for the renderer's cache of shader programs.
+
+      Returns @false when the effect has interface declarations (uniforms
+      with values that belong to this node): such effect cannot share
+      a shader program with another Effect node, even one with equal code.
+      An effect without them is fully described by its code, so
+      2 such Effect nodes with equal code can share a shader program.
+      @exclude }
+    function InternalCodeHash(out Hash: UInt32): Boolean;
   {$I auto_generated_node_helpers/x3dnodes_effect.inc}
   end;
 
@@ -160,6 +171,8 @@
   strict private
     ContentsCached: boolean;
     ContentsCache: String;
+    ContentsHashCached: boolean;
+    ContentsHashCache: UInt32;
     procedure EventUrlReceive(
       const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
     function GetContents: String;
@@ -178,6 +191,10 @@
 
       Setting this overrides the URL field, to specify only the given shader code. }
     property Contents: String read GetContents write SetContents;
+
+    { Hash of @link(Contents), calculated once for given contents.
+      @exclude }
+    function InternalContentsHash: UInt32;
 
   {$I auto_generated_node_helpers/x3dnodes_effectpart.inc}
   end;
@@ -518,12 +535,67 @@ begin
   CDataField := FdUrl;
 end;
 
+{ FNV-1a hash of a string's bytes. }
+function EffectStringHash(const S: String; const Seed: UInt32): UInt32;
+var
+  P: PByte;
+  I: Integer;
+begin
+  {$include norqcheckbegin.inc}
+  Result := Seed;
+  P := PByte(Pointer(S));
+  for I := 1 to Length(S) * SizeOf(Char) do
+  begin
+    Result := (Result xor P^) * 16777619;
+    Inc(P);
+  end;
+  {$include norqcheckend.inc}
+end;
+
+function TEffectNode.InternalCodeHash(out Hash: UInt32): Boolean;
+var
+  I: Integer;
+  Part: TEffectPartNode;
+begin
+  Hash := 0;
+  if (InterfaceDeclarations <> nil) and (InterfaceDeclarations.Count <> 0) then
+    Exit(false);
+  {$include norqcheckbegin.inc}
+  Hash := UInt32(2166136261) + UInt32(FdLanguage.EnumValue);
+  for I := 0 to FdShaderLibraries.Count - 1 do
+    Hash := EffectStringHash(FdShaderLibraries.Items[I], Hash * 31 + 7);
+  for I := 0 to FdParts.Count - 1 do
+    if FdParts[I] is TEffectPartNode then
+    begin
+      Part := TEffectPartNode(FdParts[I]);
+      Hash := (Hash * 31 + UInt32(Ord(Part.ShaderType)) + 1) * 16777619 + Part.InternalContentsHash;
+    end;
+  {$include norqcheckend.inc}
+  Result := true;
+end;
+
+function TEffectPartNode.InternalContentsHash: UInt32;
+var
+  S: String;
+begin
+  { GetContents may load them (and then ContentsCached says whether
+    our hash is of the current contents) }
+  S := GetContents;
+  if not ContentsHashCached then
+  begin
+    ContentsHashCache := EffectStringHash(S, 2166136261);
+    ContentsHashCached := true;
+  end;
+  Result := ContentsHashCache;
+end;
+
 function TEffectPartNode.GetContents: String;
 begin
   if not ContentsCached then
   begin
     ContentsCache := ShaderLoadContents(Self, FdUrl);
     ContentsCached := true;
+    ContentsHashCached := false;
   end;
   Result := ContentsCache;
 end;
@@ -536,6 +608,7 @@ begin
   // an optimized way to initialize ContentsCache
   ContentsCache := Value;
   ContentsCached := true;
+  ContentsHashCached := false;
 end;
 
 procedure TEffectPartNode.EventUrlReceive(
