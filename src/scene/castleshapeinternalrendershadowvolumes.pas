@@ -105,6 +105,11 @@ begin
   Result.W := 0;
 end;
 
+var
+  { Lists used by RenderSilhouetteShadowVolume, see there. }
+  ScratchVertexes: TVector4List;
+  ScratchTrianglesPlaneSide: TBooleanList;
+
 procedure TRenderShapeShadowVolumes.RenderSilhouetteShadowVolume(
   const Params: TRenderParams;
   const Mesh: TCastleRenderUnlitMesh;
@@ -143,6 +148,9 @@ procedure TRenderShapeShadowVolumes.RenderSilhouetteShadowVolume(
 var
   Triangles: TTrianglesShadowCastersList;
   Vertexes: TVector4List;
+  { Transform is identity (the usual case for static level geometry):
+    no need to transform every vertex then. }
+  TransformIdentity: Boolean;
 
   { Render shadow quad from edge given by 2 points. }
   procedure RenderShadowQuad_Edge(const EdgeV0, EdgeV1: TVector3);
@@ -150,8 +158,15 @@ var
     V0_3D, V1_3D: TVector3;
     V0, V1, V2, V3: TVector4;
   begin
-    V0_3D := Transform.MultPoint(EdgeV0);
-    V1_3D := Transform.MultPoint(EdgeV1);
+    if TransformIdentity then
+    begin
+      V0_3D := EdgeV0;
+      V1_3D := EdgeV1;
+    end else
+    begin
+      V0_3D := Transform.MultPoint(EdgeV0);
+      V1_3D := Transform.MultPoint(EdgeV1);
+    end;
     V0 := Vector4(V0_3D, 1);
     V1 := Vector4(V1_3D, 1);
 
@@ -195,7 +210,8 @@ var
     begin
       Mesh.SetVertexes(Vertexes, true);
       Mesh.Render(pmTriangles);
-      Vertexes.Clear;
+      { Not Clear, to keep the capacity. }
+      Vertexes.Count := 0;
     end;
   end;
 
@@ -229,9 +245,14 @@ var
       Plane: TVector4;
       TriangleTransformed: TTriangle3;
     begin
-      TriangleTransformed.Data[0] := Transform.MultPoint(T.Data[0]);
-      TriangleTransformed.Data[1] := Transform.MultPoint(T.Data[1]);
-      TriangleTransformed.Data[2] := Transform.MultPoint(T.Data[2]);
+      if TransformIdentity then
+        TriangleTransformed := T
+      else
+      begin
+        TriangleTransformed.Data[0] := Transform.MultPoint(T.Data[0]);
+        TriangleTransformed.Data[1] := Transform.MultPoint(T.Data[1]);
+        TriangleTransformed.Data[2] := Transform.MultPoint(T.Data[2]);
+      end;
       Plane := TriangleTransformed.Plane;
       Result := (Plane.X * LightPos.X +
                  Plane.Y * LightPos.Y +
@@ -415,13 +436,22 @@ begin
 
   Triangles := TrianglesListShadowCasters;
 
-  { Nil local variables, to later free by one finally clause. }
-  TrianglesPlaneSide := nil;
-  Vertexes := nil;
+  { The lists are shared by all calls (ScratchXxx) and keep their capacity.
+    Creating them here, and so growing them from zero for every shape
+    and light, took 1/3 of this method's time when a level has thousands
+    of small shadow casters. }
+  if ScratchVertexes = nil then
+  begin
+    ScratchVertexes := TVector4List.Create;
+    ScratchTrianglesPlaneSide := TBooleanList.Create;
+  end;
+  TrianglesPlaneSide := ScratchTrianglesPlaneSide;
+  Vertexes := ScratchVertexes;
+  Vertexes.Count := 0;
+
+  TransformIdentity := TMatrix4.PerfectlyEquals(Transform, TMatrix4.Identity);
 
   try
-    TrianglesPlaneSide := TBooleanList.Create;
-    Vertexes := TVector4List.Create;
 
     InitializeTrianglesPlaneSideAndRenderCaps(TrianglesPlaneSide,
       LightCap, DarkCap);
@@ -515,9 +545,12 @@ begin
 
     FlushVertexes;
   finally
-    FreeAndNil(TrianglesPlaneSide);
-    FreeAndNil(Vertexes);
+    { Leave the shared list empty also in case of exception. }
+    Vertexes.Count := 0;
   end;
 end;
 
+finalization
+  FreeAndNil(ScratchVertexes);
+  FreeAndNil(ScratchTrianglesPlaneSide);
 end.
