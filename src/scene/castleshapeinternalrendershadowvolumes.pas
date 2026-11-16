@@ -119,7 +119,7 @@ var
 procedure AddVertex(const V: TVector4);
 begin
   if ScratchVertexesCount = Length(ScratchVertexes) then
-    SetLength(ScratchVertexes, Max(256, ScratchVertexesCount * 2));
+    SetLength(ScratchVertexes, 256 + ScratchVertexesCount * 2);
   ScratchVertexes[ScratchVertexesCount] := V;
   Inc(ScratchVertexesCount);
 end;
