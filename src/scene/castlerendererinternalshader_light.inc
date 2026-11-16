@@ -48,6 +48,16 @@
     Attenuation: TVector3;
     AmbientColor, Color: TVector3;
 
+    { The uniforms already looked up, by their name pattern
+      (like 'castle_LightSource%dPosition'): formatting the name
+      and finding its location for every change of a value
+      was a noticeable cost of rendering many shapes with lights. }
+    UniformPatterns: array of String;
+    Uniforms: array of TGLSLUniform;
+
+    { The uniform of NamePattern with this light's number. }
+    function UniformOf(const NamePattern: String): TGLSLUniform;
+
     procedure SetUniform(const NamePattern: String;
       var CurrentValue: Single; const NewValue: Single); overload;
     procedure SetUniform(const NamePattern: String;
@@ -108,12 +118,33 @@
 
 { TLightUniforms ------------------------------------------------------- }
 
+function TLightUniforms.UniformOf(const NamePattern: String): TGLSLUniform;
+var
+  I, Count: Integer;
+begin
+  { The patterns are usually string constants: compare their addresses first.
+    UniformPatterns keeps references to the strings, so an address
+    can't be reused by another string meanwhile. }
+  Count := Length(UniformPatterns);
+  for I := 0 to Count - 1 do
+    if Pointer(UniformPatterns[I]) = Pointer(NamePattern) then
+      Exit(Uniforms[I]);
+  for I := 0 to Count - 1 do
+    if UniformPatterns[I] = NamePattern then
+      Exit(Uniforms[I]);
+  Result := ShaderProgram.Uniform(Format(NamePattern, [Number]));
+  SetLength(UniformPatterns, Count + 1);
+  SetLength(Uniforms, Count + 1);
+  UniformPatterns[Count] := NamePattern;
+  Uniforms[Count] := Result;
+end;
+
 procedure TLightUniforms.SetUniform(const NamePattern: String;
   var CurrentValue: Single; const NewValue: Single);
 begin
   if CurrentValue <> NewValue then
   begin
-    ShaderProgram.SetUniform(Format(NamePattern, [Number]), NewValue);
+    UniformOf(NamePattern).SetValue(NewValue);
     CurrentValue := NewValue;
   end;
 end;
@@ -123,7 +154,7 @@ procedure TLightUniforms.SetUniform(const NamePattern: String;
 begin
   if not TVector3.PerfectlyEquals(CurrentValue, NewValue) then
   begin
-    ShaderProgram.SetUniform(Format(NamePattern, [Number]), NewValue);
+    UniformOf(NamePattern).SetValue(NewValue);
     CurrentValue := NewValue;
   end;
 end;
@@ -133,7 +164,7 @@ procedure TLightUniforms.SetUniform(const NamePattern: String;
 begin
   if not TVector4.PerfectlyEquals(CurrentValue, NewValue) then
   begin
-    ShaderProgram.SetUniform(Format(NamePattern, [Number]), NewValue);
+    UniformOf(NamePattern).SetValue(NewValue);
     CurrentValue := NewValue;
   end;
 end;
