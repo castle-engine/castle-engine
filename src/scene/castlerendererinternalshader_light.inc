@@ -1,6 +1,6 @@
 {%MainUnit castlerendererinternalshader.pas}
 {
-  Copyright 2010-2024 Michalis Kamburelis.
+  Copyright 2010-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -48,11 +48,28 @@
     Attenuation: TVector3;
     AmbientColor, Color: TVector3;
 
-    procedure SetUniform(const NamePattern: String;
+    { Initialized by @link(FindUniforms). }
+    UniformCastle_LightSourcePosition,
+    UniformCastle_LightSourceRadius,
+    UniformCastle_LightSourceSpotCosCutoff,
+    UniformCastle_LightSourceSpotDirection,
+    UniformCastle_LightSourceSpotExponent,
+    UniformCastle_LightSourceBeamWidth,
+    UniformCastle_LightSourceSpotCutoff,
+    UniformCastle_LightSourceAttenuation,
+    UniformCastle_LightSourceAmbientColor,
+    UniformCastle_LightSourceColor: TGLSLUniform;
+
+    { Initialize all UniformCastle_Xxx.
+      Call this exactly once after creating the TLightUniforms instance
+      and setting ShaderProgram, Number. }
+    procedure FindUniforms;
+
+    procedure SetUniform(const Uniform: TGLSLUniform;
       var CurrentValue: Single; const NewValue: Single); overload;
-    procedure SetUniform(const NamePattern: String;
+    procedure SetUniform(const Uniform: TGLSLUniform;
       var CurrentValue: TVector3; const NewValue: TVector3); overload;
-    procedure SetUniform(const NamePattern: String;
+    procedure SetUniform(const Uniform: TGLSLUniform;
       var CurrentValue: TVector4; const NewValue: TVector4); overload;
   end;
 
@@ -108,32 +125,46 @@
 
 { TLightUniforms ------------------------------------------------------- }
 
-procedure TLightUniforms.SetUniform(const NamePattern: String;
+procedure TLightUniforms.FindUniforms;
+begin
+  UniformCastle_LightSourcePosition      := ShaderProgram.Uniform(Format('castle_LightSource%dPosition'     , [Number]), umIgnore);
+  UniformCastle_LightSourceRadius        := ShaderProgram.Uniform(Format('castle_LightSource%dRadius'       , [Number]), umIgnore);
+  UniformCastle_LightSourceSpotCosCutoff := ShaderProgram.Uniform(Format('castle_LightSource%dSpotCosCutoff', [Number]), umIgnore);
+  UniformCastle_LightSourceSpotDirection := ShaderProgram.Uniform(Format('castle_LightSource%dSpotDirection', [Number]), umIgnore);
+  UniformCastle_LightSourceSpotExponent  := ShaderProgram.Uniform(Format('castle_LightSource%dSpotExponent' , [Number]), umIgnore);
+  UniformCastle_LightSourceBeamWidth     := ShaderProgram.Uniform(Format('castle_LightSource%dBeamWidth'    , [Number]), umIgnore);
+  UniformCastle_LightSourceSpotCutoff    := ShaderProgram.Uniform(Format('castle_LightSource%dSpotCutoff'   , [Number]), umIgnore);
+  UniformCastle_LightSourceAttenuation   := ShaderProgram.Uniform(Format('castle_LightSource%dAttenuation'  , [Number]), umIgnore);
+  UniformCastle_LightSourceAmbientColor  := ShaderProgram.Uniform(Format('castle_LightSource%dAmbientColor' , [Number]), umIgnore);
+  UniformCastle_LightSourceColor         := ShaderProgram.Uniform(Format('castle_LightSource%dColor'        , [Number]), umIgnore);
+end;
+
+procedure TLightUniforms.SetUniform(const Uniform: TGLSLUniform;
   var CurrentValue: Single; const NewValue: Single);
 begin
   if CurrentValue <> NewValue then
   begin
-    ShaderProgram.SetUniform(Format(NamePattern, [Number]), NewValue);
+    Uniform.SetValue(NewValue);
     CurrentValue := NewValue;
   end;
 end;
 
-procedure TLightUniforms.SetUniform(const NamePattern: String;
+procedure TLightUniforms.SetUniform(const Uniform: TGLSLUniform;
   var CurrentValue: TVector3; const NewValue: TVector3);
 begin
   if not TVector3.PerfectlyEquals(CurrentValue, NewValue) then
   begin
-    ShaderProgram.SetUniform(Format(NamePattern, [Number]), NewValue);
+    Uniform.SetValue(NewValue);
     CurrentValue := NewValue;
   end;
 end;
 
-procedure TLightUniforms.SetUniform(const NamePattern: String;
+procedure TLightUniforms.SetUniform(const Uniform: TGLSLUniform;
   var CurrentValue: TVector4; const NewValue: TVector4);
 begin
   if not TVector4.PerfectlyEquals(CurrentValue, NewValue) then
   begin
-    ShaderProgram.SetUniform(Format(NamePattern, [Number]), NewValue);
+    Uniform.SetValue(NewValue);
     CurrentValue := NewValue;
   end;
 end;
@@ -296,6 +327,7 @@ begin
     Uniforms := TLightUniforms.Create;
     Uniforms.Number := AProgram.FLightUniformsList.Count;
     Uniforms.ShaderProgram := AProgram;
+    Uniforms.FindUniforms;
     AProgram.FLightUniformsList.Add(Uniforms);
   end;
   Uniforms := AProgram.FLightUniformsList[Number];
@@ -326,8 +358,8 @@ begin
     { Note that we cut off last component of Node.Position,
       we don't need it. #defines tell the shader whether we deal with directional
       or positional light. }
-    Uniforms.SetUniform('castle_LightSource%dPosition', Uniforms.Position,
-      Position.XYZ);
+    Uniforms.SetUniform(Uniforms.UniformCastle_LightSourcePosition,
+      Uniforms.Position, Position.XYZ);
 
     if Node is TAbstractPositionalLightNode then
     begin
@@ -335,43 +367,43 @@ begin
 
       if LiPos.HasRadius then
       begin
-        Uniforms.SetUniform('castle_LightSource%dRadius', Uniforms.Radius,
+        Uniforms.SetUniform(Uniforms.UniformCastle_LightSourceRadius, Uniforms.Radius,
           Approximate3DScale(LightToEyeSpace^) * Light^.Radius);
       end;
 
       if LiPos is TSpotLightNode_1 then
       begin
         LiSpot1 := TSpotLightNode_1(Node);
-        Uniforms.SetUniform('castle_LightSource%dSpotCosCutoff', Uniforms.SpotCosCutoff,
+        Uniforms.SetUniform(Uniforms.UniformCastle_LightSourceSpotCosCutoff, Uniforms.SpotCosCutoff,
           LiSpot1.SpotCosCutoff);
-        Uniforms.SetUniform('castle_LightSource%dSpotDirection', Uniforms.SpotDirection,
+        Uniforms.SetUniform(Uniforms.UniformCastle_LightSourceSpotDirection, Uniforms.SpotDirection,
           LightToEyeSpace^.MultDirection(Light^.Direction));
-        Uniforms.SetUniform('castle_LightSource%dSpotExponent', Uniforms.SpotExponent,
+        Uniforms.SetUniform(Uniforms.UniformCastle_LightSourceSpotExponent, Uniforms.SpotExponent,
           LiSpot1.SpotExponent);
       end else
       if LiPos is TSpotLightNode then
       begin
         LiSpot := TSpotLightNode(Node);
-        Uniforms.SetUniform('castle_LightSource%dSpotCosCutoff', Uniforms.SpotCosCutoff,
+        Uniforms.SetUniform(Uniforms.UniformCastle_LightSourceSpotCosCutoff, Uniforms.SpotCosCutoff,
           LiSpot.SpotCosCutoff);
-        Uniforms.SetUniform('castle_LightSource%dSpotDirection', Uniforms.SpotDirection,
+        Uniforms.SetUniform(Uniforms.UniformCastle_LightSourceSpotDirection, Uniforms.SpotDirection,
           LightToEyeSpace^.MultDirection(Light^.Direction));
-        Uniforms.SetUniform('castle_LightSource%dBeamWidth', Uniforms.SpotBeamWidth,
+        Uniforms.SetUniform(Uniforms.UniformCastle_LightSourceBeamWidth, Uniforms.SpotBeamWidth,
           LiSpot.FdBeamWidth.Value);
-        Uniforms.SetUniform('castle_LightSource%dSpotCutoff', Uniforms.SpotCutoff,
+        Uniforms.SetUniform(Uniforms.UniformCastle_LightSourceSpotCutoff, Uniforms.SpotCutoff,
           LiSpot.FdCutOffAngle.Value);
       end;
 
       if LiPos.HasAttenuation then
-        Uniforms.SetUniform('castle_LightSource%dAttenuation', Uniforms.Attenuation,
+        Uniforms.SetUniform(Uniforms.UniformCastle_LightSourceAttenuation, Uniforms.Attenuation,
           LiPos.FdAttenuation.Value);
     end;
   end;
 
   if Node.FdAmbientIntensity.Value <> 0 then
-    Uniforms.SetUniform('castle_LightSource%dAmbientColor', Uniforms.AmbientColor, AmbientColor3);
+    Uniforms.SetUniform(Uniforms.UniformCastle_LightSourceAmbientColor, Uniforms.AmbientColor, AmbientColor3);
 
-  Uniforms.SetUniform('castle_LightSource%dColor', Uniforms.Color, Color3);
+  Uniforms.SetUniform(Uniforms.UniformCastle_LightSourceColor, Uniforms.Color, Color3);
 end;
 
 { TLightShaders -------------------------------------------------------------- }
