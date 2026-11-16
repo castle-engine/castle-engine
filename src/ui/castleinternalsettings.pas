@@ -364,8 +364,7 @@ begin
   Container.DefaultFont := NewDefaultFont;
 end;
 
-{$ifndef FPC}initialization{$endif}
-
+initialization
 finalization
   FreeAndNil(FWarmupCacheFormats);
 end.
