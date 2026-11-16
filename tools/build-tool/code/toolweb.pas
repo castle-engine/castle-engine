@@ -37,7 +37,7 @@ implementation
 uses SysUtils,
   CastleUtils, CastleUriUtils, CastleFilesUtils, CastleOpenDocument,
   CastleInternalArchitectures, CastleStringUtils, CastleTimeUtils,
-  ToolUtils, ToolCommonUtils, ToolManifest, ToolFonts, ToolProcessRun;
+  ToolUtils, ToolCommonUtils, ToolManifest, ToolProcessRun;
 
 procedure CompileWeb(const Project: TCastleProject;
   const CompilerOptions: TCompilerOptions);
@@ -82,9 +82,6 @@ begin
     RemoveNonEmptyDir(OutputPath);
 
   Project.ExtractTemplate('web/', OutputPath);
-
-  // place auto-generated fonts alongside the WASM library library_template.lpr
-  GenerateEmbeddedFonts(Project, OutputPath);
 
   Pas2jsExe := FindExe('pas2js');
   if Pas2jsExe = '' then
