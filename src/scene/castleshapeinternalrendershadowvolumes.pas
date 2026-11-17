@@ -533,6 +533,7 @@ begin
   end;
 end;
 
+initialization
 finalization
   FreeAndNil(ScratchVertexes);
   FreeAndNil(ScratchTrianglesPlaneSide);
