@@ -95,8 +95,23 @@ type
       const TemplateRelativeUrl, TargetRelativePath, ErrorMessageMissingGameUnits: string;
       const CreateIfNecessary: boolean);
 
-    function AndroidSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
-    function IOSSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
+    { Determine the final compiler: use OverrideCompiler (specified on
+      command-line), then compiler specified in CastleEngineManifest.xml,
+      then autodetect.
+
+      @param(DefaultToFpc Assume FPC if no compiler was found.
+        See FinishDetectingCompiler. Use this for commands that use
+        the compilation output, without compiling.) }
+    function FinalizeCompiler(const OverrideCompiler: TCompiler;
+      const DefaultToFpc: Boolean = false): TCompilerDetected;
+
+    { Android CPU used by Delphi compilation, see CompileAndroid. }
+    function DelphiAndroidCPU(const Target: TTarget; const CPU: TCPU): TCPU;
+
+    function AndroidSourceFile(const FinalCompiler: TCompilerDetected;
+      const AbsolutePath, CreateIfNecessary: boolean): string;
+    function IOSSourceFile(const FinalCompiler: TCompilerDetected;
+      const AbsolutePath, CreateIfNecessary: boolean): string;
     function NXSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
     function StandaloneSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
 
@@ -151,16 +166,22 @@ type
       const Target: TTarget; const OS: TOS; const CPU: TCPU;
       const Mode: TCompilationMode; const CompilerExtraOptions: TStrings = nil;
       const AllowCache: Boolean = true);
-    procedure DoPackage(const Target: TTarget;
-      const OS: TOS; const CPU: TCPU; const Mode: TCompilationMode;
+    procedure DoPackage(const OverrideCompiler: TCompiler;
+      const Target: TTarget; const OS: TOS; const CPU: TCPU;
+      const Mode: TCompilationMode;
       const PackageFormat: TPackageFormat;
       const PackageNameIncludeVersion, UpdateOnlyCode: Boolean);
-    procedure DoInstall(const Target: TTarget; const OS: TOS; const CPU: TCPU;
+    procedure DoInstall(const OverrideCompiler: TCompiler;
+      const Target: TTarget; const OS: TOS; const CPU: TCPU;
       const Mode: TCompilationMode;
       const PackageFormat: TPackageFormat;
       const PackageNameIncludeVersion: Boolean);
-    procedure DoUnInstall(const Target: TTarget; const OS: TOS; const CPU: TCPU);
-    procedure DoRun(const Target: TTarget; const OS: TOS; const CPU: TCPU;
+    procedure DoUnInstall(const OverrideCompiler: TCompiler;
+      const Target: TTarget; const OS: TOS; const CPU: TCPU;
+      const Mode: TCompilationMode);
+    procedure DoRun(const OverrideCompiler: TCompiler;
+      const Target: TTarget; const OS: TOS; const CPU: TCPU;
+      const Mode: TCompilationMode;
       const Params: TCastleStringList);
     procedure DoPackageSource(
       const PackageFormat: TPackageFormat;
@@ -249,8 +270,19 @@ type
       otherwise a complete absolute path.
 
       CPU should be one of CPUs supported on Android platform (arm, aarch64)
-      or cpuNone to get the library name without the CPU suffix. }
+      or cpuNone to get the library name without the CPU suffix.
+
+      This should only be used when compiler is FPC.
+      With Delphi, we rely on building with msbuild, from the project file
+      to ready-made APK. }
     function AndroidLibraryFile(const CPU: TCPU; const AbsolutePath: boolean = true): string;
+
+    { Directory with Android compilation output of Delphi (msbuild),
+      as configured by DPROJ. Absolute, ends with path delimiter. }
+    function DelphiAndroidOutputPath(const CPU: TCPU; const Mode: TCompilationMode): String;
+
+    { APK created by Delphi (msbuild). Absolute path. }
+    function DelphiAndroidApkFile(const CPU: TCPU; const Mode: TCompilationMode): String;
 
     { Get platform-independent files that should be included in a package,
       remove files that should be excluded.
@@ -272,7 +304,11 @@ type
 
     { Output iOS library resulting from compilation.
       Relative to @link(Path) if AbsolutePath = @false,
-      otherwise a complete absolute path. }
+      otherwise a complete absolute path.
+
+      This should only be used when compiler is FPC.
+      With Delphi, we rely on building with msbuild, from the project file
+      to ready-made IPA. }
     function IOSLibraryFile(const AbsolutePath: boolean = true): string;
 
     { Output Nintendo Switch library resulting from compilation.
@@ -592,7 +628,7 @@ procedure TCastleProject.DoCompile(const OverrideCompiler: TCompiler; const Targ
 var
   SourceExe, DestExe, MainSource: string;
   CompilerOptions: TCompilerOptions;
-  FinalCompiler: TCompiler;
+  FinalCompiler: TCompilerDetected;
 begin
   Writeln(Format('Compiling project "%s" for %s in mode "%s".',
     [Name, TargetCompleteToString(Target, OS, CPU), ModeToString(Mode)]));
@@ -618,22 +654,23 @@ begin
       Exit;
     end;
 
-    { use compiler specified in CastleEngineManifest.xml,
-      overridden by Compiler specified on command-line (given as parameter). }
-    FinalCompiler := OverrideCompiler;
-    if FinalCompiler = coAutodetect then
-      FinalCompiler := ManifestCompiler;
+    FinalCompiler := FinalizeCompiler(OverrideCompiler);
 
     case Target of
       targetAndroid:
         begin
-          CompileAndroid(FinalCompiler, Self, Path, AndroidSourceFile(true, true), CompilerOptions);
+          CompileAndroid(FinalCompiler, Self, Path,
+            AndroidSourceFile(FinalCompiler, true, true), CompilerOptions);
         end;
       targetIOS:
         begin
-          CompileIOS(FinalCompiler, Path, IOSSourceFile(true, true), CompilerOptions);
-          LinkIOSLibrary(FinalCompiler, Path, IOSLibraryFile);
-          Writeln('Compiled library for iOS in ', IOSLibraryFile(false));
+          CompileIOS(FinalCompiler, Path,
+            IOSSourceFile(FinalCompiler, true, true), CompilerOptions);
+          if FinalCompiler = coFpc then
+          begin
+            LinkIOSLibrary(FinalCompiler, Path, IOSLibraryFile);
+            Writeln('Compiled library for iOS in ', IOSLibraryFile(false));
+          end;
         end;
       targetNintendoSwitch:
         begin
@@ -649,11 +686,15 @@ begin
           case OS of
             Android:
               begin
-                Compile(FinalCompiler, Path, AndroidSourceFile(true, true), CompilerOptions);
-                { Our default compilation output doesn't contain CPU suffix,
-                  but we need the CPU suffix to differentiate between Android/ARM and Android/Aarch64. }
-                CheckRenameFile(AndroidLibraryFile(cpuNone), AndroidLibraryFile(CPU));
-                Writeln('Compiled library for Android in ', AndroidLibraryFile(CPU, false));
+                Compile(FinalCompiler, Path,
+                  AndroidSourceFile(FinalCompiler, true, true), CompilerOptions);
+                if FinalCompiler = coFpc then
+                begin
+                  { Our default compilation output doesn't contain CPU suffix,
+                    but we need the CPU suffix to differentiate between Android/ARM and Android/Aarch64. }
+                  CheckRenameFile(AndroidLibraryFile(cpuNone), AndroidLibraryFile(CPU));
+                  Writeln('Compiled library for Android in ', AndroidLibraryFile(CPU, false));
+                end;
               end;
             else
               begin
@@ -781,7 +822,8 @@ begin
   end;
 end;
 
-procedure TCastleProject.DoPackage(const Target: TTarget;
+procedure TCastleProject.DoPackage(
+  const OverrideCompiler: TCompiler; const Target: TTarget;
   const OS: TOS; const CPU: TCPU;
   const Mode: TCompilationMode; const PackageFormat: TPackageFormat;
   const PackageNameIncludeVersion, UpdateOnlyCode: Boolean);
@@ -903,13 +945,91 @@ var
     finally FreeAndNil(Pack) end;
   end;
 
+  { Check .deployproj file exists.
+    Only Delphi IDE can generate it, and it is necessary
+    for msbuild to use "Deploy" target. }
+  procedure CheckDeployProjExists(const MainSource: String);
+  var
+    DeployProjFile: String;
+  begin
+    DeployProjFile := ChangeFileExt(MainSource, '.deployproj');
+    if not RegularFileExists(DeployProjFile) then
+      raise Exception.CreateFmt('Cannot find "%s". You need to deploy the project once from Delphi IDE, to create this file. See https://castle-engine.io/delphi_mobile for details.', [
+        DeployProjFile
+      ]);
+  end;
+
+  { Create APK using Delphi: run msbuild with "Deploy" target.
+    The project must be already compiled. }
+  procedure PackageAndroidDelphi(const PackageFormat: TPackageFormatNoDefault);
+  var
+    DelphiCPU: TCPU;
+    Options: TCompilerOptions;
+    MainSource, ApkFile: String;
+  begin
+    if PackageFormat <> pfAndroidApk then
+      raise Exception.Create('Creating Android package other than APK is not implemented with Delphi');
+
+    MainSource := AndroidSourceFile(coDelphi, true, false);
+    CheckDeployProjExists(MainSource);
+
+    DelphiCPU := DelphiAndroidCPU(Target, CPU);
+
+    Options := TCompilerOptions.Create;
+    try
+      Options.OS := Android;
+      Options.CPU := DelphiCPU;
+      Options.Mode := Mode;
+      RunDelphiMSBuild(Path, MainSource, 'Deploy', Options);
+    finally FreeAndNil(Options) end;
+
+    ApkFile := DelphiAndroidApkFile(DelphiCPU, Mode);
+    if not RegularFileExists(ApkFile) then
+      raise Exception.CreateFmt('Delphi did not create the expected APK: "%s"', [ApkFile]);
+    Writeln('Build ' + ApkFile);
+  end;
+
+  { Run msbuild with "Deploy" target for iOS (makes IPA, or whatever else Delphi
+    iOS target points to).
+    The project must be already compiled. }
+  procedure PackageIOSDelphi(const PackageFormat: TPackageFormatNoDefault);
+  var
+    Options: TCompilerOptions;
+    MainSource: String;
+  begin
+    if not (PackageFormat in [
+        { All these formats are considered equal for Delphi,
+          we just run MSBuild "Deploy" target, it does what is was configured
+          for in Delphi IDE. }
+        pfIosXcodeProject,
+        pfIosArchiveDevelopment,
+        pfIosArchiveAdHoc,
+        pfIosArchiveAppStore
+      ]) then
+      raise Exception.Create('Creating iOS package other than Xcode project or IPA is not implemented with Delphi');
+
+    MainSource := IOSSourceFile(coDelphi, true, false);
+    CheckDeployProjExists(MainSource);
+
+    Options := TCompilerOptions.Create;
+    try
+      Options.OS := Ios;
+      Options.CPU := Aarch64;
+      Options.Mode := Mode;
+      RunDelphiMSBuild(Path, MainSource, 'Deploy', Options);
+    finally FreeAndNil(Options) end;
+  end;
+
 var
   PackageFormatFinal: TPackageFormatNoDefault;
   WantsIOSArchive: Boolean;
   IOSArchiveType: TIosArchiveType;
   PackName: String;
+  FinalCompiler: TCompilerDetected;
 begin
   PackageFormatFinal := PackageFormatFinalize(Target, OS, CPU, PackageFormat);
+
+  FinalCompiler := FinalizeCompiler(OverrideCompiler, true);
 
   Writeln(Format('Packaging project "%s" for %s (platform: %s).' + NL + 'Format: %s.', [
     Name,
@@ -923,17 +1043,28 @@ begin
       begin
         // set IOSExportMethod early, as it determines IOS_EXPORT_METHOD macro
         WantsIOSArchive := PackageFormatWantsIOSArchive(PackageFormatFinal, IOSArchiveType, IOSExportMethod);
-        PackageIOS(Self, UpdateOnlyCode);
-        if WantsIOSArchive then
-          ArchiveIOS(Self, IOSArchiveType);
+
+        if FinalCompiler = coDelphi then
+          PackageIOSDelphi(PackageFormatFinal)
+        else
+        begin
+          PackageIOS(Self, UpdateOnlyCode);
+          if WantsIOSArchive then
+            ArchiveIOS(Self, IOSArchiveType);
+        end;
       end;
     pfAndroidApk, pfAndroidAppBundle:
       begin
-        if Target = targetAndroid then
-          AndroidCPUS := DetectAndroidCPUS
+        if FinalCompiler = coDelphi then
+          PackageAndroidDelphi(PackageFormatFinal)
         else
-          AndroidCPUS := [CPU];
-        PackageAndroid(Self, OS, AndroidCPUS, Mode, PackageFormatFinal, PackageNameIncludeVersion);
+        begin
+          if Target = targetAndroid then
+            AndroidCPUS := DetectAndroidCPUS
+          else
+            AndroidCPUS := [CPU];
+          PackageAndroid(Self, OS, AndroidCPUS, Mode, PackageFormatFinal, PackageNameIncludeVersion);
+        end;
       end;
     pfNintendoSwitchProject:
       PackageNintendoSwitch(Self);
@@ -963,7 +1094,28 @@ begin
   end;
 end;
 
-procedure TCastleProject.DoInstall(const Target: TTarget;
+function TCastleProject.FinalizeCompiler(const OverrideCompiler: TCompiler;
+  const DefaultToFpc: Boolean): TCompilerDetected;
+var
+  FinalCompiler: TCompiler;
+begin
+  FinalCompiler := OverrideCompiler;
+  if FinalCompiler = coAutodetect then
+    FinalCompiler := ManifestCompiler;
+  FinishDetectingCompiler(FinalCompiler, DefaultToFpc);
+  Result := FinalCompiler;
+end;
+
+function TCastleProject.DelphiAndroidCPU(const Target: TTarget; const CPU: TCPU): TCPU;
+begin
+  if Target = targetAndroid then
+    Result := Aarch64
+  else
+    Result := CPU;
+end;
+
+procedure TCastleProject.DoInstall(const OverrideCompiler: TCompiler;
+  const Target: TTarget;
   const OS: TOS; const CPU: TCPU; const Mode: TCompilationMode;
   const PackageFormat: TPackageFormat;
   const PackageNameIncludeVersion: Boolean);
@@ -977,7 +1129,9 @@ begin
 
   case PackageFormatFinal of
     pfAndroidApk, pfAndroidAppBundle:
-      InstallAndroid(Self, Mode, PackageFormatFinal, PackageNameIncludeVersion);
+      InstallAndroid(Self, FinalizeCompiler(OverrideCompiler, true),
+        DelphiAndroidCPU(Target, CPU), Mode,
+        PackageFormatFinal, PackageNameIncludeVersion);
     else
       //raise Exception.Create('The "install" command is not useful for this target / OS / CPU right now. Install the application manually.');
       // Less generic message, hardcoding that only Android makes sense now.
@@ -985,22 +1139,25 @@ begin
   end;
 end;
 
-procedure TCastleProject.DoUnInstall(const Target: TTarget;
-  const OS: TOS; const CPU: TCPU);
+procedure TCastleProject.DoUnInstall(const OverrideCompiler: TCompiler;
+  const Target: TTarget; const OS: TOS; const CPU: TCPU;
+  const Mode: TCompilationMode);
 begin
   Writeln(Format('Uninstalling project "%s" for %s.',
     [Name, TargetCompleteToString(Target, OS, CPU)]));
 
   if (Target = targetAndroid) or (OS = Android) then
-    UninstallAndroid(Self)
+    UninstallAndroid(Self, FinalizeCompiler(OverrideCompiler, true),
+      DelphiAndroidCPU(Target, CPU), Mode)
   else
     //raise Exception.Create('The "uninstall" command is not useful for this target / OS / CPU right now.');
     // Less generic message, hardcoding that only Android makes sense now.
     raise Exception.Create('The "uninstall" command is only useful on Android now (change target platform to Android)');
 end;
 
-procedure TCastleProject.DoRun(const Target: TTarget;
-  const OS: TOS; const CPU: TCPU;
+procedure TCastleProject.DoRun(const OverrideCompiler: TCompiler;
+  const Target: TTarget; const OS: TOS; const CPU: TCPU;
+  const Mode: TCompilationMode;
   const Params: TCastleStringList);
 
   procedure MaybeUseWrapperToRun(var ExeName: String);
@@ -1101,12 +1258,15 @@ begin
 
   case Target of
     targetIOS: RunIOS(Self);
-    targetAndroid: RunAndroid(Self);
+    targetAndroid:
+      RunAndroid(Self, FinalizeCompiler(OverrideCompiler, true),
+        DelphiAndroidCPU(Target, CPU), Mode);
     targetWeb: RunWeb(Self);
     targetCustom:
       begin
         if OS = Android then
-          RunAndroid(Self)
+          RunAndroid(Self, FinalizeCompiler(OverrideCompiler, true),
+            DelphiAndroidCPU(Target, CPU), Mode)
         else
         begin
           ExeName := Path + ChangeFileExt(ExecutableName, ExeExtensionOS(OS));
@@ -1256,7 +1416,8 @@ begin
   // just ignore RelativeResult, AbsoluteResult output values
 end;
 
-function TCastleProject.AndroidSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
+function TCastleProject.AndroidSourceFile(const FinalCompiler: TCompilerDetected;
+  const AbsolutePath, CreateIfNecessary: boolean): string;
 
   procedure InvalidAndroidSource(const FinalAndroidSource: string);
   begin
@@ -1275,19 +1436,33 @@ begin
     AbsoluteResult := Path + RelativeResult;
   end else
   begin
-    TemplateRelativeUrl := 'android/library_template_integrated.lpr';
-    GeneratedSourceFile(TemplateRelativeUrl,
-      'android' + PathDelim + NamePascal + '_android.lpr',
-      ErrorMessageMissingGameUnits,
-      CreateIfNecessary, RelativeResult, AbsoluteResult);
-    GeneratedSourceFile('castleautogenerated_template.pas',
-      'android' + PathDelim + 'castleautogenerated.pas',
-      ErrorMessageMissingGameUnits,
-      CreateIfNecessary);
+    case FinalCompiler of
+      coDelphi:
+        begin
+          { In case of Delphi, just use StandaloneSource.
+            With Delphi, Android source is the same DPR as for desktops, by default. }
+          Exit(StandaloneSourceFile(AbsolutePath, CreateIfNecessary));
+        end;
+      coFpc:
+        begin
+          TemplateRelativeUrl := 'android/library_template_integrated.lpr';
+          GeneratedSourceFile(TemplateRelativeUrl,
+            'android' + PathDelim + NamePascal + '_android.lpr',
+            ErrorMessageMissingGameUnits,
+            CreateIfNecessary, RelativeResult, AbsoluteResult);
+          GeneratedSourceFile('castleautogenerated_template.pas',
+            'android' + PathDelim + 'castleautogenerated.pas',
+            ErrorMessageMissingGameUnits,
+            CreateIfNecessary);
+        end;
+      else raise EInternalError.Create('AndroidSourceFile:FinalCompiler unexpected');
+    end;
   end;
 
-  // for speed, do not check correctness if CreateIfNecessary = false
-  if CreateIfNecessary then
+  { Check correctness of the Android source file, with FPC it must have
+    certain exports.
+    For speed, do not check correctness if CreateIfNecessary = false. }
+  if CreateIfNecessary and (FinalCompiler = coFpc) then
   begin
     { check Android lpr file correctness.
       For now, do it even if we generated Android project from our own template
@@ -1305,7 +1480,8 @@ begin
     Result := RelativeResult;
 end;
 
-function TCastleProject.IOSSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
+function TCastleProject.IOSSourceFile(const FinalCompiler: TCompilerDetected;
+  const AbsolutePath, CreateIfNecessary: boolean): string;
 const
   ErrorMessageMissingGameUnits = 'You must specify game_units="..." in the CastleEngineManifest.xml to enable build tool to create an iOS project. Alternatively, you can specify ios_source="..." in the CastleEngineManifest.xml, to explicitly indicate the iOS library source code.';
 var
@@ -1317,14 +1493,25 @@ begin
     AbsoluteResult := Path + RelativeResult;
   end else
   begin
-    GeneratedSourceFile('ios/library_template.lpr',
-      'ios' + PathDelim + NamePascal + '_ios.lpr',
-      ErrorMessageMissingGameUnits,
-      CreateIfNecessary, RelativeResult, AbsoluteResult);
-    GeneratedSourceFile('castleautogenerated_template.pas',
-      'ios' + PathDelim + 'castleautogenerated.pas',
-      ErrorMessageMissingGameUnits,
-      CreateIfNecessary);
+    case FinalCompiler of
+      coDelphi:
+        begin
+          { In case of Delphi, just use StandaloneSource. }
+          Exit(StandaloneSourceFile(AbsolutePath, CreateIfNecessary));
+        end;
+      coFpc:
+        begin
+          GeneratedSourceFile('ios/library_template.lpr',
+            'ios' + PathDelim + NamePascal + '_ios.lpr',
+            ErrorMessageMissingGameUnits,
+            CreateIfNecessary, RelativeResult, AbsoluteResult);
+          GeneratedSourceFile('castleautogenerated_template.pas',
+            'ios' + PathDelim + 'castleautogenerated.pas',
+            ErrorMessageMissingGameUnits,
+            CreateIfNecessary);
+        end;
+      else raise EInternalError.Create('IOSSourceFile:FinalCompiler unexpected');
+    end;
   end;
 
   if AbsolutePath then
@@ -1388,18 +1575,47 @@ end;
 
 function TCastleProject.AndroidLibraryFile(const CPU: TCPU;
   const AbsolutePath: boolean): string;
+const
+  AssumeCompiler = coFpc;
 var
   Ext: String;
 begin
   Ext := '.so';
   if CPU <> cpuNone then
     Ext := '_' + CPUToString(CPU) + Ext;
-  Result := InsertLibPrefix(ChangeFileExt(AndroidSourceFile(AbsolutePath, false), Ext));
+  Result := InsertLibPrefix(ChangeFileExt(
+    AndroidSourceFile(AssumeCompiler, AbsolutePath, false), Ext));
+end;
+
+function TCastleProject.DelphiAndroidOutputPath(const CPU: TCPU;
+  const Mode: TCompilationMode): String;
+var
+  DelphiWorkingPath: String;
+begin
+  { The DPROJ output directories are relative to DPROJ, which is alongside the DPR. }
+  DelphiWorkingPath := ExtractFilePath(AndroidSourceFile(coDelphi, true, false));
+  Result := TempOutputPath(DelphiWorkingPath, false) +
+    'delphi' + PathDelim +
+    DelphiPlatform(Android, CPU) + PathDelim +
+    DelphiConfig(Mode) + PathDelim;
+end;
+
+function TCastleProject.DelphiAndroidApkFile(const CPU: TCPU;
+  const Mode: TCompilationMode): String;
+var
+  ProjectName: String;
+begin
+  ProjectName := ChangeFileExt(ExtractFileName(AndroidSourceFile(coDelphi, true, false)), '');
+  Result := DelphiAndroidOutputPath(CPU, Mode) +
+    ProjectName + PathDelim + 'bin' + PathDelim + ProjectName + '.apk';
 end;
 
 function TCastleProject.IOSLibraryFile(const AbsolutePath: boolean): string;
+const
+  AssumeCompiler = coFpc;
 begin
-  Result := InsertLibPrefix(ChangeFileExt(IOSSourceFile(AbsolutePath, false), '.a'));
+  Result := InsertLibPrefix(ChangeFileExt(
+    IOSSourceFile(AssumeCompiler, AbsolutePath, false), '.a'));
 end;
 
 function TCastleProject.NXLibraryFile(const AbsolutePath: boolean): string;
@@ -1954,11 +2170,14 @@ const
       Result := SAppendPart(Result, ' ', CPUToAndroidArchitecture(CPU));
   end;
 
+const
+  AssumeCompiler = coFpc;
 var
   AndroidLibraryName: string;
   Service: TService;
 begin
-  AndroidLibraryName := ChangeFileExt(ExtractFileName(AndroidSourceFile(true, false)), '');
+  AndroidLibraryName := ChangeFileExt(ExtractFileName(
+    AndroidSourceFile(AssumeCompiler, true, false)), '');
   Macros.Add('ANDROID_LIBRARY_NAME'                , AndroidLibraryName);
   Macros.Add('ANDROID_ACTIVITY_THEME'              , AndroidActivityTheme);
   Macros.Add('ANDROID_SCREEN_ORIENTATION'          , AndroidScreenOrientation[ScreenOrientation]);

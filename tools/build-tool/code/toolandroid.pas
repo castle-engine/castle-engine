@@ -31,12 +31,14 @@ uses Classes,
 
   CompilerOptions.OS andCompilerOptions.CPU are ignored by this routine.
   This routine may modify CompilerOptions contents. }
-procedure CompileAndroid(const Compiler: TCompiler;
+procedure CompileAndroid(Compiler: TCompiler;
   const Project: TCastleProject;
   const WorkingDirectory, CompileFile: string;
   const CompilerOptions: TCompilerOptions);
 
-{ Android CPU values supported by the current compiler. }
+{ Android CPU values supported by the current compiler.
+
+  This assumes FPC compiler is used for Android compilation, not Delphi. }
 function DetectAndroidCPUS: TCPUS;
 
 { Convert CPU to an architecture name understood by Android,
@@ -47,13 +49,22 @@ procedure PackageAndroid(const Project: TCastleProject;
   const OS: TOS; const CPUS: TCPUS; const SuggestedPackageMode: TCompilationMode;
   const PackageFormat: TPackageFormatNoDefault; const PackageNameIncludeVersion: Boolean);
 
+{ Install the Android package on a device.
+
+  @param(CPU Used only when Compiler is coDelphi,
+    as Delphi output is in a directory specific to CPU.) }
 procedure InstallAndroid(const Project: TCastleProject;
+  const Compiler: TCompilerDetected; const CPU: TCPU;
   const PackageMode: TCompilationMode;
   const PackageFormat: TPackageFormatNoDefault; const PackageNameIncludeVersion: Boolean);
 
-procedure UnInstallAndroid(const Project: TCastleProject);
+procedure UnInstallAndroid(const Project: TCastleProject;
+  const Compiler: TCompilerDetected; const CPU: TCPU;
+  const Mode: TCompilationMode);
 
-procedure RunAndroid(const Project: TCastleProject);
+procedure RunAndroid(const Project: TCastleProject;
+  const Compiler: TCompilerDetected; const CPU: TCPU;
+  const Mode: TCompilationMode);
 
 { Output list of Android devices, like "adb devices" does.
   This detects adb executable and runs it. }
@@ -83,23 +94,38 @@ begin
   Result := DetectAndroidCPUSCached;
 end;
 
-procedure CompileAndroid(const Compiler: TCompiler;
+procedure CompileAndroid(Compiler: TCompiler;
   const Project: TCastleProject;
   const WorkingDirectory, CompileFile: string;
   const CompilerOptions: TCompilerOptions);
 var
   CPU: TCPU;
 begin
-  for CPU in DetectAndroidCPUS do
-  begin
-    CompilerOptions.OS := Android;
-    CompilerOptions.CPU := CPU;
-    Compile(Compiler, WorkingDirectory, CompileFile, CompilerOptions);
-    if Project <> nil then
-    begin
-      CheckRenameFile(Project.AndroidLibraryFile(cpuNone), Project.AndroidLibraryFile(CPU));
-      Writeln('Compiled library for Android in ', Project.AndroidLibraryFile(CPU, false));
-    end;
+  FinishDetectingCompiler(Compiler);
+  case Compiler of
+    coDelphi:
+      begin
+        { With Delphi, we just compile the CompileFile (which is a normal
+          program DPR) for Android/aarch64. }
+        CompilerOptions.OS := Android;
+        CompilerOptions.CPU := Aarch64;
+        Compile(Compiler, WorkingDirectory, CompileFile, CompilerOptions);
+      end;
+    coFpc:
+      begin
+        for CPU in DetectAndroidCPUS do
+        begin
+          CompilerOptions.OS := Android;
+          CompilerOptions.CPU := CPU;
+          Compile(Compiler, WorkingDirectory, CompileFile, CompilerOptions);
+          if Project <> nil then
+          begin
+            CheckRenameFile(Project.AndroidLibraryFile(cpuNone), Project.AndroidLibraryFile(CPU));
+            Writeln('Compiled library for Android in ', Project.AndroidLibraryFile(CPU, false));
+          end;
+        end;
+      end;
+    else raise EInternalError.Create('CompileAndroid: Compiler unexpected');
   end;
 end;
 
@@ -639,42 +665,103 @@ begin
   Writeln('Build ' + PackageName);
 end;
 
+{ Android application id (the "package" in AndroidManifest.xml).
+
+  With FPC, we generate the manifest using qualified_name.
+
+  With Delphi, the id is determined by the "package" key in Delphi project
+  options ("Version Info"), it's not synchronized with qualified_name.
+  So we read the manifest that Delphi generated. }
+function AndroidApplicationId(const Project: TCastleProject;
+  const Compiler: TCompilerDetected; const CPU: TCPU;
+  const Mode: TCompilationMode): String;
+var
+  ManifestFile: String;
+  Doc: TXMLDocument;
+begin
+  case Compiler of
+    coFpc: Result := Project.QualifiedName;
+    coDelphi:
+      begin
+        ManifestFile := Project.DelphiAndroidOutputPath(CPU, Mode) + 'AndroidManifest.xml';
+        if not RegularFileExists(ManifestFile) then
+          raise Exception.CreateFmt('Cannot find "%s". Package the project first (using "Deploy" from Delphi IDE or command-line "castle-engine package") for the same platform and mode (--mode=%s).', [
+            ManifestFile,
+            ModeToString(Mode)
+          ]);
+        URLReadXML(Doc, FilenameToUriSafe(ManifestFile));
+        try
+          Result := Doc.DocumentElement.AttributeString('package');
+        finally FreeAndNil(Doc) end;
+        if Result <> Project.QualifiedName then
+          WritelnWarning('Android', Format('Application id in Delphi project is "%s", different than qualified_name "%s" in CastleEngineManifest.xml. We recommend to set the same id in Delphi project options, in "Version Info", "package" key.', [
+            Result,
+            Project.QualifiedName
+          ]));
+      end;
+    else raise EInternalError.Create('AndroidApplicationId: Compiler unexpected');
+  end;
+end;
+
 procedure InstallAndroid(const Project: TCastleProject;
+  const Compiler: TCompilerDetected; const CPU: TCPU;
   const PackageMode: TCompilationMode;
   const PackageFormat: TPackageFormatNoDefault; const PackageNameIncludeVersion: Boolean);
 var
-  PackageName: string;
+  PackageName, ApplicationId: string;
 begin
-  PackageName := Project.OutputPath +
-    AndroidPackageFile(Project, PackageMode, PackageFormat, PackageNameIncludeVersion);
+  case Compiler of
+    coFpc:
+      PackageName := Project.OutputPath +
+        AndroidPackageFile(Project, PackageMode, PackageFormat, PackageNameIncludeVersion);
+    coDelphi:
+      begin
+        if PackageFormat <> pfAndroidApk then
+          raise Exception.Create('Installing Android package other than APK is not implemented with Delphi');
+        PackageName := Project.DelphiAndroidApkFile(CPU, PackageMode);
+      end;
+    else raise EInternalError.Create('InstallAndroid: Compiler unexpected');
+  end;
   if not RegularFileExists(PackageName) then
     raise Exception.CreateFmt('No Android package found: "%s"', [PackageName]);
 
   { Uninstall and then install, instead of calling "install -r",
     to avoid failures because apk signed with different keys (debug vs release). }
 
-  Writeln('Reinstalling application identified as "' + Project.QualifiedName + '".');
-  Writeln('If this fails, an often cause is that a previous development version of the application, signed with a different key, remains on the device. In this case uninstall it first by "castle-engine uninstall --target=android" or "adb uninstall ' + Project.QualifiedName + '". Note that it will clear your UserConfig data, unless you pass -k to "adb".');
+  ApplicationId := AndroidApplicationId(Project, Compiler, CPU, PackageMode);
+  Writeln('Reinstalling application identified as "' + ApplicationId + '".');
+  Writeln('If this fails, an often cause is that a previous development version of the application, signed with a different key, remains on the device. In this case uninstall it first by "castle-engine uninstall --target=android" or "adb uninstall ' + ApplicationId + '". Note that it will clear your UserConfig data, unless you pass -k to "adb".');
   Flush(Output); // don't mix output with adb output
   ExecuteCommandSimple(AdbExe, ['install', '-r', PackageName]);
   Writeln('Install successful.');
 end;
 
-procedure UnInstallAndroid(const Project: TCastleProject);
+procedure UnInstallAndroid(const Project: TCastleProject;
+  const Compiler: TCompilerDetected; const CPU: TCPU;
+  const Mode: TCompilationMode);
+var
+  ApplicationId: String;
 begin
-  Writeln('Uninstalling Android application identified as "' + Project.QualifiedName + '".');
-  ExecuteCommandSimple(AdbExe, ['uninstall', Project.QualifiedName]);
+  ApplicationId := AndroidApplicationId(Project, Compiler, CPU, Mode);
+  Writeln('Uninstalling Android application identified as "' + ApplicationId + '".');
+  ExecuteCommandSimple(AdbExe, ['uninstall', ApplicationId]);
   Writeln('Uninstall successful.');
 end;
 
-procedure RunAndroid(const Project: TCastleProject);
+procedure RunAndroid(const Project: TCastleProject;
+  const Compiler: TCompilerDetected; const CPU: TCPU;
+  const Mode: TCompilationMode);
 var
   ActivityName, LogTag: string;
 begin
-  ActivityName := 'io.castleengine.MainActivity';
+  case Compiler of
+    coFpc: ActivityName := 'io.castleengine.MainActivity';
+    coDelphi: ActivityName := 'com.embarcadero.firemonkey.FMXNativeActivity';
+    else raise EInternalError.Create('RunAndroid: Compiler unexpected');
+  end;
   ExecuteCommandSimple(AdbExe, ['shell', 'am', 'start',
     '-a', 'android.intent.action.MAIN',
-    '-n', Project.QualifiedName + '/' + ActivityName ]);
+    '-n', AndroidApplicationId(Project, Compiler, CPU, Mode) + '/' + ActivityName ]);
   Writeln('Android application successfully started.');
 
   LogTag := Copy(Project.Name, 1, MaxAndroidTagLength);

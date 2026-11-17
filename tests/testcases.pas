@@ -46,6 +46,7 @@ uses
   TestCastleBoxes,
   TestCastleFrustum,
   TestCastleInternalGLShadowVolumes,
+  TestCastleInternalFreeTypeH,
   TestCastleFonts,
   TestCastleInternalOpenTypeFont,
   TestCastleTransform,

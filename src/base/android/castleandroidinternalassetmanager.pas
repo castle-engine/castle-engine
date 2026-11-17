@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *}
- 
+
 { @exclude Internal for the engine. }
 unit CastleAndroidInternalAssetManager;
 
@@ -54,14 +54,14 @@ const
  *
  * The object returned here should be freed by calling AAssetDir_close().
   *)
-function AAssetManager_openDir(mgr: PAAssetManager; dirName: Pchar): PAAssetDir; cdecl; external;
+function AAssetManager_openDir(mgr: PAAssetManager; dirName: PAnsiChar): PAAssetDir; cdecl; external;
 
 (**
  * Open an asset.
  *
  * The object returned here should be freed by calling AAsset_close().
   *)
-function AAssetManager_open(mgr: PAAssetManager; filename: Pchar; mode: cint): PAAsset; cdecl; external;
+function AAssetManager_open(mgr: PAAssetManager; filename: PAnsiChar; mode: cint): PAAsset; cdecl; external;
 
 (**
  * Iterate over the files in an asset directory.  A NULL string is returned
@@ -73,7 +73,7 @@ function AAssetManager_open(mgr: PAAssetManager; filename: Pchar; mode: cint): P
  * guaranteed to remain valid if any other calls are made on this AAssetDir
  * instance.
   *)
-function AAssetDir_getNextFileName(assetDir: PAAssetDir): Pchar; cdecl; external;
+function AAssetDir_getNextFileName(assetDir: PAAssetDir): PAnsiChar; cdecl; external;
 
 (**
  * Reset the iteration state of AAssetDir_getNextFileName() to the beginning.

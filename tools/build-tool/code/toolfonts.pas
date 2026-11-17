@@ -16,6 +16,8 @@
 { Utilities for fonts. }
 unit ToolFonts;
 
+{$message fatal 'This unit is not used anymore. We use CASTLE_FREETYPE_PASCAL to load fonts on web now. We keep this unit, for now, as the idea was interesting (no need to load fonts from TTF at run-time at all) but we need to do it in more uniform way (see https://castle-engine.io/roadmap#fonts ).'}
+
 interface
 
 uses ToolProject;

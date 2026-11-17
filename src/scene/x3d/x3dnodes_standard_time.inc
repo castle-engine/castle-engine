@@ -129,8 +129,8 @@
       not counting any time while in pause state.
 
       What happens when we play the animation backwards?
-      ( Which can be achieved by @link(TTimeSensorNode.FractionIncreasing) = @false,
-      which in turn can be achieved by @link(TPlayAnimationParameters.Forward) = @false
+      ( Which can be achieved by @link(TTimeSensorNode.Reverse) = @true,
+      which in turn can be achieved by @link(TPlayAnimationParameters.Reverse) = @true
       passed to @link(TCastleSceneCore.PlayAnimation). )
       In such case, this value (ElapsedTimeInCycle) is still increasing
       as time passes.
@@ -239,7 +239,7 @@
 
       Note: We ignore TimeSensor.loop (FdLoop) field,
       instead we follow our own ALoop parameter.
-      We also ignore @link(TTimeSensorNode.FractionIncreasing) field,
+      We also ignore @link(TTimeSensorNode.Reverse) field,
       instead we follow our own AFractionIncreasing parameter.
       We also ignore TimeSensor.enabled field,
       assuming that you always want to behave like it's enabled
@@ -774,7 +774,9 @@ begin
   begin
     Fraction := FTimeFunctionality.ElapsedTimeInCycle / SafeCycleInterval;
     if (Fraction = 0) and (Time.Seconds > FdStartTime.Value) then Fraction := 1;
-    if not FdFractionIncreasing.Value then
+    { Support either X3D standard "TimeSensor.reverse"
+      or our deprecated "TimeSensor.fractionIncreasing". }
+    if (not FdFractionIncreasing.Value) or FdReverse.Value then
       Fraction := 1 - Fraction;
     Eventfraction_changed.Send(Fraction, Time, Value.InternalPartialSend);
 
@@ -886,7 +888,8 @@ begin
   Check(Scene <> nil, 'TTimeSensorNode.Start can only be called when node is part of scene');
 
   Loop := ALoop;
-  FractionIncreasing := AFractionIncreasing;
+  Reverse := not AFractionIncreasing; // AFractionIncreasing = false is implemented by setting Reverse
+  FractionIncreasing := true; // the deprecated FractionIncreasing should always remain at default
   Enabled := true; // since Stop changes Enabled to false
 
   { Disable the "ignore" mechanism, otherwise

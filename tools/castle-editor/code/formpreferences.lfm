@@ -194,6 +194,47 @@ object PreferencesForm: TPreferencesForm
       Font.Style = [fsItalic]
       ParentFont = False
     end
+    object CheckBoxMSBuildDontPassEnginePaths: TCheckBox
+      AnchorSideLeft.Control = LabelCompilerDelphi
+      AnchorSideTop.Control = LabelCompilerDelphi
+      AnchorSideTop.Side = asrBottom
+      Left = 40
+      Height = 27
+      Top = 245
+      Width = 437
+      BorderSpacing.Top = 8
+      Caption = 'Do not pass engine paths when calling MSBuild'
+      TabOrder = 3
+    end
+    object LabelDontPassEnginePathsHint: TLabel
+      AnchorSideLeft.Control = LabelCompilerDelphi
+      AnchorSideTop.Control = CheckBoxMSBuildDontPassEnginePaths
+      AnchorSideTop.Side = asrBottom
+      Left = 40
+      Height = 46
+      Top = 280
+      Width = 540
+      BorderSpacing.Top = 8
+      Caption = 'Select this to avoid MSBuild command-line length limit problem.'#10'It assumes that engine paths are set in Delphi preferences.'
+      Font.Style = [fsItalic]
+      ParentFont = False
+    end
+    object LabelDontPassEnginePathsDocsWww: TLabel
+      AnchorSideLeft.Control = LabelCompilerDelphi
+      AnchorSideTop.Control = LabelDontPassEnginePathsHint
+      AnchorSideTop.Side = asrBottom
+      Cursor = crHandPoint
+      Left = 40
+      Height = 23
+      Top = 334
+      Width = 390
+      BorderSpacing.Top = 8
+      Caption = 'See https://castle-engine.io/delphi_packages'
+      Font.Color = clBlue
+      Font.Style = [fsUnderline]
+      ParentFont = False
+      OnClick = LabelDontPassEnginePathsDocsWwwClick
+    end
   end
   object PanelCodeEditor: TPanel
     Left = 184

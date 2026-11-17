@@ -114,10 +114,21 @@ type
     FOnBoundChanged: TNotifyEvent;
     BoundChangedSchedule: Cardinal;
     BoundChangedScheduled: boolean;
+    SendIsBoundScheduled: boolean;
 
     { A useful utility: if the Node is not @nil, send isBound = Value and
       bindTime events to it. }
     procedure SendIsBound(Node: TAbstractBindableNode; const Value: boolean);
+
+    { Send isBound = true and bindTime events to the @link(Top) node
+      at the nearest comfortable time.
+      Either now (when not inside BeginChangesSchedule / EndChangesSchedule)
+      or at a closing EndChangesSchedule.
+
+      Sending events may cause arbitrary changes to the scene
+      (e.g. through ROUTEs, even calling TCastleSceneCore.ChangedAll),
+      so we cannot do it in the middle of TCastleSceneCore.ChangedAll. }
+    procedure DoScheduleSendIsBound;
 
     { Add new node to the top.
 
@@ -133,10 +144,12 @@ type
     function Pop: TAbstractBindableNode;
 
     { When we're inside BeginChangesSchedule / EndChangesSchedule,
-      then DoScheduleBoundChanged will not immediately call DoBoundChanged.
+      then DoScheduleBoundChanged will not immediately call DoBoundChanged,
+      and DoScheduleSendIsBound will not immediately send events.
       Effectively, you can wrap a part of code inside
       BeginChangesSchedule / EndChangesSchedule, to delay calling
-      DoBoundChanged (and so OnBoundChanged callback). }
+      DoBoundChanged (and so OnBoundChanged callback)
+      and sending isBound / bindTime events. }
     procedure BeginChangesSchedule;
     procedure EndChangesSchedule;
   protected
@@ -269,6 +282,10 @@ type
     Don't worry, time of creation/destruction of it really doesn't matter
     in practice, thanks to fast FPC memory allocator. }
   TPlayAnimationParameters = class
+  strict private
+    function GetForward: Boolean;
+    procedure SetForward(const Value: Boolean);
+  public
     { Animation name.
       You have to set at least this field, otherwise calling
       @link(TCastleSceneCore.PlayAnimation) with this is useless. }
@@ -277,8 +294,8 @@ type
     { Should we play in a loop, default @false which means to play just once. }
     Loop: boolean;
 
-    { Does animation play forward, default @true. }
-    Forward: boolean;
+    { Does animation play in reverse, default @false. }
+    Reverse: boolean;
 
     { Notification when the animation finished playing,
       which happens if the animation was non-looping and it reached the end,
@@ -316,7 +333,9 @@ type
       regardless of InitialTime. }
     InitialTime: TFloatTime;
 
-    constructor Create;
+    { @deprecated Alias for @code(not Reverse). }
+    property Forward: Boolean read GetForward write SetForward;
+      {$ifdef FPC} deprecated 'use Reverse'; {$endif}
   end;
 
   { Possible options for @link(TCastleSceneCore.Load). }
@@ -506,7 +525,7 @@ type
     NewPlayingAnimationUse: boolean;
     NewPlayingAnimationNode: TTimeSensorNode;
     NewPlayingAnimationLoop: boolean;
-    NewPlayingAnimationForward: boolean;
+    NewPlayingAnimationReverse: boolean;
     NewPlayingAnimationStopNotification: TStopAnimationEvent;
     NewPlayingAnimationTransitionDuration: TFloatTime;
     NewPlayingAnimationInitialTime: TFloatTime;
@@ -521,7 +540,7 @@ type
 
     PreviousPlayingAnimation: TTimeSensorNode;
     PreviousPlayingAnimationLoop: boolean;
-    PreviousPlayingAnimationForward: boolean;
+    PreviousPlayingAnimationReverse: boolean;
     PreviousPlayingAnimationTimeInAnimation: TFloatTime;
 
     PreviousPartialAffectedFields: TX3DFieldList;
@@ -605,7 +624,20 @@ type
     { Call SetTime on all things in TimeDependentList. }
     procedure UpdateTimeDependentList(const TimeIncrease: TFloatTime; const ResetTime: boolean);
 
-    function SensibleCameraRadius(out RadiusAutoCalculated: Boolean): Single;
+    { Sensible @link(TCastleCamera.Radius) determined by the information
+      in given TNavigationInfoNode.
+      The given node should be "currently bound" (in X3D terminology) nodes,
+      i.e. @code(NavigationInfoStack.Top).
+
+      The function falls back on using @link(DefaultCameraRadius),
+      which is a simple reasonable hardcoded default.
+
+      This function @bold(does not) make decisions based on
+      the scene bounding box. This was fragile and could be unexpected
+      in certain situations, see @link(DefaultCameraRadius) for explanation. }
+    function SensibleCameraRadius(
+      const NavigationInfoNode: TNavigationInfoNode;
+      out RadiusFromNavigationInfo: Boolean): Single;
 
     { Apply TransformationDirty effect
       (necessary to update transformations calculated in the Shapes tree,
@@ -1132,25 +1164,18 @@ type
       graph. Since this class caches some things, it has to be notified
       when you manually change something within RootNode graph. }
 
-    { Release all internal associations with your VRML/X3D nodes.
+    { Release all internal associations with X3D nodes.
       In particular, this will release OpenGL resources connected to your nodes.
       You should always call this @italic(before) you (may) free some nodes in
       @link(RootNode).
 
       @italic(You have to call ChangedAll or Load at sometime
       after BeforeNodesFree, and before you try actual rendering, events etc.)
-      Otherwise some stuff may not get recalculated.
-
-      The InternalChangedAll parameter is for internal use.
-      It is set to @true when ChangedAll
-      calls this method at the beginning of it's work, and means that nothing is freed,
-      and we only require necessary cleanup at the beginning of ChangedAll.
-      This way ChangedAll (when it wasn't preceeded by explicit
-      BeforeNodesFree(false)) produces events from stacks CheckForDeletedNodes. }
-    procedure BeforeNodesFree(const InternalChangedAll: boolean = false); override;
+      Otherwise some stuff may not get recalculated. }
+    procedure BeforeNodesFree; override;
 
     { Call Node.FreeRemovingFromAllParents, making sure that changes
-      to our VRML/X3D node graph are allowed. This makes sure we call
+      to our X3D node graph are allowed. This makes sure we call
       BeforeNodesFree befor freeing, and ChangedAll afterwards.
 
       This avoids a common pitfall with relying on TShape or such
@@ -1189,8 +1214,10 @@ type
       called by constructor of this class, so you can put a lot of your
       initialization there (instead of in the constructor).
 
-      ChangedAll calls BeforeNodesFree(true) first, for safety (and TGLShape
-      actually depends on it, see implementation comments). }
+      ChangedAll calls BeforeNodesFree first,
+      as it does the cleanup we need (lists of nodes,
+      recreate Shapes to be empty). Descendant TCastleScene also releases
+      all rendering resources for shapes here. }
     procedure ChangedAll(const OnlyAdditions: Boolean = false); override;
 
     { Notify scene that you changed the value of given field.
@@ -1738,6 +1765,58 @@ type
       const WorldBox: TBox3D;
       const RelativeCameraTransform: boolean;
       const AllowTransitionAnimate: boolean);
+
+    { Set optimal @link(TCastleCamera.ProjectionNear Camera.ProjectionNear) and
+      @link(TCastleNavigation.Radius Navigation.Radius) based on the size
+      of the world, and based on currently bound nodes
+      (X3D Viewpoint and NavigationInfo) of this scene.
+
+      Size of the world is implied by the bounding box. As WorldBox, you can pass
+      something like @link(TCastleViewport.ItemsWithGizmosBoundingBox)
+      or (if a particular scene determines the world size, e.g. it contains
+      the whole level) like @link(TCastleSceneCore.WorldBoundingBox).
+
+      Navigation component given here may be @nil.
+
+      When is this useful?
+
+      By default, our engine
+      (since @url(https://github.com/castle-engine/castle-engine/commit/050dc126a4f0ac0a0211d929f1e1f8d7f96a88f9
+      this commit)) does not set the radius and projection near automatically
+      based on the scene size. This was problematic and surprising in some cases,
+      as scene size could change at run-time (even into infinity,
+      if some part falls down with gravity into infinity).
+
+      We recommend to control these values directly.
+
+      When using the engine components, just set
+      @link(TCastleCamera.ProjectionNear Camera.ProjectionNear) and
+      @link(TCastleNavigation.Radius Navigation.Radius) directly.
+
+      When using X3D, set @link(TCastleViewport.AutoCamera)
+      and @link(TCastleViewport.AutoNavigation) to @true and:
+
+      @unorderedList(
+        @item Set radius by X3D NavigationInfo.AvatarSize[0].
+        @item Set projection near by X3D Viewpoint.NearDistance.
+      )
+
+      Use this method when you cannot rely on the model providing good values,
+      and must support models of arbitrary size, as in a 3D model viewer.
+      This method updates the Camera.ProjectionNear and Navigation.Radius
+      based on the bounding box of the world.
+      This update is done once, immediately -- you will need to call this again
+      when the size of the world changes, e.g. you loaded new model.
+
+      If present, the X3D values of NavigationInfo.AvatarSize[0] and
+      Viewpoint.NearDistance are still honored.
+      ( Note that mere presence of NavigationInfo node means that
+      NavigationInfo.AvatarSize[0], default 0.25 in X3D, is used as the radius.
+      The projection near derived from it is capped, so it's at most
+      DefaultCameraRadius * RadiusToProjectionNear. )
+    }
+    procedure RadiusProjectionNearFromSize(const WorldBox: TBox3D;
+      const ACamera: TCastleCamera; const Navigation: TCastleNavigation);
 
     { Make Camera go to the view given by (world coordinates) APosition, ADirection, AUp.
 
@@ -2521,7 +2600,7 @@ begin
   begin
     Push(Node);
     if SendEvents then
-      SendIsBound(Node, true);
+      DoScheduleSendIsBound;
     DoScheduleBoundChanged;
   end;
 end;
@@ -2568,7 +2647,7 @@ begin
     end;
 
     if TopChanged and SendEvents and (Count <> 0) then
-      SendIsBound(Top, true);
+      DoScheduleSendIsBound;
 
     if TopChanged then
       DoScheduleBoundChanged;
@@ -2627,8 +2706,10 @@ end;
 
 procedure TX3DBindableStack.BeginChangesSchedule;
 begin
-  { BoundChangedScheduled = false always when BoundChangedSchedule = 0. }
+  { BoundChangedScheduled, SendIsBoundScheduled = false always
+    when BoundChangedSchedule = 0. }
   Assert((BoundChangedSchedule <> 0) or (not BoundChangedScheduled));
+  Assert((BoundChangedSchedule <> 0) or (not SendIsBoundScheduled));
 
   Inc(BoundChangedSchedule);
 end;
@@ -2640,13 +2721,44 @@ begin
     BoundChangedScheduled := true;
 end;
 
+procedure TX3DBindableStack.DoScheduleSendIsBound;
+begin
+  if BoundChangedSchedule = 0 then
+    SendIsBound(Top, true) else
+    SendIsBoundScheduled := true;
+end;
+
 procedure TX3DBindableStack.EndChangesSchedule;
+
+  { Send isBound = true to the current top node.
+    Note that the node that was top when DoScheduleSendIsBound was called
+    may no longer be top, or even present on the stack
+    (e.g. when CheckForDeletedNodes removed it later).
+    We send the events according to the current state of the stack. }
+  procedure DoSendIsBound;
+  begin
+    SendIsBound(Top, true);
+  end;
+
+var
+  DoSend, DoChanged: Boolean;
 begin
   Dec(BoundChangedSchedule);
-  if (BoundChangedSchedule = 0) and BoundChangedScheduled then
+  if BoundChangedSchedule = 0 then
   begin
+    { Reset the flags before doing anything.
+      Sending events may cause nested BeginChangesSchedule / EndChangesSchedule
+      (e.g. a ROUTE from isBound may cause TCastleSceneCore.ChangedAll),
+      which assumes the flags are false when BoundChangedSchedule = 0. }
+    DoSend := SendIsBoundScheduled;
+    DoChanged := BoundChangedScheduled;
+    SendIsBoundScheduled := false;
     BoundChangedScheduled := false;
-    DoBoundChanged;
+
+    if DoSend then
+      DoSendIsBound;
+    if DoChanged then
+      DoBoundChanged;
   end;
 end;
 
@@ -2920,11 +3032,14 @@ end;
 
 { TPlayAnimationParameters --------------------------------------------------- }
 
-constructor TPlayAnimationParameters.Create;
+function TPlayAnimationParameters.GetForward: Boolean;
 begin
-  inherited;
-  Loop := false;
-  Forward := true;
+  Result := not Reverse;
+end;
+
+procedure TPlayAnimationParameters.SetForward(const Value: Boolean);
+begin
+  Reverse := not Value;
 end;
 
 { TDetectAffectedFields ------------------------------------------------------ }
@@ -4052,7 +4167,7 @@ begin
     HandleBoundedFunctionality(Node);
 end;
 
-procedure TCastleSceneCore.BeforeNodesFree(const InternalChangedAll: boolean);
+procedure TCastleSceneCore.BeforeNodesFree;
 begin
   // paranoid check is the World valid before accessing it
   if (World <> nil) and
@@ -4084,16 +4199,26 @@ begin
   PreviousPlayingAnimation := nil;
   FreeAndNil(PreviousPartialAffectedFields);
 
-  if not InternalChangedAll then
-  begin
-    { Clean Shapes, ShapeLODs.
-      TShapeTree and descendants keep references to Nodes. }
-    FreeAndNil(FShapes);
-    FShapes := TShapeTreeGroup.Create(Self);
-    ShapeLODs.Clear;
-    TransformationDirty.Clear;
-    InternalIncShapesHash;
-  end;
+  { Recreate (make empty) FShapes, and clear all possible references
+    to instances in FShapes.
+
+    When done before some nodes are freed, this is necessary
+    as TShapeTree and descendants keep references to Nodes.
+
+    When done from ChangedAll, this clears FShapes that need to be recreated. }
+  FreeAndNil(FShapes);
+  FShapes := TShapeTreeGroup.Create(Self);
+
+  { Clear things that possibly referred to shapes in FShapes }
+  ShapeLODs.Clear;
+  { The shape tree was freed, so forget the TShapeTreeTransform instances
+    scheduled in TransformationDirty (by Transform node changes done
+    before this). Otherwise FinishTransformationChanges could
+    call FastTransformUpdate on freed instances.
+    The new shape tree is created with the current transformations anyway.
+    Testcase: TTestSceneCore.TestTransformChangeThenChangedAll. }
+  TransformationDirty.Clear;
+  InternalIncShapesHash;
 end;
 
 procedure TCastleSceneCore.NodeFreeRemovingFromAllParents(Node: TX3DNode);
@@ -4238,24 +4363,37 @@ begin
   { TODO:
     We ignore OnlyAdditions now.
     We have to even do BeforeNodesFree always, even when OnlyAdditions,
-    the code below (may) assume it is always done, e.g. all lists are cleared in BeforeNodesFree. }
+    the code below (may) assume it is always done, e.g. all lists are cleared
+    in BeforeNodesFree. }
 
-  BeforeNodesFree(true);
+  { Note that this will also make FShapes empty.
+    Our later code will refill it. }
+  BeforeNodesFree;
 
   { Call DoGeometryChanged already here, as our old shapes already
     stopped to exist. }
   InternalGeometryChanged([gcAll], nil);
 
-  { Delay calling OnBoundChanged from bindable stack changes.
+  { Delay calling OnBoundChanged, and sending isBound / bindTime events,
+    from bindable stack changes.
+    They will be done at EndChangesSchedule, at the very end of ChangedAll,
+    when our state is fully initialized.
 
-    Reason: CheckForDeletedNodes below, or PushIfEmpty during traversing,
+    Reason major: CheckForDeletedNodes below, or PushIfEmpty during traversing,
     should not cause immediate OnBoundChanged, as a receiver may expect
     us to be in initialized state (and e.g. use BoundingBox function).
     And before traversing finished, our Shapes tree is not calculated,
     so we're not ready to answer e.g. BoundingBox correctly.
 
-    Besides, this was often causing two OnBoundChanged calls,
-    while only one was needed. E.g. if your previous scene has
+    Similarly, they should not send immediate isBound / bindTime events,
+    as these may cause arbitrary changes through ROUTEs and scripts.
+    E.g. a ROUTE from isBound to Group.visible causes ScheduleChangedAll,
+    which (we're not inside BeginChangesSchedule here) calls nested ChangedAll
+    immediately, freeing the Shapes tree that we're in the middle of building.
+    Testcase: TTestSceneCore.TestIsBoundRouteDuringChangedAll.
+
+    Reason minor: this avoids two OnBoundChanged calls,
+    while only one is needed. E.g. if your previous scene has
     a Viewpoint node, and newly loaded scene also has Viewpoint,
     then we would call OnBoundChanged twice (1st time by CheckForDeletedNodes). }
   BackgroundStack.BeginChangesSchedule;
@@ -4271,16 +4409,12 @@ begin
 
     Validities := [];
 
-    { Clean Shapes and other stuff initialized by traversing }
-    FreeAndNil(FShapes);
-    FShapes := TShapeTreeGroup.Create(Self);
-    ShapeLODs.Clear;
+    { Clean more stuff initialized by traversing }
     InternalGlobalLights.Clear;
     FViewpointsArray.Clear;
     FAnimationsList.Clear;
     AnimationAffectedFields.Clear;
     NeedsDetectAffectedFields := false;
-    InternalIncShapesHash;
 
     if RootNode <> nil then
     begin
@@ -4321,59 +4455,59 @@ begin
     { recreate FAnimationsList now }
     FreeAndNil(FAnimationsList);
     FAnimationsList := CreateAnimations;
+
+    { 1. We honor ScheduledShadowMapsProcessing, to detect if shadow maps are maybe
+        used. Because at the beginning, UsesShadowMaps are always @false.
+        Also UsesShadowMaps are always @false if ShadowMaps have been toggled
+        to @false.
+
+      2. We also honor UsesShadowMaps. Because it shadow maps have been detected
+        in the last ProcessShadowMapsReceivers call, then every ChangedAll
+        should rebuild TShape.InternalShadowMaps, as we have recreated all TShape.
+
+        Testcase:
+        - fps_game shadow maps,
+        - or load model with shadow maps in castle-model-viewer, and do
+          "Edit -> Remove Placeholders from CGE levels".
+        Shadows *should not* disappear. }
+    if ScheduledShadowMapsProcessing or UsesShadowMaps then
+    begin
+      ProcessShadowMapsReceivers(RootNode, Shapes, ShadowMaps,
+        ShadowMapsDefaultSize, UsesShadowMaps);
+      if UsesShadowMaps then
+        WritelnLog('Scene %s (%s) is using shadow maps', [Name, UriDisplay(Url)]);
+      ScheduledShadowMapsProcessing := false;
+    end;
+
+    { Add items to GeneratedTextures for this Shape, if it has any
+      generated textures.
+
+      Do this *after* ProcessShadowMapsReceivers was run
+      (before ProcessShadowMapsReceivers we may have old GeneratedShadowMap nodes
+      that will be freed during ProcessShadowMapsReceivers,
+      and new nodes added by ProcessShadowMapsReceivers would be missing.)
+
+      Note that clearing GeneratedTextures was already done at the beginning
+      of ChangedAll (as part of BeforeNodesFree call). }
+    Shapes.EnumerateTextures(
+      {$ifdef FPC}@{$endif}GeneratedTextures.AddShapeTexture);
+
+    if ScheduleHeadlightOnFromNavigationInfoInChangedAll then
+    begin
+      ScheduleHeadlightOnFromNavigationInfoInChangedAll := false;
+      UpdateHeadlightOnFromNavigationInfo;
+    end;
+
+    ForceTeleportTransitions := false;
+
+    if LogShapes then
+      WritelnLogMultiline('Shapes tree', Shapes.DebugInfo);
   finally
     BackgroundStack.EndChangesSchedule;
     FogStack.EndChangesSchedule;
     NavigationInfoStack.EndChangesSchedule;
     ViewpointStack.EndChangesSchedule;
   end;
-
-  { 1. We honor ScheduledShadowMapsProcessing, to detect if shadow maps are maybe
-      used. Because at the beginning, UsesShadowMaps are always @false.
-      Also UsesShadowMaps are always @false if ShadowMaps have been toggled
-      to @false.
-
-    2. We also honor UsesShadowMaps. Because it shadow maps have been detected
-      in the last ProcessShadowMapsReceivers call, then every ChangedAll
-      should rebuild TShape.InternalShadowMaps, as we have recreated all TShape.
-
-      Testcase:
-      - fps_game shadow maps,
-      - or load model with shadow maps in castle-model-viewer, and do
-        "Edit -> Remove Placeholders from CGE levels".
-      Shadows *should not* disappear. }
-  if ScheduledShadowMapsProcessing or UsesShadowMaps then
-  begin
-    ProcessShadowMapsReceivers(RootNode, Shapes, ShadowMaps,
-      ShadowMapsDefaultSize, UsesShadowMaps);
-    if UsesShadowMaps then
-      WritelnLog('Scene %s (%s) is using shadow maps', [Name, UriDisplay(Url)]);
-    ScheduledShadowMapsProcessing := false;
-  end;
-
-  { Add items to GeneratedTextures for this Shape, if it has any
-    generated textures.
-
-    Do this *after* ProcessShadowMapsReceivers was run
-    (before ProcessShadowMapsReceivers we may have old GeneratedShadowMap nodes
-    that will be freed during ProcessShadowMapsReceivers,
-    and new nodes added by ProcessShadowMapsReceivers would be missing.)
-
-    Note that clearing GeneratedTextures was already done at the beginning
-    of ChangedAll (as part of BeforeNodesFree(true) call). }
-  Shapes.EnumerateTextures(
-    {$ifdef FPC}@{$endif}GeneratedTextures.AddShapeTexture);
-
-  if ScheduleHeadlightOnFromNavigationInfoInChangedAll then
-  begin
-    ScheduleHeadlightOnFromNavigationInfoInChangedAll := false;
-    UpdateHeadlightOnFromNavigationInfo;
-  end;
-
-  ForceTeleportTransitions := false;
-
-  if LogShapes then
-    WritelnLogMultiline('Shapes tree', Shapes.DebugInfo);
 
   finally Dec(InternalDirty) end;
 
@@ -6272,7 +6406,7 @@ begin
     if PreviousPlayingAnimation <> nil then
     begin
       PreviousPlayingAnimationLoop := PreviousPlayingAnimation.Loop;
-      PreviousPlayingAnimationForward := PreviousPlayingAnimation.FractionIncreasing;
+      PreviousPlayingAnimationReverse := PreviousPlayingAnimation.Reverse;
       PreviousPlayingAnimationTimeInAnimation := PreviousPlayingAnimation.TimeFunctionality.ElapsedTime;
     end;
 
@@ -6361,7 +6495,7 @@ begin
 
       PlayingAnimationNode.Start(
         NewPlayingAnimationLoop,
-        NewPlayingAnimationForward,
+        { AFractionIncreasing } not NewPlayingAnimationReverse,
         NewPlayingAnimationInitialTime);
 
       PlayingAnimationNode.EventIsActive.AddNotification(
@@ -6763,7 +6897,7 @@ begin
       PreviousPlayingAnimation.FakeTime(PreviousPlayingAnimationTimeInAnimation
         + (T - PlayingAnimationStartTime),
         PreviousPlayingAnimationLoop,
-        PreviousPlayingAnimationForward,
+        { FractionIncreasing } not PreviousPlayingAnimationReverse,
         NextEventTime,
         PartialSend);
     end;
@@ -7045,24 +7179,23 @@ end;
 
 { camera ------------------------------------------------------------------ }
 
-function TCastleSceneCore.SensibleCameraRadius(out RadiusAutoCalculated: Boolean): Single;
-var
-  NavigationNode: TNavigationInfoNode;
+function TCastleSceneCore.SensibleCameraRadius(
+  const NavigationInfoNode: TNavigationInfoNode;
+  out RadiusFromNavigationInfo: Boolean): Single;
 begin
   Result := 0;
-  RadiusAutoCalculated := false;
+  RadiusFromNavigationInfo := true;
 
-  NavigationNode := NavigationInfoStack.Top;
-  if (NavigationNode <> nil) and
-     (NavigationNode.FdAvatarSize.Count >= 1) then
-    Result := NavigationNode.FdAvatarSize.Items[0];
+  if (NavigationInfoNode <> nil) and
+     (NavigationInfoNode.FdAvatarSize.Count >= 1) then
+    Result := NavigationInfoNode.FdAvatarSize.Items[0];
 
   { if avatarSize doesn't specify Radius, or specifies invalid <= 0,
     use DefaultCameraRadius. }
   if Result <= 0 then
   begin
     Result := DefaultCameraRadius;
-    RadiusAutoCalculated := true;
+    RadiusFromNavigationInfo := false;
   end;
 end;
 
@@ -7072,7 +7205,7 @@ var
   NavigationNode: TNavigationInfoNode;
   ViewpointNode: TAbstractViewpointNode;
   Radius: Single;
-  RadiusAutoCalculated: Boolean;
+  RadiusFromNavigationInfo: Boolean;
 
   procedure UpdateWalkNavigation(const Navigation: TCastleWalkNavigation);
   begin
@@ -7133,7 +7266,7 @@ begin
   ViewpointNode := ViewpointStack.Top;
 
   { calculate Radius }
-  Radius := SensibleCameraRadius(RadiusAutoCalculated);
+  Radius := SensibleCameraRadius(NavigationNode, RadiusFromNavigationInfo);
   Navigation.Radius := Radius;
 
   if Navigation is TCastleWalkNavigation then
@@ -7151,7 +7284,7 @@ var
   AUp: TVector3;
   GravityUp: TVector3;
   Radius, OriginX, OriginY: Single;
-  RadiusAutoCalculated: Boolean;
+  RadiusFromNavigationInfo: Boolean;
   ViewpointNode: TAbstractViewpointNode;
   NavigationNode: TNavigationInfoNode;
   FieldOfView: TSingleList;
@@ -7159,20 +7292,38 @@ begin
   ViewpointNode := ViewpointStack.Top;
   NavigationNode := NavigationInfoStack.Top;
 
-  Radius := SensibleCameraRadius(RadiusAutoCalculated);
+  Radius := SensibleCameraRadius(NavigationNode, RadiusFromNavigationInfo);
 
   if (ViewpointNode <> nil) and
      (ViewpointNode.NearDistance > 0) then
     ACamera.ProjectionNear := ViewpointNode.NearDistance
   else
   // if ViewpointNode.NearDistance <= 0, calculate ACamera.ProjectionNear based on radius
-  if RadiusAutoCalculated then
+  if not RadiusFromNavigationInfo then
     { Set ProjectionNear to zero, this way we avoid serializing value
       when it is not necessary to serialize it
       (because it can be calculated by each TCastleViewport.CalculateProjection). }
     ACamera.ProjectionNear := 0
   else
-    ACamera.ProjectionNear := Radius * RadiusToProjectionNear;
+  begin
+    { Projection near must be always smaller than Radius,
+      so we use below "Radius * RadiusToProjectionNear".
+      Moreover, we allow "DefaultCameraRadius * RadiusToProjectionNear"
+      to make the result even smaller: this way merely adding
+      NavigationInfo node to the scene, with or without default avatarSize,
+      will not cause ProjectionNear to be larger (which could clip some geometry).
+
+      We encourage in practice to control this explicitly by
+      - Setting ViewpointNode.NearDistance in X3D.
+        Will work when TCastleViewport.AutoCamera=true, for X3D viewers.
+      - Or by setting TCastleCamera.ProjectionNear when using CGE components.
+        Will work when TCastleViewport.AutoCamera=false, in typical CGE usage
+        for games. }
+    ACamera.ProjectionNear := Min(
+      Radius * RadiusToProjectionNear,
+      DefaultCameraRadius * RadiusToProjectionNear
+    );
+  end;
 
   { Default projection parameters.
     Reset here anything that is determined by TCastleSceneCore.InternalUpdateCamera. }
@@ -7282,6 +7433,84 @@ begin
     {$warnings on}
   else
     ACamera.SetWorldView(APosition, ADirection, AUp);
+end;
+
+procedure TCastleSceneCore.RadiusProjectionNearFromSize(
+  const WorldBox: TBox3D;
+  const ACamera: TCastleCamera; const Navigation: TCastleNavigation);
+
+  function BestRadius(out RadiusFromNavigationInfo: Boolean): Single;
+  const
+    WorldBoxSizeToRadius = 0.005;
+  var
+    NavigationNode: TNavigationInfoNode;
+    BoxSize: Single;
+  begin
+    NavigationNode := NavigationInfoStack.Top;
+    Result := SensibleCameraRadius(NavigationNode, RadiusFromNavigationInfo);
+    if RadiusFromNavigationInfo then
+    begin
+      WritelnLog('Camera Radius: %.8f (from NavigationInfo.AvatarSize[0])', [Result]);
+    end else
+    begin
+      BoxSize := WorldBox.AverageSize(false, 1.0);
+      Result := BoxSize * WorldBoxSizeToRadius;
+      WritelnLog('Camera Radius: %.8f (auto-calculated from average box size %.8f)', [
+        Result,
+        BoxSize
+      ]);
+    end;
+  end;
+
+var
+  Radius: Single;
+  RadiusFromNavigationInfo: Boolean;
+  ViewpointNode: TAbstractViewpointNode;
+begin
+  ViewpointNode := ViewpointStack.Top;
+
+  Radius := BestRadius(RadiusFromNavigationInfo);
+  if Navigation <> nil then
+    Navigation.Radius := Radius;
+
+  if (ViewpointNode <> nil) and
+     (ViewpointNode.NearDistance > 0) then
+  begin
+    ACamera.ProjectionNear := ViewpointNode.NearDistance;
+    WritelnLog('Projection Near: %.8f (from Viewpoint.NearDistance)', [
+      ACamera.ProjectionNear
+    ]);
+  end else
+  if not RadiusFromNavigationInfo then
+  begin
+    ACamera.ProjectionNear := Radius * RadiusToProjectionNear;
+    WritelnLog('Projection Near: %.8f (auto-calculated from Radius)', [
+      ACamera.ProjectionNear
+    ]);
+  end else
+  begin
+    { Just like TCastleSceneCore.InternalUpdateCamera:
+
+      Projection near must be always smaller than Radius,
+      so we use below "Radius * RadiusToProjectionNear".
+      Moreover, we allow "DefaultCameraRadius * RadiusToProjectionNear"
+      to make the result even smaller: this way merely adding
+      NavigationInfo node to the scene, with or without default avatarSize,
+      will not cause ProjectionNear to be larger (which could clip some geometry).
+
+      We do this capping only when RadiusFromNavigationInfo = true.
+      This way, when radius is large because scene is large
+      (radius did not come from NavigationInfo.avatarSize),
+      then projection near will also remain large (so keep z-depth precision).
+    }
+    ACamera.ProjectionNear := Min(
+      Radius * RadiusToProjectionNear,
+      DefaultCameraRadius * RadiusToProjectionNear
+    );
+    WritelnLog('Projection Near: %.8f (auto-calculated from Radius, and Radius from NavigationInfo)', [
+      ACamera.ProjectionNear
+    ]);
+  end;
 end;
 
 procedure TCastleSceneCore.CameraTransition(const Camera: TCastleCamera;
@@ -7969,7 +8198,7 @@ begin
       NewPlayingAnimationNode.FakeTime(
         NewPlayingAnimationInitialTime,
         NewPlayingAnimationLoop,
-        NewPlayingAnimationForward,
+        { FractionIncreasing } not NewPlayingAnimationReverse,
         NextEventTime);
       FinishTransformationChanges;
     end;
@@ -7985,7 +8214,7 @@ begin
   try
     Params.Name := AnimationName;
     Params.Loop := Loop;
-    Params.Forward := Forward;
+    Params.Reverse := not Forward;
     if PlayingAnimationNode <> nil then
       Params.TransitionDuration := DefaultAnimationTransition;
     Result := PlayAnimation(Params);
@@ -8040,7 +8269,7 @@ begin
     FCurrentAnimation := FAnimationsList.Objects[Index] as TTimeSensorNode;
     NewPlayingAnimationNode := FCurrentAnimation;
     NewPlayingAnimationLoop := Parameters.Loop;
-    NewPlayingAnimationForward := Parameters.Forward;
+    NewPlayingAnimationReverse := Parameters.Reverse;
     NewPlayingAnimationStopNotification := Parameters.StopNotification;
     NewPlayingAnimationTransitionDuration := Parameters.TransitionDuration;
     NewPlayingAnimationInitialTime := Parameters.InitialTime;

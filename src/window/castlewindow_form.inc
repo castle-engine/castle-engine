@@ -17,24 +17,18 @@
 (*CastleWindow backend using Lazarus LCL or Delphi FMX underneath.
 
   *Should* work with all platforms,
-  all LCL widgetsets,
-  all Delphi FMX platforms.
+  - all LCL widgetsets,
+  - all Delphi FMX platforms.
 
-  Note that there are a few TODOs in this file, for some specific Delphi (FMX)
-  or FPC / Lazarus (LCL) backends. Things are not perfect on their end always,
-  there are platform-specific edge cases.
-  We still try to support all LCL and FMX widgetsets here, *but*
-  we focus our testing on platforms where we actually use this backend by default.
+  We focus our testing on platforms where we actually use this backend by default.
   This means right now:
 
-  - Delphi/Linux,
-    Delphi/Android,
-    TODO: likely we will use it too for Delphi/iOS,
-    TODO: likely we will use it too for Delphi/macOS
+  - Delphi with all non-Windows platforms
+    (see https://castle-engine.io/delphi_mobile ,
+    https://castle-engine.io/delphi_linux ,
+    https://castle-engine.io/delphi_macos )
 
-    They all use FireMonkey (FMX).
-
-  Historically, it was useful also with some LCL backends (e.g. we depended on
+  Historically, this was useful also with some LCL backends (e.g. we depended on
   this for FPC/macOS for a long time, before we implemented castlewindow_cocoa.inc).
   And it may be useful with more platforms in the future, both LCL and FMX.
 
@@ -150,16 +144,13 @@
 
 { Handle FMX safe area (TCustomForm.OnSafeAreaChanged) to set
   Container.SafeBorder on mobile platforms.
-  FMX reports the safe area only on Android and iOS.
-  We could use this for other platforms too (they report nothing)...
-  but it would break compatibility with older Delphi versions,
-  as for Windows we allow even Delphi 10.2.1
-  (see https://castle-engine.io/delphi#_delphi_versions_supported )
-  and it doesn't have FMX API for safe area detection.
+  FMX reports the safe area only on Android and iOS, but it is safe to just
+  enable on all platforms.
 
-  TODO: This should really be a version-check, not platform check.
-  We need to find Delphi version that added OnSafeAreaChanged. }
-{$if defined(DELPHI) and (defined(ANDROID) or defined(IOS))}
+  The necessary event (OnSafeAreaChanged) was only added in Delphi 13.1, it seems
+  ( https://en.delphipraxis.net/topic/11938-android-15-and-edge-to-edge-enforcement/?page=2 ,
+  discussion after 13.1 shipped; I didn't find any better resource). }
+{$if defined(DELPHI) and (CompilerVersion >= 38) or Declared(RTLVersion131)}
   {$define HANDLE_FMX_SAFE_AREA}
 {$endif}
 
@@ -246,7 +237,20 @@ private
 
     { Like TOpenGLControl but sets Invalidated:=true on Window,
       so that Window knows when it's invalidated by the OS. }
-    TGoodOpenGLControl = class(TOpenGLControl)
+    TGoodOpenGLControl = class(TOpenGLControl
+      {$ifdef USE_FMX_VIRTUAL_KEYBOARD_SERVICE}, IVirtualKeyboardControl{$endif})
+    {$ifdef USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
+    private
+      { IVirtualKeyboardControl implementation.
+        FMX requires this interface on the focused control to show
+        the on-screen keyboard with Delphi 10.4 on iOS.
+        The values are not actually used by FMX for controls without ITextInput. }
+      procedure SetKeyboardType(Value: TVirtualKeyboardType);
+      function GetKeyboardType: TVirtualKeyboardType;
+      procedure SetReturnKeyType(Value: TReturnKeyType);
+      function GetReturnKeyType: TReturnKeyType;
+      function IsPassword: Boolean;
+    {$endif USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
     public
       Window: TCastleWindow;
       procedure Invalidate; override;
@@ -440,11 +444,97 @@ begin
 end;
 {$endif}
 
+{$ifdef USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
+procedure TCastleWindow.TGoodOpenGLControl.SetKeyboardType(Value: TVirtualKeyboardType);
+begin
+  // ignored, FMX doesn't use it for controls without ITextInput
+end;
+
+function TCastleWindow.TGoodOpenGLControl.GetKeyboardType: TVirtualKeyboardType;
+begin
+  Result := TVirtualKeyboardType.Default;
+end;
+
+procedure TCastleWindow.TGoodOpenGLControl.SetReturnKeyType(Value: TReturnKeyType);
+begin
+  // ignored, FMX doesn't use it for controls without ITextInput
+end;
+
+function TCastleWindow.TGoodOpenGLControl.GetReturnKeyType: TReturnKeyType;
+begin
+  Result := TReturnKeyType.Default;
+end;
+
+function TCastleWindow.TGoodOpenGLControl.IsPassword: Boolean;
+begin
+  Result := false;
+end;
+{$endif USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
+
+{ TWindowFormContainer -------------------------------------------------------- }
+
+type
+  { Container for CASTLE_WINDOW_FORM backend.
+    Adds features specific to this backend,
+    like on-screen keyboard using FMX IFMXVirtualKeyboardService. }
+  TWindowFormContainer = class(TWindowContainer)
+  {$ifdef USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
+  strict private
+    FOnScreenKeyboard: TFmxOnScreenKeyboard;
+  protected
+    procedure SystemShowOnScreenKeyboard(
+      const CurrentText: String; const PasswordMode: Boolean); override;
+    procedure SystemHideOnScreenKeyboard; override;
+  public
+    constructor Create(AParent: TCastleWindow); reintroduce;
+    destructor Destroy; override;
+  {$endif USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
+  end;
+
+{$ifdef USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
+constructor TWindowFormContainer.Create(AParent: TCastleWindow);
+begin
+  inherited Create(AParent);
+  FOnScreenKeyboard := TFmxOnScreenKeyboard.Create(Self);
+end;
+
+destructor TWindowFormContainer.Destroy;
+begin
+  inherited;
+  { Free after inherited, as inherited destructor may unfocus TCastleEdit
+    (e.g. when stopping the view), which calls SystemHideOnScreenKeyboard. }
+  FreeAndNil(FOnScreenKeyboard);
+end;
+
+procedure TWindowFormContainer.SystemShowOnScreenKeyboard(
+  const CurrentText: String; const PasswordMode: Boolean);
+begin
+  { Note: We don't use CurrentText, PasswordMode for now.
+    The FMX virtual keyboard service doesn't have parameters for them.
+    TODO: Password mode is applied by FMX only for controls implementing
+    ITextInput (with a TTextService), so it would require implementing that. }
+
+  { OpenGLControl may be nil if window is not open (or already closed). }
+  if Parent.OpenGLControl = nil then
+  begin
+    WritelnWarning('Cannot show on-screen keyboard when window is not open');
+    Exit;
+  end;
+
+  FOnScreenKeyboard.Show(Parent.OpenGLControl);
+end;
+
+procedure TWindowFormContainer.SystemHideOnScreenKeyboard;
+begin
+  FOnScreenKeyboard.Hide;
+end;
+{$endif USE_FMX_VIRTUAL_KEYBOARD_SERVICE}
+
 { TCastleWindow ------------------------------------------------------------------ }
 
 function TCastleWindow.CreateContainer: TCastleContainer;
 begin
-  Result := TWindowContainer.Create(Self);
+  Result := TWindowFormContainer.Create(Self);
 end;
 
 procedure TCastleWindow.CreateBackend;

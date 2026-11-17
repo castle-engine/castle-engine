@@ -30,7 +30,12 @@ buildscript {
         // Later we need to upgrade to 8.5.1 to support 16k page sizes.
         // And later, since 8.5.1 is untested with SDK 35,
         // so we upgrade to 8.8.0 recommended now by Android Studio .
-        classpath 'com.android.tools.build:gradle:8.8.0'
+        //
+        // Later we upgrade to 9.4.1, together with Gradle 9.8.2,
+        // as Gradle 8.x cannot run on Java 25 (fails with
+        // "Unsupported class file major version 69").
+        // AGP 9.4 requires Gradle >= 9.6.0, JDK >= 17, SDK Build Tools >= 36.0.0 .
+        classpath 'com.android.tools.build:gradle:9.4.1'
 
         // Do not change the line below, it is necessary for build.gradle merging to work.
         // MERGE-DEPENDENCIES

@@ -1,5 +1,5 @@
 {
-  Copyright 2012-2018 Michalis Kamburelis.
+  Copyright 2012-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -681,6 +681,28 @@ function UrlReadXML(const Url: String; const BlowFishKeyPhrase: String): TXMLDoc
 procedure UrlWriteXML(Doc: TXMLDocument; const Url: String; const BlowFishKeyPhrase: String); overload;
 {$endif}
 { @groupEnd }
+
+const
+  { Stream must be seekable for Delphi XML reading,
+    and it may not be automatically seekable (e.g. when downloading
+    Android assets). }
+  {$ifdef DELPHI}
+    {$define XML_READ_REQUIRES_SEEKABLE_STREAM}
+  {$endif}
+
+  { Options to pass to @link(Download) to get stream with XML contents
+    that should be readable by XMLRead.ReadXMLFile. }
+  XmlReadingOptions =
+    {$ifdef XML_READ_REQUIRES_SEEKABLE_STREAM} [soForceMemoryStream]
+    {$else} []
+    {$endif};
+
+  { Whether XML reading (by XMLRead.ReadXMLFile) requires a seekable stream.
+    This is useful e.g. to set @link(TModelFormat.OnLoadForceMemoryStream). }
+  XmlReadingForceMemoryStream =
+    {$ifdef XML_READ_REQUIRES_SEEKABLE_STREAM} true
+    {$else} false
+    {$endif};
 
 implementation
 
@@ -1415,14 +1437,10 @@ begin
   Doc := nil; // clean "out" param at start, just like ReadXMLFile
 
   //guess gzipped based on file extension
-  StreamOptions := [];
+  StreamOptions := XmlReadingOptions;
   UriMimeType(Url, Gzipped);
   if Gzipped then
     Include(StreamOptions, soGzip);
-
-  {$ifdef XML_READ_REQUIRES_SEEKABLE_STREAM}
-  Include(StreamOptions, soForceMemoryStream);
-  {$endif}
 
   Stream := Download(Url, StreamOptions);
   try

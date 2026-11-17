@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2024 Michalis Kamburelis.
+  Copyright 2014-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -70,8 +70,15 @@ type
     destructor Destroy; override;
   end;
 
-{ Compile with Pascal compiler.
-  SearchPaths, ExtraOptions may be @nil (same as empty). }
+{ Compile with a Pascal compiler.
+
+  @param(Compiler Compiler to use. May be coAutodetect.)
+
+  @param(SearchPaths Additional search paths for units/includes.
+    May be @nil (same as empty).)
+
+  @param(ExtraOptions Extra compiler options.
+    May be @nil (same as empty).) }
 procedure Compile(Compiler: TCompiler;
   const WorkingDirectory, CompileFile: String; const Options: TCompilerOptions);
 
@@ -84,6 +91,23 @@ procedure CompileFpc(
   SearchPaths, ExtraOptions may be @nil (same as empty). }
 procedure CompileDelphi(
   const WorkingDirectory, CompileFile: String; const Options: TCompilerOptions);
+
+{ Run msbuild with Delphi project (.dproj alongside the CompileFile),
+  for the platform and configuration determined by Options.
+
+  @param(MSBuildTarget Msbuild target, like 'Build' or 'Deploy'.)
+
+  @param(ExtraDefines Additional defines, separated by semicolons.
+    Matter only for targets that compile.)
+
+  @param(ExtraUnitSearchPath Additional unit search paths, separated by semicolons.
+    Matter only for targets that compile.)
+
+  @raises(Exception If the .dproj doesn't exist, or msbuild failed.) }
+procedure RunDelphiMSBuild(
+  const WorkingDirectory, CompileFile, MSBuildTarget: String;
+  const Options: TCompilerOptions;
+  const ExtraDefines: String = ''; const ExtraUnitSearchPath: String = '');
 
 { Compile with lazbuild. }
 procedure CompileLazbuild(
@@ -115,6 +139,21 @@ var
     See ../delphi_dcc_vs_msbuild.md for discussion. }
   CompileDelphiUsingDcc: Boolean = false;
 
+  { Should MSBuild pass paths to the engine on the command-line.
+
+    We would like this to be true
+    (to make sure that proper engine is compiled,
+    and so you don't need to tweak any machine-specific compiler settings).
+    But it causes problems with MSBuild path limit length
+    (see delphi_dcc_vs_msbuild.md ). }
+  MSBuildPassEnginePaths: Boolean = true;
+
+  { Delphi connection profile (to PAServer) to pass to MSBuild
+    as "/p:Profile=...". Empty (default) means to not pass it.
+    Necessary e.g. for "Deploy" target for iOS, otherwise it fails with
+    "Missing profile name. Unable to get a valid profile from environment options file". }
+  MSBuildProfile: String;
+
 const
   CompilationModeToStr: array [TCompilationMode] of string = (
     'release',
@@ -134,6 +173,18 @@ function DelphiPlatform(const OS: TOS; const CPU: TCPU;
 { Convert our TCompilationMode to Delphi "Config" name, like 'Release', 'Debug',
   used for e.g. output directory. }
 function DelphiConfig(const Mode: TCompilationMode): String;
+
+{ Resolve Compiler to something other than coAutodetect.
+
+  @param(DefaultToFpc Assume FPC if no compiler was found.
+    This makes sense when we need to know "what compiler was used to make this",
+    but we don't really need to call the compiler.
+    This happens with "castle-engine package --assume-compiled" command.
+    We should not fail in this case when no compiler (FPC, Delphi) if found
+    on the system (and command-line and manifest left compiler as coAutodetect),
+    we should assume FPC.) }
+procedure FinishDetectingCompiler(var Compiler: TCompiler;
+  const DefaultToFpc: Boolean = false);
 
 implementation
 
@@ -634,7 +685,7 @@ begin
 
   FpcOptions := TCastleStringList.Create;
   try
-    if CastleEnginePath <> '' then
+    if {PassEnginePaths and} (CastleEnginePath <> '') then
       CastleEngineSrc := CastleEnginePath + 'src' + PathDelim
     else
       CastleEngineSrc := '';
@@ -975,9 +1026,9 @@ begin
   finally FreeAndNil(FpcOptions) end;
 end;
 
-procedure Compile(Compiler: TCompiler; const WorkingDirectory, CompileFile: String; const Options: TCompilerOptions);
+procedure FinishDetectingCompiler(var Compiler: TCompiler;
+  const DefaultToFpc: Boolean);
 begin
-  { resolve Compiler to something other than coAutodetect }
   if Compiler = coAutodetect then
   begin
     if FindExeFpcCompiler(false) <> '' then
@@ -986,10 +1037,17 @@ begin
     if FindDelphiPath(false) <> '' then
       Compiler := coDelphi
     else
+    if DefaultToFpc then
+      Compiler := coFpc
+    else
       raise Exception.Create('Neither FPC nor Delphi found, cannot autodetect compiler');
   end;
   Assert(Compiler <> coAutodetect);
+end;
 
+procedure Compile(Compiler: TCompiler; const WorkingDirectory, CompileFile: String; const Options: TCompilerOptions);
+begin
+  FinishDetectingCompiler(Compiler);
   case Compiler of
     coFpc: CompileFpc(WorkingDirectory, CompileFile, Options);
     coDelphi: CompileDelphi(WorkingDirectory, CompileFile, Options);
@@ -1123,7 +1181,7 @@ begin
   if not RegularFileExists(DccExe) then
     raise Exception.CreateFmt('Cannot find Delphi compiler for this OS/CPU: %s', [DccExe]);
 
-  if CastleEnginePath <> '' then
+  if {PassEnginePaths and} (CastleEnginePath <> '') then
     CastleEngineSrc := CastleEnginePath + 'src' + PathDelim
   else
     CastleEngineSrc := '';
@@ -1197,83 +1255,35 @@ begin
   end;
 end;
 
-{ Compile with Delphi using msbuild.
-
-  Assumes we have .dproj alongside the .dpr file.
-
-  This is our recommended and default approach now.
-  See ../delphi_dcc_vs_msbuild.md for discussion. }
-procedure CompileDelphiMSBuild(const WorkingDirectory, CompileFile: String; const Options: TCompilerOptions);
-
-  procedure AddEnginePath(var SearchPaths: String; NewPath: String);
-  begin
-    NewPath := CastleEnginePath + 'src' + PathDelim + NewPath;
-    if not DirectoryExists(NewPath) then
-      WritelnWarning('Path', 'Path "%s" does not exist. Make sure that $CASTLE_ENGINE_PATH points to the directory containing Castle Game Engine sources.', [
-        NewPath
-      ]);
-    SearchPaths := SAppendPart(SearchPaths, ';', NewPath);
-  end;
-
-  procedure AddEngineSearchPaths(var SearchPaths: String);
-  var
-    S: String;
-  begin
-    if CastleEnginePath <> '' then
-    begin
-      for S in EnginePaths do
-        AddEnginePath(SearchPaths, S);
-      for S in EnginePathsDelphi do
-        AddEnginePath(SearchPaths, S);
-    end;
-  end;
-
+procedure RunDelphiMSBuild(
+  const WorkingDirectory, CompileFile, MSBuildTarget: String;
+  const Options: TCompilerOptions;
+  const ExtraDefines, ExtraUnitSearchPath: String);
 var
-  DelphiPath, RsVars, DprojFile, DprojFileAbsolute: String;
-  MSBuildPlatform, MSBuildConfig, ExtraDefines, ExtraUnitSearchPath: String;
+  DelphiPath, RsVars, DprojFileAbsolute: String;
+  MSBuildPlatform, MSBuildConfig, MSBuildProfileParam: String;
   WrapperBat, WrapperBatContents, OutPath, MSBuildOutput: String;
   ComSpec, MsBuildVerbosity: String;
   MSBuildExitStatus: Integer;
-  S: String;
 begin
   DelphiPath := FindDelphiPath(true);
   RsVars := DelphiPath + 'bin' + PathDelim + 'rsvars.bat';
   if not RegularFileExists(RsVars) then
     raise Exception.CreateFmt('Cannot find Delphi "rsvars.bat" (expected in "%s"). It is necessary to set up the environment for msbuild.', [RsVars]);
 
-  DprojFile := ChangeFileExt(CompileFile, '.dproj');
-  DprojFileAbsolute := CombinePaths(WorkingDirectory, DprojFile);
+  DprojFileAbsolute := CombinePaths(WorkingDirectory, ChangeFileExt(CompileFile, '.dproj'));
   if not RegularFileExists(DprojFileAbsolute) then
-  begin
-    WritelnWarning('Cannot find Delphi project file "%s". ' + NL +
-      'We recommend to generate the DPROJ by running "castle-engine generate-program" to have "msbuild" compilation working. ' + NL +
-      'Falling back to Delphi dcc usage.', [DprojFile]);
-    CompileDelphiDcc(WorkingDirectory, CompileFile, Options);
-    Exit;
-  end;
+    raise Exception.CreateFmt('Cannot find Delphi project file "%s". Generate the DPROJ by running "castle-engine generate-program".', [
+      DprojFileAbsolute
+    ]);
 
   MSBuildPlatform := DelphiPlatform(Options.OS, Options.CPU);
   MSBuildConfig := DelphiConfig(Options.Mode);
 
-  { Add extra defines using the DCC_Define environment variable.
-    The generated .dproj uses $(DCC_Define), making this injection
-    possible. }
-  ExtraDefines := '';
-  for S in Options.Defines do
-    ExtraDefines := SAppendPart(ExtraDefines, ';', S);
-
-  { Similarly, add extra unit search paths using the DCC_UnitSearchPath.
-    Note: project search paths are assumed to be already set in the .dproj file.
-    We add engine search paths, so the building works when $CASTLE_ENGINE_PATH
-    is set, regardless if Delphi was pointed to the engine sources using
-    "Configure Delphi to Use Engine". }
-  ExtraUnitSearchPath := '';
-  AddEngineSearchPaths(ExtraUnitSearchPath);
-
-  { Make a warning that Options.ExtraOptions are unsupported. }
-  if Options.ExtraOptions.Count > 0 then
-    WritelnWarning('Delphi', 'Extra compiler options have been provided, but they are ignored when compiling with msbuild. The extra compiler options are:' + NL +
-      Options.ExtraOptions.Text);
+  if MSBuildProfile <> '' then
+    MSBuildProfileParam := ' "/p:Profile=' + MSBuildProfile + '"'
+  else
+    MSBuildProfileParam := '';
 
   { Write bat that sets up the Delphi environment (calling rsvars.bat)
     then runs msbuild. }
@@ -1296,14 +1306,15 @@ begin
     'set "DCC_Define=' + ExtraDefines + '"' + NL +
     'set "DCC_UnitSearchPath=' + ExtraUnitSearchPath + '"' + NL +
     'msbuild "' + DprojFileAbsolute + '"' +
-      ' /target:Build' +
+      ' /target:' + MSBuildTarget +
       ' /p:Config=' + MSBuildConfig +
       ' /p:Platform=' + MSBuildPlatform +
+      MSBuildProfileParam +
       ' ' + MsBuildVerbosity + NL +
     'exit /b %errorlevel%' + NL;
   StringToFile(FilenameToUriSafe(WrapperBat), WrapperBatContents);
 
-  Writeln('Delphi compiler (msbuild) executing...');
+  Writeln('Delphi msbuild (target: ' + MSBuildTarget + ') executing...');
 
   ComSpec := GetEnvironmentVariable('ComSpec');
   if ComSpec = '' then
@@ -1312,7 +1323,75 @@ begin
   RunCommandIndirPassthrough(WorkingDirectory, ComSpec, ['/c', WrapperBat],
     MSBuildOutput, MSBuildExitStatus);
   if MSBuildExitStatus <> 0 then
-    raise Exception.Create('Failed to compile');
+    raise Exception.CreateFmt('Failed to execute msbuild target "%s"', [MSBuildTarget]);
+end;
+
+{ Compile with Delphi using msbuild.
+
+  Falls back to dcc if we don't have .dproj alongside the .dpr file.
+
+  See ../delphi_dcc_vs_msbuild.md for discussion when msbuild, when dcc are better. }
+procedure CompileDelphiMSBuild(const WorkingDirectory, CompileFile: String; const Options: TCompilerOptions);
+
+  procedure AddEnginePath(var SearchPaths: String; NewPath: String);
+  begin
+    NewPath := CastleEnginePath + 'src' + PathDelim + NewPath;
+    if not DirectoryExists(NewPath) then
+      WritelnWarning('Path', 'Path "%s" does not exist. Make sure that $CASTLE_ENGINE_PATH points to the directory containing Castle Game Engine sources.', [
+        NewPath
+      ]);
+    SearchPaths := SAppendPart(SearchPaths, ';', NewPath);
+  end;
+
+  procedure AddEngineSearchPaths(var SearchPaths: String);
+  var
+    S: String;
+  begin
+    if MSBuildPassEnginePaths and (CastleEnginePath <> '') then
+    begin
+      for S in EnginePaths do
+        AddEnginePath(SearchPaths, S);
+      for S in EnginePathsDelphi do
+        AddEnginePath(SearchPaths, S);
+    end;
+  end;
+
+var
+  DprojFile, ExtraDefines, ExtraUnitSearchPath: String;
+  S: String;
+begin
+  DprojFile := ChangeFileExt(CompileFile, '.dproj');
+  if not RegularFileExists(CombinePaths(WorkingDirectory, DprojFile)) then
+  begin
+    WritelnWarning('Cannot find Delphi project file "%s". ' + NL +
+      'We recommend to generate the DPROJ by running "castle-engine generate-program" to have "msbuild" compilation working. ' + NL +
+      'Falling back to Delphi dcc usage.', [DprojFile]);
+    CompileDelphiDcc(WorkingDirectory, CompileFile, Options);
+    Exit;
+  end;
+
+  { Make a warning that Options.ExtraOptions are unsupported. }
+  if Options.ExtraOptions.Count > 0 then
+    WritelnWarning('Delphi', 'Extra compiler options have been provided, but they are ignored when compiling with msbuild. The extra compiler options are:' + NL +
+      Options.ExtraOptions.Text);
+
+  { Add extra defines using the DCC_Define environment variable.
+    The generated .dproj uses $(DCC_Define), making this injection
+    possible. }
+  ExtraDefines := '';
+  for S in Options.Defines do
+    ExtraDefines := SAppendPart(ExtraDefines, ';', S);
+
+  { Similarly, add extra unit search paths using the DCC_UnitSearchPath.
+    Note: project search paths are assumed to be already set in the .dproj file.
+    We add engine search paths, so the building works when $CASTLE_ENGINE_PATH
+    is set, regardless if Delphi was pointed to the engine sources using
+    "Configure Delphi to Use Engine". }
+  ExtraUnitSearchPath := '';
+  AddEngineSearchPaths(ExtraUnitSearchPath);
+
+  RunDelphiMSBuild(WorkingDirectory, CompileFile, 'Build', Options,
+    ExtraDefines, ExtraUnitSearchPath);
 end;
 
 procedure CompileDelphi(const WorkingDirectory, CompileFile: String; const Options: TCompilerOptions);

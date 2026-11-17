@@ -1,9 +1,9 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace "${QUALIFIED_NAME}"
+    namespace = "${QUALIFIED_NAME}"
 
-    compileSdkVersion ${ANDROID_COMPILE_SDK_VERSION}
+    compileSdk = ${ANDROID_COMPILE_SDK_VERSION}
 
     // Require NDK version that ships with 16 kb aligned libraries,
     // like libc++_shared.so .
@@ -11,14 +11,14 @@ android {
     // freetype, libpng...) with 16 kb even with older NDKs,
     // but to have libc++_shared.so we just need NDK version that includes them.
     // Version below is latest LTS from https://developer.android.com/ndk/downloads
-    ndkVersion "27.3.13750724"
+    ndkVersion = "27.3.13750724"
 
     defaultConfig {
-        applicationId "${QUALIFIED_NAME}"
-        minSdkVersion    ${ANDROID_MIN_SDK_VERSION}
-        targetSdkVersion ${ANDROID_TARGET_SDK_VERSION}
-        versionCode ${VERSION_CODE}
-        versionName "${VERSION}"
+        applicationId = "${QUALIFIED_NAME}"
+        minSdk = ${ANDROID_MIN_SDK_VERSION}
+        targetSdk = ${ANDROID_TARGET_SDK_VERSION}
+        versionCode = ${VERSION_CODE}
+        versionName = "${VERSION}"
 
         ndk {
             // For detailed abiFilter descriptions, refer to "Supported ABIs"
@@ -55,7 +55,7 @@ android {
     /* Why two externalNativeBuild/cmake sections? See: https://stackoverflow.com/questions/64829357/specify-targets-in-externalnativebuild-of-the-build-gradle-file-no-signature-o */
     externalNativeBuild {
         cmake {
-            path 'src/main/CMakeLists.txt'
+            path = file('src/main/CMakeLists.txt')
         }
     }
 
@@ -78,14 +78,14 @@ android {
 
     */
     compileOptions {
-        sourceCompatibility 1.8
-        targetCompatibility 1.8
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
     }
 
     /* Necessary for Oboe,
        https://developer.android.com/games/sdk/oboe/update-build-settings */
     buildFeatures {
-        prefab true
+        prefab = true
     }
 }
 

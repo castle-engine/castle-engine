@@ -1315,7 +1315,7 @@ begin
   begin
     {$ifdef GLIndexesShort}
     if Integer(Count - 1) * IndexesPerQuad + IndexesPerQuad - 1 > High(Word) then
-      raise Exception.CreateFmt('Maximum index value is larger than %d (max 16-bit unsigned integer). Split your rendering into more shapes (draw calls). Or undefine GLIndexesShort in castleconf.inc to be able to render your data (but beware that it may fail on some buggy Android devices).', [High(Word)]);
+      raise Exception.CreateFmt('Maximum index value is larger than %d (max 16-bit unsigned integer). ' + 'Split your rendering into more shapes (draw calls). Or undefine GLIndexesShort in castleconf.inc to be able to render your data (but beware that it may fail on some buggy Android devices).', [High(Word)]);
     {$endif}
     SetLength(Indexes, Count * IndexesPerQuad);
     for I := 0 to Count - 1 do

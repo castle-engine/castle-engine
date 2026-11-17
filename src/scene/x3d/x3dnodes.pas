@@ -708,7 +708,7 @@ begin
     only because on desktop, TFileStream (returned for files by default)
     is already seekable.
 
-    Also XML_READ_REQUIRES_SEEKABLE_STREAM would require this for
+    Also XmlReadingForceMemoryStream would require this for
     Delphi/Android. }
   ModelFormat.OnLoadForceMemoryStream := true;
   RegisterModelFormat(ModelFormat);
