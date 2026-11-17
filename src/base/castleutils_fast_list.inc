@@ -34,10 +34,13 @@ type
     one-by-one iteration over items (like notification of removals
     or dropping reference counts).
 
+    Items are compared (by @link(IndexOf), @link(Remove), @link(PerfectlyEquals))
+    by their memory contents.
+
     Manages memory to optimize speed, not conserve memory: operations
     only allocate memory, until you do @link(ReleaseMemory) (or free this
     instance, of course). Aside from this, we only grow, even when you
-    call @link(Clear). }
+    call @link(Clear) or decrease @link(Count). }
   {$ifdef FPC}generic{$endif}
   TCastleFastList<T> = class
   public
@@ -50,7 +53,7 @@ type
       TEnumerator = record
       strict private
         FList: TCastleFastList {$ifndef FPC}<T>{$endif};
-        FPosition: Integer;
+        FPosition: TListSize;
         function GetCurrent: T; inline;
       public
         constructor Create(const AList: TCastleFastList {$ifndef FPC}<T>{$endif});
@@ -62,20 +65,33 @@ type
       FItems: PtrT;
       { FItems is allocated for SizeOf(T) * FCapacity.
         When FCapacity = 0 <=> FItems = nil. }
-      FCapacity: Integer;
+      FCapacity: TListSize;
       { Exposed to user count of items.
         Always FCount <= FCapacity. }
-      FCount: Integer;
-    function GetItems(const Index: Integer): T;
-    procedure SetItems(const Index: Integer; const Value: T);
+      FCount: TListSize;
+    function GetItems(const Index: TListSize): T;
+    procedure SetItems(const Index: TListSize; const Value: T);
+    procedure SetCount(const Value: TListSize);
+    procedure SetCapacity(const Value: TListSize);
+    { Make sure Capacity is at least MinimumCapacity,
+      growing it by a factor (not only to MinimumCapacity)
+      to make a series of such calls fast. }
+    procedure Grow(const MinimumCapacity: TListSize);
   public
     destructor Destroy; override;
 
-    { How many items are in the list. }
-    property Count: Integer read FCount;
+    { How many items are in the list.
+
+      Increasing it adds items filled with zeros.
+      Decreasing it only forgets the items at the end, keeping the allocated memory. }
+    property Count: TListSize read FCount write SetCount;
+
+    { How many items can be in the list without allocating more memory.
+      Setting it to less than @link(Count) also decreases @link(Count). }
+    property Capacity: TListSize read FCapacity write SetCapacity;
 
     { Get or set items in the list. }
-    property Items[const Index: Integer]: T read GetItems write SetItems; default;
+    property Items[const Index: TListSize]: T read GetItems write SetItems; default;
 
     { Access the list contents through a pointer, to get or set them efficiently.
 
@@ -103,18 +119,106 @@ type
       to set their fields.  }
     property L: PtrT read FItems;
 
-    { Add new item. }
-    procedure Add(const Item: T);
+    { Pointer to the I-th item. }
+    function Ptr(const I: TListSize): PtrT;
+
+    { Size of one item, in bytes. }
+    function ItemSize: TListSize;
+
+    { Add new item. Returns its index. }
+    function Add(const Item: T): TListSize; overload;
+
+    { Increase Count and return pointer to new item.
+      Comfortable and efficient way to add a new item that you want to immediately
+      initialize. The new item is filled with zeros. }
+    function Add: PtrT; overload;
+
+    { Insert an item at the given index, moving the following items. }
+    procedure Insert(const Index: TListSize; const Item: T);
+
+    { Insert the items of the array at the given index, moving the following items. }
+    procedure InsertRange(const Index: TListSize; const A: array of T);
+
+    { Remove the item at the given index, moving the following items. }
+    procedure Delete(const Index: TListSize);
+
+    { Remove DelCount items starting at the given index, moving the following items. }
+    procedure DeleteRange(const Index, DelCount: TListSize);
+
+    { Index of the first item equal to Item (comparing memory), -1 if none. }
+    function IndexOf(const Item: T): TListSize;
+
+    { Is there an item equal to Item (comparing memory). }
+    function Contains(const Item: T): Boolean;
+
+    { Remove the first item equal to Item (comparing memory).
+      Returns its index, -1 if none. }
+    function Remove(const Item: T): TListSize;
+
+    { Swap the items at indexes Index1 and Index2. }
+    procedure Exchange(const Index1, Index2: TListSize);
+
+    { Reverse the order of items. }
+    procedure Reverse;
+
+    { The first item. The list must not be empty. }
+    function First: T;
+
+    { The last item. The list must not be empty. }
+    function Last: T;
 
     { Clearing is equivalent to setting Count := 0.
       Does not deallocate memory (to keep it for future reuse),
       call @link(ReleaseMemory) if you want to do that. }
     procedure Clear;
 
+    { Set Count and Capacity to 0, deallocating the memory. }
     procedure ReleaseMemory;
-    procedure AllocateAtLeast(const MinimumCapacity: Integer);
-    procedure Assign(const Source: TCastleFastList {$ifndef FPC}<T>{$endif});
-    procedure AddRange(const Source: TCastleFastList {$ifndef FPC}<T>{$endif});
+
+    { Make sure Capacity is at least MinimumCapacity. }
+    procedure AllocateAtLeast(const MinimumCapacity: TListSize);
+
+    { Make this list a copy of the Source. }
+    procedure Assign(const Source: TCastleFastList {$ifndef FPC}<T>{$endif}); overload;
+    { Make this list a copy of the array. }
+    procedure Assign(const A: array of T); overload;
+
+    { Add all the items of Source. }
+    procedure AddRange(const Source: TCastleFastList {$ifndef FPC}<T>{$endif}); overload;
+    { Add all the items of the array. }
+    procedure AddRange(const A: array of T); overload;
+
+    { Add a subrange of another list here. }
+    procedure AddSubRange(const Source: TCastleFastList {$ifndef FPC}<T>{$endif};
+      const Index, AddCount: TListSize);
+
+    { Assign here a linear interpolation of two other arrays.
+      We take ACount items, from V1[Index1 ... Index1 + ACount - 1] and
+      V2[Index2 ... Index2 + ACount - 1], and interpolate between them.
+
+      It's Ok for both V1 and V2 to be the same objects.
+      But their ranges should not overlap, for future optimizations.
+
+      @raises(ELinearInterpolationImpossible On classes where linear interpolation is not possible,
+        e.g. we cannot linearly interpolate lists of booleans.) }
+    procedure AssignLerpRange(const Fraction: Single;
+      const V1, V2: TCastleFastList {$ifndef FPC}<T>{$endif};
+      const Index1, Index2, ACount: TListSize); virtual;
+
+    { Assign linear interpolation between two other arrays.
+      @raises EListsDifferentCount If V1 and V2 have different count.
+      @raises(ELinearInterpolationImpossible On classes where linear interpolation is not possible,
+        e.g. we cannot linearly interpolate lists of booleans.) }
+    procedure AssignLerp(const Fraction: Single;
+      const V1, V2: TCastleFastList {$ifndef FPC}<T>{$endif});
+
+    { Does the SecondValue have equal length and content.
+      The values are compared perfectly, without any tolerance for difference. }
+    function PerfectlyEquals(
+      const SecondValue: TCastleFastList {$ifndef FPC}<T>{$endif}): Boolean;
+
+    { Copy of the items, as a new dynamic array. }
+    function ToArray: {$ifdef FPC}specialize{$endif} TArray<T>;
 
     { Makes "for .. in" work on this list.
       Don't access directly.
@@ -148,24 +252,164 @@ end;
 
 { TCastleFastList<T> ----------------------------------------------------------- }
 
-procedure TCastleFastList{$ifndef FPC}<T>{$endif}.Add(const Item: T);
+function TCastleFastList{$ifndef FPC}<T>{$endif}.Ptr(const I: TListSize): PtrT;
+begin
+  { Cast to PtrUInt is important on Delphi with 64-bit CPU,
+    otherwise Delphi could implement the + using signed Int64
+    and make range check errors when pointer is > High(Int64)
+    (possible on Android/Aarch64). }
+  Result := PtrT(PtrUInt(FItems) + PtrUInt(SizeOf(T)) * PtrUInt(I));
+end;
+
+function TCastleFastList{$ifndef FPC}<T>{$endif}.ItemSize: TListSize;
+begin
+  Result := SizeOf(T);
+end;
+
+procedure TCastleFastList{$ifndef FPC}<T>{$endif}.Grow(const MinimumCapacity: TListSize);
 const
   GrowCount = 4;
   GrowFactor = 1.5;
-var
-  NewCapacity: Integer;
+begin
+  if MinimumCapacity > FCapacity then
+    AllocateAtLeast(Max(MinimumCapacity,
+      Max(FCapacity + GrowCount, Trunc(FCapacity * GrowFactor))));
+end;
+
+function TCastleFastList{$ifndef FPC}<T>{$endif}.Add(const Item: T): TListSize;
 begin
   // make sure FCapacity is large enough
   if FCount = FCapacity then
-  begin
-    NewCapacity := Max(FCapacity + GrowCount, Trunc(FCapacity * GrowFactor));
-    ReallocMem(FItems, NewCapacity * SizeOf(T));
-    FCapacity := NewCapacity;
-  end;
+    Grow(FCount + 1);
   Assert(FCount < FCapacity);
 
-  FItems[FCount] := Item;
+  Result := FCount;
+  Ptr(FCount)^ := Item;
   Inc(FCount);
+end;
+
+function TCastleFastList{$ifndef FPC}<T>{$endif}.Add: PtrT;
+begin
+  Count := Count + 1;
+  Result := Ptr(Count - 1);
+end;
+
+procedure TCastleFastList{$ifndef FPC}<T>{$endif}.SetCount(const Value: TListSize);
+begin
+  if Value < 0 then
+    raise EListError.CreateFmt('Invalid list count %d', [Value]);
+  if Value > FCount then
+  begin
+    Grow(Value);
+    FillChar(Ptr(FCount)^, SizeOf(T) * (Value - FCount), 0);
+  end;
+  FCount := Value;
+end;
+
+procedure TCastleFastList{$ifndef FPC}<T>{$endif}.SetCapacity(const Value: TListSize);
+begin
+  if Value < 0 then
+    raise EListError.CreateFmt('Invalid list capacity %d', [Value]);
+  if Value = 0 then
+    ReleaseMemory
+  else
+  if Value <> FCapacity then
+  begin
+    ReallocMem(FItems, Value * SizeOf(T));
+    FCapacity := Value;
+    if FCount > FCapacity then
+      FCount := FCapacity;
+  end;
+end;
+
+procedure TCastleFastList{$ifndef FPC}<T>{$endif}.Insert(const Index: TListSize; const Item: T);
+begin
+  if (Index < 0) or (Index > FCount) then
+    raise EListError.CreateFmt('List index %d out of bounds (count %d)', [Index, FCount]);
+  if FCount = FCapacity then
+    Grow(FCount + 1);
+  if Index < FCount then
+    System.Move(Ptr(Index)^, Ptr(Index + 1)^, SizeOf(T) * (FCount - Index));
+  Ptr(Index)^ := Item;
+  Inc(FCount);
+end;
+
+procedure TCastleFastList{$ifndef FPC}<T>{$endif}.InsertRange(const Index: TListSize; const A: array of T);
+begin
+  if (Index < 0) or (Index > FCount) then
+    raise EListError.CreateFmt('List index %d out of bounds (count %d)', [Index, FCount]);
+  if Length(A) = 0 then
+    Exit;
+  Grow(FCount + Length(A));
+  if Index < FCount then
+    System.Move(Ptr(Index)^, Ptr(Index + Length(A))^, SizeOf(T) * (FCount - Index));
+  System.Move(A[0], Ptr(Index)^, SizeOf(T) * Length(A));
+  FCount := FCount + Length(A);
+end;
+
+procedure TCastleFastList{$ifndef FPC}<T>{$endif}.Delete(const Index: TListSize);
+begin
+  DeleteRange(Index, 1);
+end;
+
+procedure TCastleFastList{$ifndef FPC}<T>{$endif}.DeleteRange(const Index, DelCount: TListSize);
+begin
+  if DelCount = 0 then
+    Exit;
+  if (Index < 0) or (DelCount < 0) or (Index + DelCount > FCount) then
+    raise EListError.CreateFmt('List range %d, %d out of bounds (count %d)', [Index, DelCount, FCount]);
+  if Index + DelCount < FCount then
+    System.Move(Ptr(Index + DelCount)^, Ptr(Index)^, SizeOf(T) * (FCount - Index - DelCount));
+  FCount := FCount - DelCount;
+end;
+
+function TCastleFastList{$ifndef FPC}<T>{$endif}.IndexOf(const Item: T): TListSize;
+var
+  I: TListSize;
+begin
+  for I := 0 to FCount - 1 do
+    if CompareMem(Ptr(I), @Item, SizeOf(T)) then
+      Exit(I);
+  Result := -1;
+end;
+
+function TCastleFastList{$ifndef FPC}<T>{$endif}.Contains(const Item: T): Boolean;
+begin
+  Result := IndexOf(Item) <> -1;
+end;
+
+function TCastleFastList{$ifndef FPC}<T>{$endif}.Remove(const Item: T): TListSize;
+begin
+  Result := IndexOf(Item);
+  if Result <> -1 then
+    Delete(Result);
+end;
+
+procedure TCastleFastList{$ifndef FPC}<T>{$endif}.Exchange(const Index1, Index2: TListSize);
+var
+  Tmp: T;
+begin
+  Tmp := Ptr(Index1)^;
+  Ptr(Index1)^ := Ptr(Index2)^;
+  Ptr(Index2)^ := Tmp;
+end;
+
+procedure TCastleFastList{$ifndef FPC}<T>{$endif}.Reverse;
+var
+  I: TListSize;
+begin
+  for I := 0 to FCount div 2 - 1 do
+    Exchange(I, FCount - 1 - I);
+end;
+
+function TCastleFastList{$ifndef FPC}<T>{$endif}.First: T;
+begin
+  Result := Items[0];
+end;
+
+function TCastleFastList{$ifndef FPC}<T>{$endif}.Last: T;
+begin
+  Result := Items[FCount - 1];
 end;
 
 procedure TCastleFastList{$ifndef FPC}<T>{$endif}.Clear;
@@ -186,7 +430,7 @@ begin
   inherited;
 end;
 
-procedure TCastleFastList{$ifndef FPC}<T>{$endif}.AllocateAtLeast(const MinimumCapacity: Integer);
+procedure TCastleFastList{$ifndef FPC}<T>{$endif}.AllocateAtLeast(const MinimumCapacity: TListSize);
 begin
   if MinimumCapacity > FCapacity then
   begin
@@ -195,52 +439,91 @@ begin
   end;
 end;
 
-function TCastleFastList{$ifndef FPC}<T>{$endif}.GetItems(const Index: Integer): T;
+function TCastleFastList{$ifndef FPC}<T>{$endif}.GetItems(const Index: TListSize): T;
 begin
-  Result := L[Index];
+  Result := Ptr(Index)^;
 end;
 
-procedure TCastleFastList{$ifndef FPC}<T>{$endif}.SetItems(const Index: Integer; const Value: T);
+procedure TCastleFastList{$ifndef FPC}<T>{$endif}.SetItems(const Index: TListSize; const Value: T);
 begin
-  { Looks much nicer, and is OK for FPC, but Delphi cannot handle this.
-    Keep using it with FPC, as version with PtrUInt requires a few additional casts
-    to avoid FPC warnings. }
-  {$ifdef FPC}
-  L[Index] := Value;
-  {$else}
-  { Cast to PtrUInt is important on Delphi with 64-bit CPU,
-    otherwise Delphi could implement the + using signed Int64
-    and make range check errors when pointer is > High(Int64)
-    (possible on Android/Aarch64). }
-  PtrT(PtrUInt(FItems) + PtrUInt(SizeOf(T) * Index))^ := Value;
-  {$endif}
+  Ptr(Index)^ := Value;
 end;
 
 procedure TCastleFastList{$ifndef FPC}<T>{$endif}.Assign(const Source: TCastleFastList {$ifndef FPC}<T>{$endif});
 begin
   AllocateAtLeast(Source.Count);
-  Move(Source.L^, L^, Source.Count * SizeOf(T));
+  if Source.Count <> 0 then
+    System.Move(Source.L^, L^, Source.Count * SizeOf(T));
   FCount := Source.Count;
 end;
 
-procedure TCastleFastList{$ifndef FPC}<T>{$endif}.AddRange(const Source: TCastleFastList {$ifndef FPC}<T>{$endif});
-var
-  NewCount: Integer;
+procedure TCastleFastList{$ifndef FPC}<T>{$endif}.Assign(const A: array of T);
 begin
-  NewCount := Count + Source.Count;
-  AllocateAtLeast(NewCount);
-  Move(Source.L^,
-    { Looks much nicer, and is OK for FPC, but Delphi cannot handle this.
-      Keep using it with FPC, as version with PtrUInt requires a few additional casts
-      to avoid FPC warnings. }
-    {$ifdef FPC}
-    L[Count],
-    {$else}
-    // Cast to PtrUInt is important, see TCastleFastList.SetItems
-    PtrT(PtrUInt(FItems) + PtrUInt(SizeOf(T) * Count))^,
-    {$endif}
-    Source.Count * SizeOf(T));
-  FCount := NewCount;
+  Clear;
+  AddRange(A);
+end;
+
+procedure TCastleFastList{$ifndef FPC}<T>{$endif}.AddRange(const Source: TCastleFastList {$ifndef FPC}<T>{$endif});
+begin
+  AddSubRange(Source, 0, Source.Count);
+end;
+
+procedure TCastleFastList{$ifndef FPC}<T>{$endif}.AddRange(const A: array of T);
+var
+  OldCount: TListSize;
+begin
+  if Length(A) = 0 then
+    Exit;
+  OldCount := FCount;
+  Grow(OldCount + Length(A));
+  System.Move(A[0], Ptr(OldCount)^, SizeOf(T) * Length(A));
+  FCount := OldCount + Length(A);
+end;
+
+procedure TCastleFastList{$ifndef FPC}<T>{$endif}.AddSubRange(
+  const Source: TCastleFastList {$ifndef FPC}<T>{$endif};
+  const Index, AddCount: TListSize);
+var
+  OldCount: TListSize;
+begin
+  if AddCount = 0 then
+    Exit;
+  OldCount := FCount;
+  Grow(OldCount + AddCount);
+  { Source may be Self, so take its pointer after Grow }
+  System.Move(Source.Ptr(Index)^, Ptr(OldCount)^, SizeOf(T) * AddCount);
+  FCount := OldCount + AddCount;
+end;
+
+procedure TCastleFastList{$ifndef FPC}<T>{$endif}.AssignLerpRange(const Fraction: Single;
+  const V1, V2: TCastleFastList {$ifndef FPC}<T>{$endif};
+  const Index1, Index2, ACount: TListSize);
+begin
+  raise ELinearInterpolationImpossible.Create('AssignLerpRange not implemented for ' + ClassName);
+end;
+
+procedure TCastleFastList{$ifndef FPC}<T>{$endif}.AssignLerp(const Fraction: Single;
+  const V1, V2: TCastleFastList {$ifndef FPC}<T>{$endif});
+begin
+  if V1.Count <> V2.Count then
+    raise EListsDifferentCount.CreateFmt('Different lists length: %d and %d, cannot do AssignLerp on the lists',
+      [V1.Count, V2.Count]);
+  AssignLerpRange(Fraction, V1, V2, 0, 0, V1.Count);
+end;
+
+function TCastleFastList{$ifndef FPC}<T>{$endif}.PerfectlyEquals(
+  const SecondValue: TCastleFastList {$ifndef FPC}<T>{$endif}): Boolean;
+begin
+  Result :=
+    (Count = SecondValue.Count) and
+    ((Count = 0) or CompareMem(L, SecondValue.L, SizeOf(T) * Count));
+end;
+
+function TCastleFastList{$ifndef FPC}<T>{$endif}.ToArray: {$ifdef FPC}specialize{$endif} TArray<T>;
+begin
+  SetLength(Result, FCount);
+  if FCount <> 0 then
+    System.Move(L^, Result[0], SizeOf(T) * FCount);
 end;
 
 function TCastleFastList{$ifndef FPC}<T>{$endif}.GetEnumerator: TEnumerator;

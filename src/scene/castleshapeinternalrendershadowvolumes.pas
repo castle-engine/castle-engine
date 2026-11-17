@@ -106,23 +106,11 @@ begin
 end;
 
 var
-  { Arrays used by RenderSilhouetteShadowVolume, shared by all calls
-    and never made shorter. They are not lists: Generics.Collections'
-    TList.SetCount copies the removed items to a new array, clears them
-    and notifies about each one, also for "Count := 0", and Add notifies
-    too. With thousands of small shadow casters that was 1/4
-    of the shadow volumes' time. }
-  ScratchVertexes: array of TVector4;
-  ScratchVertexesCount: Integer;
-  ScratchTrianglesPlaneSide: array of Boolean;
-
-procedure AddVertex(const V: TVector4);
-begin
-  if ScratchVertexesCount = Length(ScratchVertexes) then
-    SetLength(ScratchVertexes, 256 + ScratchVertexesCount * 2);
-  ScratchVertexes[ScratchVertexesCount] := V;
-  Inc(ScratchVertexesCount);
-end;
+  { Lists used by RenderSilhouetteShadowVolume, shared by all calls.
+    They keep their memory (TCastleFastList descendants only grow),
+    so they are not allocated again for every shape and light. }
+  ScratchVertexes: TVector4List;
+  ScratchTrianglesPlaneSide: TBooleanList;
 
 procedure TRenderShapeShadowVolumes.RenderSilhouetteShadowVolume(
   const Params: TRenderParams;
@@ -161,9 +149,7 @@ procedure TRenderShapeShadowVolumes.RenderSilhouetteShadowVolume(
 
 var
   Triangles: TTrianglesShadowCastersList;
-  { Transform is identity (the usual case for static level geometry):
-    no need to transform every vertex then. }
-  TransformIdentity: Boolean;
+  Vertexes: TVector4List;
 
   { Render shadow quad from edge given by 2 points. }
   procedure RenderShadowQuad_Edge(const EdgeV0, EdgeV1: TVector3);
@@ -171,20 +157,13 @@ var
     V0_3D, V1_3D: TVector3;
     V0, V1, V2, V3: TVector4;
   begin
-    if TransformIdentity then
-    begin
-      V0_3D := EdgeV0;
-      V1_3D := EdgeV1;
-    end else
-    begin
-      V0_3D := Transform.MultPoint(EdgeV0);
-      V1_3D := Transform.MultPoint(EdgeV1);
-    end;
+    V0_3D := Transform.MultPoint(EdgeV0);
+    V1_3D := Transform.MultPoint(EdgeV1);
     V0 := Vector4(V0_3D, 1);
     V1 := Vector4(V1_3D, 1);
 
-    AddVertex(V0);
-    AddVertex(V1);
+    Vertexes.Add(V0);
+    Vertexes.Add(V1);
 
     if LightPos[3] <> 0 then
     begin
@@ -192,14 +171,14 @@ var
       V3 := ExtrudeVertex(V0_3D, LightPos);
 
       { Render quad V0..V3 (as 2 triangles, as modern OpenGL doesn't have quads). }
-      AddVertex(V2);
+      Vertexes.Add(V2);
 
-      AddVertex(V0);
-      AddVertex(V2);
-      AddVertex(V3);
+      Vertexes.Add(V0);
+      Vertexes.Add(V2);
+      Vertexes.Add(V3);
     end else
       { finish triangle }
-      AddVertex(LightPos);
+      Vertexes.Add(LightPos);
   end;
 
   { Render shadow quad from PEdge. }
@@ -215,15 +194,15 @@ var
     );
   end;
 
-  { Render remaining vertexes (ScratchVertexes), if any.
-    There are none after this. }
+  { Render remaining Vertexes, if any.
+    The Vertexes list is always empty after this. }
   procedure FlushVertexes;
   begin
-    if ScratchVertexesCount <> 0 then
+    if Vertexes.Count <> 0 then
     begin
-      Mesh.SetVertexes(PVector4(ScratchVertexes), ScratchVertexesCount, true);
+      Mesh.SetVertexes(Vertexes, true);
       Mesh.Render(pmTriangles);
-      ScratchVertexesCount := 0;
+      Vertexes.Clear;
     end;
   end;
 
@@ -232,23 +211,23 @@ var
     of PlaneSide_NotIdentity and rendering caps --- we have to transform
     each triangle only once. }
   procedure InitializeTrianglesPlaneSideAndRenderCaps(
-    TrianglesPlaneSide: PBoolean;
+    TrianglesPlaneSide: TBooleanList;
     LightCap, DarkCap: boolean);
 
     procedure RenderCaps(const T: TTriangle3);
     begin
       if LightCap then
       begin
-        AddVertex(Vector4(T.Data[0], 1));
-        AddVertex(Vector4(T.Data[1], 1));
-        AddVertex(Vector4(T.Data[2], 1));
+        Vertexes.Add(Vector4(T.Data[0], 1));
+        Vertexes.Add(Vector4(T.Data[1], 1));
+        Vertexes.Add(Vector4(T.Data[2], 1));
       end;
 
       if DarkCap then
       begin
-        AddVertex(ExtrudeVertex(T.Data[2], LightPos));
-        AddVertex(ExtrudeVertex(T.Data[1], LightPos));
-        AddVertex(ExtrudeVertex(T.Data[0], LightPos));
+        Vertexes.Add(ExtrudeVertex(T.Data[2], LightPos));
+        Vertexes.Add(ExtrudeVertex(T.Data[1], LightPos));
+        Vertexes.Add(ExtrudeVertex(T.Data[0], LightPos));
       end;
     end;
 
@@ -257,14 +236,9 @@ var
       Plane: TVector4;
       TriangleTransformed: TTriangle3;
     begin
-      if TransformIdentity then
-        TriangleTransformed := T
-      else
-      begin
-        TriangleTransformed.Data[0] := Transform.MultPoint(T.Data[0]);
-        TriangleTransformed.Data[1] := Transform.MultPoint(T.Data[1]);
-        TriangleTransformed.Data[2] := Transform.MultPoint(T.Data[2]);
-      end;
+      TriangleTransformed.Data[0] := Transform.MultPoint(T.Data[0]);
+      TriangleTransformed.Data[1] := Transform.MultPoint(T.Data[1]);
+      TriangleTransformed.Data[2] := Transform.MultPoint(T.Data[2]);
       Plane := TriangleTransformed.Plane;
       Result := (Plane.X * LightPos.X +
                  Plane.Y * LightPos.Y +
@@ -402,6 +376,7 @@ var
     TrianglePtr: PTriangle3;
     I: Integer;
   begin
+    TrianglesPlaneSide.Count := Triangles.Count;
     TrianglePtr := PTriangle3(Triangles.L);
 
     { If light is directional, no need to render dark cap }
@@ -414,7 +389,7 @@ var
 
     for I := 0 to Triangles.Count - 1 do
     begin
-      TrianglesPlaneSide[I] := PlaneSide(TrianglePtr^);
+      TrianglesPlaneSide.L[I] := PlaneSide(TrianglePtr^);
       Inc(TrianglePtr);
     end;
 
@@ -427,7 +402,7 @@ var
 var
   I: Integer;
   PlaneSide0, PlaneSide1: boolean;
-  TrianglesPlaneSide: PBoolean;
+  TrianglesPlaneSide: TBooleanList;
   EdgesNow: TEdgeList;
   EdgePtr: PEdge;
 begin
@@ -447,19 +422,20 @@ begin
 
   Triangles := TrianglesListShadowCasters;
 
-  { The arrays are shared by all calls (ScratchXxx) and keep their length.
+  { The lists are shared by all calls (ScratchXxx) and keep their memory.
     Creating lists here, and so growing them from zero for every shape
     and light, took 1/3 of this method's time when a level has thousands
     of small shadow casters. }
-  if Length(ScratchTrianglesPlaneSide) < Triangles.Count then
-    SetLength(ScratchTrianglesPlaneSide, Triangles.Count);
-  TrianglesPlaneSide := PBoolean(ScratchTrianglesPlaneSide);
-  ScratchVertexesCount := 0;
-
-  TransformIdentity := TMatrix4.PerfectlyEquals(Transform, TMatrix4.Identity);
+  if ScratchVertexes = nil then
+  begin
+    ScratchVertexes := TVector4List.Create;
+    ScratchTrianglesPlaneSide := TBooleanList.Create;
+  end;
+  TrianglesPlaneSide := ScratchTrianglesPlaneSide;
+  Vertexes := ScratchVertexes;
+  Vertexes.Clear;
 
   try
-
     InitializeTrianglesPlaneSideAndRenderCaps(TrianglesPlaneSide,
       LightCap, DarkCap);
 
@@ -468,8 +444,8 @@ begin
     EdgePtr := PEdge(EdgesNow.L);
     for I := 0 to EdgesNow.Count - 1 do
     begin
-      PlaneSide0 := TrianglesPlaneSide[EdgePtr^.Triangles[0]];
-      PlaneSide1 := TrianglesPlaneSide[EdgePtr^.Triangles[1]];
+      PlaneSide0 := TrianglesPlaneSide.L[EdgePtr^.Triangles[0]];
+      PlaneSide1 := TrianglesPlaneSide.L[EdgePtr^.Triangles[1]];
 
       { Only if PlaneSide0 <> PlaneSide1 it's a silhouette edge,
         so only then render it's shadow quad.
@@ -507,7 +483,7 @@ begin
     EdgePtr := PEdge(EdgesNow.L);
     for I := 0 to EdgesNow.Count - 1 do
     begin
-      PlaneSide0 := TrianglesPlaneSide[EdgePtr^.Triangles[0]];
+      PlaneSide0 := TrianglesPlaneSide.L[EdgePtr^.Triangles[0]];
 
       { Note that even for BorderEdges that are actually manifold but from
         different shapes (so have Triangles[1] = High(Cardinal)),
@@ -552,9 +528,12 @@ begin
 
     FlushVertexes;
   finally
-    { Leave the shared array empty also in case of exception. }
-    ScratchVertexesCount := 0;
+    { Leave the shared list empty also in case of exception. }
+    Vertexes.Clear;
   end;
 end;
 
+finalization
+  FreeAndNil(ScratchVertexes);
+  FreeAndNil(ScratchTrianglesPlaneSide);
 end.
