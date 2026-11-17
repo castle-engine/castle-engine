@@ -75,6 +75,7 @@ type
     procedure TestInternalDetectedWholeSceneManifold;
     procedure TestMaterialInfo;
     procedure TestRadiusProjectionNearFromSizeOrNot;
+    procedure TestTransformChangeThenChangedAll;
   end;
 
 implementation
@@ -1627,6 +1628,54 @@ begin
   TestSize(Model_NavigationInfoSmallRadius, Radius, ProjectionNear);
   AssertSameValue(0.01, Radius, Epsilon);
   AssertSameValue(0.01 * RadiusToProjectionNear, ProjectionNear, Epsilon);
+end;
+
+procedure TTestSceneCore.TestTransformChangeThenChangedAll;
+
+  function NewBoxShape: TShapeNode;
+  begin
+    Result := TShapeNode.Create;
+    Result.Geometry := TBoxNode.Create;
+  end;
+
+var
+  Scene: TCastleScene;
+  Root: TX3DRootNode;
+  Transform: TTransformNode;
+  I: Integer;
+begin
+  { Changing a Transform node schedules its TShapeTreeTransform in
+    TransformationDirty. When ChangedAll happens before the next
+    FinishTransformationChanges (here: a node is added to the scene),
+    the shape tree is freed, and TransformationDirty must not keep
+    the freed instances.
+
+    Without the fix, FinishTransformationChanges (called by IncreaseTime)
+    used freed memory. It shows as EInvalidCast or EAccessViolation
+    when the tests are compiled with heaptrc (-gh), which fills freed memory,
+    otherwise it may corrupt the heap silently. }
+
+  Root := TX3DRootNode.Create;
+  Transform := TTransformNode.Create;
+  Transform.AddChildren(NewBoxShape);
+  Root.AddChildren(Transform);
+
+  Scene := TCastleScene.Create(nil);
+  try
+    Scene.Load(Root, true);
+    for I := 1 to 100 do
+    begin
+      Transform.Translation := Vector3(I, 0, 0);
+      Root.AddChildren(NewBoxShape);
+      Scene.IncreaseTime(0.1);
+    end;
+    { The transformation is applied, in the new shape tree.
+      The moved box spans X in [99, 101], the 100 boxes at the origin [-1, 1]. }
+    AssertSameValue(101, Scene.BoundingBox.Data[1].X, 0.01);
+    AssertSameValue(-1, Scene.BoundingBox.Data[0].X, 0.01);
+  finally
+    FreeAndNil(Scene);
+  end;
 end;
 
 initialization

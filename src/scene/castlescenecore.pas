@@ -1151,25 +1151,18 @@ type
       graph. Since this class caches some things, it has to be notified
       when you manually change something within RootNode graph. }
 
-    { Release all internal associations with your VRML/X3D nodes.
+    { Release all internal associations with X3D nodes.
       In particular, this will release OpenGL resources connected to your nodes.
       You should always call this @italic(before) you (may) free some nodes in
       @link(RootNode).
 
       @italic(You have to call ChangedAll or Load at sometime
       after BeforeNodesFree, and before you try actual rendering, events etc.)
-      Otherwise some stuff may not get recalculated.
-
-      The InternalChangedAll parameter is for internal use.
-      It is set to @true when ChangedAll
-      calls this method at the beginning of it's work, and means that nothing is freed,
-      and we only require necessary cleanup at the beginning of ChangedAll.
-      This way ChangedAll (when it wasn't preceeded by explicit
-      BeforeNodesFree(false)) produces events from stacks CheckForDeletedNodes. }
-    procedure BeforeNodesFree(const InternalChangedAll: boolean = false); override;
+      Otherwise some stuff may not get recalculated. }
+    procedure BeforeNodesFree; override;
 
     { Call Node.FreeRemovingFromAllParents, making sure that changes
-      to our VRML/X3D node graph are allowed. This makes sure we call
+      to our X3D node graph are allowed. This makes sure we call
       BeforeNodesFree befor freeing, and ChangedAll afterwards.
 
       This avoids a common pitfall with relying on TShape or such
@@ -1208,8 +1201,10 @@ type
       called by constructor of this class, so you can put a lot of your
       initialization there (instead of in the constructor).
 
-      ChangedAll calls BeforeNodesFree(true) first, for safety (and TGLShape
-      actually depends on it, see implementation comments). }
+      ChangedAll calls BeforeNodesFree first,
+      as it does the cleanup we need (lists of nodes,
+      recreate Shapes to be empty). Descendant TCastleScene also releases
+      all rendering resources for shapes here. }
     procedure ChangedAll(const OnlyAdditions: Boolean = false); override;
 
     { Notify scene that you changed the value of given field.
@@ -4126,7 +4121,7 @@ begin
     HandleBoundedFunctionality(Node);
 end;
 
-procedure TCastleSceneCore.BeforeNodesFree(const InternalChangedAll: boolean);
+procedure TCastleSceneCore.BeforeNodesFree;
 begin
   // paranoid check is the World valid before accessing it
   if (World <> nil) and
@@ -4158,16 +4153,26 @@ begin
   PreviousPlayingAnimation := nil;
   FreeAndNil(PreviousPartialAffectedFields);
 
-  if not InternalChangedAll then
-  begin
-    { Clean Shapes, ShapeLODs.
-      TShapeTree and descendants keep references to Nodes. }
-    FreeAndNil(FShapes);
-    FShapes := TShapeTreeGroup.Create(Self);
-    ShapeLODs.Clear;
-    TransformationDirty.Clear;
-    InternalIncShapesHash;
-  end;
+  { Recreate (make empty) FShapes, and clear all possible references
+    to instances in FShapes.
+
+    When done before some nodes are freed, this is necessary
+    as TShapeTree and descendants keep references to Nodes.
+
+    When done from ChangedAll, this clears FShapes that need to be recreated. }
+  FreeAndNil(FShapes);
+  FShapes := TShapeTreeGroup.Create(Self);
+
+  { Clear things that possibly referred to shapes in FShapes }
+  ShapeLODs.Clear;
+  { The shape tree was freed, so forget the TShapeTreeTransform instances
+    scheduled in TransformationDirty (by Transform node changes done
+    before this). Otherwise FinishTransformationChanges could
+    call FastTransformUpdate on freed instances.
+    The new shape tree is created with the current transformations anyway.
+    Testcase: TTestSceneCore.TestTransformChangeThenChangedAll. }
+  TransformationDirty.Clear;
+  InternalIncShapesHash;
 end;
 
 procedure TCastleSceneCore.NodeFreeRemovingFromAllParents(Node: TX3DNode);
@@ -4312,9 +4317,12 @@ begin
   { TODO:
     We ignore OnlyAdditions now.
     We have to even do BeforeNodesFree always, even when OnlyAdditions,
-    the code below (may) assume it is always done, e.g. all lists are cleared in BeforeNodesFree. }
+    the code below (may) assume it is always done, e.g. all lists are cleared
+    in BeforeNodesFree. }
 
-  BeforeNodesFree(true);
+  { Note that this will also make FShapes empty.
+    Our later code will refill it. }
+  BeforeNodesFree;
 
   { Call DoGeometryChanged already here, as our old shapes already
     stopped to exist. }
@@ -4322,14 +4330,14 @@ begin
 
   { Delay calling OnBoundChanged from bindable stack changes.
 
-    Reason: CheckForDeletedNodes below, or PushIfEmpty during traversing,
+    Reason major: CheckForDeletedNodes below, or PushIfEmpty during traversing,
     should not cause immediate OnBoundChanged, as a receiver may expect
     us to be in initialized state (and e.g. use BoundingBox function).
     And before traversing finished, our Shapes tree is not calculated,
     so we're not ready to answer e.g. BoundingBox correctly.
 
-    Besides, this was often causing two OnBoundChanged calls,
-    while only one was needed. E.g. if your previous scene has
+    Reason minor: this avoids two OnBoundChanged calls,
+    while only one is needed. E.g. if your previous scene has
     a Viewpoint node, and newly loaded scene also has Viewpoint,
     then we would call OnBoundChanged twice (1st time by CheckForDeletedNodes). }
   BackgroundStack.BeginChangesSchedule;
@@ -4345,16 +4353,12 @@ begin
 
     Validities := [];
 
-    { Clean Shapes and other stuff initialized by traversing }
-    FreeAndNil(FShapes);
-    FShapes := TShapeTreeGroup.Create(Self);
-    ShapeLODs.Clear;
+    { Clean more stuff initialized by traversing }
     InternalGlobalLights.Clear;
     FViewpointsArray.Clear;
     FAnimationsList.Clear;
     AnimationAffectedFields.Clear;
     NeedsDetectAffectedFields := false;
-    InternalIncShapesHash;
 
     if RootNode <> nil then
     begin
@@ -4434,7 +4438,7 @@ begin
     and new nodes added by ProcessShadowMapsReceivers would be missing.)
 
     Note that clearing GeneratedTextures was already done at the beginning
-    of ChangedAll (as part of BeforeNodesFree(true) call). }
+    of ChangedAll (as part of BeforeNodesFree call). }
   Shapes.EnumerateTextures(
     {$ifdef FPC}@{$endif}GeneratedTextures.AddShapeTexture);
 
