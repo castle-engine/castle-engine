@@ -75,6 +75,10 @@ type
     procedure TestInternalDetectedWholeSceneManifold;
     procedure TestMaterialInfo;
     procedure TestRadiusProjectionNearFromSizeOrNot;
+    { Collisions with a scene whose triangles don't fill its bounding box
+      (the bounding box is checked before the octree): queries outside
+      the box, inside the box missing the triangles, and hitting them. }
+    procedure TestCollisionsBoundingBoxFirst;
   end;
 
 implementation
@@ -1627,6 +1631,102 @@ begin
   TestSize(Model_NavigationInfoSmallRadius, Radius, ProjectionNear);
   AssertSameValue(0.01, Radius, Epsilon);
   AssertSameValue(0.01 * RadiusToProjectionNear, ProjectionNear, Epsilon);
+end;
+
+procedure TTestSceneCore.TestCollisionsBoundingBoxFirst;
+
+  { 2 triangles far from each other: at Z = 0 and at Z = 10,
+    so the bounding box is (0, 0, 0) - (1, 1, 10) and mostly empty. }
+  function CreateTwoTrianglesScene(const AOwner: TComponent): TCastleScene;
+  var
+    Coord: TCoordinateNode;
+    Geometry: TIndexedFaceSetNode;
+    Shape: TShapeNode;
+    Root: TX3DRootNode;
+  begin
+    Coord := TCoordinateNode.Create;
+    Coord.SetPoint([
+      Vector3(0, 0, 0), Vector3(1, 0, 0), Vector3(0, 1, 0),
+      Vector3(0, 0, 10), Vector3(1, 0, 10), Vector3(0, 1, 10)
+    ]);
+    Geometry := TIndexedFaceSetNode.Create;
+    Geometry.Coord := Coord;
+    Geometry.SetCoordIndex([0, 1, 2, -1, 3, 4, 5, -1]);
+    Geometry.Solid := false;
+    Shape := TShapeNode.Create;
+    Shape.Geometry := Geometry;
+    Root := TX3DRootNode.Create;
+    Root.AddChildren(Shape);
+    Result := TCastleScene.Create(AOwner);
+    Result.Load(Root, true);
+    Result.PreciseCollisions := true;
+  end;
+
+var
+  Viewport: TCastleViewport;
+  Scene: TCastleScene;
+  Items: TCastleAbstractRootTransform;
+  Distance: Single;
+  Shift: TVector3;
+  I: Integer;
+begin
+  Viewport := TCastleViewport.Create(nil);
+  try
+    Scene := CreateTwoTrianglesScene(Viewport);
+    Viewport.Items.Add(Scene);
+    Items := Viewport.Items;
+
+    { the same checks with the scene at the origin and moved }
+    for I := 0 to 1 do
+    begin
+      if I = 0 then
+        Shift := TVector3.Zero
+      else
+        Shift := Vector3(100, -20, 3);
+      Scene.Translation := Shift;
+
+      { segments: across the first triangle }
+      AssertTrue(Items.WorldSegmentCollision(Shift + Vector3(0.2, 0.2, 1), Shift + Vector3(0.2, 0.2, -1)));
+      { starting inside the bounding box, across the second triangle }
+      AssertTrue(Items.WorldSegmentCollision(Shift + Vector3(0.2, 0.2, 9), Shift + Vector3(0.2, 0.2, 12)));
+      { whole inside the bounding box, between the triangles }
+      AssertFalse(Items.WorldSegmentCollision(Shift + Vector3(0.2, 0.2, 2), Shift + Vector3(0.2, 0.2, 8)));
+      { across the bounding box, between the triangles }
+      AssertFalse(Items.WorldSegmentCollision(Shift + Vector3(-5, 0.2, 5), Shift + Vector3(5, 0.2, 5)));
+      { outside the bounding box: beside, and on the triangle's plane }
+      AssertFalse(Items.WorldSegmentCollision(Shift + Vector3(3, 0.2, 1), Shift + Vector3(3, 0.2, -1)));
+      AssertFalse(Items.WorldSegmentCollision(Shift + Vector3(2, 0.2, 0), Shift + Vector3(3, 0.2, 0)));
+      AssertFalse(Items.WorldSegmentCollision(Shift + Vector3(0.2, 0.2, -3), Shift + Vector3(0.2, 0.2, -1)));
+
+      { spheres }
+      AssertTrue(Items.WorldSphereCollision(Shift + Vector3(0.2, 0.2, 0.3), 0.5));
+      AssertTrue(Items.WorldSphereCollision(Shift + Vector3(0.2, 0.2, -0.3), 0.5));
+      AssertFalse(Items.WorldSphereCollision(Shift + Vector3(0.2, 0.2, 5), 0.5));
+      AssertFalse(Items.WorldSphereCollision(Shift + Vector3(5, 0.2, 0), 0.5));
+
+      { boxes }
+      AssertTrue(Items.WorldBoxCollision(Box3D(
+        Shift + Vector3(0.1, 0.1, -0.5), Shift + Vector3(0.3, 0.3, 0.5))));
+      AssertFalse(Items.WorldBoxCollision(Box3D(
+        Shift + Vector3(0.1, 0.1, 4), Shift + Vector3(0.3, 0.3, 6))));
+      AssertFalse(Items.WorldBoxCollision(Box3D(
+        Shift + Vector3(4, 0.1, -0.5), Shift + Vector3(5, 0.3, 0.5))));
+
+      { rays: from outside the bounding box to the first triangle }
+      AssertTrue(Items.WorldRayCast(Shift + Vector3(0.2, 0.2, -3), Vector3(0, 0, 1), Distance) = Scene);
+      AssertSameValue(3, Distance, 0.001);
+      { from inside the bounding box to the second triangle, and back to the first }
+      AssertTrue(Items.WorldRayCast(Shift + Vector3(0.2, 0.2, 4), Vector3(0, 0, 1), Distance) = Scene);
+      AssertSameValue(6, Distance, 0.001);
+      AssertTrue(Items.WorldRayCast(Shift + Vector3(0.2, 0.2, 4), Vector3(0, 0, -1), Distance) = Scene);
+      AssertSameValue(4, Distance, 0.001);
+      { across the bounding box, between the triangles }
+      AssertTrue(Items.WorldRayCast(Shift + Vector3(-5, 0.2, 5), Vector3(1, 0, 0), Distance) = nil);
+      { away from the bounding box, and beside it }
+      AssertTrue(Items.WorldRayCast(Shift + Vector3(0.2, 0.2, -3), Vector3(0, 0, -1), Distance) = nil);
+      AssertTrue(Items.WorldRayCast(Shift + Vector3(3, 0.2, -3), Vector3(0, 0, 1), Distance) = nil);
+    end;
+  finally FreeAndNil(Viewport) end;
 end;
 
 initialization
