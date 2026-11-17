@@ -121,6 +121,15 @@ type
     { Pointer to the I-th item. }
     function Ptr(const I: TListSize): PtrT;
 
+    {$ifndef FPC}
+    { Get and set items, for generic code in Delphi
+      (where the class is a generic constraint, like TX3DSimpleMultField).
+      @exclude }
+    function InternalGetItem(const Index: TListSize): T;
+    { @exclude }
+    procedure InternalSetItem(const Index: TListSize; const Value: T);
+    {$endif}
+
     { Size of one item, in bytes. }
     function ItemSize: TListSize;
 
@@ -259,6 +268,18 @@ begin
     (possible on Android/Aarch64). }
   Result := PtrT(PtrUInt(FItems) + PtrUInt(SizeOf(T)) * PtrUInt(I));
 end;
+
+{$ifndef FPC}
+function TCastleFastList<T>.InternalGetItem(const Index: TListSize): T;
+begin
+  Result := Ptr(Index)^;
+end;
+
+procedure TCastleFastList<T>.InternalSetItem(const Index: TListSize; const Value: T);
+begin
+  Ptr(Index)^ := Value;
+end;
+{$endif}
 
 function TCastleFastList{$ifndef FPC}<T>{$endif}.ItemSize: TListSize;
 begin
