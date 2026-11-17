@@ -76,6 +76,7 @@ type
     procedure TestMaterialInfo;
     procedure TestRadiusProjectionNearFromSizeOrNot;
     procedure TestTransformChangeThenChangedAll;
+    procedure TestIsBoundRouteDuringChangedAll;
   end;
 
 implementation
@@ -1673,6 +1674,60 @@ begin
       The moved box spans X in [99, 101], the 100 boxes at the origin [-1, 1]. }
     AssertSameValue(101, Scene.BoundingBox.Data[1].X, 0.01);
     AssertSameValue(-1, Scene.BoundingBox.Data[0].X, 0.01);
+  finally
+    FreeAndNil(Scene);
+  end;
+end;
+
+procedure TTestSceneCore.TestIsBoundRouteDuringChangedAll;
+var
+  Scene: TCastleScene;
+  Root: TX3DRootNode;
+  First, Content: TGroupNode;
+  Viewpoint: TViewpointNode;
+  Shape: TShapeNode;
+begin
+  { ChangedAll binds the first Viewpoint (PushIfEmpty during traversing).
+    The isBound event is routed to Content.visible, and changing it
+    causes ScheduleChangedAll.
+
+    Without the fix, isBound was sent immediately, in the middle of
+    traversing, so a nested ChangedAll freed the Shapes tree
+    that the outer ChangedAll was still building (it next traverses Content).
+    Like TestTransformChangeThenChangedAll, this is reliably visible
+    when the tests are compiled with heaptrc (-gh).
+
+    Note that Viewpoint is added after loading.
+    During the 1st ChangedAll (from Load), nodes do not have
+    TX3DNode.Scene assigned yet during traversing,
+    so changing Content.visible would not reach the scene. }
+
+  Root := TX3DRootNode.Create;
+
+  First := TGroupNode.Create;
+  Root.AddChildren(First);
+
+  Shape := TShapeNode.Create;
+  Shape.Geometry := TBoxNode.Create;
+  Content := TGroupNode.Create;
+  Content.Visible := false;
+  Content.AddChildren(Shape);
+  Root.AddChildren(Content);
+
+  Scene := TCastleScene.Create(nil);
+  try
+    Scene.Load(Root, true);
+    AssertTrue(Scene.ViewpointStack.Top = nil);
+    AssertEquals(0, Scene.Shapes.TraverseList(true, true).Count);
+
+    Viewpoint := TViewpointNode.Create;
+    Root.AddRoute(Viewpoint.EventIsBound, Content.FdVisible);
+    { Causes ChangedAll, that binds Viewpoint. }
+    First.AddChildren(Viewpoint);
+
+    AssertTrue(Scene.ViewpointStack.Top = Viewpoint);
+    AssertTrue(Content.Visible);
+    AssertEquals(1, Scene.Shapes.TraverseList(true, true).Count);
   finally
     FreeAndNil(Scene);
   end;

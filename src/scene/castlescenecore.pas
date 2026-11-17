@@ -114,10 +114,21 @@ type
     FOnBoundChanged: TNotifyEvent;
     BoundChangedSchedule: Cardinal;
     BoundChangedScheduled: boolean;
+    SendIsBoundScheduled: boolean;
 
     { A useful utility: if the Node is not @nil, send isBound = Value and
       bindTime events to it. }
     procedure SendIsBound(Node: TAbstractBindableNode; const Value: boolean);
+
+    { Send isBound = true and bindTime events to the @link(Top) node
+      at the nearest comfortable time.
+      Either now (when not inside BeginChangesSchedule / EndChangesSchedule)
+      or at a closing EndChangesSchedule.
+
+      Sending events may cause arbitrary changes to the scene
+      (e.g. through ROUTEs, even calling TCastleSceneCore.ChangedAll),
+      so we cannot do it in the middle of TCastleSceneCore.ChangedAll. }
+    procedure DoScheduleSendIsBound;
 
     { Add new node to the top.
 
@@ -133,10 +144,12 @@ type
     function Pop: TAbstractBindableNode;
 
     { When we're inside BeginChangesSchedule / EndChangesSchedule,
-      then DoScheduleBoundChanged will not immediately call DoBoundChanged.
+      then DoScheduleBoundChanged will not immediately call DoBoundChanged,
+      and DoScheduleSendIsBound will not immediately send events.
       Effectively, you can wrap a part of code inside
       BeginChangesSchedule / EndChangesSchedule, to delay calling
-      DoBoundChanged (and so OnBoundChanged callback). }
+      DoBoundChanged (and so OnBoundChanged callback)
+      and sending isBound / bindTime events. }
     procedure BeginChangesSchedule;
     procedure EndChangesSchedule;
   protected
@@ -2587,7 +2600,7 @@ begin
   begin
     Push(Node);
     if SendEvents then
-      SendIsBound(Node, true);
+      DoScheduleSendIsBound;
     DoScheduleBoundChanged;
   end;
 end;
@@ -2634,7 +2647,7 @@ begin
     end;
 
     if TopChanged and SendEvents and (Count <> 0) then
-      SendIsBound(Top, true);
+      DoScheduleSendIsBound;
 
     if TopChanged then
       DoScheduleBoundChanged;
@@ -2693,8 +2706,10 @@ end;
 
 procedure TX3DBindableStack.BeginChangesSchedule;
 begin
-  { BoundChangedScheduled = false always when BoundChangedSchedule = 0. }
+  { BoundChangedScheduled, SendIsBoundScheduled = false always
+    when BoundChangedSchedule = 0. }
   Assert((BoundChangedSchedule <> 0) or (not BoundChangedScheduled));
+  Assert((BoundChangedSchedule <> 0) or (not SendIsBoundScheduled));
 
   Inc(BoundChangedSchedule);
 end;
@@ -2706,13 +2721,44 @@ begin
     BoundChangedScheduled := true;
 end;
 
+procedure TX3DBindableStack.DoScheduleSendIsBound;
+begin
+  if BoundChangedSchedule = 0 then
+    SendIsBound(Top, true) else
+    SendIsBoundScheduled := true;
+end;
+
 procedure TX3DBindableStack.EndChangesSchedule;
+
+  { Send isBound = true to the current top node.
+    Note that the node that was top when DoScheduleSendIsBound was called
+    may no longer be top, or even present on the stack
+    (e.g. when CheckForDeletedNodes removed it later).
+    We send the events according to the current state of the stack. }
+  procedure DoSendIsBound;
+  begin
+    SendIsBound(Top, true);
+  end;
+
+var
+  DoSend, DoChanged: Boolean;
 begin
   Dec(BoundChangedSchedule);
-  if (BoundChangedSchedule = 0) and BoundChangedScheduled then
+  if BoundChangedSchedule = 0 then
   begin
+    { Reset the flags before doing anything.
+      Sending events may cause nested BeginChangesSchedule / EndChangesSchedule
+      (e.g. a ROUTE from isBound may cause TCastleSceneCore.ChangedAll),
+      which assumes the flags are false when BoundChangedSchedule = 0. }
+    DoSend := SendIsBoundScheduled;
+    DoChanged := BoundChangedScheduled;
+    SendIsBoundScheduled := false;
     BoundChangedScheduled := false;
-    DoBoundChanged;
+
+    if DoSend then
+      DoSendIsBound;
+    if DoChanged then
+      DoBoundChanged;
   end;
 end;
 
@@ -4328,13 +4374,23 @@ begin
     stopped to exist. }
   InternalGeometryChanged([gcAll], nil);
 
-  { Delay calling OnBoundChanged from bindable stack changes.
+  { Delay calling OnBoundChanged, and sending isBound / bindTime events,
+    from bindable stack changes.
+    They will be done at EndChangesSchedule, at the very end of ChangedAll,
+    when our state is fully initialized.
 
     Reason major: CheckForDeletedNodes below, or PushIfEmpty during traversing,
     should not cause immediate OnBoundChanged, as a receiver may expect
     us to be in initialized state (and e.g. use BoundingBox function).
     And before traversing finished, our Shapes tree is not calculated,
     so we're not ready to answer e.g. BoundingBox correctly.
+
+    Similarly, they should not send immediate isBound / bindTime events,
+    as these may cause arbitrary changes through ROUTEs and scripts.
+    E.g. a ROUTE from isBound to Group.visible causes ScheduleChangedAll,
+    which (we're not inside BeginChangesSchedule here) calls nested ChangedAll
+    immediately, freeing the Shapes tree that we're in the middle of building.
+    Testcase: TTestSceneCore.TestIsBoundRouteDuringChangedAll.
 
     Reason minor: this avoids two OnBoundChanged calls,
     while only one is needed. E.g. if your previous scene has
@@ -4399,59 +4455,59 @@ begin
     { recreate FAnimationsList now }
     FreeAndNil(FAnimationsList);
     FAnimationsList := CreateAnimations;
+
+    { 1. We honor ScheduledShadowMapsProcessing, to detect if shadow maps are maybe
+        used. Because at the beginning, UsesShadowMaps are always @false.
+        Also UsesShadowMaps are always @false if ShadowMaps have been toggled
+        to @false.
+
+      2. We also honor UsesShadowMaps. Because it shadow maps have been detected
+        in the last ProcessShadowMapsReceivers call, then every ChangedAll
+        should rebuild TShape.InternalShadowMaps, as we have recreated all TShape.
+
+        Testcase:
+        - fps_game shadow maps,
+        - or load model with shadow maps in castle-model-viewer, and do
+          "Edit -> Remove Placeholders from CGE levels".
+        Shadows *should not* disappear. }
+    if ScheduledShadowMapsProcessing or UsesShadowMaps then
+    begin
+      ProcessShadowMapsReceivers(RootNode, Shapes, ShadowMaps,
+        ShadowMapsDefaultSize, UsesShadowMaps);
+      if UsesShadowMaps then
+        WritelnLog('Scene %s (%s) is using shadow maps', [Name, UriDisplay(Url)]);
+      ScheduledShadowMapsProcessing := false;
+    end;
+
+    { Add items to GeneratedTextures for this Shape, if it has any
+      generated textures.
+
+      Do this *after* ProcessShadowMapsReceivers was run
+      (before ProcessShadowMapsReceivers we may have old GeneratedShadowMap nodes
+      that will be freed during ProcessShadowMapsReceivers,
+      and new nodes added by ProcessShadowMapsReceivers would be missing.)
+
+      Note that clearing GeneratedTextures was already done at the beginning
+      of ChangedAll (as part of BeforeNodesFree call). }
+    Shapes.EnumerateTextures(
+      {$ifdef FPC}@{$endif}GeneratedTextures.AddShapeTexture);
+
+    if ScheduleHeadlightOnFromNavigationInfoInChangedAll then
+    begin
+      ScheduleHeadlightOnFromNavigationInfoInChangedAll := false;
+      UpdateHeadlightOnFromNavigationInfo;
+    end;
+
+    ForceTeleportTransitions := false;
+
+    if LogShapes then
+      WritelnLogMultiline('Shapes tree', Shapes.DebugInfo);
   finally
     BackgroundStack.EndChangesSchedule;
     FogStack.EndChangesSchedule;
     NavigationInfoStack.EndChangesSchedule;
     ViewpointStack.EndChangesSchedule;
   end;
-
-  { 1. We honor ScheduledShadowMapsProcessing, to detect if shadow maps are maybe
-      used. Because at the beginning, UsesShadowMaps are always @false.
-      Also UsesShadowMaps are always @false if ShadowMaps have been toggled
-      to @false.
-
-    2. We also honor UsesShadowMaps. Because it shadow maps have been detected
-      in the last ProcessShadowMapsReceivers call, then every ChangedAll
-      should rebuild TShape.InternalShadowMaps, as we have recreated all TShape.
-
-      Testcase:
-      - fps_game shadow maps,
-      - or load model with shadow maps in castle-model-viewer, and do
-        "Edit -> Remove Placeholders from CGE levels".
-      Shadows *should not* disappear. }
-  if ScheduledShadowMapsProcessing or UsesShadowMaps then
-  begin
-    ProcessShadowMapsReceivers(RootNode, Shapes, ShadowMaps,
-      ShadowMapsDefaultSize, UsesShadowMaps);
-    if UsesShadowMaps then
-      WritelnLog('Scene %s (%s) is using shadow maps', [Name, UriDisplay(Url)]);
-    ScheduledShadowMapsProcessing := false;
-  end;
-
-  { Add items to GeneratedTextures for this Shape, if it has any
-    generated textures.
-
-    Do this *after* ProcessShadowMapsReceivers was run
-    (before ProcessShadowMapsReceivers we may have old GeneratedShadowMap nodes
-    that will be freed during ProcessShadowMapsReceivers,
-    and new nodes added by ProcessShadowMapsReceivers would be missing.)
-
-    Note that clearing GeneratedTextures was already done at the beginning
-    of ChangedAll (as part of BeforeNodesFree call). }
-  Shapes.EnumerateTextures(
-    {$ifdef FPC}@{$endif}GeneratedTextures.AddShapeTexture);
-
-  if ScheduleHeadlightOnFromNavigationInfoInChangedAll then
-  begin
-    ScheduleHeadlightOnFromNavigationInfoInChangedAll := false;
-    UpdateHeadlightOnFromNavigationInfo;
-  end;
-
-  ForceTeleportTransitions := false;
-
-  if LogShapes then
-    WritelnLogMultiline('Shapes tree', Shapes.DebugInfo);
 
   finally Dec(InternalDirty) end;
 
