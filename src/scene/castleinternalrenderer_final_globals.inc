@@ -62,13 +62,42 @@ var
     Meaningful only if you initialized log (see CastleLog unit) by InitializeLog first. }
   LogRenderer: boolean = false;
 
+  { Let the driver compile the shapes' shader programs on its own threads,
+    without waiting for them (when TGLFeatures.ParallelShaderCompile):
+    a shape whose program is not ready yet is not drawn,
+    instead of the application stopping until the driver is done
+    (up to a second for a big program, more for many new programs at once).
+    Preparing resources (TCastleViewport.PrepareResources) then only starts
+    compiling, see @link(InternalShaderProgramsCompiling).
+
+    @exclude Experimental, may change. }
+  InternalParallelShaderCompile: boolean = false;
+
   { Global renderer cache.
     This caches common things, like textures, shapes, and much more.
     Our OpenGL resources are shared across all OpenGL contexts,
     and everything automatically uses this cache. }
   RendererCache: TRendererCache;
 
+{ How many shader programs the driver is still compiling
+  (with InternalParallelShaderCompile), or only those not done yet
+  (OnlyNotReady). E.g. after TCastleViewport.PrepareResources,
+  wait until @code(InternalShaderProgramsCompiling(true) = 0)
+  to show every prepared shape in the first frames.
+
+  @exclude Experimental, may change. }
+function InternalShaderProgramsCompiling(const OnlyNotReady: Boolean = false): Integer;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
+
+function InternalShaderProgramsCompiling(const OnlyNotReady: Boolean): Integer;
+begin
+  if RendererCache = nil then
+    Result := 0
+  else
+    Result := RendererCache.ProgramsCompiling(OnlyNotReady);
+end;
+
 {$endif}

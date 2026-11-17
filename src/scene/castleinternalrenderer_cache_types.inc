@@ -149,6 +149,11 @@
     { Actual GLSL program. May be @nil (if it failed to link). }
     ShaderProgram: TX3DGLSLProgram;
 
+    { ShaderProgram is still being compiled and linked by the driver
+      (InternalParallelShaderCompile): not usable before
+      TRendererCache.Program_Ready. }
+    Pending: Boolean;
+
     References: Cardinal;
 
     destructor Destroy; override;
