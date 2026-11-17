@@ -633,6 +633,10 @@ type
       TTransformNode values. }
     procedure FinishTransformationChanges;
 
+    { Recreate (make empty) FShapes, and clear all possible references
+      to instances in FShapes. }
+    procedure ResetShapes;
+
     procedure SetExposeTransforms(const Value: TStrings);
     procedure ExposeTransformsChange(Sender: TObject);
     procedure SetExposeTransformsPrefix(const Value: String);
@@ -4160,14 +4164,26 @@ begin
 
   if not InternalChangedAll then
   begin
-    { Clean Shapes, ShapeLODs.
-      TShapeTree and descendants keep references to Nodes. }
-    FreeAndNil(FShapes);
-    FShapes := TShapeTreeGroup.Create(Self);
-    ShapeLODs.Clear;
-    TransformationDirty.Clear;
-    InternalIncShapesHash;
+    { Clean Shapes, as TShapeTree and descendants keep references to Nodes. }
+    ResetShapes;
   end;
+end;
+
+procedure TCastleSceneCore.ResetShapes;
+begin
+  FreeAndNil(FShapes);
+  FShapes := TShapeTreeGroup.Create(Self);
+
+  { Clear things that possibly refered to shapes in FShapes }
+  ShapeLODs.Clear;
+  { The shape tree was freed, so forget the TShapeTreeTransform instances
+    scheduled in TransformationDirty (by Transform node changes done
+    before this ChangedAll). Otherwise FinishTransformationChanges could
+    call FastTransformUpdate on freed instances.
+    The new shape tree is created with the current transformations anyway.
+    Testcase: TTestSceneCore.TestTransformChangeThenChangedAll. }
+  TransformationDirty.Clear;
+  InternalIncShapesHash;
 end;
 
 procedure TCastleSceneCore.NodeFreeRemovingFromAllParents(Node: TX3DNode);
@@ -4346,22 +4362,12 @@ begin
     Validities := [];
 
     { Clean Shapes and other stuff initialized by traversing }
-    FreeAndNil(FShapes);
-    FShapes := TShapeTreeGroup.Create(Self);
-    ShapeLODs.Clear;
-    { The shape tree was freed, so forget the TShapeTreeTransform instances
-      scheduled in TransformationDirty (by Transform node changes done
-      before this ChangedAll). Otherwise FinishTransformationChanges would
-      call FastTransformUpdate on freed instances.
-      The new shape tree is created with the current transformations anyway.
-      Testcase: TTestSceneCore.TestTransformChangeThenChangedAll. }
-    TransformationDirty.Clear;
+    ResetShapes;
     InternalGlobalLights.Clear;
     FViewpointsArray.Clear;
     FAnimationsList.Clear;
     AnimationAffectedFields.Clear;
     NeedsDetectAffectedFields := false;
-    InternalIncShapesHash;
 
     if RootNode <> nil then
     begin
