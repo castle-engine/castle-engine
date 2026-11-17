@@ -50,7 +50,7 @@
     function Time: TFloatTime; virtual; abstract;
     function NextEventTime: TX3DTime; virtual; abstract;
     procedure ChangedAll(const OnlyAdditions: Boolean = false); virtual; abstract;
-    procedure BeforeNodesFree(const InternalChangedAll: boolean = false); virtual; abstract;
+    procedure BeforeNodesFree; virtual; abstract;
     { @exclude }
     procedure InternalChangedField(const Field: TX3DField; const Change: TX3DChange); overload; virtual; abstract;
     { @exclude }
