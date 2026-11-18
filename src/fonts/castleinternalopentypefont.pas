@@ -38,9 +38,7 @@
 
   -----------------------------------------------------------------------------
 
-  Disclosure: This file is largely Claude-generated.
-  It was reviewed and slightly edited by Michalis, but this is still a
-  (unusually, for Castle Game Engine) large automatically generated file. }
+  See doc/miscellaneous_notes/castleinternalfreetypeh_pascal_ai_disclosure.md . }
 unit CastleInternalOpenTypeFont;
 
 {$I castleconf.inc}
