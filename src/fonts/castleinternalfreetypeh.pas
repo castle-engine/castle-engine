@@ -29,7 +29,7 @@
 
   - Load dynamic library using TDynLib, and merely expose
     FreeTypeLibraryInitialized = false when library not found.
-    TFontManager.Create will raise an exception if freetype library is not
+    TFreeTypeFont.Create will raise an exception if freetype library is not
     installed, and it can be handled gracefully.
 
   - Honor ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION symbol.
@@ -39,8 +39,9 @@
     (matching Castle Game Engine "freetype" service on iOS,
     that links freetype statically into the main library).
 
-  - Define some things we need (or needed in the past) in CGE:
-    FT_New_Memory_Face, FT_Open_Face and friends.
+  - Declare only the subset of FreeType API that is actually used by CGE
+    (by CastleInternalFreeType unit).
+    This is also the subset implemented in Pascal, see below.
 
   - Optionally, when CASTLE_FREETYPE_PASCAL is defined (see castleconf.inc),
     implement a subset of FreeType API in pure Pascal, without using
@@ -64,113 +65,25 @@ type
   FT_Encoding = array[0..3] of Ansichar;
 
 const
+  { Values for TFT_Face.face_flags.
+    Note: Only the flags used by CGE (including CASTLE_FREETYPE_PASCAL implementation)
+    are defined here. }
   FT_FACE_FLAG_SCALABLE = 1 shl 0;
   FT_FACE_FLAG_FIXED_SIZES = 1 shl 1;
-  FT_FACE_FLAG_FIXED_WIDTH = 1 shl 2;
   FT_FACE_FLAG_SFNT = 1 shl 3;
   FT_FACE_FLAG_HORIZONTAL = 1 shl 4;
-  FT_FACE_FLAG_VERTICAL = 1 shl 5;
   FT_FACE_FLAG_KERNING = 1 shl 6;
-  FT_FACE_FLAG_FAST_GLYPHS = 1 shl 7;
-  FT_FACE_FLAG_MULTIPLE_MASTERS = 1 shl 8;
-  FT_FACE_FLAG_GLYPH_NAMES = 1 shl 9;
-  FT_FACE_FLAG_EXTERNAL_STREAM = 1 shl 10;
 
   FT_STYLE_FLAG_ITALIC = 1 shl 0;
   FT_STYLE_FLAG_BOLD = 1 shl 1;
 
-  FT_LOAD_DEFAULT =          $0000;
-  FT_LOAD_NO_SCALE =         $0001;
-  FT_LOAD_NO_HINTING =       $0002;
-  FT_LOAD_RENDER =           $0004;
-  FT_LOAD_NO_BITMAP =        $0008;
-  FT_LOAD_VERTICAL_LAYOUT =  $0010;
-  FT_LOAD_FORCE_AUTOHINT =   $0020;
-  FT_LOAD_CROP_BITMAP =      $0040;
-  FT_LOAD_PEDANTIC =         $0080;
-  FT_LOAD_IGNORE_GLOBAL_ADVANCE_WIDTH = $0200;
-  FT_LOAD_NO_RECURSE =       $0400;
-  FT_LOAD_IGNORE_TRANSFORM = $0800;
-  FT_LOAD_MONOCHROME =       $1000;
-  FT_LOAD_LINEAR_DESIGN =    $2000;
+  FT_LOAD_DEFAULT = $0000;
 
-  ft_glyph_format_none      = $00000000;
-  ft_glyph_format_composite = $636F6D70; //comp 099 111 109 112
   ft_glyph_format_bitmap    = $62697473; //bits 098 105 116 115
   ft_glyph_format_outline   = $6F75746C; //outl 111 117 116 108
-  ft_glyph_format_plotter   = $706C6F74; //plot 112 108 111 116
-
-  FT_ENCODING_MS_SYMBOL : FT_Encoding = 'symb';
-  FT_ENCODING_UNICODE : FT_Encoding = 'unic';
-  FT_ENCODING_MS_SJIS : FT_Encoding = 'sjis';
-  FT_ENCODING_MS_GB2312 : FT_Encoding = 'gb  ';
-  FT_ENCODING_MS_BIG5 : FT_Encoding = 'big5';
-  FT_ENCODING_MS_WANSUNG : FT_Encoding = 'wans';
-  FT_ENCODING_MS_JOHAB : FT_Encoding = 'joha';
-  FT_ENCODING_ADOBE_STANDARD : FT_Encoding = 'ADOB';
-  FT_ENCODING_ADOBE_EXPERT : FT_Encoding = 'ADBE';
-  FT_ENCODING_ADOBE_CUSTOM : FT_Encoding = 'ADBC';
-  FT_ENCODING_ADOBE_LATIN_1 : FT_Encoding = 'lat1';
-  FT_ENCODING_OLD_LATIN_2 : FT_Encoding = 'lat2';
-  FT_ENCODING_APPLE_ROMAN : FT_Encoding = 'armn';
-
-  ft_glyph_bbox_unscaled  = 0; //* return unscaled font units           */
-  ft_glyph_bbox_subpixels = 0; //* return unfitted 26.6 coordinates     */
-  ft_glyph_bbox_gridfit   = 1; //* return grid-fitted 26.6 coordinates  */
-  ft_glyph_bbox_truncate  = 2; //* return coordinates in integer pixels */
-  ft_glyph_bbox_pixels    = 3; //* return grid-fitted pixel coordinates */
-
-  FT_KERNING_DEFAULT  = 0;
-  FT_KERNING_UNFITTED = 1;
-  FT_KERNING_UNSCALED = 2;
-
-  {**************************************************************************
-   *
-   * @enum:
-   *   FT_OPEN_XXX
-   *
-   * @description:
-   *   A list of bit field constants used within the `flags` field of the
-   *   @FT_Open_Args structure.
-   *
-   * @values:
-   *   FT_OPEN_MEMORY ::
-   *     This is a memory-based stream.
-   *
-   *   FT_OPEN_STREAM ::
-   *     Copy the stream from the `stream` field.
-   *
-   *   FT_OPEN_PATHNAME ::
-   *     Create a new input stream from a C~path name.
-   *
-   *   FT_OPEN_DRIVER ::
-   *     Use the `driver` field.
-   *
-   *   FT_OPEN_PARAMS ::
-   *     Use the `num_params` and `params` fields.
-   *
-   * @note:
-   *   The `FT_OPEN_MEMORY`, `FT_OPEN_STREAM`, and `FT_OPEN_PATHNAME` flags
-   *   are mutually exclusive.
-   *}
-  FT_OPEN_MEMORY    = $1;
-  FT_OPEN_STREAM    = $2;
-  FT_OPEN_PATHNAME  = $4;
-  FT_OPEN_DRIVER    = $8;
-  FT_OPEN_PARAMS    = $10;
 
 type
   FT_Bool = boolean;
-  { Note: FT_FWord and FT_UFWord and equal, respectively,
-    to FT_Short and FT_UShort. But FreeType C header defines them separately,
-    with docs that XxxWord are 16-bit, while XXxShort correspond to C "short"
-    types. Our definitions below reflect that. }
-  FT_FWord = Int16;
-  FT_UFWord = UInt16;
-  FT_Char = AnsiChar;
-  FT_Byte = byte;
-  // FT_String = Ansichar; // nothing uses FT_String, only PFT_String is used
-  PFT_String = PAnsiChar;
   FT_Short = CShort;
   FT_UShort = CUShort;
   FT_Int = CInt;
@@ -183,38 +96,14 @@ type
   FT_Long = CLong;
   FT_ULong = CULong;
   FT_Pos = CLong;
-  FT_F2Dot14 = smallint;
   FT_F26Dot6 = CInt32;
   FT_Fixed = FT_Long;
-  FT_Error = CInt32;
-  FT_Pointer = pointer;
-  //FT_Offset = size_t;
-  //FT_PtrDist = size_t;
 
   {$ifndef FPC}{$MinEnumSize 4}{$endif}
   FT_Render_Mode = (FT_RENDER_MODE_NORMAL = 0, FT_RENDER_MODE_LIGHT,
       FT_RENDER_MODE_MONO, FT_RENDER_MODE_LCD, FT_RENDER_MODE_LCD_V,
       FT_RENDER_MODE_MAX);
   {$ifndef FPC}{$MinEnumSize 1}{$endif}
-
-  FT_UnitVector_ = record
-      x : FT_F2Dot14;
-      y : FT_F2Dot14;
-   end;
-  FT_UnitVector = FT_UnitVector_;
-
-  FT_Matrix = record
-      xx : FT_Fixed;
-      xy : FT_Fixed;
-      yx : FT_Fixed;
-      yy : FT_Fixed;
-   end;
-  PFT_Matrix = ^FT_Matrix;
-
-  FT_Data = record
-      pointer : ^FT_Byte;
-      length : FT_Int;
-   end;
 
   FT_Generic_Finalizer = procedure (AnObject:pointer);cdecl;
 
@@ -251,7 +140,6 @@ type
     xMin, yMin : FT_Pos;
     xMax, yMax : FT_Pos;
   end;
-  PFT_BBox = ^FT_BBox;
 
   FT_Bitmap = record
     rows : integer;
@@ -272,22 +160,6 @@ type
     contours : ^smallint;
     flags : integer;
   end;
-  PFT_Outline = ^FT_Outline;
-
-  FT_Outline_MoveToFunc = function(const to_: PFT_Vector; user: Pointer): integer; cdecl;
-  FT_Outline_LineToFunc = function(const to_: PFT_Vector; user: Pointer): integer; cdecl;
-  FT_Outline_ConicToFunc = function(const control, to_: PFT_Vector; user: Pointer): integer; cdecl;
-  FT_Outline_CubicToFunc = function(const control1, control2, to_: PFT_Vector; user: Pointer): integer; cdecl;
-
-  FT_Outline_Funcs = record
-    move_to: FT_Outline_MoveToFunc;
-    line_to: FT_Outline_LineToFunc;
-    conic_to: FT_Outline_ConicToFunc;
-    cubic_to: FT_Outline_CubicToFunc;
-    shift: integer;
-    delta: FT_Pos;
-  end;
-  PFT_Outline_Funcs = ^FT_Outline_Funcs;
 
   FT_Size_Metrics = record
     x_ppem : FT_UShort;
@@ -302,9 +174,7 @@ type
 
 
   PFT_Library = ^TFT_Library;
-  //PPFT_Library = ^PFT_Library;
   PFT_Face = ^TFT_Face;
-  //PPFT_Face = ^PFT_Face;
   PFT_Charmap = ^TFT_Charmap;
   PPFT_Charmap = ^PFT_Charmap;
   PFT_GlyphSlot = ^TFT_GlyphSlot;
@@ -312,9 +182,7 @@ type
   PFT_Size = ^TFT_Size;
 
   PFT_Glyph = ^TFT_Glyph;
-  //PPFT_Glyph = ^PFT_Glyph;
   PFT_BitmapGlyph = ^TFT_BitmapGlyph;
-  PFT_OutlineGlyph = ^TFT_OutlineGlyph;
 
 
   TFT_Library = record
@@ -398,34 +266,18 @@ type
     bitmap : FT_Bitmap;
   end;
 
-  TFT_OutlineGlyph = record
-    root : TFT_Glyph;
-    outline : FT_Outline;
-  end;
-
-  { Structure that describes a custom stream, used e.g. with FT_Open_Face .
-    See https://freetype.org/freetype2/docs/reference/ft2-base_interface.html#ft_open_args }
-  TFT_Open_Args = record
-    flags: FT_UInt;
-    memory_base: ^FT_Byte;
-    memory_size: FT_Long;
-    pathname: PFT_String;
-    stream: Pointer; // FT_Stream; TODO: Not translated yet
-    driver: Pointer; // FT_Module; TODO: Not translated yet
-    num_params: FT_Int;
-    params: Pointer; // FT_Parameter*; TODO: Not translated yet
-  end;
-  PFT_Open_Args = ^TFT_Open_Args;
+{ Note: We deliberately do not declare FT_New_Face (that opens a font from
+  a filename). Castle Game Engine always reads fonts through streams,
+  using FT_New_Memory_Face, see TFreeTypeFont.Create.
+  This way we can open a font from any URL, and we avoid the question
+  in what encoding FreeType expects the filename. }
 
 {$if defined(CASTLE_FREETYPE_PASCAL)}
 
-//Base Interface
 function FT_Done_Face(face: PFT_Face): integer;
 function FT_Done_FreeType(alibrary: PFT_Library): integer;
 function FT_Get_Char_Index(face: PFT_Face; charcode: FT_ULong): FT_UInt;
-function FT_Get_Kerning(face: PFT_Face; left_glyph, right_glyph, kern_mode: FT_UInt; out akerning: FT_Vector): integer;
 function FT_Init_FreeType(var alibrary: PFT_Library): integer;
-function FT_Load_Char(face: PFT_Face; charcode: FT_ULong; load_flags: CInt32): integer;
 function FT_Load_Glyph(face: PFT_Face; glyph_index: FT_UInt; load_flags: CInt32): integer;
 { Create face from font data in Stream.
   Note: This is different than FreeType API (that takes pointer and size).
@@ -434,82 +286,43 @@ function FT_Load_Glyph(face: PFT_Face; glyph_index: FT_UInt; load_flags: CInt32)
 function FT_New_Memory_Face(alibrary: PFT_Library; Stream: TCustomMemoryStream; face_index: FT_Long; var aface: PFT_Face): integer;
 function FT_Set_Char_Size(face: PFT_Face; char_width, char_height: FT_F26dot6; horz_res, vert_res: FT_UInt): integer;
 function FT_Set_Pixel_Sizes(face: PFT_Face; pixel_width, pixel_height: FT_UInt): integer;
+procedure FT_Library_Version(alibrary: PFT_Library; out amajor, aminor, apatch: integer);
 
-//Glyph Management
 function FT_Get_Glyph(slot: PFT_GlyphSlot; out aglyph: PFT_Glyph): integer;
-function FT_Glyph_Copy(Source: PFT_Glyph; out target: PFT_Glyph): integer;
 function FT_Glyph_To_Bitmap(var the_glyph: PFT_Glyph; render_mode: FT_Render_Mode; origin: PFT_Vector; Destroy: FT_Bool): integer;
 procedure FT_Done_Glyph(glyph: PFT_Glyph);
 
 {$elseif defined(CASTLE_FREETYPE_STATIC)}
 
-//Base Interface
 function FT_Done_Face(face: PFT_Face): integer; cdecl; external;
 function FT_Done_FreeType(alibrary: PFT_Library): integer; cdecl; external;
 function FT_Get_Char_Index(face: PFT_Face; charcode: FT_ULong): FT_UInt; cdecl; external;
-function FT_Get_Kerning(face: PFT_Face; left_glyph, right_glyph, kern_mode: FT_UInt; out akerning: FT_Vector): integer; cdecl; external;
 function FT_Init_FreeType(var alibrary: PFT_Library): integer; cdecl; external;
-function FT_Load_Char(face: PFT_Face; charcode: FT_ULong; load_flags: CInt32): integer; cdecl; external;
 function FT_Load_Glyph(face: PFT_Face; glyph_index: FT_UInt; load_flags: CInt32): integer; cdecl; external;
-{ Note: We deliberately do not declare FT_New_Face (that opens a font from
-  a filename). Castle Game Engine always reads fonts through streams,
-  using FT_New_Memory_Face, see TMgrFont.Create.
-  This way we can open a font from any URL, and we avoid the question
-  in what encoding FreeType expects the filename. }
-function FT_Open_Face(alibrary: PFT_Library; Args: PFT_Open_Args; face_index: FT_Long; var aface: PFT_Face): integer; cdecl; external;
 function FT_New_Memory_Face(alibrary: PFT_Library; file_base: Pointer; file_size: FT_Long; face_index: FT_Long; var aface: PFT_Face): integer; cdecl; external;
 function FT_Set_Char_Size(face: PFT_Face; char_width, char_height: FT_F26dot6; horz_res, vert_res: FT_UInt): integer; cdecl; external;
 function FT_Set_Pixel_Sizes(face: PFT_Face; pixel_width, pixel_height: FT_UInt): integer; cdecl; external;
-procedure FT_Set_Transform(face: PFT_Face; matrix: PFT_Matrix; delta: PFT_Vector); cdecl; external;
-
-//Outline Processing
-function FT_Outline_Decompose(outline: PFT_Outline; const func_interface: PFT_Outline_Funcs; user: Pointer): integer; cdecl; external;
-
-//FreeType Version
-procedure FT_Library_Version(alibrary: PFT_Library; var amajor, aminor, apatch: integer); cdecl; external;
-
-//Glyph Management
+procedure FT_Library_Version(alibrary: PFT_Library; out amajor, aminor, apatch: integer); cdecl; external;
 function FT_Get_Glyph(slot: PFT_GlyphSlot; out aglyph: PFT_Glyph): integer; cdecl; external;
-function FT_Glyph_Copy(Source: PFT_Glyph; out target: PFT_Glyph): integer; cdecl; external;
 function FT_Glyph_To_Bitmap(var the_glyph: PFT_Glyph; render_mode: FT_Render_Mode; origin: PFT_Vector; Destroy: FT_Bool): integer; cdecl; external;
-function FT_Glyph_Transform(glyph: PFT_Glyph; matrix: PFT_Matrix; delta: PFT_Vector): integer; cdecl; external;
 procedure FT_Done_Glyph(glyph: PFT_Glyph); cdecl; external;
-procedure FT_Glyph_Get_CBox(glyph: PFT_Glyph; bbox_mode: FT_UInt; var acbox: FT_BBox); cdecl; external;
 
 {$else}
 
 var
-//Base Interface
   FT_Done_Face: function(face: PFT_Face): integer; cdecl;
   FT_Done_FreeType: function(alibrary: PFT_Library): integer; cdecl;
   FT_Get_Char_Index: function(face: PFT_Face; charcode: FT_ULong): FT_UInt; cdecl;
-  FT_Get_Kerning: function(face: PFT_Face; left_glyph, right_glyph, kern_mode: FT_UInt; out akerning: FT_Vector): integer; cdecl;
   FT_Init_FreeType: function(var alibrary: PFT_Library): integer; cdecl;
-  FT_Load_Char: function(face: PFT_Face; charcode: FT_ULong; load_flags: CInt32): integer; cdecl;
   FT_Load_Glyph: function(face: PFT_Face; glyph_index: FT_UInt; load_flags: CInt32): integer; cdecl;
-  FT_Open_Face: function(alibrary: PFT_Library; Args: PFT_Open_Args; face_index: FT_Long; var aface: PFT_Face): integer; cdecl;
   FT_New_Memory_Face: function(alibrary: PFT_Library; file_base: Pointer; file_size: FT_Long; face_index: FT_Long; var aface: PFT_Face): integer; cdecl;
   FT_Set_Char_Size: function(face: PFT_Face; char_width, char_height: FT_F26dot6; horz_res, vert_res: FT_UInt): integer; cdecl;
   FT_Set_Pixel_Sizes: function(face: PFT_Face; pixel_width, pixel_height: FT_UInt): integer; cdecl;
-  FT_Set_Transform: procedure(face: PFT_Face; matrix: PFT_Matrix; delta: PFT_Vector); cdecl;
-
-//Outline Processing
-  FT_Outline_Decompose: function(outline: PFT_Outline; const func_interface: PFT_Outline_Funcs; user: Pointer): integer; cdecl;
-
-//FreeType Version
-  FT_Library_Version: procedure(alibrary: PFT_Library; var amajor, aminor, apatch: integer); cdecl;
-
-//Glyph Management
+  FT_Library_Version: procedure(alibrary: PFT_Library; out amajor, aminor, apatch: integer); cdecl;
   FT_Get_Glyph: function(slot: PFT_GlyphSlot; out aglyph: PFT_Glyph): integer; cdecl;
-  FT_Glyph_Copy: function(Source: PFT_Glyph; out target: PFT_Glyph): integer; cdecl;
   FT_Glyph_To_Bitmap: function(var the_glyph: PFT_Glyph; render_mode: FT_Render_Mode; origin: PFT_Vector; Destroy: FT_Bool): integer; cdecl;
-  FT_Glyph_Transform: function(glyph: PFT_Glyph; matrix: PFT_Matrix; delta: PFT_Vector): integer; cdecl;
   FT_Done_Glyph: procedure(glyph: PFT_Glyph); cdecl;
-  FT_Glyph_Get_CBox: procedure(glyph: PFT_Glyph; bbox_mode: FT_UInt; var acbox: FT_BBox); cdecl;
 {$endif}
-
-//Base Interface - macros
-function FT_IS_SCALABLE(face: PFT_Face): boolean;
 
 procedure LoadFreeTypeLibrary;
 
@@ -525,13 +338,6 @@ uses SysUtils, CastleInternalOpenTypeFont, CastleInternalGlyphRasterizer;
 {$else}
 uses SysUtils, CastleDynLib;
 {$endif}
-
-{ FreeType macros ------------------------------------------------------------ }
-
-function FT_IS_SCALABLE(face: PFT_Face): boolean;
-begin
-  Result := (face^.face_flags and FT_FACE_FLAG_SCALABLE) = 1;
-end;
 
 { Loading FreeType library --------------------------------------------------- }
 
@@ -598,23 +404,15 @@ begin
     Pointer({$ifndef FPC}@{$endif} FT_Done_Face) := FreeTypeLibrary.Symbol('FT_Done_Face');
     Pointer({$ifndef FPC}@{$endif} FT_Done_FreeType) := FreeTypeLibrary.Symbol('FT_Done_FreeType');
     Pointer({$ifndef FPC}@{$endif} FT_Get_Char_Index) := FreeTypeLibrary.Symbol('FT_Get_Char_Index');
-    Pointer({$ifndef FPC}@{$endif} FT_Get_Kerning) := FreeTypeLibrary.Symbol('FT_Get_Kerning');
     Pointer({$ifndef FPC}@{$endif} FT_Init_FreeType) := FreeTypeLibrary.Symbol('FT_Init_FreeType');
-    Pointer({$ifndef FPC}@{$endif} FT_Load_Char) := FreeTypeLibrary.Symbol('FT_Load_Char');
     Pointer({$ifndef FPC}@{$endif} FT_Load_Glyph) := FreeTypeLibrary.Symbol('FT_Load_Glyph');
-    Pointer({$ifndef FPC}@{$endif} FT_Open_Face) := FreeTypeLibrary.Symbol('FT_Open_Face');
     Pointer({$ifndef FPC}@{$endif} FT_New_Memory_Face) := FreeTypeLibrary.Symbol('FT_New_Memory_Face');
     Pointer({$ifndef FPC}@{$endif} FT_Set_Char_Size) := FreeTypeLibrary.Symbol('FT_Set_Char_Size');
     Pointer({$ifndef FPC}@{$endif} FT_Set_Pixel_Sizes) := FreeTypeLibrary.Symbol('FT_Set_Pixel_Sizes');
-    Pointer({$ifndef FPC}@{$endif} FT_Set_Transform) := FreeTypeLibrary.Symbol('FT_Set_Transform');
-    Pointer({$ifndef FPC}@{$endif} FT_Outline_Decompose) := FreeTypeLibrary.Symbol('FT_Outline_Decompose');
     Pointer({$ifndef FPC}@{$endif} FT_Library_Version) := FreeTypeLibrary.Symbol('FT_Library_Version');
     Pointer({$ifndef FPC}@{$endif} FT_Get_Glyph) := FreeTypeLibrary.Symbol('FT_Get_Glyph');
-    Pointer({$ifndef FPC}@{$endif} FT_Glyph_Copy) := FreeTypeLibrary.Symbol('FT_Glyph_Copy');
     Pointer({$ifndef FPC}@{$endif} FT_Glyph_To_Bitmap) := FreeTypeLibrary.Symbol('FT_Glyph_To_Bitmap');
-    Pointer({$ifndef FPC}@{$endif} FT_Glyph_Transform) := FreeTypeLibrary.Symbol('FT_Glyph_Transform');
     Pointer({$ifndef FPC}@{$endif} FT_Done_Glyph) := FreeTypeLibrary.Symbol('FT_Done_Glyph');
-    Pointer({$ifndef FPC}@{$endif} FT_Glyph_Get_CBox) := FreeTypeLibrary.Symbol('FT_Glyph_Get_CBox');
   end;
 end;
 

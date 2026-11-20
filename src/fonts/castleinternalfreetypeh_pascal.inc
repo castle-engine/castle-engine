@@ -20,8 +20,7 @@
   - no hinting (so glyphs are a bit softer at small sizes),
   - only TrueType / OpenType fonts (TTF, OTF, TTC),
   - and only the API subset used by CGE
-    (in particular, FT_Outline_Decompose, FT_Set_Transform, FT_Glyph_Transform,
-    FT_Glyph_Get_CBox, FT_Library_Version are not available).
+    (by CastleInternalFreeType unit, and declared in CastleInternalFreeTypeH).
 
   Uses CastleInternalOpenTypeFont to read fonts
   and CastleInternalGlyphRasterizer to render glyphs.
@@ -128,6 +127,29 @@ end;
 function FT_Done_FreeType(alibrary: PFT_Library): integer;
 begin
   Result := FtErrOk;
+end;
+
+procedure FT_Library_Version(alibrary: PFT_Library; out amajor, aminor, apatch: integer);
+const
+  { Recent FreeType version, whose behavior (like rounding of metrics)
+    our implementation tries to match.
+    The FreeType API subset we implement didn't change in a long time. }
+  FreeTypeVersionMajor = 2;
+  FreeTypeVersionMinor = 14;
+  FreeTypeVersionPatch = 0;
+begin
+  { Like FreeType, report 0.0.0 when library is nil. }
+  if alibrary = nil then
+  begin
+    amajor := 0;
+    aminor := 0;
+    apatch := 0;
+  end else
+  begin
+    amajor := FreeTypeVersionMajor;
+    aminor := FreeTypeVersionMinor;
+    apatch := FreeTypeVersionPatch;
+  end;
 end;
 
 { Faces --------------------------------------------------------------------- }
@@ -367,38 +389,6 @@ begin
   Result := FtErrOk;
 end;
 
-function FT_Load_Char(face: PFT_Face; charcode: FT_ULong; load_flags: CInt32): integer;
-begin
-  Result := FT_Load_Glyph(face, FT_Get_Char_Index(face, charcode), load_flags);
-end;
-
-function FT_Get_Kerning(face: PFT_Face; left_glyph, right_glyph, kern_mode: FT_UInt;
-  out akerning: FT_Vector): integer;
-var
-  PF: PPascalFace;
-  K: Integer;
-  V: Int64;
-begin
-  akerning.x := 0;
-  akerning.y := 0;
-  if face = nil then
-    Exit(FtErrInvalidHandle);
-  PF := PPascalFace(face);
-  if (left_glyph > $FFFF) or (right_glyph > $FFFF) then
-    Exit(FtErrOk);
-  K := PF^.Font.Kerning(left_glyph, right_glyph);
-  if kern_mode = FT_KERNING_UNSCALED then
-    akerning.x := K
-  else
-  begin
-    V := Round(K * PF^.Scale * 64);
-    if kern_mode = FT_KERNING_DEFAULT then
-      V := PixRound(V); // grid-fitted
-    akerning.x := V;
-  end;
-  Result := FtErrOk;
-end;
-
 { Glyph management ---------------------------------------------------------- }
 
 function FT_Get_Glyph(slot: PFT_GlyphSlot; out aglyph: PFT_Glyph): integer;
@@ -433,37 +423,6 @@ begin
     G^.Glyph.bitmap.buffer := @G^.Data[0]
   else
     G^.Glyph.bitmap.buffer := nil;
-end;
-
-function FT_Glyph_Copy(Source: PFT_Glyph; out target: PFT_Glyph): integer;
-var
-  SourceOutline, TargetOutline: PPascalOutlineGlyph;
-  SourceBitmap, TargetBitmap: PPascalBitmapGlyph;
-begin
-  target := nil;
-  if Source = nil then
-    Exit(FtErrInvalidHandle);
-  if Source^.aFormat = ft_glyph_format_outline then
-  begin
-    SourceOutline := PPascalOutlineGlyph(Source);
-    New(TargetOutline);
-    TargetOutline^.Glyph := SourceOutline^.Glyph;
-    TargetOutline^.Outline := TGlyphOutline.Create;
-    TargetOutline^.Outline.Assign(SourceOutline^.Outline);
-    TargetOutline^.Scale := SourceOutline^.Scale;
-    target := PFT_Glyph(TargetOutline);
-  end else
-  if Source^.aFormat = ft_glyph_format_bitmap then
-  begin
-    SourceBitmap := PPascalBitmapGlyph(Source);
-    New(TargetBitmap);
-    TargetBitmap^.Glyph := SourceBitmap^.Glyph;
-    TargetBitmap^.Data := Copy(SourceBitmap^.Data, 0, Length(SourceBitmap^.Data));
-    UpdateBitmapBuffer(TargetBitmap);
-    target := PFT_Glyph(TargetBitmap);
-  end else
-    Exit(FtErrInvalidGlyphFormat);
-  Result := FtErrOk;
 end;
 
 procedure FT_Done_Glyph(glyph: PFT_Glyph);

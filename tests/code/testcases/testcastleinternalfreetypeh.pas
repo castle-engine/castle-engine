@@ -26,6 +26,7 @@ type
   TTestCastleInternalFreeTypeH = class(TCastleTestCase)
   published
     procedure TestTypeSizes;
+    procedure TestLibraryVersion;
   end;
 
 implementation
@@ -59,6 +60,35 @@ begin
   AssertEquals(4, SizeOf(FT_ULong));
   AssertEquals(4, SizeOf(FT_Pos));
   {$endif}
+end;
+
+procedure TTestCastleInternalFreeTypeH.TestLibraryVersion;
+var
+  Lib: PFT_Library;
+  Major, Minor, Patch: Integer;
+begin
+  if not FreeTypeLibraryInitialized then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
+  AssertEquals(0, FT_Init_FreeType(Lib));
+  try
+    FT_Library_Version(Lib, Major, Minor, Patch);
+    // Testcase may need adjustment in the future, when FreeType 3 is released
+    AssertEquals(2, Major);
+    AssertTrue(Minor >= 0);
+    AssertTrue(Patch >= 0);
+  finally
+    AssertEquals(0, FT_Done_FreeType(Lib));
+  end;
+
+  // Like FreeType, report 0.0.0 for nil library
+  FT_Library_Version(nil, Major, Minor, Patch);
+  AssertEquals(0, Major);
+  AssertEquals(0, Minor);
+  AssertEquals(0, Patch);
 end;
 
 initialization

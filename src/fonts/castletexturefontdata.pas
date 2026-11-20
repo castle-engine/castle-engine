@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2024 Michalis Kamburelis.
+  Copyright 2014-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -394,30 +394,16 @@ constructor TTextureFontData.Create(const AUrl: String;
   const ASize: Cardinal; const AnAntiAliased: Boolean;
   ACharacters: TUnicodeCharSet; const ADistanceField: Boolean);
 var
-  FontId: Integer;
+  FtFont: TFreeTypeFont;
 
   function GetGlyphInfo(const C: TUnicodeChar): TGlyph;
   var
-    Bitmaps: TStringBitmaps;
-    Bitmap: PFontBitmap;
+    Bitmap: TFontBitmap;
   begin
-    if AntiAliased then
-      Bitmaps := FontMgr.GetStringGray(FontId, UnicodeCharToString(C), Size) else
-      Bitmaps := FontMgr.GetString(FontId, UnicodeCharToString(C), Size);
+    Bitmap := FtFont.RenderChar(C, Size, AntiAliased);
 
     try
-      if Bitmaps.Count = 0 then
-      begin
-        WritelnWarning('Font', Format('Font "%s" does not contain glyph for character "%s" (index %d)',
-          [Url, C, Ord(C)]));
-        Exit(nil);
-      end;
-
-      Bitmap := Bitmaps.Bitmaps[0];
-      if Bitmaps.Count > 1 then
-        WritelnWarning('Font', Format('Font "%s" contains a sequence of glyphs (more than a single glyph) for a single character "%s" (index %d)',
-          [Url, C, Ord(C)]));
-      if (Bitmap^.Width < 0) or (Bitmap^.Height < 0) then
+      if (Bitmap.Width < 0) or (Bitmap.Height < 0) then
       begin
         WritelnWarning('Font', Format('Font "%s" contains a glyphs with Width or Height < 0 for character "%s" (index %d)',
           [Url, C, Ord(C)]));
@@ -425,21 +411,20 @@ var
       end;
 
       Result := TGlyph.Create;
-      Result.Width    := Bitmap^.Width + 2 * AdditionalPadding;
-      Result.Height   := Bitmap^.Height + 2 * AdditionalPadding;
-      Result.X        := -Bitmap^.X;
-      Result.Y        := Bitmap^.Height - 1 + Bitmap^.Y;
-      Result.AdvanceX := Bitmap^.AdvanceX shr 10; // 64 * 16, looks like this is just magic for freetype
-      Result.AdvanceY := Bitmap^.AdvanceY shr 10; // 64 * 16, looks like this is just magic for freetype
-    finally FreeAndNil(Bitmaps) end;
+      Result.Width    := Bitmap.Width + 2 * AdditionalPadding;
+      Result.Height   := Bitmap.Height + 2 * AdditionalPadding;
+      Result.X        := -Bitmap.X;
+      Result.Y        := Bitmap.Height - 1 + Bitmap.Y;
+      Result.AdvanceX := Bitmap.AdvanceX shr 10; // 64 * 16, looks like this is just magic for freetype
+      Result.AdvanceY := Bitmap.AdvanceY shr 10; // 64 * 16, looks like this is just magic for freetype
+    finally FreeAndNil(Bitmap) end;
   end;
 
   { Copy glyph data for character C (assuming it is Ok, that is GetGlyphInfo
     returned non-nil for this) to the Image (at position ImageX, ImageY). }
   procedure GetGlyphData(const C: TUnicodeChar; const ImageX, ImageY: Cardinal);
   var
-    Bitmaps: TStringBitmaps;
-    Bitmap: PFontBitmap;
+    Bitmap: TFontBitmap;
 
     { Extracting data from glyph with Pitch, like in TFreeTypeFont.DrawChar. }
     procedure DrawChar;
@@ -447,18 +432,18 @@ var
       B, RX, RY: Integer;
     begin
       B := 0;
-      for RY := 0 to Bitmap^.Height - 1 do
+      for RY := 0 to Bitmap.Height - 1 do
       begin
-        for RX := 0 to Bitmap^.Width - 1 do
-          Image.PixelPtr(ImageX + RX, ImageY + Bitmap^.Height - 1 - RY)^ := Bitmap^.Data^[B + RX];
-        Inc(B, Bitmap^.Pitch);
+        for RX := 0 to Bitmap.Width - 1 do
+          Image.PixelPtr(ImageX + RX, ImageY + Bitmap.Height - 1 - RY)^ := Bitmap.Data[B + RX];
+        Inc(B, Bitmap.Pitch);
       end;
     end;
 
     { Generate distance field font texture.
 
       The algorithm is roughly described at https://libgdx.com/wiki/graphics/2d/fonts/distance-field-fonts
-      Here we adjust it for anti-aliased image received in Bitmap^.
+      Here we adjust it for anti-aliased image received in Bitmap.
 
       For every pixel we calculate distance to:
       a) (at least partially) opaque pixel
@@ -497,15 +482,15 @@ var
       Opqaueness: Single;
     begin
       MaxB := 0;
-      for RY := 0 to Bitmap^.Height - 1 do
-        for RX := 0 to Bitmap^.Width - 1 do
-          if Bitmap^.Data^[RX + RY * Bitmap^.Pitch] > MaxB then
-            MaxB := Bitmap^.Data^[RX + RY * Bitmap^.Pitch];
+      for RY := 0 to Bitmap.Height - 1 do
+        for RX := 0 to Bitmap.Width - 1 do
+          if Bitmap.Data[RX + RY * Bitmap.Pitch] > MaxB then
+            MaxB := Bitmap.Data[RX + RY * Bitmap.Pitch];
       if MaxB = 0 then
         MaxB := 255; //doesn't matter in this case, the glyph doesn't have a single opaque pixel
 
-      for RY := -AdditionalPadding to Bitmap^.Height - 1 + AdditionalPadding do
-        for RX := -AdditionalPadding to Bitmap^.Width - 1 + AdditionalPadding do
+      for RY := -AdditionalPadding to Bitmap.Height - 1 + AdditionalPadding do
+        for RX := -AdditionalPadding to Bitmap.Width - 1 + AdditionalPadding do
           begin
             // opaque pixel - calculate distance to nearest transparent pixel
             DTransparent := Sqr(AdditionalPadding);
@@ -516,7 +501,7 @@ var
                 TempD := Sqr(DX) + Sqr(DY);
                 AX := RX + DX;
                 AY := RY + DY;
-                if (AX >= 0) and (AX < Bitmap^.Width) and (AY >= 0) and (AY < Bitmap^.Height) and (Bitmap^.Data^[AX + AY * Bitmap^.Pitch] > 0) then
+                if (AX >= 0) and (AX < Bitmap.Width) and (AY >= 0) and (AY < Bitmap.Height) and (Bitmap.Data[AX + AY * Bitmap.Pitch] > 0) then
                 begin
                   if DOpaque > TempD then
                     DOpaque := TempD;
@@ -526,11 +511,11 @@ var
                     DTransparent := TempD;
                 end;
               end;
-            if (RX >= 0) and (RX < Bitmap^.Width) and (RY >= 0) and (RY < Bitmap^.Height) then
-              Opqaueness := Single(Bitmap^.Data^[RX + RY * Bitmap^.Pitch]) / Single(MaxB)
+            if (RX >= 0) and (RX < Bitmap.Width) and (RY >= 0) and (RY < Bitmap.Height) then
+              Opqaueness := Single(Bitmap.Data[RX + RY * Bitmap.Pitch]) / Single(MaxB)
             else
               Opqaueness := 0;
-            Image.PixelPtr(ImageX + RX + AdditionalPadding, ImageY + Bitmap^.Height - 1 - RY + AdditionalPadding)^ :=
+            Image.PixelPtr(ImageX + RX + AdditionalPadding, ImageY + Bitmap.Height - 1 - RY + AdditionalPadding)^ :=
               Trunc(
                 Opqaueness * (128 + 127 * Single(DTransparent) / Sqr(AdditionalPadding)) +
                 (1 - Opqaueness) * (127 * (1.0 - Single(DOpaque) / Sqr(AdditionalPadding)))
@@ -547,28 +532,25 @@ var
       RX, RY, B, L: Integer;
     begin
       B := 0;
-      for RY := 0 to Bitmap^.Height - 1 do
+      for RY := 0 to Bitmap.Height - 1 do
       begin
         L := 0;
-        for RX := 0 to Bitmap^.Width - 1 do
+        for RX := 0 to Bitmap.Width - 1 do
         begin
           RB := RX mod 8;
-          if (Bitmap^.Data^[B + L] and Bits[RB]) <> 0 then
-            Image.PixelPtr(ImageX + RX, ImageY + Bitmap^.Height - 1 - RY)^ := 255;
+          if (Bitmap.Data[B + L] and Bits[RB]) <> 0 then
+            Image.PixelPtr(ImageX + RX, ImageY + Bitmap.Height - 1 - RY)^ := 255;
           if RB = 7 then
             Inc(L);
         end;
-        Inc(B, Bitmap^.Pitch);
+        Inc(B, Bitmap.Pitch);
       end;
     end;
 
   begin
-    if AntiAliased then
-      Bitmaps := FontMgr.GetStringGray(FontId, UnicodeCharToString(C), Size) else
-      Bitmaps := FontMgr.GetString(FontId, UnicodeCharToString(C), Size);
+    Bitmap := FtFont.RenderChar(C, Size, AntiAliased);
     try
-      Bitmap := Bitmaps.Bitmaps[0];
-      if (Bitmap^.Pitch < 0) then
+      if (Bitmap.Pitch < 0) then
       begin
         WritelnWarning('Font', Format('Font "%s" contains a glyphs with Pitch < 0 for character "%s" (index %d)',
           [Url, C, Ord(C)]));
@@ -581,14 +563,14 @@ var
         DrawChar
       else
         DrawCharBW;
-    finally FreeAndNil(Bitmaps) end;
+    finally FreeAndNil(Bitmap) end;
   end;
 
   procedure ReadFontMetadata;
   var
     FreeTypeFont: PFT_Face;
   begin
-    FreeTypeFont := FontMgr.GetFreeTypeFont(FontId);
+    FreeTypeFont := FtFont.FreeTypeInfo;
     FFamilyName := FreeTypeFont^.family_name;
     FStyleName := FreeTypeFont^.style_name;
     FBold := FreeTypeFont^.style_flags and FT_STYLE_FLAG_BOLD <> 0;
@@ -619,8 +601,7 @@ begin
   FAntiAliased := AnAntiAliased;
   FUseFallbackGlyph := true;
 
-  InitFontMgr;
-  FontId := FontMgr.RequestFont(Url);
+  FtFont := TFreeTypeFont.Create(Url);
 
   TemporaryCharacters := ACharacters = nil;
   if TemporaryCharacters then
@@ -629,9 +610,9 @@ begin
     ACharacters.Add(SimpleAsciiCharacters);
   end;
 
-  ReadFontMetadata;
-
   try
+    ReadFontMetadata;
+
     FGlyphsExtra := TGlyphDictionary.Create;
 
     GlyphsCount := 0;
@@ -709,6 +690,7 @@ begin
 
     // Debug: SaveImage(Image, '/tmp/a.png');
   finally
+    FreeAndNil(FtFont);
     if TemporaryCharacters then
       FreeAndNil(ACharacters);
   end;
