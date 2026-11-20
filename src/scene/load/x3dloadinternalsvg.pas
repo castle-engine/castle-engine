@@ -25,53 +25,8 @@
 
   The SVG is converted to X3D nodes (vector graphics, no rasterization).
 
-  Notes on coordinates and sizes:
-
-  @unorderedList(
-
-    @item(
-      The drawing @italic(canvas) is centered at (0,0).
-
-      In most cases, this means that the @italic(content) is centered at (0,0),
-      though this is not guaranteed for all SVG content.
-      SVG content may go outside the centered canvas.
-
-      This is consistent with what X3DLoadInternalImage does
-      (when you load image to a TCastleScene; this is the deprecated approach).
-      And it is consistent with what TCastleImageTransform does by default
-      (which is the recommended approach to put image in a TCastleViewport).
-
-      ( But when dealing with raster images, there's no difference between
-      centering @italic(canvas) and centering @italic(content).
-      In case of SVG images, this difference is meaningful. )
-
-      See https://castle-engine.io/using_images .
-    )
-
-    @item(
-      The Y axis is pointing up. For this, we transform the SVG coordinates.
-      This is consistent with the engine default expectation, for both 2D and 3D,
-      see https://castle-engine.io/up .
-      It is unlike typical SVG (where Y goes down).
-    )
-
-    @item(1 unit is 1 pixel of SVG.)
-
-    @item(
-      The drawing order of SVG is preserved by giving each
-      shape a larger Z than the previous one.
-      The first shape is at Z = 0, the next ones have Z increased by
-      @link(SvgLayersZDistance).
-
-      So if you need to limit the thickness in Z of the resulting 3D object:
-      adjust the @link(SvgLayersZDistance) variable accordingly.
-      Or (if you must be prepared for arbitrary SVG content with many layers),
-      scale the resulting 3D object in Z, based on its bounding box size in Z
-      (but be prepared that using too small values in Z may cause visual artifacts,
-      Z-fighting, when layers seem to overlap due to Z-buffer not being precise
-      enough).
-    )
-  )
+  Most important notes on how the SVG content is interpreted by the engine
+  are on https://castle-engine.io/model_formats#svg .
 
   How it works:
 
