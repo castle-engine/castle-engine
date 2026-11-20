@@ -22,6 +22,11 @@ See https://castle-engine.io/project_manifest for documentation of this file.
       </service>
     </services>
   </android>
+  <ios>
+    <services>
+      <service name="local_notifications" />
+    </services>
+  </ios>
   <compiler_options>
     <search_paths>
       <path value="code/" />
