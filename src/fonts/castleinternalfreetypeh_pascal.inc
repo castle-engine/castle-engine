@@ -18,7 +18,7 @@
 
   Limitations compared to the FreeType library:
   - no hinting (so glyphs are a bit softer at small sizes),
-  - only TrueType / OpenType fonts (TTF, OTF, TTC),
+  - only TrueType / OpenType fonts (TTF, OTF, TTC, WOFF), no WOFF2,
   - and only the API subset used by CGE
     (by CastleInternalFreeType unit, and declared in CastleInternalFreeTypeH).
 

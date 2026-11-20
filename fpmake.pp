@@ -75,7 +75,7 @@ begin
       if Defaults.OS <> Android then
         P.Dependencies.Add('fcl-web');
       P.Dependencies.Add('pasjpeg');
-      P.Dependencies.Add('paszlib'); { used by FpReadTiff, we don't use paszlib in CGE }
+      P.Dependencies.Add('paszlib'); { used by FpReadTiff, and its ZStream unit is used by CastleTiledMap, CastleInternalOpenTypeFont }
       P.Dependencies.Add('regexpr');
       if Xlib then
       begin

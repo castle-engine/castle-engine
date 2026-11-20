@@ -35,6 +35,7 @@ type
     procedure TestSizeChangeNotificationCustomized;
     procedure TestFontFamilyCustomizeOutlineBalance;
     procedure TestSimpleHtmlQuote;
+    procedure TestWoff;
   end;
 
 implementation
@@ -440,6 +441,30 @@ begin
     of the '&' we introduce): '&lt;' -> '&amp;lt;', not '&amp;amp;lt;'. }
   AssertEquals('&amp;lt;', SimpleHtmlQuote('&lt;'));
   AssertEquals('&amp;amp;', SimpleHtmlQuote('&amp;'));
+end;
+
+procedure TTestCastleFonts.TestWoff;
+var
+  F: TCastleFont;
+begin
+  {$ifdef CASTLE_IGNORE_FREETYPE_MISSING}
+  if not FreeTypeLibraryInitialized then
+  begin
+    AbortTest;
+    Exit;
+  end;
+  {$else}
+  FailIfFreeTypeMissing;
+  {$endif}
+
+  { WOFF (1.0) font is supported by FreeType library,
+    and by our Pascal implementation (with CASTLE_FREETYPE_PASCAL). }
+  F := TCastleFont.Create(nil);
+  try
+    F.Url := 'castle-data:/fonts/FreeCheese-Regular.woff';
+    AssertTrue(F.Height > 0);
+    AssertTrue(F.TextWidth('Hello') > 0);
+  finally FreeAndNil(F) end;
 end;
 
 initialization

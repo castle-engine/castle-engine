@@ -21,6 +21,8 @@
     @item(TrueType outlines (glyf, loca tables), including composite glyphs.)
     @item(CFF outlines (Type 2 charstrings), including CID-keyed fonts.)
     @item(TrueType Collections (TTC), selecting the face by index.)
+    @item(WOFF (1.0) font files, which are decoded to regular OpenType
+      font data when loading.)
     @item(Character to glyph mapping (cmap formats 0, 4, 6, 12).)
     @item(Horizontal metrics, font names, style (bold / italic),
       kerning from the "kern" table (format 0).)
@@ -29,7 +31,7 @@
   Not supported: hinting (bytecode instructions or CFF hints are ignored),
   bitmap-only fonts, color fonts (the regular outlines are used, if present),
   variable fonts variations (the default instance is used),
-  GPOS kerning, CFF2 outlines.
+  GPOS kerning, CFF2 outlines, WOFF2 font files.
 
   The glyph outlines are rasterized by the CastleInternalGlyphRasterizer unit.
   Both units together are used by CastleInternalFreeTypeH to implement
@@ -203,6 +205,13 @@ type
     { Find table, return offset or -1 if not found (or raise error if Required). }
     function FindTable(const Tag: AnsiString; const Required: Boolean): Integer;
 
+    { Read Count bytes of zlib-compressed data (with CompressedCount bytes size)
+      from the current position, decompress them into Buffer. }
+    procedure ReadCompressed(const CompressedCount: Integer;
+      var Buffer; const Count: Integer);
+    { Decode WOFF (1.0) font file, replacing FData with regular
+      OpenType font data. }
+    procedure DecodeWoff;
     procedure ReadTables(const FaceIndex: Integer);
     procedure ReadNames;
     function FindName(const NameId: Integer; out Name: AnsiString): Boolean;
@@ -288,7 +297,11 @@ type
 
 implementation
 
-uses Math, CastleUtils, CastleStreamUtils;
+uses Math,
+  { zlib decompression, for WOFF.
+    Note: with Delphi, CastleDownload already uses ZLib, by CastleInternalZStream. }
+  {$ifdef FPC} ZStream, {$else} ZLib, {$endif}
+  CastleUtils, CastleStreamUtils;
 
 { Records read directly from the font data ----------------------------------- }
 
@@ -366,6 +379,21 @@ type
   { CFF header. }
   TCffHeader = packed record
     Major, Minor, HeaderSize, OffSize: Byte;
+  end;
+
+  { WOFF header, see https://www.w3.org/TR/WOFF/#WOFFHeader . }
+  TWoffHeader = packed record
+    Signature, Flavor, Length: UInt32;
+    NumTables, Reserved: UInt16;
+    TotalSfntSize: UInt32;
+    MajorVersion, MinorVersion: UInt16;
+    MetaOffset, MetaLength, MetaOrigLength: UInt32;
+    PrivOffset, PrivLength: UInt32;
+  end;
+
+  { WOFF table directory entry, see https://www.w3.org/TR/WOFF/#TableDirectory . }
+  TWoffTableEntry = packed record
+    Tag, Offset, CompLength, OrigLength, OrigChecksum: UInt32;
   end;
 
 { Convert big-endian value (read from the font data) to native endianess. }
@@ -599,6 +627,146 @@ begin
   Result := -1;
 end;
 
+{ TOpenTypeFont: WOFF -------------------------------------------------------- }
+
+procedure TOpenTypeFont.ReadCompressed(const CompressedCount: Integer;
+  var Buffer; const Count: Integer);
+var
+  Compressed: TMemoryStream;
+  Decompressor: TDecompressionStream;
+begin
+  Compressed := TMemoryStream.Create;
+  try
+    Compressed.Size := CompressedCount;
+    FData.ReadBuffer(Compressed.Memory^, CompressedCount);
+    try
+      Decompressor := TDecompressionStream.Create(Compressed);
+      try
+        Decompressor.ReadBuffer(Buffer, Count);
+      finally FreeAndNil(Decompressor) end;
+    except
+      { Report invalid compressed data like other invalid font data. }
+      on E: EZlibError do
+        Error('Invalid compressed data in WOFF font: ' + E.Message);
+    end;
+  finally FreeAndNil(Compressed) end;
+end;
+
+procedure TOpenTypeFont.DecodeWoff;
+
+  { Size rounded up to a multiple of 4, as tables in OpenType font data
+    are 4-byte aligned. }
+  function Align4(const Size: Int64): Int64;
+  begin
+    Result := (Size + 3) and not Int64(3);
+  end;
+
+var
+  Header: TWoffHeader;
+  Entries: array of TWoffTableEntry;
+  OffsetTable: TOffsetTable;
+  TableRecord: TTableRecord;
+  I, NumTables, EntrySelector, SearchRange, Pos, Len, CompLen: Integer;
+  SfntSize: Int64;
+  Sfnt: TMemoryStream;
+begin
+  SeekTo(0);
+  FData.ReadBuffer(Header, SizeOf(Header));
+  FixEndian(Header.Flavor);
+  FixEndian(Header.Length);
+  FixEndian(Header.NumTables);
+  FixEndian(Header.TotalSfntSize);
+  NumTables := Header.NumTables;
+  if (Header.Length <> FData.Size) or (NumTables = 0) then
+    Error('Invalid WOFF header');
+  if Header.Flavor = TagValue('ttcf') then
+    Error('WOFF font cannot contain a TrueType Collection');
+
+  { Read table directory, calculate size of the decoded font data. }
+  SetLength(Entries, NumTables);
+  SfntSize := SizeOf(TOffsetTable) + NumTables * SizeOf(TTableRecord);
+  for I := 0 to NumTables - 1 do
+  begin
+    FData.ReadBuffer(Entries[I], SizeOf(TWoffTableEntry));
+    FixEndian(Entries[I].Tag);
+    FixEndian(Entries[I].Offset);
+    FixEndian(Entries[I].CompLength);
+    FixEndian(Entries[I].OrigLength);
+    FixEndian(Entries[I].OrigChecksum);
+    CheckRange(Entries[I].Offset, Entries[I].CompLength);
+    if Entries[I].CompLength > Entries[I].OrigLength then
+      Error('Invalid WOFF table length');
+    SfntSize := SfntSize + Align4(Entries[I].OrigLength);
+  end;
+
+  { Like FreeType, require TotalSfntSize to be exactly right
+    (WOFF specification requires it). This also limits the memory we allocate
+    to what the header declares.
+    Decoded data size must also fit in Integer, as we keep offsets as Integer. }
+  if (SfntSize <> Header.TotalSfntSize) or (SfntSize > MaxInt) then
+    Error('Invalid WOFF total font size');
+
+  { Write decoded font data: offset table, table records, table data. }
+  Sfnt := TMemoryStream.Create;
+  try
+    Sfnt.Size := SfntSize;
+    { Make the padding between tables zero. }
+    FillChar(Sfnt.Memory^, Sfnt.Size, 0);
+
+    { Calculate searchRange, entrySelector, rangeShift following
+      the OpenType specification. We don't use them when reading
+      (in ReadTables), but this way the decoded font data is fully valid. }
+    EntrySelector := 0;
+    while (2 shl EntrySelector) <= NumTables do
+      Inc(EntrySelector);
+    SearchRange := 16 shl EntrySelector;
+    OffsetTable.SfntVersion := Header.Flavor;
+    OffsetTable.NumTables := NumTables;
+    OffsetTable.SearchRange := UInt16(SearchRange);
+    OffsetTable.EntrySelector := EntrySelector;
+    OffsetTable.RangeShift := UInt16(NumTables * 16 - SearchRange);
+    FixEndian(OffsetTable.SfntVersion);
+    FixEndian(OffsetTable.NumTables);
+    FixEndian(OffsetTable.SearchRange);
+    FixEndian(OffsetTable.EntrySelector);
+    FixEndian(OffsetTable.RangeShift);
+    Sfnt.WriteBuffer(OffsetTable, SizeOf(OffsetTable));
+
+    Pos := SizeOf(TOffsetTable) + NumTables * SizeOf(TTableRecord);
+    for I := 0 to NumTables - 1 do
+    begin
+      { Checked above that these fit in Integer, as SfntSize <= MaxInt. }
+      Len := Integer(Entries[I].OrigLength);
+      CompLen := Integer(Entries[I].CompLength);
+
+      TableRecord.Tag := Entries[I].Tag;
+      TableRecord.CheckSum := Entries[I].OrigChecksum;
+      TableRecord.Offset := Pos;
+      TableRecord.Length := Len;
+      FixEndian(TableRecord.Tag);
+      FixEndian(TableRecord.CheckSum);
+      FixEndian(TableRecord.Offset);
+      FixEndian(TableRecord.Length);
+      Sfnt.WriteBuffer(TableRecord, SizeOf(TableRecord));
+
+      { Table data is zlib-compressed, unless compressing didn't make it smaller. }
+      SeekTo(Entries[I].Offset);
+      if CompLen = Len then
+        FData.ReadBuffer(PByte(Sfnt.Memory)[Pos], Len)
+      else
+        ReadCompressed(CompLen, PByte(Sfnt.Memory)[Pos], Len);
+      Pos := Pos + Integer(Align4(Len));
+    end;
+  except
+    FreeAndNil(Sfnt);
+    raise;
+  end;
+
+  { Replace FData with the decoded font data. }
+  FreeAndNil(FData);
+  FData := Sfnt;
+end;
+
 { TOpenTypeFont: loading ----------------------------------------------------- }
 
 constructor TOpenTypeFont.Create(const Stream: TStream; const FaceIndex: Integer);
@@ -617,12 +785,22 @@ end;
 procedure TOpenTypeFont.ReadTables(const FaceIndex: Integer);
 var
   Base, I, Head, Maxp, Hhea, Os2, Post, Cff: Integer;
+  Signature: UInt32;
   OffsetTable: TOffsetTable;
   TableRecord: TTableRecord;
   HeadTable: THeadTable;
   HheaTable: THheaTable;
   MacStyle: UInt16;
 begin
+  { WOFF is decoded first into regular OpenType font data. }
+  SeekTo(0);
+  Signature := ReadUInt32;
+  if Signature = TagValue('wOFF') then
+    DecodeWoff
+  else
+  if Signature = TagValue('wOF2') then
+    Error('WOFF2 font files are not supported, use WOFF (1.0), TTF or OTF');
+
   { TrueType Collection header }
   Base := 0;
   SeekTo(0);
