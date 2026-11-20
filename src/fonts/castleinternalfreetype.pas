@@ -103,8 +103,7 @@ type
 
 implementation
 
-uses StrUtils,
-  CastleDownload, CastleLog;
+uses CastleDownload, CastleLog;
 
 const
   sErrSetPixelSize = 'setting pixel size %d';
@@ -141,6 +140,7 @@ var
 procedure InitFreeTypeLibrary;
 var
   Major, Minor, Patch: Integer;
+  VersionStr: String;
 begin
   if FtLibrary <> nil then
     Exit; // already initialized
@@ -156,12 +156,11 @@ begin
   end;
 
   FT_Library_Version(FtLibrary, Major, Minor, Patch);
-  WritelnLog('FreeType (font reading) library initialized (version %d.%d.%d%s).', [
-    Major,
-    Minor,
-    Patch,
-    IfThen(Patch = FtPatchVersionPascalImplementation, ', Pascal implementation', '')
-  ]);
+  if Patch = FtPatchVersionPascalImplementation then
+    VersionStr := Format('%d.%d, Pascal implementation', [Major, Minor])
+  else
+    VersionStr := Format('%d.%d.%d', [Major, Minor, Patch]);
+  WritelnLog('FreeType (font reading) library initialized (version %s).', [VersionStr]);
 end;
 
 procedure DoneFreeTypeLibrary;
