@@ -1,0 +1,41 @@
+#X3D V4.0 utf8
+PROFILE Interchange
+
+# A point light with an effect that projects an image downwards,
+# see shaders/projected_light.fs.
+# The scene with this light has CastGlobalLights = true (in the design),
+# and the light is global, so it lights the objects in other scenes.
+DEF Light PointLight {
+  global TRUE
+  intensity 1.2
+  color 1 1 1
+  attenuation 1 0 0
+  radius 50
+  # The fields of the Effect node are uniforms in the shader.
+  # A field with a texture node is a sampler2D.
+  effects DEF LightEffect Effect {
+    language "GLSL"
+    inputOutput SFNode stained_glass_texture ImageTexture {
+      url "stained_glass.png"
+      repeatS FALSE
+      repeatT FALSE
+    }
+    inputOutput SFNode window_texture ImageTexture {
+      url "window.png"
+      repeatS FALSE
+      repeatT FALSE
+    }
+    inputOutput SFNode blinds_texture ImageTexture {
+      url "blinds.png"
+      repeatS FALSE
+      repeatT FALSE
+    }
+    # Which image to project: 0 (stained_glass_texture), 1 (window_texture)
+    # or 2 (blinds_texture), changed from Pascal.
+    inputOutput SFInt32 image_index 0
+    # Light position in world space, updated from Pascal.
+    inputOutput SFVec3f light_position 0 0 0
+    inputOutput SFFloat projection_size 0.9
+    parts EffectPart { type "FRAGMENT" url "shaders/projected_light.fs" }
+  }
+}

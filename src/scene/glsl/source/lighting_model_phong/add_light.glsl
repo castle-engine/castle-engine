@@ -97,6 +97,11 @@ void PLUG_add_light(inout vec4 color,
   float scale = 1.0;
   /* PLUG: light_scale (scale, normal_eye, light_dir) */
 
+  /* Like scale, but per color component: multiplies the light's color,
+     for example by a colored image projected from the light. */
+  vec3 color_scale = vec3(1.0);
+  /* PLUG: light_color_scale (color_scale, normal_eye, light_dir) */
+
 #ifdef LIGHT<Light>_TYPE_SPOT
 #ifdef LIGHT<Light>_HAS_BEAM_WIDTH
   /* calculate spot following VRML 2.0/X3D idea of beamWidth */
@@ -164,5 +169,5 @@ void PLUG_add_light(inout vec4 color,
   }
 #endif
 
-  color.rgb += light_color * scale;
+  color.rgb += light_color * scale * color_scale;
 }
