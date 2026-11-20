@@ -1,0 +1,21 @@
+castle_game_engine_icon_less_overlap.svg
+
+  Castle Game Engine logo, slightly modified to avoid some overlap.
+  From https://github.com/castle-engine/demo-models/blob/master/svg/castle_game_engine_icon_less_overlap.svg .
+  Original: https://github.com/castle-engine/castle-engine/blob/master/doc/pasdoc/logo/castle_game_engine_icon.svg .
+
+  Copyright 2008-2026 Michalis Kamburelis, Paweł Wojciechowicz, Katarzyna Obrycka.
+
+  Distributed on the same license as the Castle Game Engine itself:
+  - GNU GPL >= 2 or
+  - GNU LGPL >= 2, with static linking exception
+  - moreover:
+    Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)
+    https://creativecommons.org/licenses/by-sa/4.0/deed.en
+    (suitable for Wikipedia)
+  - see COPYING.md for details.
+
+fpc/*.svg
+
+  Sample SVG files from Free Pascal Compiler sources, fcl-svg package:
+  https://gitlab.com/freepascal.org/fpc/source/-/tree/main/packages/fcl-svg/examples/SVG .

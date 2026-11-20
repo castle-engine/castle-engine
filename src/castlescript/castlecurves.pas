@@ -276,12 +276,24 @@ function HermiteSpline(const X: Single; const Loop: boolean;
 function HermiteTenseSpline(const X: Single; const Loop: boolean;
   const Arguments, Values: TSingleList): Single;
 
+{ Calculate the convex hull ignoring Z coordinates of points.
+  That is, all Points[*].Z are ignored.
+
+  Returns newly created list with the indexes to Points.
+  If you want to draw an edge of convex hull,
+  you want to iterate over these points like (for each i) Points[Result[i]]).
+
+  The resulting points are in counter-clockwise order
+  (assuming X goes right, Y goes up).
+  Points lying exactly on the hull edges may, or may not, be included in the result.
+
+  Points.Count must be >= 1. }
+function ConvexHullIndexes(Points: TVector3List): TIntegerList;
+
 implementation
 
 uses Math,
   CastleXmlUtils, CastleDownload;
-
-function ConvexHullIndexes(Points: TVector3List): TIntegerList; forward;
 
 { TCurve ------------------------------------------------------------ }
 
@@ -1037,13 +1049,6 @@ begin
     Result := HermiteTenseSegment(IndexOfRightValue, XInSegment);
 end;
 
-{ Calculate the convex hull ignoring Z coordinates of pixels.
-  That is, all Points[*][2] are ignored.
-  Returns newly created array with the indices to Points.
-  If you want to draw an edge of convex hull,
-  you want to iterate over these points like (for each i) Points[Result[i]]).
-
-  Points.Count must be >= 1. }
 function ConvexHullIndexes(Points: TVector3List): TIntegerList;
 
 { this is the Jarvis algorithm, based on description in Cormen's
