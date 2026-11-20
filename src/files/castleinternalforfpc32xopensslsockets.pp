@@ -33,12 +33,16 @@ Type
     function InitContext(NeedCertificate: Boolean): Boolean; virtual;
     function DoneContext: Boolean; virtual;
     function InitSslKeys: boolean;virtual;
-    { CGE modification to handle both FPC 3.2.2 and newer 3.2.x:
+    { CGE modification to handle both FPC 3.2.0, 3.2.2 and newer 3.2.x:
       "override" is conditional.
       These are virtual in TSSLSocketHandler in FPC > 3.2.2
-      (fixes_3_2 branch: 3.2.3, 3.2.5; soon release 3.2.4). }
-    Function GetLastSSLErrorString : String; {$ifndef VER3_2_2} override; {$endif}
-    Function GetLastSSLErrorCode : Integer; {$ifndef VER3_2_2} override; {$endif}
+      (fixes_3_2 branch: 3.2.3, 3.2.5; soon release 3.2.4),
+      but not in FPC 3.2.0 and 3.2.2. }
+    {$if not (defined(VER3_2_0) or defined(VER3_2_2))}
+      {$define SSL_ERROR_METHODS_VIRTUAL}
+    {$endif}
+    Function GetLastSSLErrorString : String; {$ifdef SSL_ERROR_METHODS_VIRTUAL} override; {$endif}
+    Function GetLastSSLErrorCode : Integer; {$ifdef SSL_ERROR_METHODS_VIRTUAL} override; {$endif}
   Public
     Constructor create; override;
     destructor destroy; override;
