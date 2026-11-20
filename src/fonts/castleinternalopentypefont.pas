@@ -141,7 +141,7 @@ type
 
     var
       { Font data. Owned by this object. }
-      FData: TCustomMemoryStream;
+      FData: TStream;
       FSize: Integer;
       FNumFaces: Integer;
       FTableTags: array of UInt32;
@@ -239,7 +239,7 @@ type
       by our destructor (also when this constructor raises an exception).
       @raises(EOpenTypeFontError If the font data is invalid.)
       @raises(EReadError If the font data is truncated.) }
-    constructor Create(const Stream: TCustomMemoryStream; const FaceIndex: Integer = 0);
+    constructor Create(const Stream: TStream; const FaceIndex: Integer = 0);
     destructor Destroy; override;
 
     { Number of faces in the file (more than 1 only for TrueType Collections). }
@@ -600,7 +600,7 @@ end;
 
 { TOpenTypeFont: loading ----------------------------------------------------- }
 
-constructor TOpenTypeFont.Create(const Stream: TCustomMemoryStream; const FaceIndex: Integer);
+constructor TOpenTypeFont.Create(const Stream: TStream; const FaceIndex: Integer);
 begin
   inherited Create;
   FData := Stream;

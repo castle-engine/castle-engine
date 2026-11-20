@@ -151,17 +151,65 @@ begin
   end;
 end;
 
-{ Faces --------------------------------------------------------------------- }
+{ TReadOnlyMemoryStream ------------------------------------------------------ }
 
-function FT_New_Memory_Face(alibrary: PFT_Library; Stream: TCustomMemoryStream;
+type
+  { Read from a memory buffer, read-only stream. }
+  TReadOnlyMemoryStream = class(TStream)
+  strict private
+    FData: Pointer;
+    FSize: FT_Long;
+    FPosition: FT_Long;
+  public
+    constructor Create(const AData: Pointer; const ASize: FT_Long);
+    function Read(var Buffer; Count: Longint): Longint; override;
+    function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; override;
+  end;
+
+constructor TReadOnlyMemoryStream.Create(const AData: Pointer; const ASize: FT_Long);
+begin
+  inherited Create;
+  FData := AData;
+  FSize := ASize;
+  FPosition := 0;
+end;
+
+function TReadOnlyMemoryStream.Read(var Buffer; Count: Longint): Longint;
+begin
+  if FPosition >= FSize then
+    Exit(0);
+  if FPosition + Count > FSize then
+    Count := FSize - FPosition;
+  Move((FData + FPosition)^, Buffer, Count);
+  FPosition := FPosition + Count;
+  Result := Count;
+end;
+
+function TReadOnlyMemoryStream.Seek(const Offset: Int64; Origin: TSeekOrigin): Int64;
+begin
+  case Origin of
+    soBeginning: FPosition := Offset;
+    soCurrent: FPosition := FPosition + Offset;
+    soEnd: FPosition := FSize + Offset;
+  end;
+  if FPosition < 0 then FPosition := 0;
+  if FPosition > FSize then FPosition := FSize;
+  Result := FPosition;
+end;
+
+{ Faces ---------------------------------------------------------------------- }
+
+function FT_New_Memory_Face(alibrary: PFT_Library;
+  file_base: Pointer; file_size: FT_Long;
   face_index: FT_Long; var aface: PFT_Face): integer;
 var
   Font: TOpenTypeFont;
   FaceIndex: Integer;
   PF: PPascalFace;
+  Stream: TReadOnlyMemoryStream;
 begin
   aface := nil;
-  if Stream = nil then
+  if file_base = nil then
     Exit(FtErrInvalidArgument);
 
   { Lower 16 bits of face_index are the face index in the collection
@@ -172,7 +220,9 @@ begin
   else
     FaceIndex := face_index and $FFFF;
 
-  { Font owns the Stream now (also when TOpenTypeFont.Create fails,
+  Stream := TReadOnlyMemoryStream.Create(file_base, file_size);
+
+  { Font owns the Stream (also when TOpenTypeFont.Create fails,
     then Stream is freed by TOpenTypeFont destructor). }
   try
     Font := TOpenTypeFont.Create(Stream, FaceIndex);

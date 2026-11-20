@@ -272,12 +272,6 @@ type
     bitmap : FT_Bitmap;
   end;
 
-{ Note: We deliberately do not declare FT_New_Face (that opens a font from
-  a filename). Castle Game Engine always reads fonts through streams,
-  using FT_New_Memory_Face, see TFreeTypeFont.Create.
-  This way we can open a font from any URL, and we avoid the question
-  in what encoding FreeType expects the filename. }
-
 {$if defined(CASTLE_FREETYPE_PASCAL)}
 
 function FT_Done_Face(face: PFT_Face): integer;
@@ -285,11 +279,7 @@ function FT_Done_FreeType(alibrary: PFT_Library): integer;
 function FT_Get_Char_Index(face: PFT_Face; charcode: FT_ULong): FT_UInt;
 function FT_Init_FreeType(var alibrary: PFT_Library): integer;
 function FT_Load_Glyph(face: PFT_Face; glyph_index: FT_UInt; load_flags: CInt32): integer;
-{ Create face from font data in Stream.
-  Note: This is different than FreeType API (that takes pointer and size).
-  The Stream becomes owned by the face (it will be freed by FT_Done_Face,
-  or immediately if this fails). }
-function FT_New_Memory_Face(alibrary: PFT_Library; Stream: TCustomMemoryStream; face_index: FT_Long; var aface: PFT_Face): integer;
+function FT_New_Memory_Face(alibrary: PFT_Library; file_base: Pointer; file_size: FT_Long; face_index: FT_Long; var aface: PFT_Face): integer;
 function FT_Set_Char_Size(face: PFT_Face; char_width, char_height: FT_F26dot6; horz_res, vert_res: FT_UInt): integer;
 function FT_Set_Pixel_Sizes(face: PFT_Face; pixel_width, pixel_height: FT_UInt): integer;
 procedure FT_Library_Version(alibrary: PFT_Library; out amajor, aminor, apatch: integer);

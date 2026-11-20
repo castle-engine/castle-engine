@@ -1,6 +1,8 @@
 {
-  This file is based on the Free Pascal run time library,
-  remade a lot for Castle Game Engine.
+  This unit originated from font management unit in FPC run time library.
+  It was remade a lot for Castle Game Engine, and it's not really
+  "font management" anymore, it's more a "thinnest possible OOP wrapper
+  around FreeType API" now.
 
   Copyright by the Free Pascal development team and Michalis Kamburelis.
 
@@ -23,32 +25,21 @@
   ----------------------------------------------------------------------------
 }
 
-{ Manager for FreeType fonts, serving as a middle-man between FreeType library API
-  (in CastleInternalFreeTypeH) and CGE code loading font into image
-  (in CastleTextureFontData).
+{ Management of FreeType fonts, serving as a OOP layer between FreeType
+  library API (in CastleInternalFreeTypeH) and engine code loading font
+  into image (in CastleTextureFontData).
 
-  This is based on a similar FPC unit, but:
+  This is based on a similar FPC unit, but with lots of adjustments
+  to what we need in our engine:
 
   - We don't need platform-specific searching for fonts,
     platform-specific resolutions,
     caching for fonts and sizes (if anything, we would cache TTextureFontData),
-    rendering text.
+    rendering lines of text.
 
-  - We only want to open font file from URL,
+  - We only want to open font file from URL (using engine Download),
     and render 1 individual character at a time.
     (kerning information should be passed upward in API at some point).
-
-  - We load fonts from any URL supported by CGE,
-    thanks to using Download and FT_New_Memory_Face underneath.
-
-  - We raise exception from TFreeTypeFont.Create when FreeType library not found
-
-  - We use Cardinal for character type,
-    following David Emerson patch from
-    http://free-pascal-general.1045716.n5.nabble.com/freetype-unit-unicode-td4866273.html
-    adjusted to use our CastleUnicode unit.
-
-  - More detailed error reporting around FT_Load_Glyph and FT_Get_Glyph.
 }
 unit CastleInternalFreeType;
 
@@ -187,10 +178,6 @@ end;
 { TFreeTypeFont -------------------------------------------------------------- }
 
 constructor TFreeTypeFont.Create(const AUrl: String; const IndexInFontFile: Integer);
-{$ifdef CASTLE_FREETYPE_PASCAL}
-var
-  FontStream: TCustomMemoryStream;
-{$endif}
 begin
   inherited Create;
   FUrl := AUrl;
@@ -198,7 +185,9 @@ begin
   InitFreeTypeLibrary;
 
   try
-    { We never open the font by filename (FreeType's FT_New_Face).
+    { We never open the font by filename (FreeType's FT_New_Face,
+      not even defined in our current minimal FreeType header in CastleInternalFreeTypeH).
+
       Instead we always use CGE Download() to open the URL
       and pass the memory chunk to FreeType using FT_New_Memory_Face.
 
@@ -206,30 +195,11 @@ begin
       non-ASCII characters (as it is unclear in what encoding FreeType
       expects the filename), and it required a temporary file to access
       non-file URLs. }
-
     MemoryStream := Download(Url, [soForceMemoryStream]) as TCustomMemoryStream;
 
-    {$ifdef CASTLE_FREETYPE_PASCAL}
-    { Pascal FreeType implementation takes and owns MemoryStream
-      (also in case of failure), so don't keep reference to it. }
-    FontStream := MemoryStream;
-    MemoryStream := nil;
-    {$endif}
-
     FTCheck(FT_New_Memory_Face(FtLibrary,
-      {$ifdef CASTLE_FREETYPE_PASCAL} FontStream,
-      {$else} MemoryStream.Memory, MemoryStream.Size,
-      {$endif}
-      IndexInFontFile, font),
+      MemoryStream.Memory, MemoryStream.Size, IndexInFontFile, font),
       Format(sErrLoadFont, [IndexInFontFile, AUrl]));
-
-    { We will free MemoryStream only in our destructor.
-      Otherwise weirdest errors can occur when reading the existing font 2nd time
-      (autotests see weird Height),
-      this is also said in docs
-      https://freetype.org/freetype2/docs/reference/ft2-base_interface.html#ft_new_memory_face :
-      "You must not deallocate the memory before calling FT_Done_Face."
-    }
   except
     Font := nil;
     raise;
@@ -239,16 +209,29 @@ end;
 destructor TFreeTypeFont.Destroy;
 begin
   try
-    { Free the face explicitly. With the FreeType library, FT_Done_FreeType
-      would also free all remaining faces, but that's not the case
-      with CASTLE_FREETYPE_PASCAL. Also, MemoryStream must remain valid
-      until FT_Done_Face. }
+    { Free the face explicitly.
+
+      With the FreeType library, this is not strictly necessary,
+      as FT_Done_FreeType would also free all remaining faces,
+      but that's not the case with our Pascal implementation
+      in castleinternalfreetypeh_pascal.inc (and also we could waste memory
+      by keeping unused face loaded).
+
+      Also, MemoryStream must remain valid until FT_Done_Face. }
     if Font <> nil then
     begin
       FT_Done_Face(Font);
       Font := nil;
     end;
   finally
+    { We free MemoryStream only in our destructor (not right after
+      FT_New_Memory_Face in constructor).
+      Otherwise weirdest errors can occur when reading the existing font 2nd time
+      (autotests see weird Height),
+      this is also said in docs
+      https://freetype.org/freetype2/docs/reference/ft2-base_interface.html#ft_new_memory_face :
+      "You must not deallocate the memory before calling FT_Done_Face."
+    }
     FreeAndNil(MemoryStream);
     inherited Destroy;
   end;
