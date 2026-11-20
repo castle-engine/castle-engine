@@ -142,7 +142,6 @@ type
     var
       { Font data. Owned by this object. }
       FData: TStream;
-      FSize: Integer;
       FNumFaces: Integer;
       FTableTags: array of UInt32;
       FTableOffsets: array of Integer;
@@ -509,9 +508,9 @@ end;
 
 procedure TOpenTypeFont.CheckRange(const Pos, Len: Int64);
 begin
-  if (Pos < 0) or (Len < 0) or (Pos + Len > FSize) then
+  if (Pos < 0) or (Len < 0) or (Pos + Len > FData.Size) then
     Error(Format('Font data truncated or invalid (%d bytes at position %d, font size %d)',
-      [Len, Pos, FSize]));
+      [Len, Pos, FData.Size]));
 end;
 
 procedure TOpenTypeFont.SeekTo(const Pos: Int64);
@@ -579,7 +578,9 @@ var
   V: UInt32;
 begin
   V := ReadUInt32;
-  if V > UInt32(FSize) then
+  { In theory, FData.Size can be larger than High(UInt32),
+    and then is not addressable by 32-bit offset. }
+  if UInt64(V) > FData.Size then
     Error('Invalid offset in font data');
   Result := Integer(V);
 end;
@@ -604,9 +605,6 @@ constructor TOpenTypeFont.Create(const Stream: TStream; const FaceIndex: Integer
 begin
   inherited Create;
   FData := Stream;
-  if (FData.Size < 12) or (FData.Size > MaxInt) then
-    Error('Invalid font data size');
-  FSize := Integer(FData.Size);
   ReadTables(FaceIndex);
 end;
 
@@ -830,7 +828,7 @@ begin
       Continue;
     Pos := Storage + Rec.StringOffset;
     { ignore invalid records, pointing outside of the font data }
-    if Int64(Pos) + Rec.Length > FSize then
+    if Int64(Pos) + Rec.Length > FData.Size then
       Continue;
     if (Rec.PlatformId = 3) and
        ((Rec.EncodingId = 0) or (Rec.EncodingId = 1) or (Rec.EncodingId = 10)) then
@@ -932,7 +930,7 @@ begin
     FixEndian(Rec.EncodingId);
     FixEndian(Rec.SubtableOffset);
     Sub := Int64(Cmap) + Rec.SubtableOffset;
-    if Sub + 4 > FSize then
+    if Sub + 4 > FData.Size then
       Continue;
     SeekTo(Sub);
     Fmt := ReadUInt16;
