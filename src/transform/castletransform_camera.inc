@@ -1,6 +1,6 @@
 {%MainUnit castletransform.pas}
 {
-  Copyright 2003-2023 Michalis Kamburelis.
+  Copyright 2003-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -1265,9 +1265,12 @@ function TCastleCamera.InternalProjection(
     Box.DirectionDistances(Pos, Dir, MinBoxDistance, MaxBoxDistance);
     { Make the range MinBoxDistance...MaxBoxDistance slightly larger,
       to avoid cutting things due to imprecision when they lie exactly on the min/max distance.
-      Testcase: trees in isometric_game when observer sprite has Exists=false. }
+      Testcase: trees in isometric_game when observer sprite has Exists=false.
+
+      Note that one (MinBoxDistance) or both distances may be negative,
+      changes below must cooperate with that. }
     MinBoxDistance := MinBoxDistance - 1;
-    MaxBoxDistance := (MaxBoxDistance + 1) * 1.1;
+    MaxBoxDistance := MaxBoxDistance + 1 + Abs(MaxBoxDistance) * 0.1;
   end;
 
 var
