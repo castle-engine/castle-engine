@@ -77,8 +77,10 @@ begin
       P.Dependencies.Add('pasjpeg');
       P.Dependencies.Add('paszlib'); { used by FpReadTiff, and its ZStream unit is used by CastleTiledMap, CastleInternalOpenTypeFont }
       P.Dependencies.Add('regexpr');
-      {$if FPC_FULLVERSION >= 30301}
+      {$if (FPC_FULLVERSION >= 30301) and declared(DynArrayRefCount)}
       { Used by X3DLoadInternalSvg, fcl-svg uses also fcl-css.
+        Detect FPC with fcl-svg like in X3DLoadInternalSvg,
+        using DynArrayRefCount presence.
         fcl-svg is only available on some OSes, see fcl-svg/fpmake.pp. }
       if Defaults.OS in [darwin, win32, win64, linux, solaris] + AllBSDOSes then
       begin

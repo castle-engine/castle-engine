@@ -20,7 +20,7 @@
   e.g. @code(Scene.Url := 'castle-data:/my.svg').
 
   This is only possible when compiling with FPC that includes fcl-svg package
-  (latest FPC from "main" branch, since late September 2026).
+  (latest FPC from "main" branch, from 2026-10-07 or newer).
   With older FPC, or with Delphi, the SVG format is not registered.
 
   The SVG is converted to X3D nodes (vector graphics, no rasterization).
@@ -112,18 +112,39 @@ unit X3DLoadInternalSvg;
 
 {$I castleconf.inc}
 
+interface
+
 { Define CASTLE_FCL_SVG when we can use fcl-svg package.
 
-  - It requires FPC 3.3.1.
-    Note: FPC 3.3.1 from "main" branch older than late September 2026
-    does not have fcl-svg, but we cannot detect it here.
+  - It requires FPC 3.3.1 from "main" branch, from 2026-10-07 or newer.
+
+    fcl-svg was added to FPC "main" in late September 2026.
+    In order to work also with older FPC 3.3.1 versions,
+    we cannot just assume that FPC_FULLVERSION >= 30301 implies SVG support.
+
+    We considered using "$if declared(FpSvg.Types)" but it doesn't work to detect
+    units.
+
+    So we detect a new System identifier, DynArrayRefCount,
+    added to FPC "main" on 2026-10-07
+    ( https://gitlab.com/freepascal.org/fpc/source/-/commit/05be34c09a ).
+    When it is declared, we also have fcl-svg
+    (on platforms where fcl-svg is built, see below).
+
+    This hack has a small "blind spot":
+    if you have FPC 3.3.1 from revisions between 2026-09-20 and 2026-10-07,
+    then it has SVG but we will not define CASTLE_FCL_SVG.
+    Just upgrade to latest FPC 3.3.1 snapshot to get SVG support.
+
+    Note: This check must be after the "interface" keyword,
+    as System unit is not yet loaded before it.
 
   - fcl-svg is only built for some OSes, see P.OSes in fcl-svg/fpmake.pp:
     darwin (but not iOS), Windows, Linux (but not Android), Solaris, BSDs.
     In particular, it is not available for Android, iOS, web (WebAssembly),
     Nintendo Switch. }
 {$ifdef FPC}
-  {$if FPC_FULLVERSION >= 30301}
+  {$if (FPC_FULLVERSION >= 30301) and declared(DynArrayRefCount)}
     {$if defined(MSWINDOWS) or defined(LINUX) or defined(DARWIN) or
          defined(BSD) or defined(SOLARIS)}
       {$if not (defined(ANDROID) or defined(CASTLE_IOS) or
@@ -136,8 +157,6 @@ unit X3DLoadInternalSvg;
 {$ifdef CASTLE_SVG_SUPPORT_DISABLE}
   {$undef CASTLE_FCL_SVG}
 {$endif}
-
-interface
 
 type
   { Information about the last SVG loading.

@@ -12,11 +12,13 @@ MyScene.Url := 'castle-data:/my.svg';
 
 ## Requires latest FPC (from "main" branch), with fcl-svg
 
-**To read SVG files, your application must be compiled with the latest [Free Pascal Compiler](https://www.freepascal.org/) from the [main branch on GitLab](https://gitlab.com/freepascal.org/fpc/source)**, from October 2026 or newer. The engine uses the `fcl-svg` package, which was added to FPC in late September 2026.
+**To read SVG files, your application must be compiled with the latest [Free Pascal Compiler](https://www.freepascal.org/) from the [main branch on GitLab](https://gitlab.com/freepascal.org/fpc/source)**, from 2026-10-07 or newer. The engine uses the `fcl-svg` package, which was added to FPC in late September 2026.
 
 - With **FPC 3.2.2** (or any other stable FPC release, as of now) or with **Delphi**, the SVG format is not supported. Loading SVG raises `EModelFormatUnknown`, like for any other unknown format. This example catches it and shows a message.
 
-- With FPC 3.3.1 from "main" branch _older_ than late September 2026, the engine doesn't compile (it will not find `fcl-svg` units). Upgrade FPC, or define `CASTLE_SVG_SUPPORT_DISABLE` symbol (which will fix the compilation but explicitly disable SVG support).
+- With FPC 3.3.1 from "main" branch _older_ than 2026-10-07, the SVG format is not supported either (same as above). We detect such FPC automatically.
+
+- You can also define `CASTLE_SVG_SUPPORT_DISABLE` symbol to explicitly disable SVG support (and not use `fcl-svg` units), with any compiler.
 
 You can get the latest FPC e.g. using [fpcupdeluxe](https://castle-engine.io/fpcupdeluxe) (choose FPC "trunk" / "main") or by [compiling FPC from source yourself](https://gitlab.com/freepascal.org/fpc/source).
 
