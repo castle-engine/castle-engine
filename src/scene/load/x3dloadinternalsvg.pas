@@ -19,6 +19,10 @@
   so you can load SVG files into TCastleScene like any other model,
   e.g. @code(Scene.Url := 'castle-data:/my.svg').
 
+  This is only possible when compiling with FPC that includes fcl-svg package
+  (latest FPC from "main" branch, since late September 2026).
+  With older FPC, or with Delphi, the SVG format is not registered.
+
   The SVG is converted to X3D nodes (vector graphics, no rasterization).
 
   Notes on coordinates and sizes:
@@ -96,17 +100,41 @@
 
     @item(Masks, filters, patterns, group opacity, images are not supported.
       fcl-svg then draws the content without these effects.)
-  )
 
-  fcl-svg is only available in the latest FPC (from "main" branch).
-  With older FPC, or with Delphi, this unit compiles,
-  but loading SVG only raises an exception. }
-unit GameLoadSvg;
+    @item(SVG text (using fonts) is not rendered.
+      We don't use the system fonts provided by fcl-svg (SVGPlatformFontProvider),
+      because on most platforms it links to the FreeType library statically,
+      which would make every application require FreeType at startup.
+      Text already converted to paths (curves) in SVG is rendered OK.
+      TODO: Implement fcl-svg font provider using Castle Game Engine fonts.)
+  ) }
+unit X3DLoadInternalSvg;
 
+{$I castleconf.inc}
+
+{ Define CASTLE_FCL_SVG when we can use fcl-svg package.
+
+  - It requires FPC 3.3.1.
+    Note: FPC 3.3.1 from "main" branch older than late September 2026
+    does not have fcl-svg, but we cannot detect it here.
+
+  - fcl-svg is only built for some OSes, see P.OSes in fcl-svg/fpmake.pp:
+    darwin (but not iOS), Windows, Linux (but not Android), Solaris, BSDs.
+    In particular, it is not available for Android, iOS, web (WebAssembly),
+    Nintendo Switch. }
 {$ifdef FPC}
   {$if FPC_FULLVERSION >= 30301}
-    {$define CASTLE_FCL_SVG}
+    {$if defined(MSWINDOWS) or defined(LINUX) or defined(DARWIN) or
+         defined(BSD) or defined(SOLARIS)}
+      {$if not (defined(ANDROID) or defined(CASTLE_IOS) or
+                defined(CASTLE_NINTENDO_SWITCH))}
+        {$define CASTLE_FCL_SVG}
+      {$endif}
+    {$endif}
   {$endif}
+{$endif}
+{$ifdef CASTLE_SVG_SUPPORT_DISABLE}
+  {$undef CASTLE_FCL_SVG}
 {$endif}
 
 interface
@@ -142,14 +170,11 @@ var
 
 implementation
 
-uses SysUtils, Classes, Math, Generics.Collections,
-  {$ifdef CASTLE_FCL_SVG}
-  FpSvg.Types, FpSvg.Backend, FpSvg.Dom, FpSvg.Read, FpSvg.Geom, FpSvg.Render,
-  FpSvg.Fonts.Provider,
-  {$endif}
-  X3DNodes, X3DLoad, CastleUtils, CastleVectors, CastleColors, CastleCurves;
-
 {$ifdef CASTLE_FCL_SVG}
+
+uses SysUtils, Classes, Math, Generics.Collections,
+  FpSvg.Types, FpSvg.Backend, FpSvg.Dom, FpSvg.Read, FpSvg.Geom, FpSvg.Render,
+  X3DNodes, X3DLoad, CastleUtils, CastleVectors, CastleColors, CastleCurves;
 
 { 2D polygon helpers ---------------------------------------------------------- }
 
@@ -788,9 +813,8 @@ begin
     try
       Document := ReadSVGStream(Stream);
       Renderer := TSVGRenderer.Create;
-      { Use system fonts to render SVG text.
-        May be nil (no fonts available), then text is not rendered. }
-      Renderer.Fonts := SVGPlatformFontProvider;
+      { We leave Renderer.Fonts = nil, so SVG text is not rendered.
+        See the unit comments why we don't use SVGPlatformFontProvider. }
       Backend := TX3DBackend.Create;
       Backend.Parent := Transform;
       Renderer.Render(Document, Backend);
@@ -813,17 +837,6 @@ begin
   end;
 end;
 
-{$else}
-
-function LoadSvgModel(const Stream: TStream; const BaseUrl: String;
-  const LoadOptions: TCastleSceneLoadOptions): TX3DRootNode;
-begin
-  raise Exception.Create('Reading SVG requires compiling with the latest FPC 3.3.1, that includes fcl-svg package.');
-  Result := nil; // avoid warning
-end;
-
-{$endif}
-
 var
   ModelFormat: TModelFormat;
 initialization
@@ -834,4 +847,7 @@ initialization
   ModelFormat.FileFilterName := 'SVG (*.svg)';
   ModelFormat.Extensions.Add('.svg');
   RegisterModelFormat(ModelFormat);
+
+{$endif CASTLE_FCL_SVG}
+
 end.

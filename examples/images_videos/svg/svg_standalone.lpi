@@ -63,7 +63,7 @@
         <PackageName Value="castle_engine_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="5">
+    <Units Count="4">
       <Unit0>
         <Filename Value="svg_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
@@ -79,15 +79,10 @@
         <UnitName Value="gameinitialize"/>
       </Unit2>
       <Unit3>
-        <Filename Value="code/gameloadsvg.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="gameloadsvg"/>
-      </Unit3>
-      <Unit4>
         <Filename Value="code/gameviewmain.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gameviewmain"/>
-      </Unit4>
+      </Unit3>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

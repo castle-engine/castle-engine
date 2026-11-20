@@ -55,7 +55,7 @@ implementation
 
 uses SysUtils, Math,
   CastleUtils, CastleTimeUtils, CastleUriUtils, CastleWindow, CastleBoxes,
-  GameLoadSvg;
+  X3DLoad, X3DLoadInternalSvg;
 
 const
   SampleUrls: array [0..5] of String = (
@@ -98,10 +98,22 @@ begin
   TimeStart := Timer;
   try
     { Load SVG into TCastleScene, just like any other model format.
-      This works thanks to GameLoadSvg unit, that registers SVG model format. }
+      The engine registers SVG model format,
+      if only it was compiled with FPC that includes fcl-svg package. }
     SceneSvg.Url := Url;
   except
-    { Show errors (e.g. invalid SVG) to the user, as the user can choose
+    { Explain why SVG format may be unknown. }
+    on E: EModelFormatUnknown do
+    begin
+      SceneSvg.Url := ''; // clear previous SVG
+      LabelInfo.Caption := 'Cannot load ' + UriDisplay(Url) + ':' + NL +
+        'File format not supported.' + NL +
+        NL +
+        'Note: Loading SVG requires compiling with the latest FPC' + NL +
+        '(from "main" branch), that includes fcl-svg package. See README.md.';
+      Exit;
+    end;
+    { Show other errors (e.g. invalid SVG) to the user, as the user can choose
       any file using ButtonOpen. }
     on E: Exception do
     begin
