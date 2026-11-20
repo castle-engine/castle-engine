@@ -1055,6 +1055,8 @@ function ConvexHullIndexes(Points: TVector3List): TIntegerList;
   "Introduction to alg." }
 
 var InResult: TBooleanList;
+    { Index of the lowest point in Points. The hull starts (and ends) there. }
+    i0: Integer;
 
   function FindNext(Start: Integer; var NextI: Integer; RightSide: boolean): boolean;
   { Starting from Points[Start], knowing that InResult[Start],
@@ -1067,14 +1069,20 @@ var InResult: TBooleanList;
     or (not RightSide) and Start is the lowest vertex.
     Else sets Next as appropriate and returns true.
 
-    Returned Next for SURE has InResult[Next] = false. }
+    Returned Next for SURE has InResult[Next] = false,
+    or (only when not RightSide) Next = i0, which means we closed the hull.
+    Considering i0 when walking over the left edge is necessary,
+    otherwise we would continue the walk to other points below the current one,
+    that are not on the hull. }
   var MaxCotanAngle, ThisCotan: Single;
       MaxCotanAngleI, i: Integer;
   begin
    MaxCotanAngle := -MaxSingle;
    MaxCotanAngleI := -1;
    for i := 0 to Points.Count-1 do
-    if not InResult[i] then
+    if (i <> Start) and
+       ( (not InResult[i]) or
+         ((not RightSide) and (i = i0)) ) then
     begin
      if SameValue(Points.L[i][1], Points.L[Start][1]) then
      begin
@@ -1107,7 +1115,7 @@ var InResult: TBooleanList;
   end;
 
 var MinY: Single;
-    i0, i, NextI: Integer;
+    i, NextI: Integer;
 begin
  Assert(Points.Count >= 1);
 
@@ -1130,7 +1138,7 @@ begin
 
    i := i0;
    while FindNext(i, NextI, true ) do begin i := NextI; MarkNext(i); end;
-   while FindNext(i, NextI, false) do begin i := NextI; MarkNext(i); end;
+   while FindNext(i, NextI, false) and (NextI <> i0) do begin i := NextI; MarkNext(i); end;
 
   except Result.Free; raise end;
  finally InResult.Free end;
