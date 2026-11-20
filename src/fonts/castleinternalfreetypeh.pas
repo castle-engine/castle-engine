@@ -82,6 +82,12 @@ const
   ft_glyph_format_bitmap    = $62697473; //bits 098 105 116 115
   ft_glyph_format_outline   = $6F75746C; //outl 111 117 116 108
 
+  { Special value returned by FT_Library_Version for the patch version
+    of the Pascal implementation.
+    Chosen arbitrarily, just a crazy enough number that no real FreeType
+    version would use it. }
+  FtPatchVersionPascalImplementation = 999888777;
+
 type
   FT_Bool = boolean;
   FT_Short = CShort;

@@ -130,13 +130,6 @@ begin
 end;
 
 procedure FT_Library_Version(alibrary: PFT_Library; out amajor, aminor, apatch: integer);
-const
-  { Recent FreeType version, whose behavior (like rounding of metrics)
-    our implementation tries to match.
-    The FreeType API subset we implement didn't change in a long time. }
-  FreeTypeVersionMajor = 2;
-  FreeTypeVersionMinor = 14;
-  FreeTypeVersionPatch = 0;
 begin
   { Like FreeType, report 0.0.0 when library is nil. }
   if alibrary = nil then
@@ -146,9 +139,15 @@ begin
     apatch := 0;
   end else
   begin
-    amajor := FreeTypeVersionMajor;
-    aminor := FreeTypeVersionMinor;
-    apatch := FreeTypeVersionPatch;
+    { Recent FreeType version, whose behavior (like rounding of metrics)
+      our implementation tries to match.
+      The FreeType API subset we implement didn't change in a long time. }
+    amajor := 2;
+    aminor := 14;
+    { Make it possible to recognized our implementation at runtime,
+      when we're used as a fallback when dynamic FreeType library cannot
+      be loaded. }
+    apatch := FtPatchVersionPascalImplementation;
   end;
 end;
 

@@ -60,10 +60,10 @@ uses SysUtils, Classes,
   CastleInternalFreeTypeH, CastleUnicode, CastleUtils;
 
 type
-  FreeTypeException = class (Exception);
+  EFreeTypeException = class (Exception);
 
   { Raised when the freetype library is not available. }
-  EFreeTypeLibraryNotFound = class (FreeTypeException);
+  EFreeTypeLibraryNotFound = class (EFreeTypeException);
 
   { Single character rendered by FreeType. }
   TFontBitmap = class
@@ -103,10 +103,10 @@ type
 
 implementation
 
-uses CastleDownload;
+uses StrUtils,
+  CastleDownload, CastleLog;
 
 const
-  sErrFreeType = 'Error %d while %s';
   sErrSetPixelSize = 'setting pixel size %d';
   sErrSetCharSize = 'setting char size %d';
   sErrLoadGlyph = 'loading glyph %d (FT_Load_Glyph)';
@@ -118,16 +118,15 @@ const
 
 { error handling ------------------------------------------------------------- }
 
-procedure FTError(const Event: String; const Err: Integer);
+{ Raise EFreeTypeException if ErrorCode <> 0,
+  showing ErrorAtEvent as the context of the error,
+  and ErrorCode as the FreeType error code. }
+procedure FTCheck(const ErrorCode: Integer; const ErrorAtEvent: String);
+const
+  sErrFreeType = 'Error %d while %s';
 begin
-  raise FreeTypeException.CreateFmt(sErrFreeType, [Err,Event]);
-end;
-
-function FTCheck(const Res: Integer; const Msg: String): Integer;
-begin
-  Result := Res;
-  if Result <> 0 then
-    FTError(Msg, Result);
+  if ErrorCode <> 0 then
+    raise EFreeTypeException.CreateFmt(sErrFreeType, [ErrorCode, ErrorAtEvent]);
 end;
 
 { PFT_Library initialization / finalization ---------------------------------- }
@@ -141,7 +140,7 @@ var
   @raises EFreeTypeLibraryNotFound If the library cannot be loaded. }
 procedure InitFreeTypeLibrary;
 var
-  R: Integer;
+  Major, Minor, Patch: Integer;
 begin
   if FtLibrary <> nil then
     Exit; // already initialized
@@ -149,17 +148,23 @@ begin
   if not FreeTypeLibraryInitialized then
     raise EFreeTypeLibraryNotFound.Create('Cannot load FreeType library, loading font files not possible');
 
-  R := FT_Init_FreeType(FtLibrary);
-  if R <> 0 then
-  begin
-    FtLibrary := nil;
-    FTError(sErrInitializing, R);
+  try
+    FTCheck(FT_Init_FreeType(FtLibrary), sErrInitializing);
+  except
+    FtLibrary := nil; // make sure we don't leave it in an inconsistent state
+    raise;
   end;
+
+  FT_Library_Version(FtLibrary, Major, Minor, Patch);
+  WritelnLog('FreeType (font reading) library initialized (version %d.%d.%d%s).', [
+    Major,
+    Minor,
+    Patch,
+    IfThen(Patch = FtPatchVersionPascalImplementation, ', Pascal implementation', '')
+  ]);
 end;
 
 procedure DoneFreeTypeLibrary;
-var
-  R: Integer;
 begin
   { Do nothing if InitFreeTypeLibrary was never called successfully.
     In particular, do not call FT_Done_FreeType when FreeType library
@@ -167,9 +172,8 @@ begin
   if FtLibrary = nil then
     Exit;
 
-  R := FT_Done_FreeType(FtLibrary);
-  if R <> 0 then
-    FTError(sErrDestroying, R);
+  FTCheck(FT_Done_FreeType(FtLibrary), sErrDestroying);
+
   FtLibrary := nil;
 end;
 
@@ -218,7 +222,7 @@ begin
       {$else} MemoryStream.Memory, MemoryStream.Size,
       {$endif}
       IndexInFontFile, font),
-      format (sErrLoadFont,[IndexInFontFile, AUrl]));
+      Format(sErrLoadFont, [IndexInFontFile, AUrl]));
 
     { We will free MemoryStream only in our destructor.
       Otherwise weirdest errors can occur when reading the existing font 2nd time
@@ -266,7 +270,7 @@ function TFreeTypeFont.RenderChar(const UnicodeChar: TUnicodeChar;
         ( (Font^.available_sizes^[r].height=asize) and
           (Font^.available_sizes^[r].width=asize) );
       if r < 0 then
-        raise FreeTypeException.CreateFmt ('Size %d not available for %s %s', [
+        raise EFreeTypeException.CreateFmt ('Size %d not available for %s %s', [
           aSize,
           Font^.style_name,
           Font^.family_name
