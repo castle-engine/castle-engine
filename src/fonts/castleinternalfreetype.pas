@@ -25,7 +25,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Management of FreeType fonts, serving as a OOP layer between FreeType
+{ Management of FreeType fonts, serving as an OOP layer between FreeType
   library API (in CastleInternalFreeTypeH) and engine code loading font
   into image (in CastleTextureFontData).
 

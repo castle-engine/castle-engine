@@ -580,7 +580,7 @@ begin
   V := ReadUInt32;
   { In theory, FData.Size can be larger than High(UInt32),
     and then is not addressable by 32-bit offset. }
-  if UInt64(V) > FData.Size then
+  if Int64(V) > FData.Size then
     Error('Invalid offset in font data');
   Result := Integer(V);
 end;

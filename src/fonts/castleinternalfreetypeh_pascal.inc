@@ -164,6 +164,7 @@ type
     constructor Create(const AData: Pointer; const ASize: FT_Long);
     function Read(var Buffer; Count: Longint): Longint; override;
     function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; override;
+    function GetSize: Int64; override;
   end;
 
 constructor TReadOnlyMemoryStream.Create(const AData: Pointer; const ASize: FT_Long);
@@ -180,7 +181,7 @@ begin
     Exit(0);
   if FPosition + Count > FSize then
     Count := FSize - FPosition;
-  Move((FData + FPosition)^, Buffer, Count);
+  Move(PByte(FData)[FPosition], Buffer, Count);
   FPosition := FPosition + Count;
   Result := Count;
 end;
@@ -195,6 +196,14 @@ begin
   if FPosition < 0 then FPosition := 0;
   if FPosition > FSize then FPosition := FSize;
   Result := FPosition;
+end;
+
+function TReadOnlyMemoryStream.GetSize: Int64;
+begin
+  { Overriding this is not strictly necessary (ancestor TStream would calculate
+    it using Seek(0,soEnd), which would also work). But this is simpler and faster
+    than ancestor's approach: we have size as a trivial field already. }
+  Result := FSize;
 end;
 
 { Faces ---------------------------------------------------------------------- }
