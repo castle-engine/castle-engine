@@ -1,0 +1,14 @@
+# This declaration will be inserted into the middle of the project Podfile
+# by the Castle Game Engine build tool.
+#
+# Google Mobile Ads SDK, see
+# https://developers.google.com/admob/ios/quick-start ,
+# and the User Messaging Platform for the user consent (GDPR), see
+# https://developers.google.com/admob/ios/privacy .
+
+# Google Mobile Ads SDK 12 requires iOS 13. Set it for this target,
+# the project-wide default is older.
+platform :ios, '13.0'
+
+pod 'Google-Mobile-Ads-SDK', '~> 12.0'
+pod 'GoogleUserMessagingPlatform', '~> 3.0'

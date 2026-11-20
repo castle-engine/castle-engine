@@ -74,8 +74,8 @@ type
     const CanRequestAds, PrivacyOptionsRequired: Boolean) of object;
 
   { Advertisements in game.
-    Right now only on Android (does nothing on other platforms,
-    as CastleMessaging does nothing on non-Android platforms).
+    Works on Android (all ad networks) and on iOS (only AdMob).
+    Does nothing on other platforms.
 
     Usage:
 
@@ -93,6 +93,8 @@ type
         add the appropriate services (admob, chartboost, startapp...)
         inside CastleEngineManifest.xml .
         See https://castle-engine.io/android_services .
+        For iOS, add the admob service in the same way,
+        see https://castle-engine.io/ios_services .
       )
     )
   }
@@ -720,7 +722,7 @@ end;
 procedure TAds.ShowFullScreenAd(const AdNetwork: TAdNetwork;
   const AdType: TFullScreenAdType; const WaitUntilLoaded: boolean);
 begin
-  {$ifdef ANDROID}
+  {$if defined(ANDROID) or defined(CASTLE_IOS)}
   if FNetworks[AdNetwork] <> nil then
     FNetworks[AdNetwork].ShowFullScreenAd(AdType, WaitUntilLoaded)
   else
@@ -728,7 +730,7 @@ begin
     in case user code waits for OnFullScreenAdClosed. }
     FullScreenAdClosed(wsAdNetworkNotInitialized);
   {$else}
-  { since this is not supported on non-Android now, just make
+  { since this is not supported on other platforms, just make
     FullScreenAdClosed(false) immediately, to avoid the app waiting
     for OnFullScreenAdClosed forever. }
   FullScreenAdClosed(wsAdNetworkNotInitialized);
