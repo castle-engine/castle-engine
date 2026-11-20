@@ -134,9 +134,10 @@ check_fpc_version ()
   echo "FPC version: ${FPC_VERSION}"
 
   local REQUIRED_FPC_VERSION='3.2.2'
-  # Raspberry Pi and macOS need now 3.2.3, see
-  # https://github.com/castle-engine/castle-fpc/blob/4ceb9a6472760d0e9d063fd98b6677f26eee8598/build_fpc#L81
-  local REQUIRED_FPC_VERSION_2='3.2.3'
+  # Raspberry Pi and macOS need now FPC from fixes_3_2 branch,
+  # which is 3.2.5 now, see
+  # https://github.com/castle-engine/castle-fpc/blob/master/build_fpc
+  local REQUIRED_FPC_VERSION_2='3.2.5'
 
   if [[ "${CASTLE_PACK_DISABLE_FPC_VERSION_CHECK:-}" != 'true' ]]; then
     if [[ "${FPC_VERSION}" != "${REQUIRED_FPC_VERSION}" && \

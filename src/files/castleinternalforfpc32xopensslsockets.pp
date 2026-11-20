@@ -33,8 +33,12 @@ Type
     function InitContext(NeedCertificate: Boolean): Boolean; virtual;
     function DoneContext: Boolean; virtual;
     function InitSslKeys: boolean;virtual;
-    Function GetLastSSLErrorString : String; {$ifdef VER3_2_3} override; {$endif} // CGE modification to adjust to FPC32: "override" is conditional
-    Function GetLastSSLErrorCode : Integer; {$ifdef VER3_2_3} override; {$endif} // CGE modification to adjust to FPC32: "override" is conditional
+    { CGE modification to handle both FPC 3.2.2 and newer 3.2.x:
+      "override" is conditional.
+      These are virtual in TSSLSocketHandler in FPC > 3.2.2
+      (fixes_3_2 branch: 3.2.3, 3.2.5; soon release 3.2.4). }
+    Function GetLastSSLErrorString : String; {$ifndef VER3_2_2} override; {$endif}
+    Function GetLastSSLErrorCode : Integer; {$ifndef VER3_2_2} override; {$endif}
   Public
     Constructor create; override;
     destructor destroy; override;
