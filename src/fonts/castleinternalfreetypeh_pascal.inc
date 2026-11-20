@@ -144,7 +144,7 @@ begin
       The FreeType API subset we implement didn't change in a long time. }
     amajor := 2;
     aminor := 14;
-    { Make it possible to recognized our implementation at runtime,
+    { Make it possible to recognize our implementation at runtime,
       when we're used as a fallback when dynamic FreeType library cannot
       be loaded. }
     apatch := FtPatchVersionPascalImplementation;
