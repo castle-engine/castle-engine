@@ -510,6 +510,14 @@ pack_platform_dir ()
   export CASTLE_BUILD_TOOL_OPTIONS=(--os="${OS}" --cpu="${CPU}")
   # bash array of arguments to "lazbuild"
   local CASTLE_LAZBUILD_OPTIONS=(--os="${OS}" --cpu="${CPU}")
+  # On Linux and FreeBSD, build editor (and LCL packages it uses) with GTK 2.
+  # Lazarus main (since 2026) defaults to GTK 3, but we still use GTK 2
+  # for the editor, because of known issues with GTK 3.
+  case "${OS}" in
+    linux|freebsd)
+      CASTLE_LAZBUILD_OPTIONS=("${CASTLE_LAZBUILD_OPTIONS[@]}" --widgetset=gtk2)
+      ;;
+  esac
   # bash array of arguments to "make"
   local MAKE_OPTIONS=(BUILD_TOOL=castle-engine) # use build tool on $PATH
 
