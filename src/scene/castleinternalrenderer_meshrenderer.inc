@@ -1084,6 +1084,7 @@ begin
     else
       FinalColorSpace := CastleRenderOptions.ColorSpace; // use global variable
     *)
+    Shader.LightContributionOnly := Renderer.LightContributionOnly;
     Shader.ColorSpaceLinear :=
       (ColorSpace = csLinear) or
       ((ColorSpace = csLinearWhenPhysicalMaterial) and

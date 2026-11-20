@@ -222,6 +222,12 @@
     var
       RenderMode: TRenderMode;
 
+      { Render only the contribution of the enabled lights (no emissive,
+        no ambient, unlit shapes black, fog color black),
+        see TRenderOnePassParams.LightContributionOnly.
+        Set before RenderBegin. }
+      LightContributionOnly: Boolean;
+
     { Constructor. }
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;

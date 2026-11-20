@@ -438,6 +438,12 @@ type
 
     ColorSpaceLinear: Boolean;
 
+    { Output only the contribution of the lights:
+      no emissive, no ambient, unlit shapes black, fog color black.
+      Defines CASTLE_LIGHT_CONTRIBUTION_ONLY in the shaders.
+      See TRenderOnePassParams.LightContributionOnly. }
+    LightContributionOnly: Boolean;
+
     { In case MultiTexture is used to render this, this is MultiTexture.color+alpha value. }
     MultiTextureColor: TCastleColor;
 
@@ -1341,6 +1347,7 @@ begin
   FLightingModel := lmPhong;
   MainTextureMapping := -1;
   ColorSpaceLinear := false;
+  LightContributionOnly := false;
   MultiTextureColor := White;
   SkinJointTextureUnit := -1;
   FAlphaTest := false;
@@ -2070,7 +2077,11 @@ var
         FogUniforms + NL +
         'void PLUG_fog_apply(inout vec4 fragment_color, const vec3 normal_eye_fragment)' +NL+
         '{' +NL+
-        '  fragment_color.rgb = mix(castle_FogColor, fragment_color.rgb, ' +NL+
+        '  fragment_color.rgb = mix(' +
+           { With LightContributionOnly, the fog only attenuates the light
+             contribution, the fog color is added by the base pass. }
+           Iff(LightContributionOnly, 'vec3(0.0)', 'castle_FogColor') +
+           ', fragment_color.rgb, ' +NL+
         '    clamp(' + FogFactor + ', 0.0, 1.0));' +NL+
         '}');
     end;
@@ -2162,6 +2173,11 @@ begin
     Define('CASTLE_BUGGY_BUMP_MAPPING_NUM_STEPS', stFragment);
   if ColorSpaceLinear then
     Define('CASTLE_GAMMA_CORRECTION', stFragment);
+  if LightContributionOnly then
+  begin
+    Define('CASTLE_LIGHT_CONTRIBUTION_ONLY', stVertex);
+    Define('CASTLE_LIGHT_CONTRIBUTION_ONLY', stFragment);
+  end;
   if NeedsNormals then
     Define('CASTLE_HAS_NORMALS', stVertex, true);
   case ToneMapping of
@@ -2250,6 +2266,7 @@ function TShader.CodeHash: TShaderCodeHash;
     FCodeHash.AddInteger(Ord(ShadowSampling) * 1009);
     FCodeHash.AddInteger(Ord(LightingModel) * 503);
     FCodeHash.AddInteger(Ord(ColorSpaceLinear) * 347);
+    FCodeHash.AddInteger(Ord(LightContributionOnly) * 1453);
     FCodeHash.AddInteger(Ord(ToneMapping) * 331);
     FCodeHash.AddInteger(Ord(MainTextureMapping) * 839);
     FCodeHash.AddFloat(MultiTextureColor.X, 5821);

@@ -20,7 +20,7 @@ unit CastleInternalShapesRenderer;
 
 interface
 
-uses CastleVectors, CastleSceneInternalShape, CastleRenderOptions,
+uses Contnrs, CastleVectors, CastleSceneInternalShape, CastleRenderOptions,
   CastleInternalOcclusionCulling, CastleSceneInternalBlending,
   CastleInternalBatchShapes, CastleInternalRenderer, CastleTransform,
   X3DNodes, CastleShapes, CastleUtils;
@@ -80,6 +80,9 @@ type
     FOcclusionCullingRenderer: TOcclusionCullingRenderer;
     FBlendingRenderer: TBlendingRenderer;
     FRenderer: TRenderer;
+    { Valid only during @link(Render), copied from TRenderOnePassParams. }
+    FShadowVolumesLights: Contnrs.TObjectList;
+    FLightContributionOnly: TObject;
     FBatching: TBatchShapes;
     FDynamicBatching: Boolean;
     FOcclusionCulling: Boolean;
@@ -108,6 +111,21 @@ type
     procedure LightRenderDisableShadowVolumeCastingLights(const Shape: TShape;
       const Light: TLightInstance;
       const IsGlobalLight: Boolean; var LightOn: boolean);
+
+    { Like LightRender, additionally turn off lights on
+      FShadowVolumesLights (TRenderOnePassParams.ShadowVolumesLights).
+      Used for the "shadowed" pass when rendering shadow volumes from several lights. }
+    procedure LightRenderDisableListedLights(const Shape: TShape;
+      const Light: TLightInstance;
+      const IsGlobalLight: Boolean; var LightOn: Boolean);
+
+    { Like LightRender, but turn off all lights except FLightContributionOnly
+      (TRenderOnePassParams.LightContributionOnly).
+      Used for the additive pass of one light when rendering shadow volumes
+      from several lights. }
+    procedure LightRenderSingleLight(const Shape: TShape;
+      const Light: TLightInstance;
+      const IsGlobalLight: Boolean; var LightOn: Boolean);
 
     { Turn off global lights that are duplicated in current scene.
       This way we render our own lights through SceneLights at each shape,
@@ -403,6 +421,24 @@ begin
   LightRender(Shape, Light, IsGlobalLight, LightOn);
 end;
 
+procedure TShapesRenderer.LightRenderDisableListedLights(const Shape: TShape;
+  const Light: TLightInstance;
+  const IsGlobalLight: Boolean; var LightOn: Boolean);
+begin
+  if FShadowVolumesLights.IndexOf(Light.Node) <> -1 then
+    LightOn := false;
+  LightRender(Shape, Light, IsGlobalLight, LightOn);
+end;
+
+procedure TShapesRenderer.LightRenderSingleLight(const Shape: TShape;
+  const Light: TLightInstance;
+  const IsGlobalLight: Boolean; var LightOn: Boolean);
+begin
+  if Light.Node <> FLightContributionOnly then
+    LightOn := false;
+  LightRender(Shape, Light, IsGlobalLight, LightOn);
+end;
+
 procedure TShapesRenderer.LightRender(const Shape: TShape;
   const Light: TLightInstance;
   const IsGlobalLight: Boolean; var LightOn: boolean);
@@ -668,6 +704,15 @@ begin
   if Shapes.FCollected.Count = 0 then
     Exit;
 
+  FShadowVolumesLights := PassParams.ShadowVolumesLights;
+  FLightContributionOnly := PassParams.LightContributionOnly;
+  if PassParams.LightContributionOnly <> nil then
+    LightRenderEvent := {$ifdef FPC}@{$endif}LightRenderSingleLight
+  else
+  if PassParams.DisableShadowVolumeCastingLights and
+     (PassParams.ShadowVolumesLights <> nil) then
+    LightRenderEvent := {$ifdef FPC}@{$endif}LightRenderDisableListedLights
+  else
   if PassParams.DisableShadowVolumeCastingLights then
     LightRenderEvent := {$ifdef FPC}@{$endif}LightRenderDisableShadowVolumeCastingLights
   else
@@ -720,6 +765,7 @@ begin
 
   FrameProfiler.Stop(fmRenderCollectedShapesSort);
 
+  Renderer.LightContributionOnly := PassParams.LightContributionOnly <> nil;
   Renderer.RenderBegin(Params.GlobalLights as TLightInstancesList,
     Params.RenderingCamera,
     LightRenderEvent, Params.InternalPass, { wireframe pass } 0, Params.UserPass,

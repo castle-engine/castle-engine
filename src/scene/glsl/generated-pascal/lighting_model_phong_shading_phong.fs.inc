@@ -28,9 +28,15 @@
 '/* Material ambient color * global (light model) ambient. */' + LineEnding +
 'vec3 get_ambient_color()' + LineEnding +
 '{' + LineEnding +
+'#ifdef CASTLE_LIGHT_CONTRIBUTION_ONLY' + LineEnding +
+'  /* When rendering only the light contribution (additive pass of shadow' + LineEnding +
+'     volumes from several lights), the ambient term is added by the base pass. */' + LineEnding +
+'  return vec3(0.0);' + LineEnding +
+'#else' + LineEnding +
 '  vec3 ambient = castle_MaterialAmbient;' + LineEnding +
 '  /* PLUG: material_light_ambient (ambient) */' + LineEnding +
 '  return ambient * castle_GlobalAmbient;' + LineEnding +
+'#endif' + LineEnding +
 '}' + LineEnding +
 '' + LineEnding +
 'void calculate_lighting(out vec4 result, const in vec4 vertex_eye, const in vec3 normal_eye)' + LineEnding +
@@ -55,9 +61,11 @@
 '' + LineEnding +
 '  /* PLUG: material_occlusion (result) */' + LineEnding +
 '' + LineEnding +
+'#ifndef CASTLE_LIGHT_CONTRIBUTION_ONLY' + LineEnding +
 '  vec3 emissive = castle_MaterialEmissive;' + LineEnding +
 '  /* PLUG: material_emissive (emissive) */' + LineEnding +
 '  result.rgb += emissive;' + LineEnding +
+'#endif' + LineEnding +
 '' + LineEnding +
 '  /* Clamp sum of lights colors to be <= 1. Fixed-function OpenGL does it too.' + LineEnding +
 '     This isn''t really mandatory, but scenes with many lights could easily' + LineEnding +
@@ -84,6 +92,11 @@
 '  vec4 color_alpha = result;' + LineEnding +
 '  main_texture_apply(color_alpha, normal_eye);' + LineEnding +
 '  result.a = color_alpha.a;' + LineEnding +
+'' + LineEnding +
+'  #ifdef CASTLE_LIGHT_CONTRIBUTION_ONLY' + LineEnding +
+'  /* Unlit shapes are not affected by lights, the base pass draws them. */' + LineEnding +
+'  result.rgb = vec3(0.0);' + LineEnding +
+'  #endif' + LineEnding +
 '#endif' + LineEnding +
 '}' + LineEnding +
 ''
