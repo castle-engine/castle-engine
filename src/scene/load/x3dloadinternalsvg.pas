@@ -94,21 +94,28 @@ interface
     Note: This check must be after the "interface" keyword,
     as System unit is not yet loaded before it.
 
-  - fcl-svg is only built for some OSes, see P.OSes in fcl-svg/fpmake.pp:
-    darwin (but not iOS), Windows, Linux (but not Android), Solaris, BSDs.
-    In particular, it is not available for Android, iOS, web (WebAssembly),
-    Nintendo Switch. }
-{$ifdef FPC}
-  {$if (FPC_FULLVERSION >= 30301) and declared(DynArrayRefCount)}
-    {$if defined(MSWINDOWS) or defined(LINUX) or defined(DARWIN) or
-         defined(BSD) or defined(SOLARIS)}
-      {$if not (defined(ANDROID) or defined(CASTLE_IOS) or
-                defined(CASTLE_NINTENDO_SWITCH))}
-        {$define CASTLE_FCL_SVG}
-      {$endif}
-    {$endif}
-  {$endif}
+  - fcl-svg is only built for some OSes, see P.OSes in fcl-svg/fpmake.pp.
+
+  Note: Check "defined(FPC)" first in the same $if expression,
+  not only in a surrounding "$ifdef FPC".
+  Delphi evaluates $if expressions even inside an inactive "$ifdef FPC",
+  and then fails with "E2026 Constant expression expected"
+  on unknown FPC_FULLVERSION. }
+{$if defined(FPC) and
+     (FPC_FULLVERSION >= 30301) and
+     declared(DynArrayRefCount) and
+     ( defined(MSWINDOWS) or
+       defined(LINUX) or
+       defined(DARWIN) or
+       defined(BSD) or
+       defined(SOLARIS)
+     )}
+  {$define CASTLE_FCL_SVG}
 {$endif}
+
+{ Apply CASTLE_SVG_SUPPORT_DISABLE,
+  although for most cases it is already eliminated by excluding
+  from X3DLoad uses. }
 {$ifdef CASTLE_SVG_SUPPORT_DISABLE}
   {$undef CASTLE_FCL_SVG}
 {$endif}
