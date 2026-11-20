@@ -31,13 +31,17 @@ type
     procedure TestImageTransformImageWidthHeight;
     { Testcase from https://github.com/castle-engine/castle-engine/issues/664 }
     procedure TestRenderReferencesAndLightRadius;
+    { PrepareResources with prShadowVolume calculates shadow volume edges
+      only for scenes that cast shadows. }
+    procedure TestPrepareShadowVolumesOnlyCasters;
   end;
 
 implementation
 
 uses X3DNodes, CastleSceneCore, CastleScene, CastleBoxes, CastleVectors,
   CastleInternalRays, CastleProjection, CastleComponentSerialize,
-  CastleUIControls, CastleWindow, CastleViewport, CastleInternalGLUtils;
+  CastleUIControls, CastleWindow, CastleViewport, CastleInternalGLUtils,
+  CastleShapes, CastleTransform, CastleUtils;
 
 procedure TTestScene.TestScene;
 
@@ -215,6 +219,91 @@ begin
       //   Application.ProcessAllMessages;
     finally FreeAndNil(View) end;
   finally DestroyWindowForTest(Window) end;
+end;
+
+procedure TTestScene.TestPrepareShadowVolumesOnlyCasters;
+
+  { Separate quads (not sharing any edge, so all their edges are border edges),
+    like the open meshes of level geometry. }
+  function OpenMesh(const QuadCount: Integer): TX3DRootNode;
+  var
+    Geometry: TIndexedTriangleSetNode;
+    Coord: TCoordinateNode;
+    Shape: TShapeNode;
+    Points: TVector3List;
+    Indexes: TInt32List;
+    I, Base: Integer;
+  begin
+    Points := TVector3List.Create;
+    Indexes := TInt32List.Create;
+    try
+      for I := 0 to QuadCount - 1 do
+      begin
+        Base := Points.Count;
+        { a gap of 0.1 between quads, so no edges are shared }
+        Points.Add(Vector3(I * 1.1    , 0, 0));
+        Points.Add(Vector3(I * 1.1 + 1, 0, 0));
+        Points.Add(Vector3(I * 1.1 + 1, 0, -1));
+        Points.Add(Vector3(I * 1.1    , 0, -1));
+        Indexes.AddRange([Base, Base + 1, Base + 2, Base, Base + 2, Base + 3]);
+      end;
+      Coord := TCoordinateNode.Create;
+      Coord.SetPoint(Points);
+      Geometry := TIndexedTriangleSetNode.Create;
+      Geometry.Coord := Coord;
+      Geometry.SetIndex(Indexes);
+    finally
+      FreeAndNil(Points);
+      FreeAndNil(Indexes);
+    end;
+    Shape := TShapeNode.Create;
+    Shape.Geometry := Geometry;
+    Result := TX3DRootNode.Create;
+    Result.AddChildren(Shape);
+    { also a closed shape }
+    Shape := TShapeNode.Create;
+    Shape.Geometry := TBoxNode.Create;
+    Result.AddChildren(Shape);
+  end;
+
+  { How many shapes have their shadow volume edges calculated. }
+  function EdgesCalculatedCount(const Scene: TCastleSceneCore): Integer;
+  var
+    Shape: TShape;
+  begin
+    Result := 0;
+    for Shape in Scene.Shapes.TraverseList(false) do
+      if Shape.InternalShadowVolumes.ManifoldAndBorderEdgesCalculated then
+        Inc(Result);
+  end;
+
+var
+  Scene: TCastleSceneCore;
+  Params: TPrepareParams;
+begin
+  Params := TPrepareParams.Create;
+  try
+    Scene := TCastleSceneCore.Create(nil);
+    try
+      Scene.Load(OpenMesh(100), true);
+      AssertEquals(2, Scene.Shapes.TraverseList(false).Count);
+      AssertEquals(0, EdgesCalculatedCount(Scene));
+
+      { not casting shadows: nothing to prepare for shadow volumes }
+      Scene.CastShadows := false;
+      {$warnings off} // using PrepareResources, should be internal
+      Scene.PrepareResources([prShadowVolume], Params);
+      {$warnings on}
+      AssertEquals(0, EdgesCalculatedCount(Scene));
+
+      { casting shadows: edges of all shapes prepared }
+      Scene.CastShadows := true;
+      {$warnings off}
+      Scene.PrepareResources([prShadowVolume], Params);
+      {$warnings on}
+      AssertEquals(2, EdgesCalculatedCount(Scene));
+    finally FreeAndNil(Scene) end;
+  finally FreeAndNil(Params) end;
 end;
 
 initialization

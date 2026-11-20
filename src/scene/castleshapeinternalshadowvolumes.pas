@@ -109,6 +109,11 @@ type
       and clears FManifold/BordEdges variables. }
     procedure InvalidateManifoldAndBorderEdges;
 
+    { Are ManifoldEdges and BorderEdges calculated now (and valid).
+      Useful to test when the (potentially time-consuming) calculation
+      happened, without causing it. }
+    function ManifoldAndBorderEdgesCalculated: Boolean;
+
     { Removes svTrianglesListShadowCasters from Validities,
       and clears FTrianglesListShadowCasters variable. }
     procedure InvalidateTrianglesListShadowCasters;
@@ -417,6 +422,11 @@ function TShapeShadowVolumes.BorderEdges: TEdgeList;
 begin
   CalculateIfNeededManifoldAndBorderEdges;
   Result := FBorderEdges;
+end;
+
+function TShapeShadowVolumes.ManifoldAndBorderEdgesCalculated: Boolean;
+begin
+  Result := svManifoldAndBorderEdges in Validities;
 end;
 
 procedure TShapeShadowVolumes.InvalidateManifoldAndBorderEdges;
