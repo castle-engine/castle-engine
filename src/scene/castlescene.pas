@@ -212,6 +212,22 @@ type
       const TestShapeVisibility: TTestShapeVisibility;
       const Params: TRenderParams);
 
+    { Prepare the textures used by our global lights (InternalGlobalLights):
+      textures inside the light's effects (in SFNode / MFNode fields of
+      Effect nodes in the light's "effects" field), and the textures of
+      EnvironmentLight.
+
+      Global lights may light shapes in other scenes, and shapes
+      only prepare the textures of the lights in their own scene
+      (TShape.EnumerateTextures goes over the shape's State.Lights),
+      so the scene owning the light takes care of it.
+
+      Preparing is a quick no-op for textures already prepared.
+      Texture nodes release their resources themselves, when freed
+      or when the last OpenGL context is closed
+      (TAbstractTextureNode.GLContextCloseEvent). }
+    procedure PrepareGlobalLightsTextures;
+
     { Fog for this shape. @nil if none. }
     function ShapeFog(const Shape: TShape; const GlobalFog: TFogNode): TFogFunctionality;
 
@@ -1151,6 +1167,9 @@ begin
       PrepareRenderShapes;
     end;
 
+    if [prRenderSelf, prRenderClones] * Options <> [] then
+      PrepareGlobalLightsTextures;
+
     if prBackground in Options then
       PrepareBackground;
 
@@ -1164,6 +1183,68 @@ begin
     if PossiblyTimeConsuming then
       Profiler.Stop(TimeStart);
   finally Dec(InternalDirty) end;
+end;
+
+procedure TCastleScene.PrepareGlobalLightsTextures;
+
+  procedure HandleTexture(const Tex: TX3DNode); forward;
+
+  { Textures in SFNode / MFNode fields of the nodes (Effect nodes). }
+  procedure HandleNodesFields(const Nodes: TMFNode);
+  var
+    I, J, K: Integer;
+    IDecls: TX3DInterfaceDeclarationList;
+    Field: TX3DField;
+  begin
+    for I := 0 to Nodes.Count - 1 do
+    begin
+      { Other nodes are not allowed in the effects fields,
+        they are only warned about when loading. }
+      if not (Nodes[I] is TEffectNode) then
+        Continue;
+      IDecls := Nodes[I].InterfaceDeclarations;
+      for J := 0 to IDecls.Count - 1 do
+      begin
+        Field := IDecls.Items[J].Field;
+        if Field is TSFNode then
+          HandleTexture(TSFNode(Field).Value)
+        else
+        if Field is TMFNode then
+          for K := 0 to TMFNode(Field).Count - 1 do
+            HandleTexture(TMFNode(Field)[K]);
+      end;
+    end;
+  end;
+
+  procedure HandleTexture(const Tex: TX3DNode);
+  var
+    I: Integer;
+  begin
+    if not (Tex is TAbstractTextureNode) then
+      Exit;
+    { Textures may use more textures through their "effects" field. }
+    if Tex is TAbstractSingleTextureNode then
+      HandleNodesFields(TAbstractSingleTextureNode(Tex).FdEffects);
+    if Tex is TMultiTextureNode then
+      for I := 0 to TMultiTextureNode(Tex).FdTexture.Count - 1 do
+        HandleTexture(TMultiTextureNode(Tex).FdTexture[I]);
+    TTextureResources.Prepare(RenderOptions, TAbstractTextureNode(Tex));
+  end;
+
+var
+  I: Integer;
+  Light: TAbstractLightNode;
+begin
+  for I := 0 to InternalGlobalLights.Count - 1 do
+  begin
+    Light := InternalGlobalLights.L[I].Node;
+    HandleNodesFields(Light.FdEffects);
+    if Light is TEnvironmentLightNode then
+    begin
+      HandleTexture(TEnvironmentLightNode(Light).FdDiffuseTexture.Value);
+      HandleTexture(TEnvironmentLightNode(Light).FdSpecularTexture.Value);
+    end;
+  end;
 end;
 
 procedure TCastleScene.LocalRenderOutside(
@@ -1745,6 +1826,15 @@ procedure TCastleScene.LocalRender(const Params: TRenderParams);
 
 begin
   inherited;
+
+  { Prepare textures of our global lights' effects before the frustum culling
+    below: a scene with only lights has an empty bounding box,
+    but its lights may light other scenes. }
+  if InternalEnableRendering and
+     (InternalDirty = 0) and
+     (Params.InternalPass = 0) and
+     (InternalGlobalLights.Count <> 0) then
+    PrepareGlobalLightsTextures;
 
   if InternalEnableRendering and
      CheckVisible and
