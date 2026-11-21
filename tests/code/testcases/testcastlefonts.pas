@@ -40,7 +40,7 @@ type
 
 implementation
 
-uses SysUtils, Classes,
+uses SysUtils, Classes, Math,
   CastleWindow, CastleFonts, CastleTextureFont_Default3d_Sans, CastleLog,
   Font_LatoRegular_300, CastleInternalFreeTypeH;
 
@@ -258,7 +258,8 @@ end;
 
 procedure TTestCastleFonts.FailIfFreeTypeMissing;
 begin
-  AssertTrue(FreeTypeLibraryInitialized, 'FreeType library not available');
+  AssertTrue('FreeType library not available',
+    FreeTypeLibraryInitialized);
 end;
 
 const
