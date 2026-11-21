@@ -4944,8 +4944,8 @@ See https://castle-engine.io/license for details.
         <UnitName Value="CastleInternalMediaPlayerSoundBackend"/>
       </Item1213>
       <Item1214>
-        <Filename Value="../../src/fonts/castleinternalfreetypeh_pascal.inc"/>
-        <Type Value="Include"/>
+        <Filename Value="../../src/fonts/castleinternalfreetypehpascal.pas"/>
+        <UnitName Value="CastleInternalFreeTypeHPascal"/>
       </Item1214>
       <Item1215>
         <Filename Value="../../src/fonts/castleinternalglyphrasterizer.pas"/>

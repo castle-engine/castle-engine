@@ -27,10 +27,12 @@
 
   Based on FPC RTL, with some modifications:
 
-  - Load dynamic library using TDynLib, and merely expose
-    FreeTypeLibraryInitialized = false when library not found.
-    TFreeTypeFont.Create will raise an exception if freetype library is not
-    installed, and it can be handled gracefully.
+  - If not defined CASTLE_FREETYPE_DISABLE_DYNAMIC,
+    we load dynamic library using TDynLib.
+
+  - We fallback on Pascal-only FreeType implementation from
+    CastleInternalFreeTypeHPascal if dynamic library loading fails.
+    Or if CASTLE_FREETYPE_DISABLE_DYNAMIC was defined.
 
   - Honor ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION symbol.
 
@@ -40,24 +42,19 @@
     that links freetype statically into the main library).
 
   - Declare only the subset of FreeType API that is actually used by CGE
-    (by CastleInternalFreeType unit).
-    This is also the subset implemented in Pascal, see below.
-
-  - Optionally, when CASTLE_FREETYPE_PASCAL is defined (see castleconf.inc),
-    implement a subset of FreeType API in pure Pascal, without using
-    the FreeType library at all. See castleinternalfreetypeh_pascal.inc . }
+    (by CastleInternalFreeType unit). }
 unit CastleInternalFreeTypeH;
 
 {$i castleconf.inc}
 
 // FPC + iOS deployment always links with static FreeType library.
-{$if defined(CASTLE_IOS) and defined(FPC) and not defined(CASTLE_FREETYPE_PASCAL)}
+{$if defined(CASTLE_IOS) and defined(FPC)}
   {$define CASTLE_FREETYPE_STATIC}
 {$endif}
 
 interface
 
-uses {$ifdef CASTLE_FREETYPE_PASCAL} Classes, {$endif} CTypes;
+uses CTypes;
 
 {$ifdef FPC}{$packrecords c}{$endif}
 
@@ -66,8 +63,7 @@ type
 
 const
   { Values for TFT_Face.face_flags.
-    Note: Only the flags used by CGE (including CASTLE_FREETYPE_PASCAL implementation)
-    are defined here. }
+    Note: Only the flags used by CGE are defined here. }
   FT_FACE_FLAG_SCALABLE = 1 shl 0;
   FT_FACE_FLAG_FIXED_SIZES = 1 shl 1;
   FT_FACE_FLAG_SFNT = 1 shl 3;
@@ -272,23 +268,7 @@ type
     bitmap : FT_Bitmap;
   end;
 
-{$if defined(CASTLE_FREETYPE_PASCAL)}
-
-function FT_Done_Face(face: PFT_Face): integer;
-function FT_Done_FreeType(alibrary: PFT_Library): integer;
-function FT_Get_Char_Index(face: PFT_Face; charcode: FT_ULong): FT_UInt;
-function FT_Init_FreeType(var alibrary: PFT_Library): integer;
-function FT_Load_Glyph(face: PFT_Face; glyph_index: FT_UInt; load_flags: CInt32): integer;
-function FT_New_Memory_Face(alibrary: PFT_Library; file_base: Pointer; file_size: FT_Long; face_index: FT_Long; var aface: PFT_Face): integer;
-function FT_Set_Char_Size(face: PFT_Face; char_width, char_height: FT_F26dot6; horz_res, vert_res: FT_UInt): integer;
-function FT_Set_Pixel_Sizes(face: PFT_Face; pixel_width, pixel_height: FT_UInt): integer;
-procedure FT_Library_Version(alibrary: PFT_Library; out amajor, aminor, apatch: integer);
-
-function FT_Get_Glyph(slot: PFT_GlyphSlot; out aglyph: PFT_Glyph): integer;
-function FT_Glyph_To_Bitmap(var the_glyph: PFT_Glyph; render_mode: FT_Render_Mode; origin: PFT_Vector; Destroy: FT_Bool): integer;
-procedure FT_Done_Glyph(glyph: PFT_Glyph);
-
-{$elseif defined(CASTLE_FREETYPE_STATIC)}
+{$if defined(CASTLE_FREETYPE_STATIC)}
 
 function FT_Done_Face(face: PFT_Face): integer; cdecl; external;
 function FT_Done_FreeType(alibrary: PFT_Library): integer; cdecl; external;
@@ -318,31 +298,41 @@ var
   FT_Get_Glyph: function(slot: PFT_GlyphSlot; out aglyph: PFT_Glyph): integer; cdecl;
   FT_Glyph_To_Bitmap: function(var the_glyph: PFT_Glyph; render_mode: FT_Render_Mode; origin: PFT_Vector; Destroy: FT_Bool): integer; cdecl;
   FT_Done_Glyph: procedure(glyph: PFT_Glyph); cdecl;
+
 {$endif}
 
+{ Load a dynamic FreeType library, if needed.
+
+  This does nothing (nothing is needed) when CASTLE_FREETYPE_STATIC.
+
+  Otherwise, it will attempt to load the dynamic FreeType library
+  (unless CASTLE_FREETYPE_DISABLE_DYNAMIC).
+  It will fallback on CastleInternalFreeTypeHPascal
+  if the dynamic library cannot be loaded.
+
+  Effectively, this is always successful, because we either use the dynamic library
+  if available, or fallback on CastleInternalFreeTypeHPascal.
+  So after this, right now, @link(FreeTypeLibraryInitialized) will always
+  return @true. }
 procedure LoadFreeTypeLibrary;
 
-{ Did we found FreeType library and loaded it's symbols.
-  When this is @false, do not use any functions from this unit, they are @nil.
-  Always @true when CASTLE_FREETYPE_PASCAL is defined. }
+{ Did we found FreeType library and loaded it's symbols. }
 function FreeTypeLibraryInitialized: boolean;
 
 implementation
 
-{$ifdef CASTLE_FREETYPE_PASCAL}
-uses SysUtils, CastleInternalOpenTypeFont, CastleInternalGlyphRasterizer;
-{$else}
-uses SysUtils, CastleDynLib;
-{$endif}
+uses SysUtils,
+  {$ifndef CASTLE_FREETYPE_STATIC}
+    {$ifndef CASTLE_FREETYPE_DISABLE_DYNAMIC}
+    CastleDynLib,
+    {$endif}
+    CastleInternalFreeTypeHPascal,
+  {$endif}
+  CastleUtils;
 
 { Loading FreeType library --------------------------------------------------- }
 
-{$if defined(CASTLE_FREETYPE_PASCAL)}
-
-{$I castleinternalfreetypeh_pascal.inc}
-
-end.
-{$elseif defined(CASTLE_FREETYPE_STATIC)}
+{$if defined(CASTLE_FREETYPE_STATIC)}
 
 procedure LoadFreeTypeLibrary;
 begin
@@ -354,15 +344,52 @@ begin
 end;
 
 end.
+
 {$else}
 
-var
-  FreeTypeLibrary: TDynLib;
+{ Load all entry points from CastleInternalFreeTypeHPascal implementations. }
+procedure LoadFreeTypeLibraryFromPascal;
+begin
+  FT_Done_Face := {$ifdef FPC}@{$endif} Pascal_FT_Done_Face;
+  FT_Done_FreeType := {$ifdef FPC}@{$endif} Pascal_FT_Done_FreeType;
+  FT_Get_Char_Index := {$ifdef FPC}@{$endif} Pascal_FT_Get_Char_Index;
+  FT_Init_FreeType := {$ifdef FPC}@{$endif} Pascal_FT_Init_FreeType;
+  FT_Load_Glyph := {$ifdef FPC}@{$endif} Pascal_FT_Load_Glyph;
+  FT_New_Memory_Face := {$ifdef FPC}@{$endif} Pascal_FT_New_Memory_Face;
+  FT_Set_Char_Size := {$ifdef FPC}@{$endif} Pascal_FT_Set_Char_Size;
+  FT_Set_Pixel_Sizes := {$ifdef FPC}@{$endif} Pascal_FT_Set_Pixel_Sizes;
+  FT_Library_Version := {$ifdef FPC}@{$endif} Pascal_FT_Library_Version;
+  FT_Get_Glyph := {$ifdef FPC}@{$endif} Pascal_FT_Get_Glyph;
+  FT_Glyph_To_Bitmap := {$ifdef FPC}@{$endif} Pascal_FT_Glyph_To_Bitmap;
+  FT_Done_Glyph := {$ifdef FPC}@{$endif} Pascal_FT_Done_Glyph;
+end;
 
 function FreeTypeLibraryInitialized: boolean;
 begin
-  Result := FreeTypeLibrary <> nil;
+  { Our LoadFreeTypeLibrary always makes this true,
+    since it either uses dynamic library or our
+    CastleInternalFreeTypeHPascal implementation.
+
+    But let's make sure to return false before LoadFreeTypeLibrary
+    was called. }
+  Result := Assigned(FT_Done_Face);
 end;
+
+{$ifdef CASTLE_FREETYPE_DISABLE_DYNAMIC}
+
+procedure LoadFreeTypeLibrary;
+begin
+  LoadFreeTypeLibraryFromPascal;
+end;
+
+initialization
+  LoadFreeTypeLibrary;
+end.
+
+{$else not CASTLE_FREETYPE_DISABLE_DYNAMIC}
+
+var
+  FreeTypeLibrary: TDynLib;
 
 procedure LoadFreeTypeLibrary;
 begin
@@ -409,7 +436,9 @@ begin
     Pointer({$ifndef FPC}@{$endif} FT_Get_Glyph) := FreeTypeLibrary.Symbol('FT_Get_Glyph');
     Pointer({$ifndef FPC}@{$endif} FT_Glyph_To_Bitmap) := FreeTypeLibrary.Symbol('FT_Glyph_To_Bitmap');
     Pointer({$ifndef FPC}@{$endif} FT_Done_Glyph) := FreeTypeLibrary.Symbol('FT_Done_Glyph');
-  end;
+  end else
+    { Fallback: Load entry points from Pascal implementation }
+    LoadFreeTypeLibraryFromPascal;
 end;
 
 initialization
@@ -420,4 +449,6 @@ finalization
   FreeAndNil(FreeTypeLibrary);
 end.
 
-{$endif}
+{$endif not CASTLE_FREETYPE_DISABLE_DYNAMIC}
+
+{$endif not CASTLE_FREETYPE_STATIC}

@@ -15,8 +15,7 @@
 }
 
 { Test CastleInternalOpenTypeFont and CastleInternalGlyphRasterizer units
-  (pure Pascal font reading and rendering, used when CASTLE_FREETYPE_PASCAL
-  is defined). }
+  (pure Pascal font reading and rendering, used from CastleInternalFreeTypeHPascal). }
 unit TestCastleInternalOpenTypeFont;
 
 {$I ../../../src/common_includes/castleconf.inc}

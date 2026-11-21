@@ -213,9 +213,8 @@ begin
 
       With the FreeType library, this is not strictly necessary,
       as FT_Done_FreeType would also free all remaining faces,
-      but that's not the case with our Pascal implementation
-      in castleinternalfreetypeh_pascal.inc (and also we could waste memory
-      by keeping unused face loaded).
+      but that's not the case with our CastleInternalFreeTypeHPascal
+      (and also we could waste memory by keeping unused face loaded).
 
       Also, MemoryStream must remain valid until FT_Done_Face. }
     if Font <> nil then

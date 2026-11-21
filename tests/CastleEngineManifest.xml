@@ -57,12 +57,11 @@ See https://castle-engine.io/project_manifest for documentation of this file.
       <!--define>I_UNDERSTAND_THAT_NON_ASCII_CHARACTERS_ARE_BROKEN</define-->
 
       <!--
-        Define this to test our Pascal implementation of FreeType API,
-        see src/fonts/castleinternalfreetypeh_pascal.inc .
-        By default, we use the default FreeType approach,
-        which on most platforms means using the actual FreeType library.
+        Define this to force testing our Pascal implementation of FreeType API,
+        see CastleInternalFreeTypeHPascal .
+        By default, we try to load the dynamic FreeType library first.
       -->
-      <!--define>CASTLE_FREETYPE_PASCAL</define-->
+      <!--define>CASTLE_FREETYPE_DISABLE_DYNAMIC</define-->
     </defines>
   </compiler_options>
 </project>

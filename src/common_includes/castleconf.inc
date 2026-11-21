@@ -350,18 +350,21 @@
   {$undef ANDROID}
 {$endif CASTLE_NINTENDO_SWITCH}
 
-{ ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION -------------------------------------- }
+{ Loading dynamic libraries -------------------------------------------------- }
 
 { On some Android versions, you cannot call dlopen (load dynamic libraries)
   from the initialization section of units. You have to wait for
   AndroidMain to be called by NDK, otherwise we get a crash at initialization. }
 {$define ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION}
+
 {$ifdef ANDROID}
   {$undef ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION}
 {$endif}
+
 // TODO: for now dlopen doesn't work at all on NX, so avoid it
 {$ifdef CASTLE_NINTENDO_SWITCH}
   {$undef ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION}
+  {$define CASTLE_FREETYPE_DISABLE_DYNAMIC}
 {$endif}
 
 { OpenGL[ES] ------------------------------------------------------------------ }
@@ -758,19 +761,18 @@
 
 { fonts ---------------------------------------------------------------------- }
 
-{ Use pure Pascal implementation of a subset of FreeType API
-  (CastleInternalOpenTypeFont and CastleInternalGlyphRasterizer units).
+{ On some platforms, don't even try to initialize dynamic library of FreeType.
 
   This is by default used for Delphi on Android and iOS,
   and for FPC + web,
   where we don't deploy the FreeType library.
-  You can also define CASTLE_FREETYPE_PASCAL on other platforms,
-  e.g. to test it on desktops and compare with the FreeType library. }
+  You can also define CASTLE_FREETYPE_DISABLE_DYNAMIC on other platforms,
+  e.g. to force testing it on desktops and compare with the FreeType library. }
 {$if defined(DELPHI) and (defined(ANDROID) or defined(CASTLE_IOS))}
-  {$define CASTLE_FREETYPE_PASCAL}
+  {$define CASTLE_FREETYPE_DISABLE_DYNAMIC}
 {$endif}
 {$if defined(WASI)}
-  {$define CASTLE_FREETYPE_PASCAL}
+  {$define CASTLE_FREETYPE_DISABLE_DYNAMIC}
 {$endif}
 
 { FMX ------------------------------------------------------------------------ }

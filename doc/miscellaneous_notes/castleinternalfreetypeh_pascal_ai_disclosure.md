@@ -1,10 +1,10 @@
-## TODO: castleinternalfreetypeh_pascal.inc (and friends) is AI-generated
+## TODO: CastleInternalFreeTypeHPascal (and friends) is AI-generated
 
 We have [guidelines about AI usage in Castle Game Engine](https://castle-engine.io/ai) that come down to _"you can use AI, but you must remain in complete understanding and make all decisions about the code"_. The simplest practical approach to this is to not generate large pieces of code by AI.
 
 The 4 files implementing font reading using Pascal (exposing FreeType-like API in Pascal) are the **single case (and I don't plan to make more)** where we... break or bend this rule (depending on where you draw the line). This concerns these files:
 
-- `src/fonts/castleinternalfreetypeh_pascal.inc`
+- `src/fonts/castleinternalfreetypehpascal.pas`
 - `src/fonts/castleinternalglyphrasterizer.pas`
 - `src/fonts/castleinternalopentypefont.pas`
 - `tests/data/fonts/castle_test_cff_generate.py`
@@ -23,9 +23,7 @@ This was done as a practical solution for our font-reading issues on platforms w
 
 - [Nintendo Switch](https://castle-engine.io/nintendo_switch)
 
-## On which platforms this is NOT used
-
-In **all other cases, this code is unused**.
+On other platforms, this is merely a fallback, in case dynamic FreeType library is not available.
 
 - We use the standard _FreeType_ library available on your system (Linux, FreeBSD, macOS).
 

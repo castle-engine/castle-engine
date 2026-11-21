@@ -13,13 +13,16 @@
   ----------------------------------------------------------------------------
 }
 
-{ Pure Pascal implementation of a subset of FreeType API,
-  included in CastleInternalFreeTypeH when CASTLE_FREETYPE_PASCAL is defined.
+{ Pure Pascal implementation of a subset of FreeType API.
+  Used by CastleInternalFreeTypeH when neither dynamic nor static FreeType
+  can be loaded. Critical on platforms where FreeType is not available
+  (web, Delphi/mobile, Nintendo Switch). Useful also on normal platforms as
+  a fallback when FreeType is not available.
 
   Limitations compared to the FreeType library:
   - no hinting (so glyphs are a bit softer at small sizes),
   - only TrueType / OpenType fonts (TTF, OTF, TTC, WOFF), no WOFF2,
-  - and only the API subset used by CGE
+  - only exposes the API subset used by CGE
     (by CastleInternalFreeType unit, and declared in CastleInternalFreeTypeH).
 
   Uses CastleInternalOpenTypeFont to read fonts
@@ -30,10 +33,34 @@
   So PFT_Face and PFT_Glyph pointers returned by this implementation
   can be typecasted to our records.
 
-  -----------------------------------------------------------------------------
-
   See doc/miscellaneous_notes/castleinternalfreetypeh_pascal_ai_disclosure.md .
 }
+unit CastleInternalFreeTypeHPascal;
+
+{$i castleconf.inc}
+
+interface
+
+uses CTypes,
+  CastleInternalFreeTypeH;
+
+function Pascal_FT_Done_Face(face: PFT_Face): integer; cdecl;
+function Pascal_FT_Done_FreeType(alibrary: PFT_Library): integer; cdecl;
+function Pascal_FT_Get_Char_Index(face: PFT_Face; charcode: FT_ULong): FT_UInt; cdecl;
+function Pascal_FT_Init_FreeType(var alibrary: PFT_Library): integer; cdecl;
+function Pascal_FT_Load_Glyph(face: PFT_Face; glyph_index: FT_UInt; load_flags: CInt32): integer; cdecl;
+function Pascal_FT_New_Memory_Face(alibrary: PFT_Library; file_base: Pointer; file_size: FT_Long; face_index: FT_Long; var aface: PFT_Face): integer; cdecl;
+function Pascal_FT_Set_Char_Size(face: PFT_Face; char_width, char_height: FT_F26dot6; horz_res, vert_res: FT_UInt): integer; cdecl;
+function Pascal_FT_Set_Pixel_Sizes(face: PFT_Face; pixel_width, pixel_height: FT_UInt): integer; cdecl;
+procedure Pascal_FT_Library_Version(alibrary: PFT_Library; out amajor, aminor, apatch: integer); cdecl;
+function Pascal_FT_Get_Glyph(slot: PFT_GlyphSlot; out aglyph: PFT_Glyph): integer; cdecl;
+function Pascal_FT_Glyph_To_Bitmap(var the_glyph: PFT_Glyph; render_mode: FT_Render_Mode; origin: PFT_Vector; Destroy: FT_Bool): integer; cdecl;
+procedure Pascal_FT_Done_Glyph(glyph: PFT_Glyph); cdecl;
+
+implementation
+
+uses Classes, SysUtils,
+  CastleInternalOpenTypeFont, CastleInternalGlyphRasterizer;
 
 const
   { FreeType error codes, see fterrdef.h in FreeType. }
@@ -109,27 +136,18 @@ end;
 
 { Library ------------------------------------------------------------------- }
 
-procedure LoadFreeTypeLibrary;
-begin
-end;
-
-function FreeTypeLibraryInitialized: boolean;
-begin
-  Result := true;
-end;
-
-function FT_Init_FreeType(var alibrary: PFT_Library): integer;
+function Pascal_FT_Init_FreeType(var alibrary: PFT_Library): integer;
 begin
   alibrary := PFT_Library(@PascalLibrary);
   Result := FtErrOk;
 end;
 
-function FT_Done_FreeType(alibrary: PFT_Library): integer;
+function Pascal_FT_Done_FreeType(alibrary: PFT_Library): integer;
 begin
   Result := FtErrOk;
 end;
 
-procedure FT_Library_Version(alibrary: PFT_Library; out amajor, aminor, apatch: integer);
+procedure Pascal_FT_Library_Version(alibrary: PFT_Library; out amajor, aminor, apatch: integer);
 begin
   { Like FreeType, report 0.0.0 when library is nil. }
   if alibrary = nil then
@@ -208,7 +226,7 @@ end;
 
 { Faces ---------------------------------------------------------------------- }
 
-function FT_New_Memory_Face(alibrary: PFT_Library;
+function Pascal_FT_New_Memory_Face(alibrary: PFT_Library;
   file_base: Pointer; file_size: FT_Long;
   face_index: FT_Long; var aface: PFT_Face): integer;
 var
@@ -306,7 +324,7 @@ begin
   Result := FtErrOk;
 end;
 
-function FT_Done_Face(face: PFT_Face): integer;
+function Pascal_FT_Done_Face(face: PFT_Face): integer;
 var
   PF: PPascalFace;
 begin
@@ -346,7 +364,7 @@ begin
   PF^.Size.metrics.max_advance := PixRound(Round(Font.AdvanceWidthMax * PF^.Scale * 64));
 end;
 
-function FT_Set_Char_Size(face: PFT_Face; char_width, char_height: FT_F26dot6;
+function Pascal_FT_Set_Char_Size(face: PFT_Face; char_width, char_height: FT_F26dot6;
   horz_res, vert_res: FT_UInt): integer;
 var
   Height: Int64;
@@ -367,7 +385,7 @@ begin
   Result := FtErrOk;
 end;
 
-function FT_Set_Pixel_Sizes(face: PFT_Face; pixel_width, pixel_height: FT_UInt): integer;
+function Pascal_FT_Set_Pixel_Sizes(face: PFT_Face; pixel_width, pixel_height: FT_UInt): integer;
 var
   Height: Int64;
 begin
@@ -384,7 +402,7 @@ end;
 
 { Glyphs -------------------------------------------------------------------- }
 
-function FT_Get_Char_Index(face: PFT_Face; charcode: FT_ULong): FT_UInt;
+function Pascal_FT_Get_Char_Index(face: PFT_Face; charcode: FT_ULong): FT_UInt;
 begin
   if (face = nil) or (charcode > $10FFFF) then
     Exit(0);
@@ -403,7 +421,7 @@ begin
   end;
 end;
 
-function FT_Load_Glyph(face: PFT_Face; glyph_index: FT_UInt; load_flags: CInt32): integer;
+function Pascal_FT_Load_Glyph(face: PFT_Face; glyph_index: FT_UInt; load_flags: CInt32): integer;
 var
   PF: PPascalFace;
   Advance: Integer;
@@ -449,7 +467,7 @@ end;
 
 { Glyph management ---------------------------------------------------------- }
 
-function FT_Get_Glyph(slot: PFT_GlyphSlot; out aglyph: PFT_Glyph): integer;
+function Pascal_FT_Get_Glyph(slot: PFT_GlyphSlot; out aglyph: PFT_Glyph): integer;
 var
   PF: PPascalFace;
   G: PPascalOutlineGlyph;
@@ -483,7 +501,7 @@ begin
     G^.Glyph.bitmap.buffer := nil;
 end;
 
-procedure FT_Done_Glyph(glyph: PFT_Glyph);
+procedure Pascal_FT_Done_Glyph(glyph: PFT_Glyph);
 var
   OutlineGlyph: PPascalOutlineGlyph;
   BitmapGlyph: PPascalBitmapGlyph;
@@ -503,7 +521,7 @@ begin
   end;
 end;
 
-function FT_Glyph_To_Bitmap(var the_glyph: PFT_Glyph; render_mode: FT_Render_Mode;
+function Pascal_FT_Glyph_To_Bitmap(var the_glyph: PFT_Glyph; render_mode: FT_Render_Mode;
   origin: PFT_Vector; Destroy: FT_Bool): integer;
 var
   OutlineGlyph: PPascalOutlineGlyph;
@@ -560,7 +578,9 @@ begin
   UpdateBitmapBuffer(BitmapGlyph);
 
   if Destroy then
-    FT_Done_Glyph(the_glyph);
+    Pascal_FT_Done_Glyph(the_glyph);
   the_glyph := PFT_Glyph(BitmapGlyph);
   Result := FtErrOk;
 end;
+
+end.
