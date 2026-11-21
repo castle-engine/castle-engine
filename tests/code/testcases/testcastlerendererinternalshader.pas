@@ -47,13 +47,17 @@ type
     { Shapes for which the same light (with Effect) has a different
       light number must not share a shader program. }
     procedure TestLightEffectsDifferentLightNumber;
+    { With InternalParallelShaderCompile, programs finished later
+      (TRendererCache.Program_Ready) get their uniforms like the others,
+      and a shader that doesn't compile falls back without an exception. }
+    procedure TestParallelShaderCompile;
   end;
 
 implementation
 
 uses CastleUtils, CastleRendererInternalShader,
   CastleVectors, CastleImages, CastleScene,
-  CastleRenderOptions, CastleTransform, X3DFields;
+  CastleRenderOptions, CastleTransform, X3DFields, CastleInternalRenderer;
 
 const
   { Floor patches are at (-PatchX, 0, 0) and (PatchX, 0, 0). }
@@ -333,6 +337,111 @@ begin
 
     Window.Close;
   finally DestroyWindowForTest(Window) end;
+end;
+
+procedure TTestCastleRendererInternalShader.TestParallelShaderCompile;
+var
+  Window: TCastleWindow;
+
+  { A floor patch at (X, 0, 0) lit by its own point light, whose Effect
+    multiplies the light by LightFactor (a uniform: set by SetupUniformsOnce,
+    when the program is finished). With BrokenCode, the effect doesn't
+    compile. }
+  function CreateLitPatch(const X, LightFactor: Single;
+    const BrokenCode: Boolean): TCastleScene;
+  var
+    Root: TX3DRootNode;
+    Shape: TShapeNode;
+    Appearance: TAppearanceNode;
+    Material: TMaterialNode;
+    Box: TBoxNode;
+    Transform: TTransformNode;
+    Light: TPointLightNode;
+    Effect: TEffectNode;
+    Part: TEffectPartNode;
+  begin
+    Root := TX3DRootNode.Create;
+
+    Material := TMaterialNode.Create;
+    Material.DiffuseColor := WhiteRGB;
+    Appearance := TAppearanceNode.Create;
+    Appearance.Material := Material;
+    Box := TBoxNode.CreateWithShape(Shape);
+    Box.Size := PatchSize;
+    Shape.Appearance := Appearance;
+    Transform := TTransformNode.Create;
+    Transform.Translation := Vector3(X, -0.1, 0);
+    Transform.AddChildren(Shape);
+    Root.AddChildren(Transform);
+
+    Light := TPointLightNode.Create;
+    Light.Global := false;
+    Light.Location := Vector3(X, 3, 0);
+    Light.Attenuation := Vector3(1, 0, 0);
+    if BrokenCode then
+    begin
+      Effect := TEffectNode.Create;
+      Effect.Language := slGLSL;
+      Part := TEffectPartNode.Create;
+      Part.ShaderType := stFragment;
+      Part.Contents :=
+        'void PLUG_light_scale(inout float scale, const in vec3 normal_eye, const in vec3 light_dir)' + LineEnding +
+        '{' + LineEnding +
+        '  scale *= this_is_not_declared;' + LineEnding +
+        '}';
+      Effect.SetParts([Part]);
+      Light.SetEffects([Effect]);
+    end else
+      Light.SetEffects([CreateLightFactorEffect(LightFactor, false)]);
+    Root.AddChildren(Light);
+
+    Result := TCastleScene.Create(Window);
+    Result.Load(Root, true);
+    Result.RenderOptions.PhongShading := true;
+  end;
+
+var
+  Viewport: TCastleViewport;
+  I: Integer;
+  SavedParallel: Boolean;
+begin
+  if not CanCreateWindowForTest then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
+  SavedParallel := InternalParallelShaderCompile;
+  InternalParallelShaderCompile := true;
+  try
+    Window := CreateWindowForTest;
+    try
+      Viewport := OpenWindowWithViewport(Window);
+      Viewport.Items.Add(CreateLitPatch(-PatchX, 0.25, false));
+      Viewport.Items.Add(CreateLitPatch(PatchX, 1, false));
+      Viewport.Items.Add(CreateLitPatch(0, 1, true));
+
+      { render until the driver has compiled everything and the renderer
+        finished the programs (without GL_ARB_parallel_shader_compile,
+        the first render does it all) }
+      for I := 1 to 1000 do
+      begin
+        RenderedPatchColor(Window, Viewport, 0);
+        if InternalShaderProgramsCompiling = 0 then
+          Break;
+        Sleep(5);
+      end;
+      AssertEquals(0, InternalShaderProgramsCompiling);
+
+      AssertTrue(RenderedPatchColor(Window, Viewport, -PatchX).X > 0.02);
+      AssertTrue(RenderedPatchColor(Window, Viewport, PatchX).X >
+        RenderedPatchColor(Window, Viewport, -PatchX).X + 0.1);
+
+      Window.Close;
+    finally DestroyWindowForTest(Window) end;
+  finally
+    InternalParallelShaderCompile := SavedParallel;
+  end;
 end;
 
 initialization
