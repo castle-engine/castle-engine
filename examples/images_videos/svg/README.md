@@ -10,6 +10,8 @@ MyScene.Url := 'castle-data:/my.svg';
 
 ![Screenshot](screenshot.png)
 
+![Screenshot 2](screenshot_2.png)
+
 ## Requires latest FPC (from "main" branch), with fcl-svg
 
 **To read SVG files, your application must be compiled with the latest [Free Pascal Compiler](https://www.freepascal.org/) from the [main branch on GitLab](https://gitlab.com/freepascal.org/fpc/source)**, from 2026-10-07 or newer. The engine uses the `fcl-svg` package, which was added to FPC in late September 2026.
