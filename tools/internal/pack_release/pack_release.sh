@@ -167,7 +167,8 @@ check_lazarus_version ()
         "${LAZARUS_VERSION}" != '3.5' && \
         "${LAZARUS_VERSION}" != '3.6' && \
         "${LAZARUS_VERSION}" != '3.7' && \
-        "${LAZARUS_VERSION}" != '4.4' ]]; then
+        "${LAZARUS_VERSION}" != '4.4' && \
+        "${LAZARUS_VERSION}" != '4.8' ]]; then
     echo "pack_release: Incorrect Lazarus version to pack release, we have ${LAZARUS_VERSION}"
     exit 1
   fi
@@ -178,7 +179,8 @@ check_lazarus_version ()
     if [[ "${LAZARUS_VERSION}" != '3.5' && \
           "${LAZARUS_VERSION}" != '3.6' && \
           "${LAZARUS_VERSION}" != '3.7' && \
-          "${LAZARUS_VERSION}" != '4.4' ]]; then
+          "${LAZARUS_VERSION}" != '4.4' && \
+          "${LAZARUS_VERSION}" != '4.8' ]]; then
       echo "pack_release: macOS: Incorrect Lazarus version to pack release, we have ${LAZARUS_VERSION}"
       exit 1
     fi
