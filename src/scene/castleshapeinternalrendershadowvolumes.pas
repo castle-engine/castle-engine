@@ -105,6 +105,13 @@ begin
   Result.W := 0;
 end;
 
+var
+  { Lists used by RenderSilhouetteShadowVolume, shared by all calls.
+    They keep their memory (TCastleFastList descendants only grow),
+    so they are not allocated again for every shape and light. }
+  ScratchVertexes: TVector4List;
+  ScratchTrianglesPlaneSide: TBooleanList;
+
 procedure TRenderShapeShadowVolumes.RenderSilhouetteShadowVolume(
   const Params: TRenderParams;
   const Mesh: TCastleRenderUnlitMesh;
@@ -415,109 +422,114 @@ begin
 
   Triangles := TrianglesListShadowCasters;
 
-  { Nil local variables, to later free by one finally clause. }
-  TrianglesPlaneSide := nil;
-  Vertexes := nil;
-
-  try
-    TrianglesPlaneSide := TBooleanList.Create;
-    Vertexes := TVector4List.Create;
-
-    InitializeTrianglesPlaneSideAndRenderCaps(TrianglesPlaneSide,
-      LightCap, DarkCap);
-
-    { for each 2-manifold edge, possibly render it's shadow quad }
-    EdgesNow := ManifoldEdges;
-    EdgePtr := PEdge(EdgesNow.L);
-    for I := 0 to EdgesNow.Count - 1 do
-    begin
-      PlaneSide0 := TrianglesPlaneSide.L[EdgePtr^.Triangles[0]];
-      PlaneSide1 := TrianglesPlaneSide.L[EdgePtr^.Triangles[1]];
-
-      { Only if PlaneSide0 <> PlaneSide1 it's a silhouette edge,
-        so only then render it's shadow quad.
-
-        We want to have consistent CCW orientation of shadow quads faces,
-        so that face is oriented CCW <=> you're looking at it from outside
-        (i.e. it's considered front face of this shadow quad).
-        This is needed, since user of this method may want to do culling
-        to eliminate back or front faces.
-
-        TriangleDirection(T) indicates direction that goes from CCW triangle side
-        (that's guaranteed by the way TriangleDir calculates plane dir).
-        So PlaneSideX is @true if LightPos is on CCW side of appropriate
-        triangle. So if PlaneSide0 the shadow quad is extended
-        in reversed Triangles[0] order, i.e. like 1, 0, Extruded0, Extruded1.
-        Otherwise, in normal Triangles[0], i.e. 0, 1, Extruded1, Extruded0.
-
-        Just draw it, the triangle corners numbered with 0,1,2 in CCW and
-        imagine that you want the shadow quad to be also CCW on the outside,
-        it will make sense then :) }
-      if PlaneSide0 and not PlaneSide1 then
-        RenderShadowQuad_EdgePtr(EdgePtr, 1, 0)
-      else
-      if PlaneSide1 and not PlaneSide0 then
-        RenderShadowQuad_EdgePtr(EdgePtr, 0, 1);
-
-      Inc(EdgePtr);
-    end;
-
-    { For each border edge, always render it's shadow quad.
-      This is used now only if WholeSceneManifold
-      (otherwise at the beginning of this method,
-      we exit if BorderEdges.Count <> 0). }
-    EdgesNow := BorderEdges;
-    EdgePtr := PEdge(EdgesNow.L);
-    for I := 0 to EdgesNow.Count - 1 do
-    begin
-      PlaneSide0 := TrianglesPlaneSide.L[EdgePtr^.Triangles[0]];
-
-      { Note that even for BorderEdges that are actually manifold but from
-        different shapes (so have Triangles[1] = High(Cardinal)),
-        we don't check PlaneSide1, so we don't render them under the same
-        conditions as ManifoldEdges.
-
-        While this would be more optimal (less shadow quads)
-        but force such BorderEdges to have consistent order (reverted)
-        in both shapes. Right now our CalculateDetectedWholeSceneManifold
-        allows any order.
-
-        Moreover, it means that forcing 2-manifold by
-        RenderOptions.WholeSceneManifold is a valid optimization at loading,
-        without any adverse effects. RenderOptions.WholeSceneManifold doesn't
-        set "Triangles[1] = High(Cardinal)" on any edge (which is OK since we
-        don't use it for rendering), and it avoids doing
-        CalculateDetectedWholeSceneManifold.
-      }
-
-      { We want to have consistent CCW orientation of shadow quads faces,
-        so that face is oriented CCW <=> you're looking at it from outside
-        (i.e. it's considered front face of this shadow quad).
-        This is needed, since user of this method may want to do culling
-        to eliminate back or front faces.
-
-        TriangleDirection(T) indicates direction that goes from CCW triangle side
-        (that's guaranteed by the way TriangleDir calculates plane dir).
-        So PlaneSide0 is true if LightPos is on CCW side of appropriate
-        triangle. So if PlaneSide0, the shadow quad is extended
-        in the direction of TriangleIndex, like 1, 0, Extruded0, Extruded1. }
-      if PlaneSide0 then
-        RenderShadowQuad_EdgePtr(EdgePtr, 1, 0)
-      {
-      // Do not render shadow quad from other border edge, this would break rendering
-      // (testcase: examples/viewport_and_scenes/shadow_volumes_whole_scene_manifold/ ).
-      // The other shape, that shares this manifold edge, will render the corresponding shadow quad for it.
-      else
-        RenderShadowQuad_EdgePtr(EdgePtr, 0, 1)};
-
-      Inc(EdgePtr);
-    end;
-
-    FlushVertexes;
-  finally
-    FreeAndNil(TrianglesPlaneSide);
-    FreeAndNil(Vertexes);
+  { The lists are shared by all calls (ScratchXxx) and keep their memory.
+    Creating lists here, and so growing them from zero for every shape
+    and light, took 1/3 of this method's time when a level has thousands
+    of small shadow casters. }
+  if ScratchVertexes = nil then
+  begin
+    ScratchVertexes := TVector4List.Create;
+    ScratchTrianglesPlaneSide := TBooleanList.Create;
   end;
+  TrianglesPlaneSide := ScratchTrianglesPlaneSide;
+  Vertexes := ScratchVertexes;
+  Vertexes.Clear;
+
+  InitializeTrianglesPlaneSideAndRenderCaps(TrianglesPlaneSide,
+    LightCap, DarkCap);
+
+  { for each 2-manifold edge, possibly render it's shadow quad }
+  EdgesNow := ManifoldEdges;
+  EdgePtr := PEdge(EdgesNow.L);
+  for I := 0 to EdgesNow.Count - 1 do
+  begin
+    PlaneSide0 := TrianglesPlaneSide.L[EdgePtr^.Triangles[0]];
+    PlaneSide1 := TrianglesPlaneSide.L[EdgePtr^.Triangles[1]];
+
+    { Only if PlaneSide0 <> PlaneSide1 it's a silhouette edge,
+      so only then render it's shadow quad.
+
+      We want to have consistent CCW orientation of shadow quads faces,
+      so that face is oriented CCW <=> you're looking at it from outside
+      (i.e. it's considered front face of this shadow quad).
+      This is needed, since user of this method may want to do culling
+      to eliminate back or front faces.
+
+      TriangleDirection(T) indicates direction that goes from CCW triangle side
+      (that's guaranteed by the way TriangleDir calculates plane dir).
+      So PlaneSideX is @true if LightPos is on CCW side of appropriate
+      triangle. So if PlaneSide0 the shadow quad is extended
+      in reversed Triangles[0] order, i.e. like 1, 0, Extruded0, Extruded1.
+      Otherwise, in normal Triangles[0], i.e. 0, 1, Extruded1, Extruded0.
+
+      Just draw it, the triangle corners numbered with 0,1,2 in CCW and
+      imagine that you want the shadow quad to be also CCW on the outside,
+      it will make sense then :) }
+    if PlaneSide0 and not PlaneSide1 then
+      RenderShadowQuad_EdgePtr(EdgePtr, 1, 0)
+    else
+    if PlaneSide1 and not PlaneSide0 then
+      RenderShadowQuad_EdgePtr(EdgePtr, 0, 1);
+
+    Inc(EdgePtr);
+  end;
+
+  { For each border edge, always render it's shadow quad.
+    This is used now only if WholeSceneManifold
+    (otherwise at the beginning of this method,
+    we exit if BorderEdges.Count <> 0). }
+  EdgesNow := BorderEdges;
+  EdgePtr := PEdge(EdgesNow.L);
+  for I := 0 to EdgesNow.Count - 1 do
+  begin
+    PlaneSide0 := TrianglesPlaneSide.L[EdgePtr^.Triangles[0]];
+
+    { Note that even for BorderEdges that are actually manifold but from
+      different shapes (so have Triangles[1] = High(Cardinal)),
+      we don't check PlaneSide1, so we don't render them under the same
+      conditions as ManifoldEdges.
+
+      While this would be more optimal (less shadow quads)
+      but force such BorderEdges to have consistent order (reverted)
+      in both shapes. Right now our CalculateDetectedWholeSceneManifold
+      allows any order.
+
+      Moreover, it means that forcing 2-manifold by
+      RenderOptions.WholeSceneManifold is a valid optimization at loading,
+      without any adverse effects. RenderOptions.WholeSceneManifold doesn't
+      set "Triangles[1] = High(Cardinal)" on any edge (which is OK since we
+      don't use it for rendering), and it avoids doing
+      CalculateDetectedWholeSceneManifold.
+    }
+
+    { We want to have consistent CCW orientation of shadow quads faces,
+      so that face is oriented CCW <=> you're looking at it from outside
+      (i.e. it's considered front face of this shadow quad).
+      This is needed, since user of this method may want to do culling
+      to eliminate back or front faces.
+
+      TriangleDirection(T) indicates direction that goes from CCW triangle side
+      (that's guaranteed by the way TriangleDir calculates plane dir).
+      So PlaneSide0 is true if LightPos is on CCW side of appropriate
+      triangle. So if PlaneSide0, the shadow quad is extended
+      in the direction of TriangleIndex, like 1, 0, Extruded0, Extruded1. }
+    if PlaneSide0 then
+      RenderShadowQuad_EdgePtr(EdgePtr, 1, 0)
+    {
+    // Do not render shadow quad from other border edge, this would break rendering
+    // (testcase: examples/viewport_and_scenes/shadow_volumes_whole_scene_manifold/ ).
+    // The other shape, that shares this manifold edge, will render the corresponding shadow quad for it.
+    else
+      RenderShadowQuad_EdgePtr(EdgePtr, 0, 1)};
+
+    Inc(EdgePtr);
+  end;
+
+  FlushVertexes;
 end;
 
+initialization
+finalization
+  FreeAndNil(ScratchVertexes);
+  FreeAndNil(ScratchTrianglesPlaneSide);
 end.

@@ -23,7 +23,7 @@
   TX3DSimpleMultField<
     TItem;
     TSingleField{$ifndef FPC}: TX3DSingleField{$endif};
-    TItemList{$ifndef FPC}: TStructList<TItem>, constructor{$endif}> = class(TX3DMultField)
+    TItemList{$ifndef FPC}: TCastleFastList<TItem>, constructor{$endif}> = class(TX3DMultField)
   strict private
     WarningDoneInvalidIndex: boolean;
 

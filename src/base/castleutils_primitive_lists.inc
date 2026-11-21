@@ -15,7 +15,8 @@
 }
 
 { Lists of primitive types.
-  Based on TStructList, which is based on TList from Generics.Collections. }
+  Based on TStructList, which is based on TList from Generics.Collections,
+  or (TBooleanList, TInt32List, TSingleList, TDoubleList) on TCastleFastList. }
 
 {$ifdef read_interface}
 
@@ -77,14 +78,14 @@ type
   PSingleArray = ^TSingleArray;
 
   { List of Single (single-precision floating point) values. }
-  TSingleList = class({$ifdef FPC}specialize{$endif} TStructList<Single>)
+  TSingleList = class({$ifdef FPC}specialize{$endif} TCastleFastList<Single>)
     function ToDouble: TDoubleList;
 
     { Assign value from TDoubleList, converting to single-precision. }
     procedure Assign(const Source: TDoubleList); overload;
 
     procedure AssignLerpRange(const Fraction: Single;
-      const V1, V2: {$ifdef FPC}specialize{$endif} TStructList<Single>;
+      const V1, V2: {$ifdef FPC}specialize{$endif} TCastleFastList<Single>;
       const Index1, Index2, ACount: TListSize); override;
 
     procedure AddListRange(const Source: TSingleList; const Index, AddCount: TListSize); deprecated 'use AddSubRange';
@@ -99,6 +100,9 @@ type
     { Multiply all items by Factor. }
     procedure MultiplyAll(const Factor: Single);
 
+    { Sort the items, ascending. }
+    procedure Sort;
+
     { Sort and remove (exact) duplicates.
       Removal of duplicates is very fast, utilizing the fact that the list is sorted. }
     procedure SortAndRemoveDuplicates;
@@ -109,14 +113,14 @@ type
   end;
 
   { List of Double (double-precision floating point) values. }
-  TDoubleList = class({$ifdef FPC}specialize{$endif} TStructList<Double>)
+  TDoubleList = class({$ifdef FPC}specialize{$endif} TCastleFastList<Double>)
     function ToSingle: TSingleList;
 
     { Assign value from TSingleList, converting to single-precision. }
     procedure Assign(const Source: TSingleList); overload;
 
     procedure AssignLerpRange(const Fraction: Single;
-      const V1, V2: {$ifdef FPC}specialize{$endif} TStructList<Double>;
+      const V1, V2: {$ifdef FPC}specialize{$endif} TCastleFastList<Double>;
       const Index1, Index2, ACount: TListSize); override;
 
     { Does the SecondValue have equal length and content.
@@ -136,7 +140,7 @@ type
   end;
 
   { List of booleans. }
-  TBooleanList = class({$ifdef FPC}specialize{$endif} TStructList<boolean>)
+  TBooleanList = class({$ifdef FPC}specialize{$endif} TCastleFastList<boolean>)
   public
     { Set appropriate item to given value.
       These are useful methods to pass as callback in some situations
@@ -159,7 +163,7 @@ type
   PInt32Array = ^TInt32Array;
 
   { List of 32-bit signed integer values. }
-  TInt32List = class({$ifdef FPC}specialize{$endif} TStructList<Int32>)
+  TInt32List = class({$ifdef FPC}specialize{$endif} TCastleFastList<Int32>)
   public
     function Max: Int32;
     function Sum: Int32;
@@ -315,7 +319,7 @@ begin
 end;
 
 procedure TSingleList.AssignLerpRange(const Fraction: Single;
-  const V1, V2: {$ifdef FPC}specialize{$endif} TStructList<Single>;
+  const V1, V2: {$ifdef FPC}specialize{$endif} TCastleFastList<Single>;
   const Index1, Index2, ACount: TListSize);
 var
   I: TListSize;
@@ -375,6 +379,47 @@ begin
     Items[I] := Items[I] * Factor;
 end;
 
+procedure TSingleList.Sort;
+
+  procedure QuickSort(Lo, Hi: TListSize);
+  var
+    I, J: TListSize;
+    Pivot, Tmp: Single;
+  begin
+    while Lo < Hi do
+    begin
+      Pivot := L[(Lo + Hi) div 2];
+      I := Lo;
+      J := Hi;
+      repeat
+        while L[I] < Pivot do Inc(I);
+        while L[J] > Pivot do Dec(J);
+        if I <= J then
+        begin
+          Tmp := L[I];
+          L[I] := L[J];
+          L[J] := Tmp;
+          Inc(I);
+          Dec(J);
+        end;
+      until I > J;
+      { recurse into the smaller part, loop on the larger }
+      if J - Lo < Hi - I then
+      begin
+        QuickSort(Lo, J);
+        Lo := I;
+      end else
+      begin
+        QuickSort(I, Hi);
+        Hi := J;
+      end;
+    end;
+  end;
+
+begin
+  QuickSort(0, Count - 1);
+end;
+
 procedure TSingleList.SortAndRemoveDuplicates;
 var
   NewPosition, SourcePosition: TListSize;
@@ -426,7 +471,7 @@ begin
 end;
 
 procedure TDoubleList.AssignLerpRange(const Fraction: Single;
-  const V1, V2: {$ifdef FPC}specialize{$endif} TStructList<Double>;
+  const V1, V2: {$ifdef FPC}specialize{$endif} TCastleFastList<Double>;
   const Index1, Index2, ACount: TListSize);
 var
   I: TListSize;
