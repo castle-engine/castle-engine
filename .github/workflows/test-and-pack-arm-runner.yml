@@ -36,13 +36,7 @@ permissions:
 jobs:
   test_and_pack:
     name: Test and Pack (ARM Runner)
-    # Not ubuntu-latest (Ubuntu 26.04 now), because pguyot/arm-runner-action@v2
-    # (v2.6.5) fails there: it tries to install qemu-user-static, which is only
-    # a virtual package in Ubuntu 26.04 ("has no installation candidate").
-    # Fixed upstream in https://github.com/pguyot/arm-runner-action/commit/5439f417 ,
-    # but not released yet.
-    # TODO: Go back to ubuntu-latest once a release includes it.
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         arch: [raspberry-pi-32, raspberry-pi-64]
@@ -74,7 +68,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
-      - uses: pguyot/arm-runner-action@v2
+      - uses: castle-engine/arm-runner-action@castle-current
         with:
           base_image: ${{ matrix.base_image }}
           cpu: ${{ matrix.cpu }}
@@ -84,7 +78,7 @@ jobs:
           # Avoids the need for copy_artifact_path later.
           bind_mount_repository: true
           commands: |
-            # Useful string to grep logs, because log of script execution is somewhat buried in the middle of pguyot/arm-runner-action log
+            # Useful string to grep logs, because log of script execution is somewhat buried in the middle of arm-runner-action log
             echo 'CGE script starts here'
 
             # Show system info
