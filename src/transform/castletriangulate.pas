@@ -481,7 +481,7 @@ begin
               WritelnLog('Triangulation', 'Impossible to find an "ear" to cut off, this concave polygon cannot be triangulated.');
             if not FailureWarningDone then
             begin
-              WritelnWarning('Triangulator', 'Triangulation of concave polygon failed. ' + 'Polygon is probably self-intersecting (not allowed by VRML / X3D). You can use Castle Game Engine tool in castle_game_engine/examples/visualize_triangulation/ to easily observe the polygon vertexes and triangulation process.');
+              WritelnWarning('Triangulator', 'Triangulation of concave polygon failed. ' + 'Polygon is probably self-intersecting (not allowed in X3D shapes). This can happen for now when reading SVG files, submit a bugreport with testcase when it causes real visual issues.');
               FailureWarningDone := true;
             end;
             Break;
