@@ -382,6 +382,19 @@ const
     Same as TSVGSoftBackend uses. }
   Flatness = SVGDefaultFlatness;
 
+  { Multiply SVG Y coordinates by this, to make SVG content go up in CGE.
+    In SVG, Y goes down; in CGE (and X3D), Y goes up.
+
+    We flip the Y of the final points, instead of using a TTransformNode
+    with negative scale, because negative scale interacts badly with
+    physics colliders and lighting (e.g. if the user changes the material,
+    or adds a mesh collider).
+
+    All SVG transformations (transform attribute, viewBox, use, symbol,
+    markers...) are already applied (by fcl-svg and our backend)
+    when we do this, so this is simply the final conversion of coordinates. }
+  ConvertYCoords = -1;
+
 constructor TX3DBackend.Create;
 begin
   inherited Create;
@@ -578,7 +591,11 @@ begin
         P := PendingShape.Polygons[PolygonIndex][I];
         Geometry.FdCoordIndex.Items.Add(Coord.FdPoint.Items.Count);
         { Z grows with the index of the shape, to preserve SVG drawing order. }
-        Coord.FdPoint.Items.Add(Vector3(P, ShapeIndex * SvgLayersZDistance));
+        Coord.FdPoint.Items.Add(Vector3(
+          P.X,
+          P.Y * ConvertYCoords,
+          ShapeIndex * SvgLayersZDistance));
+        { Gradient is calculated using P in SVG device space (not flipped by ConvertYCoords). }
         if ColorNode <> nil then
           ColorNode.FdColor.Items.Add(SvgColorToRGBA(
             PendingShape.Gradient.ColorAt(PendingShape.Gradient.OffsetAt(
@@ -806,12 +823,11 @@ begin
       FreeAndNil(Document);
     end;
 
-    { Center the drawing at (0,0) and flip Y (in SVG, Y goes down;
-      in CGE, Y goes up). }
+    { Center the drawing at (0,0).
+      Y coordinates were already multiplied by ConvertYCoords. }
     Transform.Translation := Vector3(
       -InternalLastSvgStats.Width / 2,
-      InternalLastSvgStats.Height / 2, 0);
-    Transform.Scale := Vector3(1, -1, 1);
+      -ConvertYCoords * InternalLastSvgStats.Height / 2, 0);
   except
     FreeAndNil(Result);
     raise;
