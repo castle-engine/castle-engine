@@ -2299,8 +2299,16 @@ var
         Exit(true);
     end;
 
-    // pass to control holding capture from FCaptureInput
-    if not FCaptureInput.TryGetValue(Event.FingerIndex, Capture) then
+    { Pass to control holding capture from FCaptureInput.
+
+      This is only for mouse / touch events, just like EventPress which only
+      captures for itMouseButton. Other events (keys, game controllers)
+      have FingerIndex = 0 that has no meaning for them, and they should
+      not go to FCaptureInput.
+      Otherwise, releasing a key while the mouse button is pressed
+      would send the key release only to the control capturing the mouse }
+    if (Event.EventType <> itMouseButton) or
+       (not FCaptureInput.TryGetValue(Event.FingerIndex, Capture)) then
       Capture := nil;
     if (Capture <> nil) and not UseControl(Capture) then
     begin
