@@ -2073,7 +2073,7 @@ function TCastleViewport.Motion(const Event: TInputMotion): boolean;
       drag to move, starting at the red door (which is also TouchSensor).
 
     - Clear CapturePointingDevice (as it will no longer receive "release"
-      events reliably -- we have just send there last
+      events reliably -- we have just sent there last
       Transform.PointingDeviceRelease).
   }
   procedure PointingDeviceCancel(const Transform: TCastleTransform);

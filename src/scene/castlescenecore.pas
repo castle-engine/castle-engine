@@ -6281,9 +6281,10 @@ begin
 
           Testcase from https://github.com/castle-engine/castle-engine/issues/760 :
           - Press on the wall.
+            (This makes us return false from the PointingDevicePress event,
+            as wall is not a TouchSensor,
+            but we would keep FPointingDeviceActive=true (before this fix)).
           - Move the mouse to the sky and release there.
-            (This makes us return false from the PointingDevicePress event
-            but keep FPointingDeviceActive=true, before this fix).
           - Click the door to test TouchSensor. }
         if not ActiveChanged then
           FPointingDeviceActive := false;

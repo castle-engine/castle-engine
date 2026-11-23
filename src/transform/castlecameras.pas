@@ -1740,9 +1740,16 @@ begin
         to FPinchGestureRecognizer.Press, to recognize pinch gestures.
 
       This is accompanied by InternalReleaseCapturedLetsOtherControls,
-      to let other controls receive the release event as well,
-      to let TouchSensors work (see
-      https://github.com/castle-engine/castle-engine/issues/760 ).
+      to let other controls receive the mouse release event as well.
+      Since we return false from Press, other controls (under the mouse)
+      receive the mouse press too. Without InternalReleaseCapturedLetsOtherControls,
+      the capture would send the matching mouse release only to us,
+      so they would see the press without the release.
+
+      See https://github.com/castle-engine/castle-engine/issues/760
+      for the history. Originally this was introduced to let TouchSensors work,
+      but TCastleSceneCore no longer depends on receiving release after
+      a press that activated nothing, so TouchSensors work even without this now.
 
       Testcase:
       - zombie_fighter, with non-FullSize viewport, and moving
