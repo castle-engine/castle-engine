@@ -2060,7 +2060,22 @@ end;
 
 function TCastleViewport.Motion(const Event: TInputMotion): boolean;
 
-  { Call Transform.PointingDeviceRelease with CancelAction = true. }
+  { No longer pass pointing device events to Transform.
+
+    - Calls Transform.PointingDeviceRelease with CancelAction = true.
+
+    - Sets InternalPointingDeviceDragging to false.
+      ( otherwise Navigation.Press below would not start dragging,
+      see TCastleNavigation.ReallyEnableMouseDragging, as it would think
+      we are operating a TouchSensor. )
+
+      Testcase from https://github.com/castle-engine/castle-engine/issues/760 :
+      drag to move, starting at the red door (which is also TouchSensor).
+
+    - Clear CapturePointingDevice (as it will no longer receive "release"
+      events reliably -- we have just send there last
+      Transform.PointingDeviceRelease).
+  }
   procedure PointingDeviceCancel(const Transform: TCastleTransform);
   var
     RayOrigin, RayDirection: TVector3;
@@ -2071,6 +2086,8 @@ function TCastleViewport.Motion(const Event: TInputMotion): boolean;
       PositionToRay(MousePosition, true, RayOrigin, RayDirection);
       Transform.PointingDeviceRelease(FakeRayCollisionNode(RayOrigin, RayDirection, Transform), MaxSingle, true { CancelAction });
     end;
+    InternalPointingDeviceDragging := false;
+    CapturePointingDevice := nil;
   end;
 
   function IsTouchSensorActiveInScene(const Scene: TCastleTransform): boolean;
