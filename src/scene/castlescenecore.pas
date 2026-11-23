@@ -1551,7 +1551,9 @@ type
     procedure PointingDeviceClear;
 
     { Is pointing device currently active
-      (for example, mouse button is pressed down). }
+      (for example, mouse button is pressed down)
+      and the press activated something in this scene
+      (like a TouchSensor or Anchor). }
     property PointingDeviceActive: boolean
       read FPointingDeviceActive default false;
 
@@ -6263,6 +6265,28 @@ begin
             end;
           end;
         end;
+
+        { Set FPointingDeviceActive to false, if ActiveChanged is false.
+
+          Why?
+          - When ActiveChanged = false, we will return false.
+          - Then we will not become TCastleViewport.CapturePointingDevice,
+            so we have no guarantee to receive the matching PointingDeviceRelease.
+            E.g. the release may happen over a different TCastleTransform,
+            or over empty space, or outside of the viewport, and we will not get
+            the PointingDeviceRelease event about it.
+
+          The next press on us would then occur with FPointingDeviceActive,
+          and check "FPointingDeviceActive <> DoPress" would make it ignored.
+
+          Testcase from https://github.com/castle-engine/castle-engine/issues/760 :
+          - Press on the wall.
+          - Move the mouse to the sky and release there.
+            (This makes us return false from the PointingDevicePress event
+            but keep FPointingDeviceActive=true, before this fix).
+          - Click the door to test TouchSensor. }
+        if not ActiveChanged then
+          FPointingDeviceActive := false;
       end else
       begin
         { Deactivate all PointingDeviceActiveSensors (if any) }
