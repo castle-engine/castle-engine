@@ -2224,6 +2224,9 @@ function TCastleContainer.EventRelease(const Event: TInputPressRelease): Boolean
     end;
   end;
 
+var
+  IgnoreControl: TCastleUserInterface;
+
   function RecursiveRelease(const C: TCastleUserInterface): Boolean;
   var
     I: Integer;
@@ -2237,6 +2240,7 @@ function TCastleContainer.EventRelease(const Event: TInputPressRelease): Boolean
         { try C.PreviewRelease }
         if (not IsForceCaptureInput(C)) and
            (not IsPointerLockController(C)) and
+           (C <> IgnoreControl) and
            C.PreviewRelease(Event) then
           Exit(true);
 
@@ -2248,6 +2252,7 @@ function TCastleContainer.EventRelease(const Event: TInputPressRelease): Boolean
         { try C.Release }
         if (not IsForceCaptureInput(C)) and
            (not IsPointerLockController(C)) and
+           (C <> IgnoreControl) and
            C.Release(Event) then
           Exit(true);
       finally Dec(C.ProcessingEvents) end;
@@ -2274,8 +2279,10 @@ function TCastleContainer.EventRelease(const Event: TInputPressRelease): Boolean
   var
     I: Integer;
     Capture: TCastleUserInterface;
+    ReleaseCapturedLetsOtherControls: Boolean;
   begin
     Result := false;
+    IgnoreControl := nil;
 
     // pass to ForceCaptureInput
     if UseForceCaptureInput then
@@ -2312,8 +2319,16 @@ function TCastleContainer.EventRelease(const Event: TInputPressRelease): Boolean
        (not IsForceCaptureInput(Capture)) and
        (not IsPointerLockController(Capture)) then
     begin
+      // cache, in case NonRecursivePreviewAndRelease will free Capture
+      ReleaseCapturedLetsOtherControls := Capture.InternalReleaseCapturedLetsOtherControls;
       Result := NonRecursivePreviewAndRelease(Capture);
-      Exit; // if something is capturing the input, prevent other controls from getting the events
+      IgnoreControl := Capture;
+      { If something is capturing the input, prevent other controls from
+        getting the events. When InternalReleaseCapturedLetsOtherControls=false,
+        this "block others" applies regardless of the NonRecursivePreviewAndRelease
+        result. }
+      if (not ReleaseCapturedLetsOtherControls) or Result then
+        Exit;
     end;
 
     // pass to all Controls with TCastleUserInterface.Release event
