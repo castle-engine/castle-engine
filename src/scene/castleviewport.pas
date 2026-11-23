@@ -2111,10 +2111,23 @@ begin
       begin
         PointingDeviceCancel(TopMostTransform);
 
+        { Old reasoning for code below:
+
+          Without ReleaseCapture, the parent (like TCastleScrollView) would still
+          not receive the following motion events.
+
+          Later observation: This is actually unnecessary and pointless now.
+          Since
+          https://github.com/castle-engine/castle-engine/commit/53cbc895c9
+          (remade in
+          https://github.com/castle-engine/castle-engine/commit/29d46672c34e674925de5feaaf2d4312916be9ad
+          ) the Navigation.Press below will capture again.
+
+          TODO: Test escape-universe, is viewport's EnableParentDragging
+          working? Was it working before the above commits?
+        }
         if EnableParentDragging then
         begin
-          { Without ReleaseCapture, the parent (like TCastleScrollView) would still
-            not receive the following motion events. }
           Container.ReleaseCapture(Navigation);
         end;
 
