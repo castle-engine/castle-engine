@@ -217,6 +217,8 @@ type
   end;
 
 function gdk_x11_window_get_xid(widget: Pointer): Pointer; cdecl; external 'libgdk-3.so.0';
+function gdk_window_get_display(window: Pointer): Pointer; cdecl; external 'libgdk-3.so.0';
+function gdk_x11_display_get_xdisplay(display: Pointer): Pointer; cdecl; external 'libgdk-3.so.0';
 
 { ---------------------------------------------------------------------------- }
 { Minimal GTK 3 API definition we need. }

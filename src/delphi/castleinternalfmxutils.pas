@@ -38,7 +38,7 @@ uses Types, Generics.Collections, UITypes, System.Messaging,
   {$ifdef MSWINDOWS} FMX.Presentation.Win, {$endif}
   {$ifdef LINUX} FMX.Platform.Linux, {$endif}
   {$ifdef CASTLE_MOBILE_FMX} CastleGLES, {$endif}
-  CastleInternalContextBase, CastleVectors, CastleRenderContext,
+  CastleInternalContextBase, CastleInternalVulkanWSI, CastleVectors, CastleRenderContext,
   CastleKeysMouse, CastleUiControls;
 
 type
@@ -153,6 +153,9 @@ type
 
       This is synchronized with what ContextCreateBestInstance does on this platform. }
     procedure ContextAdjustEarly(const PlatformContext: TGLContext);
+
+    { Extract native OS child-control handle for VkSurfaceKHR creation (Phase 115). }
+    function BuildVulkanNativeSurfaceDesc: TVulkanNativeSurfaceDesc;
 
     { Call this often to perform platform-specific adjustments.
 

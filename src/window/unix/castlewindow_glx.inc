@@ -76,7 +76,8 @@ end;
 procedure TCastleWindow.BackendMakeCurrent;
 begin
   Assert(not Closed);
-  Assert(Context <> nil);
+  if Context = nil then
+    Exit;
   Context.RenderingAreaXID := RenderingAreaXID;
   Context.MakeCurrent;
 end;
@@ -84,7 +85,8 @@ end;
 procedure TCastleWindow.SwapBuffers;
 begin
   Assert(not Closed);
-  Assert(Context <> nil);
+  if Context = nil then
+    Exit;
   Context.RenderingAreaXID := RenderingAreaXID;
   Context.SwapBuffers;
 end;

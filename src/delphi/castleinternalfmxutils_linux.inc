@@ -161,6 +161,26 @@ begin
   Assert(EglContext.WndPtr <> nil); // XHandleFromGtkWidget already checks this and made exception if problem
 end;
 
+function TFmxOpenGLUtility.BuildVulkanNativeSurfaceDesc: TVulkanNativeSurfaceDesc;
+var
+  GdkWnd, GdkDisp, XDisp: Pointer;
+  XId: PtrUInt;
+begin
+  FillChar(Result, SizeOf(Result), 0);
+  if GLAreaGtk = nil then
+    Exit;
+  GdkWnd := gtk_widget_get_window(GLAreaGtk);
+  if GdkWnd = nil then
+    Exit;
+  GdkDisp := gdk_window_get_display(GdkWnd);
+  if GdkDisp = nil then
+    Exit;
+  XDisp := gdk_x11_display_get_xdisplay(GdkDisp);
+  XId := PtrUInt(gdk_x11_window_get_xid(GdkWnd));
+  if (XDisp <> nil) and (XId <> 0) then
+    Result := TVulkanNativeSurfaceDesc.CreateXlib(PVkXlibDisplay(XDisp), VkXlibWindow(XId));
+end;
+
 { If @true, there's a reasonable chance that everything necessary
   for GetLinuxHandle is already initialized. }
 function GetLinuxHandlePossible(const Control: TPresentedControl): Boolean;

@@ -66,6 +66,7 @@ uses // standard units
   // cge
   CastleGLVersion, CastleGLUtils, CastleVectors, CastleKeysMouse,
   CastleInternalContextBase, CastleControlContainer, CastleInternalFmxUtils,
+  CastleInternalVulkanWSI,
   CastleRenderContext, CastleFmxUtils;
 
 type
@@ -89,6 +90,7 @@ type
         class procedure UpdatingTimerEvent(Sender: TObject);
       protected
         procedure AdjustContext(const PlatformContext: TGLContext); override;
+        function BuildVulkanNativeSurfaceDesc: TVulkanNativeSurfaceDesc; override;
         class procedure UpdatingEnable; override;
         class procedure UpdatingDisable; override;
         procedure SystemSetMousePosition(const Value: TVector2); override;
@@ -333,6 +335,15 @@ end;
 procedure TCastleControl.TContainer.AdjustContext(const PlatformContext: TGLContext);
 begin
   Parent.FGLUtility.ContextAdjustEarly(PlatformContext);
+end;
+
+function TCastleControl.TContainer.BuildVulkanNativeSurfaceDesc: TVulkanNativeSurfaceDesc;
+begin
+  Result := inherited;
+  if ValidateVulkanNativeSurfaceDesc(Result) then
+    Exit;
+  if (Parent <> nil) and (Parent.FGLUtility <> nil) then
+    Result := Parent.FGLUtility.BuildVulkanNativeSurfaceDesc;
 end;
 
 function TCastleControl.TContainer.PixelsWidth: Integer;
@@ -587,11 +598,16 @@ begin
     RenderContext.InternalControlRect := ControlRect;
     {$endif RENDERING_CONTEXT_SUBRECT}
 
-    RenderingUtility.BeforeDirectRendering(Canvas, RenderContext);
-    try
-      FContainer.DoRender;
-    finally
-      RenderingUtility.AfterDirectRendering(Canvas, RenderContext);
+    if FContainer.VulkanInitialized then
+      FContainer.DoRender
+    else
+    begin
+      RenderingUtility.BeforeDirectRendering(Canvas, RenderContext);
+      try
+        FContainer.DoRender;
+      finally
+        RenderingUtility.AfterDirectRendering(Canvas, RenderContext);
+      end;
     end;
   end;
 end;
@@ -634,6 +650,7 @@ begin
   if Container.GLInitialized then
   begin
     Container.MakeContextCurrent;
+    Container.ResizeVulkanSwapchainIfNeeded;
     Container.EventResize;
   end;
 end;

@@ -1347,7 +1347,8 @@ begin
   h_Dc := GetDC(h_Wnd);
   Check ( h_Dc <> 0, 'GetDC failed');
 
-  ContextCreate(h_Wnd);
+  if not IsVulkanBackendRequested then
+    ContextCreate(h_Wnd);
 
   MakeCurrent;
 

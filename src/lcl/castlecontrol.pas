@@ -27,7 +27,8 @@ uses
   CastleRectangles, CastleVectors, CastleKeysMouse, CastleUtils, CastleTimeUtils,
   CastleUIControls, CastleRenderOptions,
   CastleImages, CastleGLVersion, CastleLCLUtils,
-  CastleGLImages, CastleApplicationProperties;
+  CastleGLImages, CastleApplicationProperties,
+  CastleInternalRHI, CastleInternalVulkan, CastleInternalVulkanWSI, CastleInternalRHI_Vulkan;
 
 { Define this for new Lazarus that has Options (with ocoRenderAtDesignTime)
   (see issue https://bugs.freepascal.org/view.php?id=32026 ). }
@@ -175,6 +176,13 @@ type
     Invalidated: boolean;
     FKeyPressHandler: TLCLKeyPressHandler;
     FAutoFocus: Boolean;
+    FVulkanSwapchainSurface: TCastleVulkanSwapchainSurface;
+    FVulkanInitialized: Boolean;
+    FDisableVulkanForControl: Boolean;
+    FHasCustomVulkanSurfaceDesc: Boolean;
+    FCustomVulkanSurfaceDesc: TVulkanNativeSurfaceDesc;
+    FOnCreateVulkanSurface: TVulkanCreateSurfaceEvent;
+    FVulkanFramesRenderedCount: Cardinal;
 
     class var
       { "Updating" means that the mechanism to call DoUpdateEverything
@@ -286,8 +294,16 @@ type
     procedure AggressiveUpdate;
   private
     class function GetMainContainer: TCastleContainer;
+    class procedure HandleRenderBackendChange(Sender: TObject);
     procedure SystemSetMousePosition(const Value: TVector2);
+    function IsVulkanBackendRequested: Boolean;
+    function CreateVulkanSurface(const AInstance: VkInstance): VkSurfaceKHR;
+    function InitializeVulkanControlIfNeeded: Boolean;
+    function BeginVulkanControlFrame: Boolean;
+    procedure EndVulkanControlFrame;
+    procedure FinalizeContextIfNeeded;
   protected
+    function BuildVulkanNativeSurfaceDesc: TVulkanNativeSurfaceDesc; virtual;
     procedure DestroyHandle; override;
     procedure DoExit; override;
     procedure Resize; override;
@@ -330,6 +346,17 @@ type
     function MakeCurrent(SaveOldToStack: boolean = false): boolean; override;
     procedure Invalidate; override;
     procedure Paint; override;
+
+    { Optional native Vulkan surface override & diagnostics for TCastleControl (Phase 115). }
+    procedure SetCustomVulkanSurfaceDesc(const ADesc: TVulkanNativeSurfaceDesc);
+    procedure ClearCustomVulkanSurfaceDesc;
+    class function SharedVulkanDevice: TVulkanRHIDevice;
+    class function SwitchRenderBackend(const ANewBackend: TRenderBackend): Boolean;
+    property OnCreateVulkanSurface: TVulkanCreateSurfaceEvent
+      read FOnCreateVulkanSurface write FOnCreateVulkanSurface;
+    property VulkanSwapchainSurface: TCastleVulkanSwapchainSurface read FVulkanSwapchainSurface;
+    property VulkanInitialized: Boolean read FVulkanInitialized;
+    property VulkanFramesRenderedCount: Cardinal read FVulkanFramesRenderedCount;
 
     { Keys currently pressed. }
     function Pressed: TKeysPressed; deprecated 'use Container.Pressed';
@@ -491,7 +518,10 @@ procedure Register;
 implementation
 
 uses Math, Contnrs, LazUTF8, Clipbrd,
-  CastleControls, CastleGLUtils, CastleStringUtils, CastleLog, CastleRenderContext,
+  {$if defined(LCLGTK2)} Gtk2Def, gdk2x, glib2, gdk2, gtk2, {$endif}
+  {$if defined(LCLGTK3)} LazGdk3, LazGtk3, gtk3widgets, DynLibs, {$endif}
+  CastleColors, CastleControls, CastleGLUtils, CastleStringUtils, CastleLog,
+  CastleRenderContext, CastleInternalContextBase,
   CastleUriUtils, CastleComponentSerialize, CastleInternalLclDesign;
 
 // TODO: We never call Fps.InternalSleeping, so Fps.WasSleeping will be always false.
@@ -521,6 +551,11 @@ var
 
   { Tracks how many controls on ControlsList have GL context initialized. }
   ControlsOpen: Cardinal;
+
+  { Shared Vulkan RHI device across all open Vulkan TCastleControl instances (Phase 115). }
+  SharedControlVulkanDevice: TVulkanRHIDevice;
+  SharedControlVulkanOpenCount: Cardinal;
+  OwnsSharedControlVulkanDevice: Boolean;
 
   { Used by DoLimitFPS in TCastleControl.DoUpdateEverything. }
   LastLimitFPSTime: TTimerResult;
@@ -670,6 +705,10 @@ end;
 
 function TCastleControlContainer.SaveScreen(const SaveRect: TRectangle): TRGBImage;
 begin
+  if (Parent <> nil) and (not Parent.GLInitialized) then
+    Parent.MakeCurrent;
+  if (RHIDevice <> nil) and (ActiveCommandList = nil) then
+    Exit(inherited SaveScreen(SaveRect));
   if Parent.MakeCurrent then
   begin
     EventBeforeRender;
@@ -718,6 +757,7 @@ end;
 
 destructor TCastleControl.Destroy;
 begin
+  FinalizeContextIfNeeded;
   Container.UnLoadDesign;
 
   FreeAndNil(FContainer);
@@ -828,6 +868,341 @@ begin
   if Value then Invalidate;
 end;
 
+procedure TCastleControl.SetCustomVulkanSurfaceDesc(const ADesc: TVulkanNativeSurfaceDesc);
+begin
+  FCustomVulkanSurfaceDesc := ADesc;
+  FHasCustomVulkanSurfaceDesc := True;
+end;
+
+procedure TCastleControl.ClearCustomVulkanSurfaceDesc;
+begin
+  FillChar(FCustomVulkanSurfaceDesc, SizeOf(FCustomVulkanSurfaceDesc), 0);
+  FHasCustomVulkanSurfaceDesc := False;
+end;
+
+class function TCastleControl.SharedVulkanDevice: TVulkanRHIDevice;
+begin
+  Result := SharedControlVulkanDevice;
+end;
+
+class procedure TCastleControl.HandleRenderBackendChange(Sender: TObject);
+var
+  I: Integer;
+  Ctrl: TCastleControl;
+begin
+  if (ControlsList = nil) or (ControlsList.Count = 0) then
+    Exit;
+
+  for I := ControlsList.Count - 1 downto 0 do
+    if ControlsList[I] is TCastleControl then
+      TCastleControl(ControlsList[I]).FinalizeContextIfNeeded;
+
+  if ApplicationProperties.RenderBackend = backendVulkan then
+  begin
+    FreeAndNil(GLVersion);
+    FreeAndNil(GLFeatures);
+  end;
+
+  for I := 0 to ControlsList.Count - 1 do
+    if ControlsList[I] is TCastleControl then
+    begin
+      Ctrl := TCastleControl(ControlsList[I]);
+      Ctrl.FDisableVulkanForControl := False;
+      if Ctrl.HandleAllocated then
+        Ctrl.Invalidate;
+    end;
+end;
+
+class function TCastleControl.SwitchRenderBackend(const ANewBackend: TRenderBackend): Boolean;
+begin
+  if ApplicationProperties.RenderBackend <> ANewBackend then
+    ApplicationProperties.RenderBackend := ANewBackend
+  else
+    HandleRenderBackendChange(nil);
+  Result := (ANewBackend <> backendVulkan) or (SharedControlVulkanDevice <> nil) or (ControlsList.Count = 0);
+end;
+
+function TCastleControl.IsVulkanBackendRequested: Boolean;
+begin
+  Result := (ApplicationProperties.RenderBackend = backendVulkan) and
+            (not FDisableVulkanForControl);
+end;
+
+function TCastleControl.BuildVulkanNativeSurfaceDesc: TVulkanNativeSurfaceDesc;
+{$if defined(LCLGTK2)}
+var
+  Widget: PGtkWidget;
+{$elseif defined(LCLGTK3)}
+type
+  TGdkWindowGetDisplayProc = function(AWindow: Pointer): Pointer; cdecl;
+  TGdkX11DisplayGetXDisplayProc = function(ADisplay: Pointer): Pointer; cdecl;
+  TGdkX11WindowGetXidProc = function(AWindow: Pointer): PtrUInt; cdecl;
+  TGdkWaylandDisplayGetWlDisplayProc = function(ADisplay: Pointer): Pointer; cdecl;
+  TGdkWaylandWindowGetWlSurfaceProc = function(AWindow: Pointer): Pointer; cdecl;
+var
+  Gtk3Obj: TGtk3Widget;
+  Gdk3Win, Gdk3Disp, XDisp, WlDisp, WlSurf: Pointer;
+  XId: PtrUInt;
+  GdkLib: TLibHandle;
+  GetDispFn: TGdkWindowGetDisplayProc;
+  GetXDispFn: TGdkX11DisplayGetXDisplayProc;
+  GetXidFn: TGdkX11WindowGetXidProc;
+  GetWlDispFn: TGdkWaylandDisplayGetWlDisplayProc;
+  GetWlSurfFn: TGdkWaylandWindowGetWlSurfaceProc;
+{$endif}
+begin
+  if FHasCustomVulkanSurfaceDesc then
+    Exit(FCustomVulkanSurfaceDesc);
+
+  FillChar(Result, SizeOf(Result), 0);
+  if Handle = 0 then
+    Exit;
+
+  {$if defined(MSWINDOWS)}
+  Result := TVulkanNativeSurfaceDesc.CreateWin32(
+    VkWin32HINSTANCE(System.HInstance), VkWin32HWND(Handle));
+  {$elseif defined(LCLGTK2)}
+  Widget := {%H-}PGtkWidget(PtrUInt(Handle));
+  if Widget <> nil then
+  begin
+    if not GTK_WIDGET_REALIZED(Widget) then
+      gtk_widget_realize(Widget);
+    gtk_widget_set_double_buffered(Widget, False);
+    if Widget^.window <> nil then
+      Result := TVulkanNativeSurfaceDesc.CreateXlib(
+        PVkXlibDisplay(GDK_WINDOW_XDISPLAY(Widget^.window)),
+        VkXlibWindow(GDK_WINDOW_XWINDOW(Widget^.window)));
+  end;
+  {$elseif defined(LCLGTK3)}
+  Gtk3Obj := TGtk3Widget(Handle);
+  if (Gtk3Obj <> nil) and (Gtk3Obj.Widget <> nil) then
+  begin
+    Gtk3Obj.Widget^.realize;
+    Gdk3Win := Gtk3Obj.GetWindow;
+    if Gdk3Win <> nil then
+    begin
+      GdkLib := LoadLibrary('libgdk-3.so.0');
+      if GdkLib <> NilHandle then
+      try
+        Pointer(GetDispFn) := GetProcedureAddress(GdkLib, 'gdk_window_get_display');
+        Pointer(GetXDispFn) := GetProcedureAddress(GdkLib, 'gdk_x11_display_get_xdisplay');
+        Pointer(GetXidFn) := GetProcedureAddress(GdkLib, 'gdk_x11_window_get_xid');
+        Pointer(GetWlDispFn) := GetProcedureAddress(GdkLib, 'gdk_wayland_display_get_wl_display');
+        Pointer(GetWlSurfFn) := GetProcedureAddress(GdkLib, 'gdk_wayland_window_get_wl_surface');
+        Gdk3Disp := nil;
+        if Assigned(GetDispFn) then
+          Gdk3Disp := GetDispFn(Gdk3Win);
+        if (Gdk3Disp <> nil) and Assigned(GetXDispFn) and Assigned(GetXidFn) then
+        begin
+          XDisp := GetXDispFn(Gdk3Disp);
+          XId := GetXidFn(Gdk3Win);
+          if (XDisp <> nil) and (XId <> 0) then
+            Result := TVulkanNativeSurfaceDesc.CreateXlib(PVkXlibDisplay(XDisp), VkXlibWindow(XId));
+        end;
+        if (not ValidateVulkanNativeSurfaceDesc(Result)) and
+           (Gdk3Disp <> nil) and Assigned(GetWlDispFn) and Assigned(GetWlSurfFn) then
+        begin
+          WlDisp := GetWlDispFn(Gdk3Disp);
+          WlSurf := GetWlSurfFn(Gdk3Win);
+          if (WlDisp <> nil) and (WlSurf <> nil) then
+            Result := TVulkanNativeSurfaceDesc.CreateWayland(Pwl_display(WlDisp), Pwl_surface(WlSurf));
+        end;
+      finally
+        UnloadLibrary(GdkLib);
+      end;
+    end;
+  end;
+  {$elseif defined(DARWIN)}
+  Result := TVulkanNativeSurfaceDesc.CreateMetal(
+    EnsureDarwinNSViewMetalLayer({%H-}Pointer(PtrUInt(Handle))));
+  {$else}
+  Result.Platform := GetDefaultVulkanWSIPlatform;
+  {$endif}
+end;
+
+function TCastleControl.CreateVulkanSurface(const AInstance: VkInstance): VkSurfaceKHR;
+begin
+  if Assigned(FOnCreateVulkanSurface) then
+    Result := FOnCreateVulkanSurface(AInstance)
+  else
+    Result := CreateVulkanSurfaceFromNativeDesc(AInstance, BuildVulkanNativeSurfaceDesc);
+end;
+
+function TCastleControl.InitializeVulkanControlIfNeeded: Boolean;
+var
+  Desc: TVulkanNativeSurfaceDesc;
+  CreatedSharedDevice: Boolean;
+  CtrlDebugName: String;
+begin
+  if FVulkanInitialized then
+    Exit(True);
+  if not IsVulkanBackendRequested then
+    Exit(False);
+
+  Desc := BuildVulkanNativeSurfaceDesc;
+  if (not Assigned(FOnCreateVulkanSurface)) and
+     (not ValidateVulkanNativeSurfaceDesc(Desc)) then
+  begin
+    WritelnLog('Vulkan', 'TCastleControl native widget surface handle not available; falling back to OpenGL');
+    FDisableVulkanForControl := True;
+    Exit(False);
+  end;
+
+  CreatedSharedDevice := False;
+  try
+    if Name <> '' then
+      CtrlDebugName := 'CastleControl_' + Name
+    else
+      CtrlDebugName := 'CastleControl';
+
+    if SharedControlVulkanDevice = nil then
+    begin
+      SharedControlVulkanDevice := TVulkanRHIDevice.CreateSharedWithWSI(
+        False, @CreateVulkanSurface);
+      OwnsSharedControlVulkanDevice := True;
+      CreatedSharedDevice := True;
+    end;
+
+    FVulkanSwapchainSurface := SharedControlVulkanDevice.CreateSwapchainSurface(
+      @CreateVulkanSurface,
+      Cardinal(Max(1, Width)),
+      Cardinal(Max(1, Height)),
+      CtrlDebugName);
+    if MultiSampling > 1 then
+      FVulkanSwapchainSurface.SampleCount := MultiSampling;
+
+    SetRHIDevice(SharedControlVulkanDevice);
+    FVulkanInitialized := True;
+    Inc(SharedControlVulkanOpenCount);
+
+    { In pure-Vulkan control mode (no OpenGL context initialized), ensure GLFeatures is nil
+      so TCastleScene, TCastleViewport, and TDrawableImage route exclusively through RHIDevice. }
+    if (TGLContext.InitializedContextsCount = 0) and (ControlsOpen = 0) then
+      FreeAndNil(GLFeatures);
+
+    Result := True;
+  except
+    on E: Exception do
+    begin
+      WritelnLog('Vulkan', 'TCastleControl Vulkan WSI initialization fell back cleanly to OpenGL: ' + E.Message);
+      if (SharedControlVulkanDevice <> nil) and (FVulkanSwapchainSurface <> nil) then
+        SharedControlVulkanDevice.DestroySwapchainSurface(FVulkanSwapchainSurface);
+      if CreatedSharedDevice and (SharedControlVulkanOpenCount = 0) then
+      begin
+        FreeAndNil(SharedControlVulkanDevice);
+        OwnsSharedControlVulkanDevice := False;
+      end;
+      FDisableVulkanForControl := True;
+      Result := False;
+    end;
+  end;
+end;
+
+function TCastleControl.BeginVulkanControlFrame: Boolean;
+var
+  Cmd: TRHICommandList;
+  ColorTex: TRHITexture;
+  ClearCol: TCastleColor;
+  TargetW, TargetH: Integer;
+  PassArea: TRectangle;
+  PassInfo: TRHIRenderingInfo;
+begin
+  Result := False;
+  if (not FVulkanInitialized) or (SharedControlVulkanDevice = nil) or
+     (FVulkanSwapchainSurface = nil) then
+    Exit;
+
+  if (MultiSampling > 1) and (FVulkanSwapchainSurface.SampleCount <> MultiSampling) then
+    FVulkanSwapchainSurface.SampleCount := MultiSampling;
+
+  Cmd := SharedControlVulkanDevice.BeginSurfaceFrame(FVulkanSwapchainSurface);
+  if Cmd = nil then
+    Exit;
+
+  Result := True;
+  ColorTex := FVulkanSwapchainSurface.GetCurrentColorTexture;
+  if (ColorTex <> nil) and (not Cmd.IsRendering) then
+  begin
+    if Width > 0 then
+      TargetW := Min(Integer(ColorTex.Desc.Width), Width)
+    else
+      TargetW := Max(1, Integer(ColorTex.Desc.Width));
+    if Height > 0 then
+      TargetH := Min(Integer(ColorTex.Desc.Height), Height)
+    else
+      TargetH := Max(1, Integer(ColorTex.Desc.Height));
+    PassArea := Rectangle(0, 0, Max(1, TargetW), Max(1, TargetH));
+    if (Container <> nil) and Container.BackgroundEnable then
+      ClearCol := Container.BackgroundColor
+    else
+      ClearCol := Vector4(0.0, 0.0, 0.0, 1.0);
+    PassInfo := FVulkanSwapchainSurface.BuildRenderingInfo(
+      PassArea, ClearCol, loClear, loClear, 1.0);
+    Cmd.BeginRendering(PassInfo);
+    Cmd.SetViewport(FloatRectangle(PassArea), 0.0, 1.0);
+    Cmd.SetScissor(PassArea);
+    if RenderContext <> nil then
+      RenderContext.Viewport := PassArea;
+  end;
+end;
+
+procedure TCastleControl.EndVulkanControlFrame;
+begin
+  if (not FVulkanInitialized) or (SharedControlVulkanDevice = nil) or
+     (FVulkanSwapchainSurface = nil) then
+    Exit;
+  TDrawableImage.BatchingFlush;
+  if (ActiveCommandList <> nil) and ActiveCommandList.IsRendering then
+    ActiveCommandList.EndRendering;
+  SharedControlVulkanDevice.EndSurfaceFrameAndPresent(FVulkanSwapchainSurface);
+  Inc(FVulkanFramesRenderedCount);
+end;
+
+procedure TCastleControl.FinalizeContextIfNeeded;
+begin
+  if GLInitialized then
+  begin
+    if FVulkanInitialized and (SharedControlVulkanDevice <> nil) then
+    begin
+      SharedControlVulkanDevice.WaitIdle;
+      SharedControlVulkanDevice.ActiveSwapchainSurface := FVulkanSwapchainSurface;
+    end;
+
+    if FContainer <> nil then
+      Container.EventClose(ControlsOpen);
+    if ControlsOpen > 0 then
+      Dec(ControlsOpen);
+    FGLInitialized := false;
+
+    if FVulkanInitialized then
+    begin
+      FVulkanInitialized := False;
+      if (SharedControlVulkanDevice <> nil) and (FVulkanSwapchainSurface <> nil) then
+        SharedControlVulkanDevice.DestroySwapchainSurface(FVulkanSwapchainSurface)
+      else
+        FreeAndNil(FVulkanSwapchainSurface);
+      if SharedControlVulkanOpenCount > 0 then
+        Dec(SharedControlVulkanOpenCount);
+      if SharedControlVulkanOpenCount = 0 then
+      begin
+        if RHIDevice = SharedControlVulkanDevice then
+          SetRHIDevice(nil);
+        if OwnsSharedControlVulkanDevice then
+        begin
+          FreeAndNil(SharedControlVulkanDevice);
+          OwnsSharedControlVulkanDevice := False;
+        end;
+      end;
+    end;
+
+    if UpdatingEnabled and (ControlsOpen = 0) then
+    begin
+      UpdatingEnabled := false;
+      UpdatingDisable;
+    end;
+  end;
+end;
+
 function TCastleControl.MakeCurrent(SaveOldToStack: boolean): boolean;
 begin
   { This call makes no sense when OpenGL context is no longer available,
@@ -839,6 +1214,34 @@ begin
     Better to just exit with false. }
   if Handle = 0 then
     Exit(false);
+
+  if IsVulkanBackendRequested and (FVulkanInitialized or InitializeVulkanControlIfNeeded) then
+  begin
+    if SharedControlVulkanDevice <> nil then
+      SharedControlVulkanDevice.ActiveSwapchainSurface := FVulkanSwapchainSurface;
+    RenderContext := Container.Context;
+    Result := True;
+
+    if not GLInitialized then
+    begin
+      FGLInitialized := true;
+      ApplicationProperties._GLContextEarlyOpen;
+      Inc(ControlsOpen);
+      Container.EventOpen(ControlsOpen);
+      Resize;
+      Invalidate;
+
+      if {$ifndef CASTLE_CONTROL_UPDATE_TIMER}
+         (not (csDesigning in ComponentState)) and
+         {$endif}
+         (not UpdatingEnabled) then
+      begin
+        UpdatingEnabled := true;
+        UpdatingEnable;
+      end;
+    end;
+    Exit;
+  end;
 
   Result := inherited MakeCurrent(SaveOldToStack);
 
@@ -895,18 +1298,7 @@ end;
 procedure TCastleControl.DestroyHandle;
 begin
   { React to context being destroyed. }
-  if GLInitialized then
-  begin
-    Container.EventClose(ControlsOpen);
-    Dec(ControlsOpen);
-    FGLInitialized := false;
-
-    if UpdatingEnabled and (ControlsOpen = 0) then
-    begin
-      UpdatingEnabled := false;
-      UpdatingDisable;
-    end;
-  end;
+  FinalizeContextIfNeeded;
 
   inherited DestroyHandle;
 end;
@@ -918,7 +1310,11 @@ begin
   { Call MakeCurrent here, to make sure CastleUIControls always get
     Resize with good GL context. }
   if GLInitialized and MakeCurrent then
+  begin
+    if FVulkanInitialized and (FVulkanSwapchainSurface <> nil) then
+      FVulkanSwapchainSurface.Resize(Cardinal(Max(0, Width)), Cardinal(Max(0, Height)));
     Container.EventResize;
+  end;
 end;
 
 procedure TCastleControl.Invalidate;
@@ -1212,11 +1608,25 @@ begin
     Container.EventBeforeRender;
     Container.Fps.InternalRenderBegin;
     try
-      Container.EventRender;
-      DoOnPaint; // call OnPaint, like it would be a top-most TCastleUserInterface
-      if GLVersion.BuggySwapNonStandardViewport then
-        RenderContext.Viewport := Rect;
-      SwapBuffers;
+      if FVulkanInitialized and (FVulkanSwapchainSurface <> nil) then
+      begin
+        if BeginVulkanControlFrame then
+        begin
+          try
+            Container.EventRender;
+            DoOnPaint;
+          finally
+            EndVulkanControlFrame;
+          end;
+        end;
+      end else
+      begin
+        Container.EventRender;
+        DoOnPaint; // call OnPaint, like it would be a top-most TCastleUserInterface
+        if (GLVersion <> nil) and GLVersion.BuggySwapNonStandardViewport then
+          RenderContext.Viewport := Rect;
+        SwapBuffers;
+      end;
       // it seems calling Invalidate from Paint doesn't work, so we'll
       // have to do it elsewhere
       // if AutoRedisplay then Invalidate;
@@ -1352,7 +1762,16 @@ initialization
   ControlsList := TComponentList.Create(false);
   InitializeClipboard;
   OnMainContainer := @TCastleControl(nil).GetMainContainer;
+  if ApplicationProperties <> nil then
+    ApplicationProperties.OnRenderBackendChange.Add(@TCastleControl(nil).HandleRenderBackendChange);
 finalization
+  if ApplicationProperties(false) <> nil then
+    ApplicationProperties(false).OnRenderBackendChange.Remove(@TCastleControl(nil).HandleRenderBackendChange);
   OnMainContainer := nil;
+  if OwnsSharedControlVulkanDevice then
+  begin
+    FreeAndNil(SharedControlVulkanDevice);
+    OwnsSharedControlVulkanDevice := False;
+  end;
   FreeAndNil(ControlsList);
 end.

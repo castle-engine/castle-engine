@@ -31,6 +31,11 @@ procedure TFmxOpenGLUtility.ContextAdjustEarly(const PlatformContext: TGLContext
 begin
 end;
 
+function TFmxOpenGLUtility.BuildVulkanNativeSurfaceDesc: TVulkanNativeSurfaceDesc;
+begin
+  FillChar(Result, SizeOf(Result), 0);
+end;
+
 procedure TFmxOpenGLUtility.HandleNeeded;
 begin
   { We track HandleInitialized merely to call OnHandleAfterCreateEvent.

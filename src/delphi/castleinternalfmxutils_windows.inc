@@ -42,6 +42,16 @@ begin
   WinContext.h_Dc := GetWindowDC(WinContext.WndPtr);
 end;
 
+function TFmxOpenGLUtility.BuildVulkanNativeSurfaceDesc: TVulkanNativeSurfaceDesc;
+begin
+  FillChar(Result, SizeOf(Result), 0);
+  if (Control <> nil) and (Control.Presentation is TWinPresentation) and
+     (TWinPresentation(Control.Presentation).Handle <> 0) then
+    Result := TVulkanNativeSurfaceDesc.CreateWin32(
+      VkWin32HINSTANCE(System.HInstance),
+      VkWin32HWND(TWinPresentation(Control.Presentation).Handle));
+end;
+
 procedure TFmxOpenGLUtility.HandleNeeded;
 var
   H: HWND;

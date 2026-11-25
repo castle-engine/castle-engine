@@ -665,7 +665,10 @@ end;
 procedure TCastleWindow.OpenBackend;
 begin
   SetFocused(true);
-  ContextCreate(NativeWindow);
+  { Per VUID-VkAndroidSurfaceCreateInfoKHR-window-01248, ANativeWindow must NOT
+    have an active EGL window surface attached when vkCreateAndroidSurfaceKHR runs. }
+  if not IsVulkanBackendRequested then
+    ContextCreate(NativeWindow);
   Application.OpenWindowsAdd(Self);
 end;
 
@@ -837,7 +840,12 @@ begin
       Otherwise the window with ResizeAllowed = raOnlyAtOpen would behave
       like it never received previous DoResize.
     }
-    MainWindow.QuerySize(NewWidth, NewHeight);
+    if (MainWindow.Context = nil) and (MainWindow.NativeWindow <> nil) then
+    begin
+      NewWidth := ANativeWindow_getWidth(MainWindow.NativeWindow);
+      NewHeight := ANativeWindow_getHeight(MainWindow.NativeWindow);
+    end else
+      MainWindow.QuerySize(NewWidth, NewHeight);
     if (NewWidth <> MainWindow.FRealWidth) or
        (NewHeight <> MainWindow.FRealHeight) then
       Resize(NewWidth, NewHeight);

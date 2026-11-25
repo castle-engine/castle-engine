@@ -683,6 +683,16 @@ var
 begin
   inherited viewDidMoveToWindow;
 
+  if (windowRef <> nil) and windowRef.IsVulkanBackendRequested then
+  begin
+    if window <> nil then
+    begin
+      EnsureDarwinNSViewMetalLayer(Pointer(self), TCocoaWindow(window).ScaleFactor);
+      reshape(bounds.size);
+    end;
+    Exit;
+  end;
+
   if openGLContext = nil then
   begin
     openGLContext := NSOpenGLContext.alloc.initWithFormat_shareContext(defaultPixelFormat, nil);
@@ -698,14 +708,17 @@ begin
   end;
 
   if window = nil then
-    openGLContext.clearDrawable
-  else
+  begin
+    if openGLContext <> nil then
+      openGLContext.clearDrawable;
+  end else
     reshape(bounds.size);
 end;
 
 procedure TOpenGLView.frameChanged (sender: NSNotification);
 begin
-  if (openGLContext <> nil) and (window <> nil) and (windowRef <> nil) then
+  if (window <> nil) and (windowRef <> nil) and
+     ((openGLContext <> nil) or windowRef.IsVulkanBackendRequested) then
     reshape(bounds.size);
 end;
 
@@ -720,7 +733,8 @@ var
   ScaleFactor: Single;
   BackingSize: NSSize;
 begin
-  openGLContext.update;
+  if openGLContext <> nil then
+    openGLContext.update;
 
   { To be secure, check both window and windowRef.
     When window=nil, accessing windowRef would be an error. }
@@ -762,6 +776,9 @@ begin
       else
         windowRef.Container.Dpi := ScaleFactor * DefaultDpi
     end;
+
+    if windowRef.IsVulkanBackendRequested then
+      EnsureDarwinNSViewMetalLayer(Pointer(self), ScaleFactor);
 
     windowRef.DoResize(trunc(BackingSize.width), trunc(BackingSize.height), false);
   end;
@@ -912,8 +929,11 @@ end;
 
 procedure TCastleWindow.SwapBuffers;
 begin
-  ref.contentView.display;
-  glcontext.flushBuffer;
+  if glcontext <> nil then
+  begin
+    ref.contentView.display;
+    glcontext.flushBuffer;
+  end;
 
   { Without this workaround:
 
@@ -1032,7 +1052,10 @@ begin
     the docs are wrong.
     LCL Cocoa TOpenGLControl also does this, see
     https://gitlab.com/freepascal.org/lazarus/lazarus/-/blob/main/components/opengl/glcocoanscontext.pas?ref_type=heads . }
-  openGLView.setWantsBestResolutionOpenGLSurface(true);
+  if IsVulkanBackendRequested then
+    EnsureDarwinNSViewMetalLayer(Pointer(openGLView), window.ScaleFactor)
+  else
+    openGLView.setWantsBestResolutionOpenGLSurface(true);
   window.setContentView(openGLView);
   openGLView.release;
 
@@ -1050,7 +1073,10 @@ begin
 
   openGLView.reshape(openGLView.bounds.size);
 
-  glcontext := openGLView.openGLContext;
+  if IsVulkanBackendRequested then
+    glcontext := nil
+  else
+    glcontext := openGLView.openGLContext;
   ref := window;
 
   Application.OpenWindowsAdd(Self);
@@ -1088,7 +1114,8 @@ end;
 
 procedure TCastleWindow.BackendMakeCurrent;
 begin
-  glcontext.makeCurrentContext;
+  if glcontext <> nil then
+    glcontext.makeCurrentContext;
 end;
 
 procedure TCastleWindow.UpdateCursor;

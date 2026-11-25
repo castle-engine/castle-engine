@@ -188,15 +188,20 @@ begin
   parentwinXID := XRootWindow(Application.XDisplay, Application.XScreen);
 
   {$ifndef USE_EGL}
-  { Creates XVisual }
-  ContextCreateEarly;
+  XVisual := nil;
+  Colormap := None;
+  if not IsVulkanBackendRequested then
+  begin
+    { Creates XVisual }
+    ContextCreateEarly;
 
-  Colormap := XCreateColormap(Application.XDisplay, ParentWinXID,
-    XVisual^.Visual, AllocNone);
-  Attr.Colormap := Colormap;
-  AttrValueMask := AttrValueMask or CWColormap;
+    Colormap := XCreateColormap(Application.XDisplay, ParentWinXID,
+      XVisual^.Visual, AllocNone);
+    Attr.Colormap := Colormap;
+    AttrValueMask := AttrValueMask or CWColormap;
 
-  ContextCreate;
+    ContextCreate;
+  end;
   {$endif}
 
   if FullScreen then
@@ -248,12 +253,18 @@ begin
     CorrectHeight := Height;
   end;
 
-  windowXID := XCreateWindow(Application.XDisplay, parentwinXID,
-    CorrectLeft, CorrectTop, CorrectWidth, CorrectHeight, 0,
-    {$ifndef USE_EGL} XVisual^.depth {$else} CopyFromParent {$endif},
-    InputOutput,
-    {$ifndef USE_EGL} XVisual^.visual {$else} PVisual(CopyFromParent) {$endif},
-    AttrValueMask, @Attr);
+  {$ifndef USE_EGL}
+  if XVisual <> nil then
+    windowXID := XCreateWindow(Application.XDisplay, parentwinXID,
+      CorrectLeft, CorrectTop, CorrectWidth, CorrectHeight, 0,
+      XVisual^.depth, InputOutput, XVisual^.visual,
+      AttrValueMask, @Attr)
+  else
+  {$endif}
+    windowXID := XCreateWindow(Application.XDisplay, parentwinXID,
+      CorrectLeft, CorrectTop, CorrectWidth, CorrectHeight, 0,
+      CopyFromParent, InputOutput, PVisual(CopyFromParent),
+      AttrValueMask, @Attr);
 
   if FullScreen and (not NetWmFullScreen) and Visible then
   begin
@@ -364,7 +375,8 @@ begin
 
   {$ifdef USE_EGL}
   { In case of EGL we need WindowXID. }
-  ContextCreate(windowXID);
+  if not IsVulkanBackendRequested then
+    ContextCreate(windowXID);
   {$endif}
 
   { applying FullScreen changes to the Left / Top / Width / Height.

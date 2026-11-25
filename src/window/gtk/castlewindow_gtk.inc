@@ -1038,6 +1038,10 @@ begin
   gtk_container_set_border_width(GTK_CONTAINER(WindowGtk), BorderWidth);
 
   {$ifndef USE_EGL}
+  XVisual := nil;
+  GdkVisual := nil;
+  if not IsVulkanBackendRequested then
+  begin
     { Create XVisual }
     ContextCreateEarly;
 
@@ -1047,6 +1051,7 @@ begin
     GdkColormap := gdk_colormap_new(GdkVisual, gfalse);
     gtk_widget_push_colormap(GdkColormap);
     {$endif}
+  end;
   {$endif}
 
   { Create now GLAreaGtk (for GTK 2: it will use pushed GdkColormap) }
@@ -1060,6 +1065,8 @@ begin
   gtk_widget_set_double_buffered(GLAreaGtk, gfalse);
 
   {$ifndef USE_EGL}
+  if not IsVulkanBackendRequested then
+  begin
     {$ifdef CASTLE_WINDOW_GTK_2}
     // Cleanup after gtk_widget_push_colormap called above
     gtk_widget_pop_colormap();
@@ -1068,20 +1075,19 @@ begin
     // This follows https://docs.gtk.org/gtk3/migrating-2to3.html .
     gtk_widget_set_visual(GTK_WIDGET(WindowGtk), GdkVisual);
     {$endif}
-  {$endif}
 
-  {$ifndef USE_EGL}
-  { Note that we don't have, and also don't need, RenderingAreaXID now.
+    { Note that we don't have, and also don't need, RenderingAreaXID now.
 
-    That's because widget is not realized, and calling RenderingAreaXID
-    would just cause warning
-    "... Gdk-WARNING **: ....: /build/gtk+2.0-ABXlu1/gtk+2.0-2.24.32/gdk/x11/gdkdrawable-x11.c:952 drawable is not a pixmap or window"
+      That's because widget is not realized, and calling RenderingAreaXID
+      would just cause warning
+      "... Gdk-WARNING **: ....: /build/gtk+2.0-ABXlu1/gtk+2.0-2.24.32/gdk/x11/gdkdrawable-x11.c:952 drawable is not a pixmap or window"
 
-    Luckily, TGLContextGlx doesn't require RenderingAreaXID.
-    And not defined USE_EGL -> implies we use TGLContextGlx now,
-    as GTK backend supports only glX or EGL.
-  }
-  ContextCreate;
+      Luckily, TGLContextGlx doesn't require RenderingAreaXID.
+      And not defined USE_EGL -> implies we use TGLContextGlx now,
+      as GTK backend supports only glX or EGL.
+    }
+    ContextCreate;
+  end;
   {$endif}
 
   gtk_widget_show(GTK_WIDGET(GLAreaGtk));
@@ -1304,6 +1310,8 @@ begin
     raise EInternalError.Create('CastleWindow.OpenBackend: GLAreaGtk is not realized yet (GdkWindow of it not created, X11 resources of it not initialized)');
 
   {$ifdef USE_EGL}
+  if not IsVulkanBackendRequested then
+  begin
     {$if defined(CASTLE_WINDOW_GTK_WITH_XLIB)}
       { In case of EGL + X we need RenderingAreaXID.
         So we cannot use previous workaround, instead we wait for a good time
@@ -1339,6 +1347,7 @@ begin
       {$message fatal 'Cannot create OpenGL(ES) context, USE_EGL is defined but this only works with X (CASTLE_WINDOW_GTK_WITH_XLIB) or Wayland (CASTLE_WINDOW_GTK_WAYLAND), none of which is defined.'}
 
     {$endif}
+  end;
   {$endif}
 
   GetInitialCursorPos;

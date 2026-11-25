@@ -58,14 +58,16 @@ end;
 procedure TCastleWindow.BackendMakeCurrent;
 begin
   Assert(not Closed);
-  Assert(Context <> nil);
+  if Context = nil then
+    Exit;
   Context.MakeCurrent;
 end;
 
 procedure TCastleWindow.SwapBuffers;
 begin
   Assert(not Closed);
-  Assert(Context <> nil);
+  if Context = nil then
+    Exit;
   {$ifdef CASTLE_WINDOW_GTK_WAYLAND}
   { On Niri + Wayland, doing eglSwapBuffers before the surface is configured
     results in an error. Niri disconnects us, GTK stops process with error

@@ -23,6 +23,7 @@ interface
 uses SysUtils, Classes, Vcl.Controls, Vcl.ExtCtrls, Types,  WinApi.Messages,
   CastleGLVersion, CastleGLUtils,
   CastleInternalContextBase, CastleInternalContextWgl, CastleControlContainer,
+  CastleInternalVulkanWSI,
   CastleVectors, CastleKeysMouse;
 
 type
@@ -41,6 +42,7 @@ type
       protected
         procedure SystemSetMousePosition(const Value: TVector2); override;
         procedure AdjustContext(const PlatformContext: TGLContext); override;
+        function BuildVulkanNativeSurfaceDesc: TVulkanNativeSurfaceDesc; override;
         class procedure UpdatingEnable; override;
         class procedure UpdatingDisable; override;
       public
@@ -145,6 +147,18 @@ begin
 {$else}
 begin
 {$endif}
+end;
+
+function TCastleControl.TContainer.BuildVulkanNativeSurfaceDesc: TVulkanNativeSurfaceDesc;
+begin
+  Result := inherited;
+  if ValidateVulkanNativeSurfaceDesc(Result) then
+    Exit;
+  {$ifdef MSWINDOWS}
+  if (Parent <> nil) and Parent.HandleAllocated then
+    Result := TVulkanNativeSurfaceDesc.CreateWin32(
+      VkWin32HINSTANCE(System.HInstance), VkWin32HWND(Parent.Handle));
+  {$endif}
 end;
 
 class procedure TCastleControl.TContainer.UpdatingEnable;
@@ -355,6 +369,7 @@ begin
   if Container.GLInitialized then
   begin
     Container.MakeContextCurrent;
+    Container.ResizeVulkanSwapchainIfNeeded;
     Container.EventResize;
   end;
 end;
