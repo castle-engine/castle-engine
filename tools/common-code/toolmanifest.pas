@@ -23,7 +23,7 @@ interface
 
 uses DOM, Classes, Generics.Collections,
   CastleStringUtils, CastleImages, CastleUtils, CastleFindFiles, CastleColors,
-  CastleInternalTools, CastleUnicode,
+  CastleInternalTools, CastleUnicode, CastleApplicationProperties,
   ToolServices, ToolAssocDocTypes;
 
 type
@@ -151,6 +151,8 @@ type
       FProjectDependencies: TProjectDependencies;
       FWebCanvasWidth, FWebCanvasHeight: Integer;
       FWebHtmlContents: String;
+      FRenderBackend: TRenderBackend;
+      FBundleVulkanCaches: Boolean;
 
     function DefaultQualifiedName(const AName: String): String;
     procedure CheckMatches(const Name, Value: String; const AllowedChars: TSetOfChars);
@@ -206,6 +208,14 @@ type
     property EditorUnits: String read FEditorUnits;
     property QualifiedName: String read FQualifiedName;
     property ProposedUnitPrefix: String read FProposedUnitPrefix;
+    property RenderBackend: TRenderBackend read FRenderBackend;
+    property BundleVulkanCaches: Boolean read FBundleVulkanCaches;
+    { Returns True when the build tool should pre-warm and package SPIR-V shader caches
+      (i.e. when RenderBackend is backendAuto or backendVulkan). }
+    function ShouldPrewarmVulkanShaders: Boolean;
+    { Returns True when castle-engine package should bundle pre-warmed SPIR-V (.spv)
+      and optional Vulkan pipeline cache seed files into the packaged data/ directory. }
+    function ShouldBundleVulkanCaches: Boolean;
     { Dependencies of this project.
       Read-only from the outside, do not call any methods that modify
       the contents of it. }
@@ -364,6 +374,9 @@ function StringToCompiler(const S: String): TCompiler;
 function ScreenOrientationToString(const O: TScreenOrientation): String;
 function StringToScreenOrientation(const S: String): TScreenOrientation;
 
+function RenderBackendToString(const B: TRenderBackend): String;
+function StringToRenderBackend(const S: String): TRenderBackend;
+
 const
   DefaultCompiler = coAutodetect;
 
@@ -488,6 +501,8 @@ begin
   FMacAppBundle := DefaultMacAppBundle;
   FWebCanvasWidth := DefaultWebCanvasWidth;
   FWebCanvasHeight := DefaultWebCanvasHeight;
+  FRenderBackend := backendAuto;
+  FBundleVulkanCaches := True;
 
   FPath := InclPathDelim(APath);
   FPathUrl := FilenameToUriSafe(FPath);
@@ -605,6 +620,9 @@ begin
     FBuildUsingLazbuild := Doc.DocumentElement.AttributeBooleanDef('build_using_lazbuild', false);
     FMacAppBundle := Doc.DocumentElement.AttributeBooleanDef('mac_app_bundle',
       DefaultMacAppBundle);
+    FRenderBackend := StringToRenderBackend(
+      Doc.DocumentElement.AttributeStringDef('render_backend', 'auto'));
+    FBundleVulkanCaches := Doc.DocumentElement.AttributeBooleanDef('bundle_vulkan_caches', True);
 
     FVersion := ReadVersion(Doc.DocumentElement.ChildElement('version', false));
     // create default FVersion value, if necessary
@@ -1077,6 +1095,16 @@ begin
   CheckManifestCorrect; // must be at end, to validate all
 end;
 
+function TCastleManifest.ShouldPrewarmVulkanShaders: Boolean;
+begin
+  Result := FRenderBackend in [backendAuto, backendVulkan];
+end;
+
+function TCastleManifest.ShouldBundleVulkanCaches: Boolean;
+begin
+  Result := FBundleVulkanCaches and ShouldPrewarmVulkanShaders;
+end;
+
 function TCastleManifest.Dependencies: TDependencies;
 begin
   Result := FProjectDependencies.Dependencies;
@@ -1232,6 +1260,27 @@ begin
     if AnsiSameText(ScreenOrientationNames[Result], S) then
       Exit;
   raise Exception.CreateFmt('Invalid orientation name "%s"', [S]);
+end;
+
+const
+  RenderBackendNames: array [TRenderBackend] of String = (
+    'auto',
+    'opengl',
+    'opengles',
+    'vulkan'
+  );
+
+function RenderBackendToString(const B: TRenderBackend): String;
+begin
+  Result := RenderBackendNames[B];
+end;
+
+function StringToRenderBackend(const S: String): TRenderBackend;
+begin
+  for Result in TRenderBackend do
+    if AnsiSameText(RenderBackendNames[Result], S) then
+      Exit;
+  raise Exception.CreateFmt('Invalid render backend name "%s"', [S]);
 end;
 
 end.

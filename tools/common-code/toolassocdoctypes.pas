@@ -47,6 +47,13 @@ implementation
 uses XMLRead, XMLWrite,
   CastleXmlUtils, CastleUriUtils, CastleFilesUtils;
 
+function PListEscapeXml(const S: String): String;
+begin
+  Result := SReplacePatterns(S,
+    ['&', '<', '>', '"', ''''],
+    ['&amp;', '&lt;', '&gt;', '&quot;', '&apos;'], false);
+end;
+
 { TAssocDocType ------------------------------------------------------ }
 
 constructor TAssocDocType.Create;
@@ -122,10 +129,10 @@ begin
     #9#9'<dict>' + NL +
     #9#9#9'<key>CFBundleTypeIconFiles</key>' + NL +
     #9#9#9'<array>' + NL +
-    #9#9#9#9'<string>' + FinalIcon + '</string>' + NL +
+    #9#9#9#9'<string>' + PListEscapeXml(FinalIcon) + '</string>' + NL +
     #9#9#9'</array>' + NL +
     #9#9#9'<key>CFBundleTypeName</key>' + NL +
-    #9#9#9'<string>' + FCaption + '</string>' + NL +
+    #9#9#9'<string>' + PListEscapeXml(FCaption) + '</string>' + NL +
     #9#9#9'<key>CFBundleTypeRole</key>' + NL +
     #9#9#9'<string>Viewer</string>' + NL +
     #9#9#9'<key>LSHandlerRank</key>' + NL +
@@ -148,7 +155,7 @@ begin
     #9#9#9#9'<string>public.data</string>' + NL +
     #9#9#9'</array>' + NL +
     #9#9#9'<key>UTTypeDescription</key>' + NL +
-    #9#9#9'<string>' + FCaption + '</string>' + NL +
+    #9#9#9'<string>' + PListEscapeXml(FCaption) + '</string>' + NL +
     #9#9#9'<key>UTTypeIdentifier</key>' + NL +
     #9#9#9'<string>' + ProjectQualifiedName + '.' + FName + '</string>' + NL +
     #9#9#9'<key>UTTypeTagSpecification</key>' + NL +
@@ -225,7 +232,7 @@ begin
     #9'<array>' + NL +
     #9#9'<dict>' + NL +
     #9#9#9'<key>CFBundleTypeName</key>' + NL +
-    #9#9#9'<string>' + ProjectCaption + '</string>' + NL +
+    #9#9#9'<string>' + PListEscapeXml(ProjectCaption) + '</string>' + NL +
     #9#9#9'<key>CFBundleTypeRole</key>' + NL +
     #9#9#9'<string>Viewer</string>' + NL +
 

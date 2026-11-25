@@ -32,7 +32,7 @@ uses
   AnchorDocking, XMLPropStorage, ImgList,
   ProjectUtils, Types, Contnrs, CastleControl, CastleUIControls,
   CastlePropEdits, CastleDialogs, X3DNodes, CastleFindFiles,
-  DataModuleIcons, CastleClassUtils,
+  DataModuleIcons, CastleClassUtils, CastleApplicationProperties,
   EditorUtils, FrameDesign, FrameViewFile, FormNewUnit, ToolManifest,
   ToolPackageFormat, ToolEditorUtils;
 
@@ -553,6 +553,19 @@ type
       DesignFilesForm: TForm;
       DesignOutputForm: TForm;
       DesignWarningsForm: TForm;
+      MenuItemViewportRenderBackend: TMenuItem;
+      MenuItemViewportBackendOpenGL: TMenuItem;
+      MenuItemViewportBackendVulkan: TMenuItem;
+      MenuItemRunParamBackendDefault: TMenuItem;
+      MenuItemRunParamBackendOpenGL: TMenuItem;
+      MenuItemRunParamBackendVulkan: TMenuItem;
+      FRunParamRenderBackend: TRenderBackend;
+    procedure BuildRenderBackendMenus;
+    procedure UpdateViewportRenderBackendMenuState(Sender: TObject);
+    procedure MenuItemViewportBackendOpenGLClick(Sender: TObject);
+    procedure MenuItemViewportBackendVulkanClick(Sender: TObject);
+    procedure MenuItemViewportBackendToggleClick(Sender: TObject);
+    procedure MenuItemRunParamRenderBackendClick(Sender: TObject);
     procedure BuildToolCall(const Commands: array of String;
       const RestartOnSuccess: Boolean = false);
     procedure BuildToolCallFinished(Sender: TObject);
@@ -645,12 +658,13 @@ uses TypInfo, LCLType, RegExpr, StrUtils, LCLVersion,
   CastleXmlUtils, CastleLCLUtils, CastleOpenDocument, CastleUriUtils,
   CastleFilesUtils, CastleUtils, CastleVectors, CastleColors, CastleConfig,
   CastleScene, CastleViewport, CastleCameras,
-  CastleTransform, CastleControls, CastleDownload, CastleApplicationProperties,
+  CastleTransform, CastleControls, CastleDownload,
   CastleLog, CastleComponentSerialize, CastleSceneCore, CastleStringUtils,
   CastleFonts, X3DLoad, CastleFileFilters, CastleImages, CastleSoundEngine,
   CastleLclEditHack, CastleRenderOptions, CastleTimeUtils,
   CastleInternalFileMonitor, CastleInternalProjectLocalSettings,
   CastleInternalArchitectures, CastleInternalProcess,
+  CastleInternalRHI, {$ifndef WASI}CastleInternalShaderCompiler,{$endif}
   FormAbout, FormChooseProject, FormPreferences, FormSpriteSheetEditor,
   FormSystemInformation, FormRestartCustomEditor, FormImportSketchfab,
   ToolCompilerInfo, ToolCommonUtils, ToolProcess, ToolFpcVersion, ToolProcessRun;
@@ -985,6 +999,150 @@ procedure TProjectForm.ActionViewportRenderWireframeOnlyExecute(Sender: TObject)
 begin
   InternalForceWireframe := weWireframeOnly;
   ActionViewportRenderWireframeOnly.Checked := true;
+end;
+
+procedure TProjectForm.BuildRenderBackendMenus;
+var
+  ViewportParentMenu, MiSep, MiToggle: TMenuItem;
+begin
+  FRunParamRenderBackend := backendAuto;
+
+  { 1. Viewport -> Render Backend (live TCastleControl OpenGL <-> Vulkan toggle) }
+  if (MenuItemWireframe <> nil) and (MenuItemWireframe.Parent <> nil) then
+  begin
+    ViewportParentMenu := MenuItemWireframe.Parent;
+    MenuItemViewportRenderBackend := TMenuItem.Create(Self);
+    MenuItemViewportRenderBackend.Caption := 'Render Backend';
+    MenuItemViewportRenderBackend.Enabled := Design <> nil;
+
+    MenuItemViewportBackendOpenGL := TMenuItem.Create(MenuItemViewportRenderBackend);
+    MenuItemViewportBackendOpenGL.Caption := 'OpenGL';
+    MenuItemViewportBackendOpenGL.GroupIndex := 230;
+    MenuItemViewportBackendOpenGL.RadioItem := True;
+    MenuItemViewportBackendOpenGL.ShowAlwaysCheckable := True;
+    MenuItemViewportBackendOpenGL.OnClick := @MenuItemViewportBackendOpenGLClick;
+    MenuItemViewportRenderBackend.Add(MenuItemViewportBackendOpenGL);
+
+    MenuItemViewportBackendVulkan := TMenuItem.Create(MenuItemViewportRenderBackend);
+    MenuItemViewportBackendVulkan.Caption := 'Vulkan 1.3+';
+    MenuItemViewportBackendVulkan.GroupIndex := 230;
+    MenuItemViewportBackendVulkan.RadioItem := True;
+    MenuItemViewportBackendVulkan.ShowAlwaysCheckable := True;
+    MenuItemViewportBackendVulkan.OnClick := @MenuItemViewportBackendVulkanClick;
+    MenuItemViewportRenderBackend.Add(MenuItemViewportBackendVulkan);
+
+    MiSep := TMenuItem.Create(MenuItemViewportRenderBackend);
+    MiSep.Caption := '-';
+    MenuItemViewportRenderBackend.Add(MiSep);
+
+    MiToggle := TMenuItem.Create(MenuItemViewportRenderBackend);
+    MiToggle.Caption := 'Toggle OpenGL <-> Vulkan';
+    MiToggle.OnClick := @MenuItemViewportBackendToggleClick;
+    MenuItemViewportRenderBackend.Add(MiToggle);
+
+    ViewportParentMenu.Insert(MenuItemWireframe.MenuIndex + 1, MenuItemViewportRenderBackend);
+    UpdateViewportRenderBackendMenuState(nil);
+  end;
+
+  { 2. Run -> Run Parameters -> Render Backend (--render-backend=opengl|vulkan) }
+  if MenuItemRunParameters <> nil then
+  begin
+    MiSep := TMenuItem.Create(MenuItemRunParameters);
+    MiSep.Caption := '-';
+    MenuItemRunParameters.Add(MiSep);
+
+    MenuItemRunParamBackendDefault := TMenuItem.Create(MenuItemRunParameters);
+    MenuItemRunParamBackendDefault.Caption := 'Render Backend: Project Default';
+    MenuItemRunParamBackendDefault.Tag := Ord(backendAuto);
+    MenuItemRunParamBackendDefault.GroupIndex := 231;
+    MenuItemRunParamBackendDefault.RadioItem := True;
+    MenuItemRunParamBackendDefault.ShowAlwaysCheckable := True;
+    MenuItemRunParamBackendDefault.Checked := True;
+    MenuItemRunParamBackendDefault.OnClick := @MenuItemRunParamRenderBackendClick;
+    MenuItemRunParameters.Add(MenuItemRunParamBackendDefault);
+
+    MenuItemRunParamBackendOpenGL := TMenuItem.Create(MenuItemRunParameters);
+    MenuItemRunParamBackendOpenGL.Caption := 'Render Backend: Force OpenGL';
+    MenuItemRunParamBackendOpenGL.Tag := Ord(backendOpenGL);
+    MenuItemRunParamBackendOpenGL.GroupIndex := 231;
+    MenuItemRunParamBackendOpenGL.RadioItem := True;
+    MenuItemRunParamBackendOpenGL.ShowAlwaysCheckable := True;
+    MenuItemRunParamBackendOpenGL.OnClick := @MenuItemRunParamRenderBackendClick;
+    MenuItemRunParameters.Add(MenuItemRunParamBackendOpenGL);
+
+    MenuItemRunParamBackendVulkan := TMenuItem.Create(MenuItemRunParameters);
+    MenuItemRunParamBackendVulkan.Caption := 'Render Backend: Force Vulkan 1.3+';
+    MenuItemRunParamBackendVulkan.Tag := Ord(backendVulkan);
+    MenuItemRunParamBackendVulkan.GroupIndex := 231;
+    MenuItemRunParamBackendVulkan.RadioItem := True;
+    MenuItemRunParamBackendVulkan.ShowAlwaysCheckable := True;
+    MenuItemRunParamBackendVulkan.OnClick := @MenuItemRunParamRenderBackendClick;
+    MenuItemRunParameters.Add(MenuItemRunParamBackendVulkan);
+  end;
+end;
+
+procedure TProjectForm.UpdateViewportRenderBackendMenuState(Sender: TObject);
+var
+  IsVulkanActive: Boolean;
+begin
+  IsVulkanActive := ApplicationProperties.RenderBackend = backendVulkan;
+  if MenuItemViewportBackendVulkan <> nil then
+    MenuItemViewportBackendVulkan.Checked := IsVulkanActive;
+  if MenuItemViewportBackendOpenGL <> nil then
+    MenuItemViewportBackendOpenGL.Checked := not IsVulkanActive;
+  if MenuItemViewportRenderBackend <> nil then
+  begin
+    if IsVulkanActive then
+      MenuItemViewportRenderBackend.Caption := 'Render Backend (Vulkan)'
+    else
+      MenuItemViewportRenderBackend.Caption := 'Render Backend (OpenGL)';
+  end;
+end;
+
+procedure TProjectForm.MenuItemViewportBackendOpenGLClick(Sender: TObject);
+begin
+  ApplicationProperties.RenderBackend := backendOpenGL;
+  UpdateViewportRenderBackendMenuState(nil);
+  if Design <> nil then
+    Design.Invalidate;
+  if OutputList <> nil then
+    OutputList.AddLine('Switched editor design viewport render backend to OpenGL.', okInfo);
+end;
+
+procedure TProjectForm.MenuItemViewportBackendVulkanClick(Sender: TObject);
+var
+  CompilerDesc: String;
+begin
+  ApplicationProperties.RenderBackend := backendVulkan;
+  UpdateViewportRenderBackendMenuState(nil);
+  if Design <> nil then
+    Design.Invalidate;
+  CompilerDesc := '';
+  {$ifndef WASI}
+  CompilerDesc := ' (SPIR-V compiler: ' + TCastleShaderCompiler.Instance.ActiveCompilerBackendName + ')';
+  {$endif}
+  if OutputList <> nil then
+    OutputList.AddLine('Switched editor design viewport render backend to Vulkan 1.3+' + CompilerDesc + '.', okInfo);
+end;
+
+procedure TProjectForm.MenuItemViewportBackendToggleClick(Sender: TObject);
+begin
+  if ApplicationProperties.RenderBackend = backendVulkan then
+    MenuItemViewportBackendOpenGLClick(Sender)
+  else
+    MenuItemViewportBackendVulkanClick(Sender);
+end;
+
+procedure TProjectForm.MenuItemRunParamRenderBackendClick(Sender: TObject);
+var
+  Mi: TMenuItem;
+begin
+  if Sender is TMenuItem then
+  begin
+    Mi := TMenuItem(Sender);
+    FRunParamRenderBackend := TRenderBackend(Mi.Tag);
+    Mi.Checked := True;
+  end;
 end;
 
 procedure TProjectForm.ActionViewportAlignCameraToViewExecute(Sender: TObject);
@@ -1960,7 +2118,9 @@ begin
   CreateShellViews;
   BuildPlatformsMenu;
   BuildPackageFormatsMenu;
+  BuildRenderBackendMenus;
   ApplicationProperties.OnWarning.Add(@WarningNotification);
+  ApplicationProperties.OnRenderBackendChange.Add(@UpdateViewportRenderBackendMenuState);
   ProjectViews := TProjectViewList.Create;
   if Docking then
   begin
@@ -2038,6 +2198,7 @@ procedure TProjectForm.FormDestroy(Sender: TObject);
 begin
   UserConfig.SetValue('ProjectForm_Docking', WantedDocking);
   FormHide(Self); //to save config properly
+  ApplicationProperties.OnRenderBackendChange.Remove(@UpdateViewportRenderBackendMenuState);
   ApplicationProperties.OnWarning.Remove(@WarningNotification);
   FreeProcess;
   FreeAndNil(OutputList);
@@ -2587,6 +2748,9 @@ begin
   ActionViewportRenderSolidWireframe.Enabled := Design <> nil;
   ActionViewportRenderNext.Enabled := Design <> nil;
   MenuItemWireframe.Enabled := Design <> nil;
+  if MenuItemViewportRenderBackend <> nil then
+    MenuItemViewportRenderBackend.Enabled := Design <> nil;
+  UpdateViewportRenderBackendMenuState(nil);
 
   UpdateUndo(nil);
   UpdateRenameItem(nil);
@@ -3452,6 +3616,11 @@ procedure TProjectForm.BuildToolCall(const Commands: array of String;
       Params.Add('--capabilities=force-fixed-function');
     if ActionRunParameterCapabilitiesForceModern.Checked then
       Params.Add('--capabilities=force-modern');
+    case FRunParamRenderBackend of
+      backendOpenGL: Params.Add('--render-backend=opengl');
+      backendVulkan: Params.Add('--render-backend=vulkan');
+      else ;
+    end;
   end;
 
 var

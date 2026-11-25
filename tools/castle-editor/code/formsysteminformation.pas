@@ -62,7 +62,8 @@ implementation
 {$R *.lfm}
 
 uses CastleGLUtils, CastleSoundEngine, CastleUtils, CastleFilesUtils,
-  CastleUriUtils,
+  CastleUriUtils, CastleApplicationProperties,
+  CastleInternalRHI, {$ifndef WASI}CastleInternalShaderCompiler,{$endif}
   ProjectUtils;
 
 procedure TSystemInformationForm.TContextNotification.GLContextOpen;
@@ -129,7 +130,11 @@ begin
     'Castle Game Engine version: ' + CastleEngineVersion + '.' + NL +
     'Editor compiled with ' + SCompilerDescription + '.' + NL +
     'Editor platform: ' + SPlatformDescription + '.' + NL +
-    'Editor widgetset: ' + SCurrentWidgetset + '.' + NL;
+    'Editor widgetset: ' + SCurrentWidgetset + '.' + NL +
+    'Configured render backend: ' + RenderBackendToName(ApplicationProperties.RenderBackend) + '.' + NL
+    {$ifndef WASI}
+    + 'Vulkan SPIR-V shader compiler: ' + TCastleShaderCompiler.Instance.ActiveCompilerBackendName + '.' + NL
+    {$endif};
 
   SoundEngine.OnOpenClose.Add(@SoundEngineOpenClose);
 
@@ -138,9 +143,16 @@ begin
 end;
 
 procedure TSystemInformationForm.GLContextOpen;
+var
+  RHIReport: String;
 begin
+  RHIReport := 'Configured RenderBackend: ' + RenderBackendToName(ApplicationProperties.RenderBackend) + NL;
+  {$ifndef WASI}
+  RHIReport := RHIReport +
+    'Vulkan SPIR-V Compiler: ' + TCastleShaderCompiler.Instance.ActiveCompilerBackendName + NL;
+  {$endif}
   // use GLInformationString only once rendering context initialized
-  Info[itRendering] := GLInformationString;
+  Info[itRendering] := RHIReport + NL + GLInformationString;
 
   if ListSections.ItemIndex = Ord(itRendering) then
     MemoSysInfo.Lines.Text := Info[itRendering];

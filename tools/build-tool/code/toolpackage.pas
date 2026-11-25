@@ -76,6 +76,12 @@ type
       const PackageFormat: TPackageFormatNoDefault);
   end;
 
+{ Pre-warms core Vulkan SPIR-V shaders and (when Manifest.ShouldBundleVulkanCaches
+  is True) copies compiled .spv blobs and vulkan_pipeline_cache.bin into
+  PackageDataDir/shader_cache/ BEFORE GenerateDataInformation indexes PackageDataDir. }
+procedure PrewarmAndBundleVulkanCaches(const Manifest: TCastleManifest;
+  const PackageDataDir, DisplayDataName: String);
+
 { Generate auto_generated/CastleDataInformation.xml file inside
   CurrentDataPath, if it exists.
   CurrentDataPath may but doesn't have to end with PathDelim. }
@@ -86,7 +92,7 @@ implementation
 uses SysUtils,
   CastleFilesUtils, CastleLog, CastleFindFiles, CastleUriUtils,
   CastleStringUtils, CastleInternalDirectoryInformation,
-  CastleInternalProcess,
+  CastleInternalProcess, CastleInternalShaderCompiler,
   ToolCommonUtils, ToolUtils, ToolDebian, ToolProcessRun;
 
 { TPackageDirectory ---------------------------------------------------------- }
@@ -199,11 +205,41 @@ begin
 end;
 
 procedure TPackageDirectory.AddDataInformation(const DataName: String);
+var
+  PackageDataDir: String;
 begin
-  GenerateDataInformation(Path + DataName);
+  PackageDataDir := Path + DataName;
+  PrewarmAndBundleVulkanCaches(Manifest, PackageDataDir, DataName);
+  GenerateDataInformation(PackageDataDir);
 end;
 
 { global --------------------------------------------------------------------- }
+
+procedure PrewarmAndBundleVulkanCaches(const Manifest: TCastleManifest;
+  const PackageDataDir, DisplayDataName: String);
+var
+  PrewarmedHashes: TUInt64Array;
+  BundledShaderCount: Cardinal;
+  TargetLabel: String;
+begin
+  if (Manifest = nil) or (not Manifest.ShouldPrewarmVulkanShaders) then
+    Exit;
+
+  PrewarmedHashes := TCastleShaderCompiler.Instance.PrewarmCoreEngineShaders;
+  Writeln(Format('Pre-warmed %d core Vulkan SPIR-V shader stages.', [Length(PrewarmedHashes)]));
+  if Manifest.ShouldBundleVulkanCaches and (PackageDataDir <> '') and
+     DirectoryExists(PackageDataDir) then
+  begin
+    BundledShaderCount := TCastleShaderCompiler.Instance.BundleCoreAndCachedShadersToDataDirectory(
+      PackageDataDir, 'castle-config:/vulkan_pipeline_cache.bin');
+    if DisplayDataName <> '' then
+      TargetLabel := InclPathDelim(DisplayDataName) + 'shader_cache'
+    else
+      TargetLabel := InclPathDelim(PackageDataDir) + 'shader_cache';
+    Writeln(Format('Bundled %d Vulkan SPIR-V shader cache files into %s.',
+      [BundledShaderCount, TargetLabel]));
+  end;
+end;
 
 procedure GenerateDataInformation(const CurrentDataPath: String);
 var

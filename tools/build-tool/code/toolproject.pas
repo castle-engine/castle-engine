@@ -362,7 +362,7 @@ implementation
 uses {$ifdef UNIX} BaseUnix, {$endif}
   StrUtils, DOM,
   CastleUriUtils, CastleXmlUtils, CastleLog, CastleFilesUtils, CastleImages,
-  CastleTimeUtils, CastleComponentSerialize, CastleColors,
+  CastleTimeUtils, CastleComponentSerialize, CastleColors, CastleApplicationProperties,
   ToolResources, ToolAndroid, ToolMacOS, ToolWeb,
   ToolTextureGeneration, ToolIOS, ToolAndroidMerging, ToolNintendoSwitch,
   ToolCommonUtils, ToolMacros, ToolCompilerInfo, ToolPackageCollectFiles,
@@ -934,13 +934,13 @@ var
         end;
       finally FreeAndNil(Files) end;
 
+      Pack.Cpu := Cpu;
+      Pack.Manifest := Manifest;
       Pack.AddDataInformation(TCastleManifest.DataName);
 
       PackageFileName := PackageName(Target, OS, CPU,
         PackageFormatFinal, PackageNameIncludeVersion);
 
-      Pack.Cpu := Cpu;
-      Pack.Manifest := Manifest;
       Pack.Make(OutputPath, PackageFileName, PackageFormatFinal);
     finally FreeAndNil(Pack) end;
   end;
@@ -1244,6 +1244,10 @@ procedure TCastleProject.DoRun(const OverrideCompiler: TCompiler;
     OverrideEnvironment := EnvironmentStrings;
     try
       OverrideEnvironment.Values['CASTLE_LOG'] := 'stdout';
+      if (Manifest.RenderBackend <> backendAuto) and
+         (GetEnvironmentVariable('CASTLE_RENDER_BACKEND') = '') then
+        OverrideEnvironment.Values['CASTLE_RENDER_BACKEND'] :=
+          RenderBackendToString(Manifest.RenderBackend);
       ExecuteCommandSimple(CurrentDirectory, ExeName, Options, OverrideEnvironment);
     finally FreeAndNil(OverrideEnvironment) end;
   end;
@@ -2190,6 +2194,11 @@ begin
   Macros.Add('ANDROID_LOG_TAG'                     , Copy(Name, 1, MaxAndroidTagLength));
   Macros.Add('ANDROID_ABI_LIST'                    , AndroidAbiList);
   Macros.Add('ANDROID_ABI_LIST_MAKEFILE'           , AndroidAbiListMakefile);
+  if Manifest.RenderBackend in [backendAuto, backendVulkan] then
+    Macros.Add('ANDROID_VULKAN_FEATURE',
+      '    <uses-feature android:name="android.hardware.vulkan.version" android:version="0x401000" android:required="false"/>')
+  else
+    Macros.Add('ANDROID_VULKAN_FEATURE', '');
 
   for Service in AndroidServices do
     ParametersAddMacros(Macros, Service.Parameters, 'ANDROID.' + Service.Name + '.');
@@ -2818,6 +2827,9 @@ begin
     Macros.Add('NAME_PASCAL'     , NamePascal);
     Macros.Add('QUALIFIED_NAME'  , QualifiedName);
     Macros.Add('CAPTION'         , Caption);
+    Macros.Add('CAPTION_XML'     , SReplacePatterns(Caption,
+      ['&', '<', '>', '"', ''''],
+      ['&amp;', '&lt;', '&gt;', '&quot;', '&apos;'], false));
     Macros.Add('AUTHOR'          , NonEmptyAuthor);
     Macros.Add('EXECUTABLE_NAME' , ExecutableName);
     Macros.Add('DELPHI_EXECUTABLE_NAME', DelphiExecutableName);
@@ -3030,6 +3042,7 @@ begin
     end;
   finally FreeAndNil(Files) end;
 
+  PrewarmAndBundleVulkanCaches(Manifest, OutputDataPath, '');
   GenerateDataInformation(OutputDataPath);
 end;
 

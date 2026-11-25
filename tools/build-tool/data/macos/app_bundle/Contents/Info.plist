@@ -7,7 +7,7 @@
   <key>CFBundleExecutable</key>
   <string>${EXECUTABLE_NAME}</string>
   <key>CFBundleDisplayName</key>
-  <string>${CAPTION}</string>
+  <string>${CAPTION_XML}</string>
   <key>CFBundleIdentifier</key>
   <string>${QUALIFIED_NAME}</string>
   <key>CFBundleInfoDictionaryVersion</key>
