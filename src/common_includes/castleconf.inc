@@ -220,10 +220,10 @@
 { If GENERICS_CONSTREF is defined, then various routines used with Generics.Collections
   (like callbacks we pass to TComparer, or OnNotify callback or Notify virtual method)
   should have "constref" parameter, not "const".
-  This was the case in FPC <= 3.2.0.
+  This was the case in FPC <= 3.2.2.
   FPC changed constref->const in
   https://gitlab.com/freepascal.org/fpc/source/-/commit/693491048bf2c6f9122a0d8b044ad0e55382354d
-  and the change is present in FPC fixes branch 3.2.3 and later 3.2.4(rc1). }
+  and the change is present in FPC > 3.2.2. }
 {$ifdef VER3_0} {$define GENERICS_CONSTREF} {$endif}
 {$ifdef VER3_2_0} {$define GENERICS_CONSTREF} {$endif}
 {$ifdef VER3_2_2} {$define GENERICS_CONSTREF} {$endif}
@@ -236,7 +236,7 @@
   {$define CASTLE_LIST_METHODS_WORKAROUND}
 {$endif}
 
-{ FPC 3.2.3 (fixes_3_2 branch) fails
+{ FPC 3.2.3 (fixes_3_2 branch) on macOS/x86_64 fails
 
     Result := inherited Items[AKey];
 
@@ -248,8 +248,16 @@
   Testcase: TTestX3DNodes.TestRootNodeMeta .
   Fixed already in FPC 3.3.1 .
   TODO: submit to FPC to merge into fixes_3_2 branch.
+
+  We apply the workaround for all FPC 3.2.x newer than 3.2.2
+  (fixes_3_2 branch: 3.2.3, 3.2.5; upcoming release 3.2.4),
+  as we have no confirmation that it's fixed there.
 }
-{$if defined(DARWIN) and defined(CPUX86_64) and defined(VER3_2_3)}
+{$if defined(DARWIN) and
+     defined(CPUX86_64) and
+     defined(VER3_2)
+     and (not defined(VER3_2_0))
+     and (not defined(VER3_2_2))}
   {$define CASTLE_WORKAROUND_DICTIONARY_FIND}
 {$endif}
 
@@ -342,18 +350,21 @@
   {$undef ANDROID}
 {$endif CASTLE_NINTENDO_SWITCH}
 
-{ ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION -------------------------------------- }
+{ Loading dynamic libraries -------------------------------------------------- }
 
 { On some Android versions, you cannot call dlopen (load dynamic libraries)
   from the initialization section of units. You have to wait for
   AndroidMain to be called by NDK, otherwise we get a crash at initialization. }
 {$define ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION}
+
 {$ifdef ANDROID}
   {$undef ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION}
 {$endif}
+
 // TODO: for now dlopen doesn't work at all on NX, so avoid it
 {$ifdef CASTLE_NINTENDO_SWITCH}
   {$undef ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION}
+  {$define CASTLE_FREETYPE_DISABLE_DYNAMIC}
 {$endif}
 
 { OpenGL[ES] ------------------------------------------------------------------ }
@@ -750,15 +761,18 @@
 
 { fonts ---------------------------------------------------------------------- }
 
-{ Use pure Pascal implementation of a subset of FreeType API
-  (CastleInternalOpenTypeFont and CastleInternalGlyphRasterizer units).
+{ On some platforms, don't even try to initialize dynamic library of FreeType.
 
   This is by default used for Delphi on Android and iOS,
+  and for FPC + web,
   where we don't deploy the FreeType library.
-  You can also define CASTLE_FREETYPE_PASCAL on other platforms,
-  e.g. to test it on desktops and compare with the FreeType library. }
+  You can also define CASTLE_FREETYPE_DISABLE_DYNAMIC on other platforms,
+  e.g. to force testing it on desktops and compare with the FreeType library. }
 {$if defined(DELPHI) and (defined(ANDROID) or defined(CASTLE_IOS))}
-  {$define CASTLE_FREETYPE_PASCAL}
+  {$define CASTLE_FREETYPE_DISABLE_DYNAMIC}
+{$endif}
+{$if defined(WASI)}
+  {$define CASTLE_FREETYPE_DISABLE_DYNAMIC}
 {$endif}
 
 { FMX ------------------------------------------------------------------------ }

@@ -1580,6 +1580,7 @@ begin
 
   FullSize := true;
   EditorSelectOnHover := false;
+  InternalReleaseCapturedLetsOtherControls := true;
 
   FInput_ZoomIn      := TInputShortcut.Create(Self);
    Input_ZoomIn.Assign(keyNone, keyNone, '', false, buttonLeft, mwUp);
@@ -1722,15 +1723,33 @@ begin
           We have a note in docs https://castle-engine.io/touch_input
           that says to "place TCastleTouchNavigation in front".
 
-      The only practical solution to this would be to not include
+      Considered, rejected: Some solution to this would be to not include
       niMouseDragging in DefaultInput, otherwise we'd break too much existing code.
       But even this is problematic, as it means that
       if someone wants niMouseDragging (which is nice for mobile) ->
       (s)he has to deal with new limitations of it, e.g. use PreviewPress
       for stuff.
 
-      Decision for now: we capture the events by Container.InternalCapturePointerEvents,
+      Decision: we capture the events by Container.InternalCapturePointerEvents,
       but we return false.
+
+      Moreover, other code here assumes we return false from Press:
+      - TCastleExamineNavigation.Press (Input_StopRotating) stops rotation
+        on press.
+      - TCastleExamineNavigation.Press wants to pass press
+        to FPinchGestureRecognizer.Press, to recognize pinch gestures.
+
+      This is accompanied by InternalReleaseCapturedLetsOtherControls,
+      to let other controls receive the mouse release event as well.
+      Since we return false from Press, other controls (under the mouse)
+      receive the mouse press too. Without InternalReleaseCapturedLetsOtherControls,
+      the capture would send the matching mouse release only to us,
+      so they would see the press without the release.
+
+      See https://github.com/castle-engine/castle-engine/issues/760
+      for the history. Originally this was introduced to let TouchSensors work,
+      but TCastleSceneCore no longer depends on receiving release after
+      a press that activated nothing, so TouchSensors work even without this now.
 
       Testcase:
       - zombie_fighter, with non-FullSize viewport, and moving

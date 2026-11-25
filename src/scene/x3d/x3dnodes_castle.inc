@@ -335,7 +335,7 @@
         @exclude }
       InternalJointTexture: TPixelTextureNode;
 
-    constructor Create(const AX3DName, ABaseUrl: String); override;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     destructor Destroy; override;
 
     { Update meshes in @link(FdShapes) to reflect the current joints transformation.

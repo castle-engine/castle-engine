@@ -26,6 +26,11 @@ TimeSensor : X3DTimeDependentNode, X3DSensorNode {
   SFFloat [out]    fraction_changed
   SFTime  [out]    time
 
+  SFBool  [in,out] reverse  FALSE
+    doc: """
+      If @true, the animations driven by this sensor will play in reverse. This is achieved by sending (using the @link(EventFraction_Changed)) the value of @code( 1 - currentFraction) instead of the normal @code(currentFraction).
+    """
+
   # "enabled" inherited from X3DSensorNode.
   # Needs to be mentioned here, as everything inherited from non-1st ancestor
   # (from interface, not class, in Object Pascal implementation)
@@ -35,6 +40,9 @@ TimeSensor : X3DTimeDependentNode, X3DSensorNode {
   # CGE extension, see https://castle-engine.io/x3d_implementation_time_extensions.php
   SFBool [in,out] fractionIncreasing TRUE
     is-extension: true
+    doc: """
+      @deprecated When @false, plays animation in reverse. Use @link(Reverse) instead.
+    """
 
   # CGE extension, see https://castle-engine.io/x3d_implementation_time_extensions.php
   SFBool [] detectAffectedFields TRUE

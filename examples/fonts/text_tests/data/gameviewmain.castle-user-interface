@@ -43,7 +43,7 @@
       "ScrollArea" : {
         "$$ClassName" : "TCastleScrollArea",
         "AutoSizeToChildren" : false,
-        "Height" : 1.4000000000000000E+003,
+        "Height" : 1.2505000000000000E+003,
         "WidthFraction" : 1.0000000000000000E+000,
         "$Children" : [
           {
@@ -366,37 +366,6 @@
                   "Green" : 9.8039215803146362E-001,
                   "Red" : 1.0588235408067703E-001
                 },
-                "CustomFont" : "FontFreeCheeseRegularWoff2",
-                "FontSize" : 6.0000000000000000E+001,
-                "HorizontalAnchorParent" : "hpMiddle",
-                "HorizontalAnchorSelf" : "hpMiddle",
-                "Name" : "LabelWoff2",
-                "Text" : [
-                  "\"Free Cheese\" font in WOFF2 format"
-                ],
-                "TranslationPersistent" : {
-                  "$$ClassName" : "TCastleVector2Persistent",
-                  "Y" : -1.0265307617187500E+003
-                },
-                "VerticalAnchorParent" : "vpTop",
-                "VerticalAnchorSelf" : "vpTop",
-                "$NonVisualComponents" : [
-                  {
-                    "$$ClassName" : "TCastleFont",
-                    "Name" : "FontFreeCheeseRegularWoff2",
-                    "OptimalSize" : 40,
-                    "Url" : "castle-data:/fonts/woff/freecheese/Web%20Open%20Font%20Format%20(.woff)/FreeCheese-Regular.woff2"
-                  }
-                ]
-              },
-              {
-                "$$ClassName" : "TCastleLabel",
-                "ColorPersistent" : {
-                  "$$ClassName" : "TCastleColorPersistent",
-                  "Blue" : 1.0000000000000000E+000,
-                  "Green" : 9.8039215803146362E-001,
-                  "Red" : 1.0588235408067703E-001
-                },
                 "CustomFont" : "FontJupiteroidItalicWoff",
                 "FontSize" : 6.0000000000000000E+001,
                 "HorizontalAnchorParent" : "hpMiddle",
@@ -407,7 +376,7 @@
                 ],
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector2Persistent",
-                  "Y" : -1.0945307617187500E+003
+                  "Y" : -1.0265307617187500E+003
                 },
                 "VerticalAnchorParent" : "vpTop",
                 "VerticalAnchorSelf" : "vpTop",
@@ -417,37 +386,6 @@
                     "Name" : "FontJupiteroidItalicWoff",
                     "OptimalSize" : 40,
                     "Url" : "castle-data:/fonts/woff/jupiteroid/Web%20Open%20Font%20Format%20(.woff)/Jupiteroid-Italic.woff"
-                  }
-                ]
-              },
-              {
-                "$$ClassName" : "TCastleLabel",
-                "ColorPersistent" : {
-                  "$$ClassName" : "TCastleColorPersistent",
-                  "Blue" : 1.0000000000000000E+000,
-                  "Green" : 9.8039215803146362E-001,
-                  "Red" : 1.0588235408067703E-001
-                },
-                "CustomFont" : "FontJupiteroidItalicWoff2",
-                "FontSize" : 6.0000000000000000E+001,
-                "HorizontalAnchorParent" : "hpMiddle",
-                "HorizontalAnchorSelf" : "hpMiddle",
-                "Name" : "LabelJupiteroidItalicWoff2",
-                "Text" : [
-                  "\"Jupiteroid\" font in WOFF2 format"
-                ],
-                "TranslationPersistent" : {
-                  "$$ClassName" : "TCastleVector2Persistent",
-                  "Y" : -1.1760307617187500E+003
-                },
-                "VerticalAnchorParent" : "vpTop",
-                "VerticalAnchorSelf" : "vpTop",
-                "$NonVisualComponents" : [
-                  {
-                    "$$ClassName" : "TCastleFont",
-                    "Name" : "FontJupiteroidItalicWoff2",
-                    "OptimalSize" : 40,
-                    "Url" : "castle-data:/fonts/woff/jupiteroid/Web%20Open%20Font%20Format%20(.woff)/Jupiteroid-Italic.woff2"
                   }
                 ]
               }

@@ -406,7 +406,7 @@ type
       const Params: TPrepareParams); override;
       deprecated 'this is internal; use TCastleViewport.PrepareResources to prepare transformations';
 
-    procedure BeforeNodesFree(const InternalChangedAll: boolean = false); override;
+    procedure BeforeNodesFree; override;
 
     { Does this transform have a collision mesh that TCastleMeshCollider can use. }
     function HasColliderMesh: Boolean; override;
@@ -1232,7 +1232,7 @@ begin
   end;
 end;
 
-procedure TCastleScene.BeforeNodesFree(const InternalChangedAll: boolean);
+procedure TCastleScene.BeforeNodesFree;
 begin
   { Release all associations with OpenGL context before freeing the nodes.
     This means vrml nodes are still valid during GLRenderer unprepare

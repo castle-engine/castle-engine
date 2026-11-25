@@ -256,6 +256,7 @@
         <DCCReference Include="..\..\src\scene\load\x3dloadinternalgeo.pas"/>
         <DCCReference Include="..\..\src\scene\load\x3dloadinternalgltf.pas"/>
         <DCCReference Include="..\..\src\scene\load\x3dloadinternalimage.pas"/>
+        <DCCReference Include="..\..\src\scene\load\x3dloadinternalsvg.pas"/>
         <DCCReference Include="..\..\src\scene\load\md3\x3dloadinternalmd3.pas"/>
         <DCCReference Include="..\..\src\scene\load\ifc\castleifc.pas"/>
         <DCCReference Include="..\..\src\scene\load\x3dloadinternalobj.pas"/>
@@ -428,6 +429,7 @@
         <DCCReference Include="..\..\src\fonts\castlefonts.pas"/>
         <DCCReference Include="..\..\src\fonts\castleinternalfreetype.pas"/>
         <DCCReference Include="..\..\src\fonts\castleinternalfreetypeh.pas"/>
+        <DCCReference Include="..\..\src\fonts\castleinternalfreetypehpascal.pas"/>
         <DCCReference Include="..\..\src\fonts\castleinternalglyphrasterizer.pas"/>
         <DCCReference Include="..\..\src\fonts\castleinternalopentypefont.pas"/>
         <DCCReference Include="..\..\src\fonts\castleinternalrichtext.pas"/>

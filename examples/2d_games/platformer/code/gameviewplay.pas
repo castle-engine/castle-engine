@@ -1164,7 +1164,6 @@ begin
   try
     Parameters.Loop := false;
     Parameters.Name := AnimationNameToPlayOnce;
-    Parameters.Forward := true;
     Parameters.StopNotification := {$ifdef FPC}@{$endif}OnAnimationStop;
     PlayerAnimationToLoop := AnimationNameToLoop;
     Scene.PlayAnimation(Parameters);

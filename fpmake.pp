@@ -75,8 +75,19 @@ begin
       if Defaults.OS <> Android then
         P.Dependencies.Add('fcl-web');
       P.Dependencies.Add('pasjpeg');
-      P.Dependencies.Add('paszlib'); { used by FpReadTiff, we don't use paszlib in CGE }
+      P.Dependencies.Add('paszlib'); { used by FpReadTiff, and its ZStream unit is used by CastleTiledMap, CastleInternalOpenTypeFont }
       P.Dependencies.Add('regexpr');
+      {$if (FPC_FULLVERSION >= 30301) and declared(DynArrayRefCount)}
+      { Used by X3DLoadInternalSvg, fcl-svg uses also fcl-css.
+        Detect FPC with fcl-svg like in X3DLoadInternalSvg,
+        using DynArrayRefCount presence.
+        fcl-svg is only available on some OSes, see fcl-svg/fpmake.pp. }
+      if Defaults.OS in [darwin, win32, win64, linux, solaris] + AllBSDOSes then
+      begin
+        P.Dependencies.Add('fcl-svg');
+        P.Dependencies.Add('fcl-css');
+      end;
+      {$endif}
       if Xlib then
       begin
         P.Dependencies.Add('x11');
@@ -401,6 +412,7 @@ begin
     P.Targets.AddUnit('castlefonts.pas');
     P.Targets.AddUnit('castleinternalfreetype.pas');
     P.Targets.AddUnit('castleinternalfreetypeh.pas');
+    P.Targets.AddUnit('castleinternalfreetypehpascal.pas');
     P.Targets.AddUnit('castleinternalglyphrasterizer.pas');
     P.Targets.AddUnit('castleinternalopentypefont.pas');
     P.Targets.AddUnit('castleinternalrichtext.pas');
@@ -567,6 +579,7 @@ begin
     P.Targets.AddUnit('x3dloadinternalobj.pas');
     P.Targets.AddUnit('x3dloadinternalstl.pas');
     P.Targets.AddUnit('x3dloadinternalply.pas');
+    P.Targets.AddUnit('x3dloadinternalsvg.pas');
     P.Targets.AddUnit('x3dloadinternaltiledmap.pas');
     P.Targets.AddUnit('x3dloadinternalutils.pas');
 

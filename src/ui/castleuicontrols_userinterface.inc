@@ -252,6 +252,13 @@
     { Recalculate FLastSeenContainerWidth/Height, call Resize if needed. }
     procedure CheckResize;
   protected
+    var
+      { Set to @true to let other controls to handle the "release" event,
+        even when our control processed "release" when it was capturing
+        the pointer events.
+        See TCastleNavigation.Press for an explanation when this is useful. }
+      InternalReleaseCapturedLetsOtherControls: Boolean;
+
     procedure Loaded; override;
 
     { Call RecursiveRender on all children.

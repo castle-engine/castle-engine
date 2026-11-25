@@ -33,11 +33,6 @@ initialization
 
     Since build tool right now doesn't actually need Zlib, Libpng, OpenAL
     libraries (but it would load them otherwise) this is a simple solution.
-
-    Note: This is actually reverted in ToolFonts (for web) now,
-    which needs FreeType. It's only used when building for web,
-    so it not a problem that it may lock project's DLLs, as it will not
-    try to remove/replace them.
   }
   {$ifdef MSWINDOWS}
   InternalDisableDynamicLibraries := true;

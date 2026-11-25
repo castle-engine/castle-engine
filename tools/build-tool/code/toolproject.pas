@@ -965,7 +965,7 @@ var
   var
     DelphiCPU: TCPU;
     Options: TCompilerOptions;
-    MainSource, DeployProjFile, ApkFile: String;
+    MainSource, ApkFile: String;
   begin
     if PackageFormat <> pfAndroidApk then
       raise Exception.Create('Creating Android package other than APK is not implemented with Delphi');
@@ -994,9 +994,8 @@ var
     The project must be already compiled. }
   procedure PackageIOSDelphi(const PackageFormat: TPackageFormatNoDefault);
   var
-    DelphiCPU: TCPU;
     Options: TCompilerOptions;
-    MainSource, DeployProjFile: String;
+    MainSource: String;
   begin
     if not (PackageFormat in [
         { All these formats are considered equal for Delphi,

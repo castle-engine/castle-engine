@@ -134,9 +134,10 @@ check_fpc_version ()
   echo "FPC version: ${FPC_VERSION}"
 
   local REQUIRED_FPC_VERSION='3.2.2'
-  # Raspberry Pi and macOS need now 3.2.3, see
-  # https://github.com/castle-engine/castle-fpc/blob/4ceb9a6472760d0e9d063fd98b6677f26eee8598/build_fpc#L81
-  local REQUIRED_FPC_VERSION_2='3.2.3'
+  # Raspberry Pi and macOS need now FPC from fixes_3_2 branch,
+  # which is 3.2.5 now, see
+  # https://github.com/castle-engine/castle-fpc/blob/master/build_fpc
+  local REQUIRED_FPC_VERSION_2='3.2.5'
 
   if [[ "${CASTLE_PACK_DISABLE_FPC_VERSION_CHECK:-}" != 'true' ]]; then
     if [[ "${FPC_VERSION}" != "${REQUIRED_FPC_VERSION}" && \
@@ -166,7 +167,8 @@ check_lazarus_version ()
         "${LAZARUS_VERSION}" != '3.5' && \
         "${LAZARUS_VERSION}" != '3.6' && \
         "${LAZARUS_VERSION}" != '3.7' && \
-        "${LAZARUS_VERSION}" != '4.4' ]]; then
+        "${LAZARUS_VERSION}" != '4.4' && \
+        "${LAZARUS_VERSION}" != '4.8' ]]; then
     echo "pack_release: Incorrect Lazarus version to pack release, we have ${LAZARUS_VERSION}"
     exit 1
   fi
@@ -177,7 +179,8 @@ check_lazarus_version ()
     if [[ "${LAZARUS_VERSION}" != '3.5' && \
           "${LAZARUS_VERSION}" != '3.6' && \
           "${LAZARUS_VERSION}" != '3.7' && \
-          "${LAZARUS_VERSION}" != '4.4' ]]; then
+          "${LAZARUS_VERSION}" != '4.4' && \
+          "${LAZARUS_VERSION}" != '4.8' ]]; then
       echo "pack_release: macOS: Incorrect Lazarus version to pack release, we have ${LAZARUS_VERSION}"
       exit 1
     fi
@@ -509,6 +512,14 @@ pack_platform_dir ()
   export CASTLE_BUILD_TOOL_OPTIONS=(--os="${OS}" --cpu="${CPU}")
   # bash array of arguments to "lazbuild"
   local CASTLE_LAZBUILD_OPTIONS=(--os="${OS}" --cpu="${CPU}")
+  # On Linux and FreeBSD, build editor (and LCL packages it uses) with GTK 2.
+  # Lazarus main (since 2026) defaults to GTK 3, but we still use GTK 2
+  # for the editor, because of known issues with GTK 3.
+  case "${OS}" in
+    linux|freebsd)
+      CASTLE_LAZBUILD_OPTIONS=("${CASTLE_LAZBUILD_OPTIONS[@]}" --widgetset=gtk2)
+      ;;
+  esac
   # bash array of arguments to "make"
   local MAKE_OPTIONS=(BUILD_TOOL=castle-engine) # use build tool on $PATH
 

@@ -67,7 +67,11 @@ type
     UniformCastle_MaterialMetallic,
     UniformCastle_MaterialRoughness,
     UniformCastle_GlobalAmbient,
-    UniformCastle_UnlitColor: TGLSLUniform;
+    UniformCastle_UnlitColor,
+    UniformCastle_CameraMatrix,
+    UniformCastle_CameraInverseMatrix,
+    UniformCastle_CameraRotationMatrix,
+    UniformCastle_CameraRotationInverseMatrix: TGLSLUniform;
 
     { Attributes initialized after linking.
       Initializing them only once after linking allows the mesh renderer to go fast. }
@@ -882,6 +886,10 @@ begin
   UniformCastle_MaterialRoughness     := Uniform('castle_MaterialRoughness'    , umIgnore);
   UniformCastle_GlobalAmbient         := Uniform('castle_GlobalAmbient'        , umIgnore);
   UniformCastle_UnlitColor            := Uniform('castle_UnlitColor'           , umIgnore);
+  UniformCastle_CameraMatrix                := Uniform('castle_CameraMatrix'               , umIgnore);
+  UniformCastle_CameraInverseMatrix         := Uniform('castle_CameraInverseMatrix'        , umIgnore);
+  UniformCastle_CameraRotationMatrix        := Uniform('castle_CameraRotationMatrix'       , umIgnore);
+  UniformCastle_CameraRotationInverseMatrix := Uniform('castle_CameraRotationInverseMatrix', umIgnore);
 
   AttributeCastle_Vertex         := AttributeOptional('castle_Vertex');
   AttributeCastle_Normal         := AttributeOptional('castle_Normal');
@@ -2834,7 +2842,7 @@ begin
      (slEyeWorldSpace in FShaderLibraries.Enabled) then
   begin
     RenderingCamera.InverseMatrixNeeded;
-    AProgram.SetUniform('castle_CameraInverseMatrix', RenderingCamera.InverseMatrix);
+    AProgram.UniformCastle_CameraInverseMatrix.SetValue(RenderingCamera.InverseMatrix);
   end;
 
   FShaderLibraries.SetDynamicUniforms(AProgram, RenderingCamera);

@@ -16,7 +16,7 @@
 { Various castle-editor utilities. }
 unit EditorUtils;
 
-{$I editorconf.inc}
+{$I castleconf.inc}
 
 interface
 

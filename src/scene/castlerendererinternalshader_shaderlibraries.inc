@@ -77,10 +77,10 @@ begin
   begin
     { castle_CameraInversMatrix was already handled in TShader.SetDynamicUniforms.
       Pass remaining 3 matrices needed by GLSL in EyeWorldSpace.glsl . }
-    AProgram.SetUniform('castle_CameraMatrix', RenderingCamera.Matrix);
-    AProgram.SetUniform('castle_CameraRotationMatrix', RenderingCamera.RotationMatrix3);
+    AProgram.UniformCastle_CameraMatrix.SetValue(RenderingCamera.Matrix);
+    AProgram.UniformCastle_CameraRotationMatrix.SetValue(RenderingCamera.RotationMatrix3);
     RenderingCamera.RotationInverseMatrixNeeded;
-    AProgram.SetUniform('castle_CameraRotationInverseMatrix', RenderingCamera.RotationInverseMatrix3);
+    AProgram.UniformCastle_CameraRotationInverseMatrix.SetValue(RenderingCamera.RotationInverseMatrix3);
   end;
 end;
 

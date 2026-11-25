@@ -13,15 +13,17 @@
   ----------------------------------------------------------------------------
 }
 
-{ Pure Pascal implementation of a subset of FreeType API,
-  included in CastleInternalFreeTypeH when CASTLE_FREETYPE_PASCAL is defined.
+{ Pure Pascal implementation of a subset of FreeType API.
+  Used by CastleInternalFreeTypeH when neither dynamic nor static FreeType
+  can be loaded. Critical on platforms where FreeType is not available
+  (web, Delphi/mobile, Nintendo Switch). Useful also on normal platforms as
+  a fallback when FreeType is not available.
 
   Limitations compared to the FreeType library:
   - no hinting (so glyphs are a bit softer at small sizes),
-  - only TrueType / OpenType fonts (TTF, OTF, TTC),
-  - and only the API subset used by CGE
-    (in particular, FT_Outline_Decompose, FT_Set_Transform, FT_Glyph_Transform,
-    FT_Glyph_Get_CBox, FT_Library_Version are not available).
+  - only TrueType / OpenType fonts (TTF, OTF, TTC, WOFF), no WOFF2,
+  - only exposes the API subset used by CGE
+    (by CastleInternalFreeType unit, and declared in CastleInternalFreeTypeH).
 
   Uses CastleInternalOpenTypeFont to read fonts
   and CastleInternalGlyphRasterizer to render glyphs.
@@ -31,12 +33,34 @@
   So PFT_Face and PFT_Glyph pointers returned by this implementation
   can be typecasted to our records.
 
-  -----------------------------------------------------------------------------
-
-  Disclosure: This file is largely Claude-generated.
-  It was reviewed and slightly edited by Michalis, but this is still a
-  (unusually, for Castle Game Engine) large automatically generated file.
+  See doc/miscellaneous_notes/castleinternalfreetypeh_pascal_ai_disclosure.md .
 }
+unit CastleInternalFreeTypeHPascal;
+
+{$i castleconf.inc}
+
+interface
+
+uses CTypes,
+  CastleInternalFreeTypeH;
+
+function Pascal_FT_Done_Face(face: PFT_Face): integer; cdecl;
+function Pascal_FT_Done_FreeType(alibrary: PFT_Library): integer; cdecl;
+function Pascal_FT_Get_Char_Index(face: PFT_Face; charcode: FT_ULong): FT_UInt; cdecl;
+function Pascal_FT_Init_FreeType(var alibrary: PFT_Library): integer; cdecl;
+function Pascal_FT_Load_Glyph(face: PFT_Face; glyph_index: FT_UInt; load_flags: CInt32): integer; cdecl;
+function Pascal_FT_New_Memory_Face(alibrary: PFT_Library; file_base: Pointer; file_size: FT_Long; face_index: FT_Long; var aface: PFT_Face): integer; cdecl;
+function Pascal_FT_Set_Char_Size(face: PFT_Face; char_width, char_height: FT_F26dot6; horz_res, vert_res: FT_UInt): integer; cdecl;
+function Pascal_FT_Set_Pixel_Sizes(face: PFT_Face; pixel_width, pixel_height: FT_UInt): integer; cdecl;
+procedure Pascal_FT_Library_Version(alibrary: PFT_Library; out amajor, aminor, apatch: integer); cdecl;
+function Pascal_FT_Get_Glyph(slot: PFT_GlyphSlot; out aglyph: PFT_Glyph): integer; cdecl;
+function Pascal_FT_Glyph_To_Bitmap(var the_glyph: PFT_Glyph; render_mode: FT_Render_Mode; origin: PFT_Vector; Destroy: FT_Bool): integer; cdecl;
+procedure Pascal_FT_Done_Glyph(glyph: PFT_Glyph); cdecl;
+
+implementation
+
+uses Classes, SysUtils,
+  CastleInternalOpenTypeFont, CastleInternalGlyphRasterizer;
 
 const
   { FreeType error codes, see fterrdef.h in FreeType. }
@@ -112,37 +136,107 @@ end;
 
 { Library ------------------------------------------------------------------- }
 
-procedure LoadFreeTypeLibrary;
-begin
-end;
-
-function FreeTypeLibraryInitialized: boolean;
-begin
-  Result := true;
-end;
-
-function FT_Init_FreeType(var alibrary: PFT_Library): integer;
+function Pascal_FT_Init_FreeType(var alibrary: PFT_Library): integer; cdecl;
 begin
   alibrary := PFT_Library(@PascalLibrary);
   Result := FtErrOk;
 end;
 
-function FT_Done_FreeType(alibrary: PFT_Library): integer;
+function Pascal_FT_Done_FreeType(alibrary: PFT_Library): integer; cdecl;
 begin
   Result := FtErrOk;
 end;
 
-{ Faces --------------------------------------------------------------------- }
+procedure Pascal_FT_Library_Version(alibrary: PFT_Library; out amajor, aminor, apatch: integer); cdecl;
+begin
+  { Like FreeType, report 0.0.0 when library is nil. }
+  if alibrary = nil then
+  begin
+    amajor := 0;
+    aminor := 0;
+    apatch := 0;
+  end else
+  begin
+    { Recent FreeType version, whose behavior (like rounding of metrics)
+      our implementation tries to match.
+      The FreeType API subset we implement didn't change in a long time. }
+    amajor := 2;
+    aminor := 14;
+    { Make it possible to recognize our implementation at runtime,
+      when we're used as a fallback when dynamic FreeType library cannot
+      be loaded. }
+    apatch := FtPatchVersionPascalImplementation;
+  end;
+end;
 
-function FT_New_Memory_Face(alibrary: PFT_Library; Stream: TCustomMemoryStream;
-  face_index: FT_Long; var aface: PFT_Face): integer;
+{ TReadOnlyMemoryStream ------------------------------------------------------ }
+
+type
+  { Read from a memory buffer, read-only stream. }
+  TReadOnlyMemoryStream = class(TStream)
+  strict private
+    FData: Pointer;
+    FSize: FT_Long;
+    FPosition: FT_Long;
+  public
+    constructor Create(const AData: Pointer; const ASize: FT_Long);
+    function Read(var Buffer; Count: Longint): Longint; override;
+    function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; override;
+    function GetSize: Int64; override;
+  end;
+
+constructor TReadOnlyMemoryStream.Create(const AData: Pointer; const ASize: FT_Long);
+begin
+  inherited Create;
+  FData := AData;
+  FSize := ASize;
+  FPosition := 0;
+end;
+
+function TReadOnlyMemoryStream.Read(var Buffer; Count: Longint): Longint;
+begin
+  if FPosition >= FSize then
+    Exit(0);
+  if FPosition + Count > FSize then
+    Count := FSize - FPosition;
+  Move(PByte(FData)[FPosition], Buffer, Count);
+  FPosition := FPosition + Count;
+  Result := Count;
+end;
+
+function TReadOnlyMemoryStream.Seek(const Offset: Int64; Origin: TSeekOrigin): Int64;
+begin
+  case Origin of
+    soBeginning: FPosition := Offset;
+    soCurrent: FPosition := FPosition + Offset;
+    soEnd: FPosition := FSize + Offset;
+  end;
+  if FPosition < 0 then FPosition := 0;
+  if FPosition > FSize then FPosition := FSize;
+  Result := FPosition;
+end;
+
+function TReadOnlyMemoryStream.GetSize: Int64;
+begin
+  { Overriding this is not strictly necessary (ancestor TStream would calculate
+    it using Seek(0,soEnd), which would also work). But this is simpler and faster
+    than ancestor's approach: we have size as a trivial field already. }
+  Result := FSize;
+end;
+
+{ Faces ---------------------------------------------------------------------- }
+
+function Pascal_FT_New_Memory_Face(alibrary: PFT_Library;
+  file_base: Pointer; file_size: FT_Long;
+  face_index: FT_Long; var aface: PFT_Face): integer; cdecl;
 var
   Font: TOpenTypeFont;
   FaceIndex: Integer;
   PF: PPascalFace;
+  Stream: TReadOnlyMemoryStream;
 begin
   aface := nil;
-  if Stream = nil then
+  if file_base = nil then
     Exit(FtErrInvalidArgument);
 
   { Lower 16 bits of face_index are the face index in the collection
@@ -153,7 +247,9 @@ begin
   else
     FaceIndex := face_index and $FFFF;
 
-  { Font owns the Stream now (also when TOpenTypeFont.Create fails,
+  Stream := TReadOnlyMemoryStream.Create(file_base, file_size);
+
+  { Font owns the Stream (also when TOpenTypeFont.Create fails,
     then Stream is freed by TOpenTypeFont destructor). }
   try
     Font := TOpenTypeFont.Create(Stream, FaceIndex);
@@ -228,7 +324,7 @@ begin
   Result := FtErrOk;
 end;
 
-function FT_Done_Face(face: PFT_Face): integer;
+function Pascal_FT_Done_Face(face: PFT_Face): integer; cdecl;
 var
   PF: PPascalFace;
 begin
@@ -268,8 +364,8 @@ begin
   PF^.Size.metrics.max_advance := PixRound(Round(Font.AdvanceWidthMax * PF^.Scale * 64));
 end;
 
-function FT_Set_Char_Size(face: PFT_Face; char_width, char_height: FT_F26dot6;
-  horz_res, vert_res: FT_UInt): integer;
+function Pascal_FT_Set_Char_Size(face: PFT_Face; char_width, char_height: FT_F26dot6;
+  horz_res, vert_res: FT_UInt): integer; cdecl;
 var
   Height: Int64;
   Resolution: Int64;
@@ -289,7 +385,7 @@ begin
   Result := FtErrOk;
 end;
 
-function FT_Set_Pixel_Sizes(face: PFT_Face; pixel_width, pixel_height: FT_UInt): integer;
+function Pascal_FT_Set_Pixel_Sizes(face: PFT_Face; pixel_width, pixel_height: FT_UInt): integer; cdecl;
 var
   Height: Int64;
 begin
@@ -306,7 +402,7 @@ end;
 
 { Glyphs -------------------------------------------------------------------- }
 
-function FT_Get_Char_Index(face: PFT_Face; charcode: FT_ULong): FT_UInt;
+function Pascal_FT_Get_Char_Index(face: PFT_Face; charcode: FT_ULong): FT_UInt; cdecl;
 begin
   if (face = nil) or (charcode > $10FFFF) then
     Exit(0);
@@ -325,7 +421,7 @@ begin
   end;
 end;
 
-function FT_Load_Glyph(face: PFT_Face; glyph_index: FT_UInt; load_flags: CInt32): integer;
+function Pascal_FT_Load_Glyph(face: PFT_Face; glyph_index: FT_UInt; load_flags: CInt32): integer; cdecl;
 var
   PF: PPascalFace;
   Advance: Integer;
@@ -369,41 +465,9 @@ begin
   Result := FtErrOk;
 end;
 
-function FT_Load_Char(face: PFT_Face; charcode: FT_ULong; load_flags: CInt32): integer;
-begin
-  Result := FT_Load_Glyph(face, FT_Get_Char_Index(face, charcode), load_flags);
-end;
-
-function FT_Get_Kerning(face: PFT_Face; left_glyph, right_glyph, kern_mode: FT_UInt;
-  out akerning: FT_Vector): integer;
-var
-  PF: PPascalFace;
-  K: Integer;
-  V: Int64;
-begin
-  akerning.x := 0;
-  akerning.y := 0;
-  if face = nil then
-    Exit(FtErrInvalidHandle);
-  PF := PPascalFace(face);
-  if (left_glyph > $FFFF) or (right_glyph > $FFFF) then
-    Exit(FtErrOk);
-  K := PF^.Font.Kerning(left_glyph, right_glyph);
-  if kern_mode = FT_KERNING_UNSCALED then
-    akerning.x := K
-  else
-  begin
-    V := Round(K * PF^.Scale * 64);
-    if kern_mode = FT_KERNING_DEFAULT then
-      V := PixRound(V); // grid-fitted
-    akerning.x := V;
-  end;
-  Result := FtErrOk;
-end;
-
 { Glyph management ---------------------------------------------------------- }
 
-function FT_Get_Glyph(slot: PFT_GlyphSlot; out aglyph: PFT_Glyph): integer;
+function Pascal_FT_Get_Glyph(slot: PFT_GlyphSlot; out aglyph: PFT_Glyph): integer; cdecl;
 var
   PF: PPascalFace;
   G: PPascalOutlineGlyph;
@@ -437,38 +501,7 @@ begin
     G^.Glyph.bitmap.buffer := nil;
 end;
 
-function FT_Glyph_Copy(Source: PFT_Glyph; out target: PFT_Glyph): integer;
-var
-  SourceOutline, TargetOutline: PPascalOutlineGlyph;
-  SourceBitmap, TargetBitmap: PPascalBitmapGlyph;
-begin
-  target := nil;
-  if Source = nil then
-    Exit(FtErrInvalidHandle);
-  if Source^.aFormat = ft_glyph_format_outline then
-  begin
-    SourceOutline := PPascalOutlineGlyph(Source);
-    New(TargetOutline);
-    TargetOutline^.Glyph := SourceOutline^.Glyph;
-    TargetOutline^.Outline := TGlyphOutline.Create;
-    TargetOutline^.Outline.Assign(SourceOutline^.Outline);
-    TargetOutline^.Scale := SourceOutline^.Scale;
-    target := PFT_Glyph(TargetOutline);
-  end else
-  if Source^.aFormat = ft_glyph_format_bitmap then
-  begin
-    SourceBitmap := PPascalBitmapGlyph(Source);
-    New(TargetBitmap);
-    TargetBitmap^.Glyph := SourceBitmap^.Glyph;
-    TargetBitmap^.Data := Copy(SourceBitmap^.Data, 0, Length(SourceBitmap^.Data));
-    UpdateBitmapBuffer(TargetBitmap);
-    target := PFT_Glyph(TargetBitmap);
-  end else
-    Exit(FtErrInvalidGlyphFormat);
-  Result := FtErrOk;
-end;
-
-procedure FT_Done_Glyph(glyph: PFT_Glyph);
+procedure Pascal_FT_Done_Glyph(glyph: PFT_Glyph); cdecl;
 var
   OutlineGlyph: PPascalOutlineGlyph;
   BitmapGlyph: PPascalBitmapGlyph;
@@ -488,8 +521,8 @@ begin
   end;
 end;
 
-function FT_Glyph_To_Bitmap(var the_glyph: PFT_Glyph; render_mode: FT_Render_Mode;
-  origin: PFT_Vector; Destroy: FT_Bool): integer;
+function Pascal_FT_Glyph_To_Bitmap(var the_glyph: PFT_Glyph; render_mode: FT_Render_Mode;
+  origin: PFT_Vector; Destroy: FT_Bool): integer; cdecl;
 var
   OutlineGlyph: PPascalOutlineGlyph;
   BitmapGlyph: PPascalBitmapGlyph;
@@ -545,7 +578,9 @@ begin
   UpdateBitmapBuffer(BitmapGlyph);
 
   if Destroy then
-    FT_Done_Glyph(the_glyph);
+    Pascal_FT_Done_Glyph(the_glyph);
   the_glyph := PFT_Glyph(BitmapGlyph);
   Result := FtErrOk;
 end;
+
+end.

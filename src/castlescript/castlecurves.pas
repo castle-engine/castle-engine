@@ -276,12 +276,24 @@ function HermiteSpline(const X: Single; const Loop: boolean;
 function HermiteTenseSpline(const X: Single; const Loop: boolean;
   const Arguments, Values: TSingleList): Single;
 
+{ Calculate the convex hull ignoring Z coordinates of points.
+  That is, all Points[*].Z are ignored.
+
+  Returns newly created list with the indexes to Points.
+  If you want to draw an edge of convex hull,
+  you want to iterate over these points like (for each i) Points[Result[i]]).
+
+  The resulting points are in counter-clockwise order
+  (assuming X goes right, Y goes up).
+  Points lying exactly on the hull edges may, or may not, be included in the result.
+
+  Points.Count must be >= 1. }
+function ConvexHullIndexes(Points: TVector3List): TIntegerList;
+
 implementation
 
 uses Math,
   CastleXmlUtils, CastleDownload;
-
-function ConvexHullIndexes(Points: TVector3List): TIntegerList; forward;
 
 { TCurve ------------------------------------------------------------ }
 
@@ -1037,19 +1049,14 @@ begin
     Result := HermiteTenseSegment(IndexOfRightValue, XInSegment);
 end;
 
-{ Calculate the convex hull ignoring Z coordinates of pixels.
-  That is, all Points[*][2] are ignored.
-  Returns newly created array with the indices to Points.
-  If you want to draw an edge of convex hull,
-  you want to iterate over these points like (for each i) Points[Result[i]]).
-
-  Points.Count must be >= 1. }
 function ConvexHullIndexes(Points: TVector3List): TIntegerList;
 
 { this is the Jarvis algorithm, based on description in Cormen's
   "Introduction to alg." }
 
 var InResult: TBooleanList;
+    { Index of the lowest point in Points. The hull starts (and ends) there. }
+    i0: Integer;
 
   function FindNext(Start: Integer; var NextI: Integer; RightSide: boolean): boolean;
   { Starting from Points[Start], knowing that InResult[Start],
@@ -1062,14 +1069,20 @@ var InResult: TBooleanList;
     or (not RightSide) and Start is the lowest vertex.
     Else sets Next as appropriate and returns true.
 
-    Returned Next for SURE has InResult[Next] = false. }
+    Returned Next for SURE has InResult[Next] = false,
+    or (only when not RightSide) Next = i0, which means we closed the hull.
+    Considering i0 when walking over the left edge is necessary,
+    otherwise we would continue the walk to other points below the current one,
+    that are not on the hull. }
   var MaxCotanAngle, ThisCotan: Single;
       MaxCotanAngleI, i: Integer;
   begin
    MaxCotanAngle := -MaxSingle;
    MaxCotanAngleI := -1;
    for i := 0 to Points.Count-1 do
-    if not InResult[i] then
+    if (i <> Start) and
+       ( (not InResult[i]) or
+         ((not RightSide) and (i = i0)) ) then
     begin
      if SameValue(Points.L[i][1], Points.L[Start][1]) then
      begin
@@ -1102,7 +1115,7 @@ var InResult: TBooleanList;
   end;
 
 var MinY: Single;
-    i0, i, NextI: Integer;
+    i, NextI: Integer;
 begin
  Assert(Points.Count >= 1);
 
@@ -1125,7 +1138,7 @@ begin
 
    i := i0;
    while FindNext(i, NextI, true ) do begin i := NextI; MarkNext(i); end;
-   while FindNext(i, NextI, false) do begin i := NextI; MarkNext(i); end;
+   while FindNext(i, NextI, false) and (NextI <> i0) do begin i := NextI; MarkNext(i); end;
 
   except Result.Free; raise end;
  finally InResult.Free end;

@@ -35,11 +35,12 @@ type
     procedure TestSizeChangeNotificationCustomized;
     procedure TestFontFamilyCustomizeOutlineBalance;
     procedure TestSimpleHtmlQuote;
+    procedure TestWoff;
   end;
 
 implementation
 
-uses SysUtils, Classes,
+uses SysUtils, Classes, Math,
   CastleWindow, CastleFonts, CastleTextureFont_Default3d_Sans, CastleLog,
   Font_LatoRegular_300, CastleInternalFreeTypeH;
 
@@ -257,59 +258,26 @@ end;
 
 procedure TTestCastleFonts.FailIfFreeTypeMissing;
 begin
-  { Without FreeType, we cannot load .ttf so some tests have to fail.
-    We don't want to ignore this problem and turn it into hard-to-notice
-    warning (it's better to force you to setup proper DLLs to have clean tests output),
-    but we do this check to generate exception with more obvious error message.
-    This way users of this test on Windows (where FreeType most often may be missing)
-    will know what's going on. }
-  if not FreeTypeLibraryInitialized then
-  begin
-    Fail('FreeType library not available, so TTestCastleFonts.TestSizeChangeNotificationFontFamily has to fail.'
-      {$ifdef MSWINDOWS}
-      + ' On Windows, be sure to place proper DLL files alongside EXE. It is easiest to build using CGE editor that will place proper DLLs automatically.'
-      {$endif}
-    );
-  end;
+  AssertTrue('FreeType library not available',
+    FreeTypeLibraryInitialized);
 end;
 
-{ If CASTLE_IGNORE_FREETYPE_MISSING is defined, we will abort the test
-  (no error) when FreeType is missing.
-  Otherwise, when FreeType is missing, we will fail (raising an exception).
-  This forces you to install FreeType and test with it, on given platform.
-  Reasons:
-
-  - WASI: no FreeType available
-
-  - macOS: No FreeType on GH-hosted macOS/Aarch64 runner macos-latest.
-    (Unsure about macos-15-intel. On our self-hosted macos_x64 it was OK.)
-    TODO: Figure out how to install it and link to it.
-    "brew install freetype" is not enough. }
-{$if defined(WASI) or defined(DARWIN)}
-  {$define CASTLE_IGNORE_FREETYPE_MISSING}
-{$endif}
-
 const
-  { Expected height of PARPG.ttf font, at default size.
-    With CASTLE_FREETYPE_PASCAL, glyphs are not hinted (not aligned to the pixel
-    grid), so their bitmaps are a bit different, and the measured height
-    is 1 pixel smaller. }
-  ParpgHeight = {$ifdef CASTLE_FREETYPE_PASCAL} 21 {$else} 22 {$endif};
+  { Expected height of PARPG.ttf font, at default size. }
+  ParpgHeight = 22;
+
+  { With CastleInternalFreeTypeHPascal, glyphs are not hinted
+    (not aligned to the pixel grid), so their bitmaps are a bit different,
+    and the measured height happens to be 1 pixel smaller in this test,
+    so we use this as an alternative expected height. }
+  ParpgHeightAlt = 21;
 
 procedure TTestCastleFonts.TestSizeChangeNotificationFontFamily;
 var
   F: TCastleFont;
   FF: TCastleFontFamily;
 begin
-  {$ifdef CASTLE_IGNORE_FREETYPE_MISSING}
-  if not FreeTypeLibraryInitialized then
-  begin
-    AbortTest;
-    Exit;
-  end;
-  {$else}
   FailIfFreeTypeMissing;
-  {$endif}
 
   F := TCastleFont.Create(nil);
   AssertEquals(0, F.Height);
@@ -320,8 +288,12 @@ begin
   AssertEquals(0, FF.Height);
 
   F.Url := 'castle-data:/fonts/PARPG.ttf';
-  AssertSameValue(ParpgHeight, F.Height);
-  AssertSameValue(ParpgHeight, FF.Height);
+  AssertTrue(
+    SameValue(F.Height, ParpgHeight) or
+    SameValue(F.Height, ParpgHeightAlt));
+  AssertTrue(
+    SameValue(FF.Height, ParpgHeight) or
+    SameValue(FF.Height, ParpgHeightAlt));
   // writeln(F.Height:1:2);
   // writeln(FF.Height:1:2);
 
@@ -334,15 +306,7 @@ var
   F: TCastleFont;
   CF: TCastleFontFamily;
 begin
-  {$ifdef CASTLE_IGNORE_FREETYPE_MISSING}
-  if not FreeTypeLibraryInitialized then
-  begin
-    AbortTest;
-    Exit;
-  end;
-  {$else}
   FailIfFreeTypeMissing;
-  {$endif}
 
   F := TCastleFont.Create(nil);
   AssertEquals(0, F.Height);
@@ -353,8 +317,12 @@ begin
   AssertEquals(0, CF.Height);
 
   F.Url := 'castle-data:/fonts/PARPG.ttf';
-  AssertSameValue(ParpgHeight, F.Height);
-  AssertSameValue(ParpgHeight, CF.Height);
+  AssertTrue(
+    SameValue(F.Height, ParpgHeight) or
+    SameValue(F.Height, ParpgHeightAlt));
+  AssertTrue(
+    SameValue(CF.Height, ParpgHeight) or
+    SameValue(CF.Height, ParpgHeightAlt));
   // writeln(F.Height:1:2);
   // writeln(CF.Height:1:2);
 
@@ -440,6 +408,22 @@ begin
     of the '&' we introduce): '&lt;' -> '&amp;lt;', not '&amp;amp;lt;'. }
   AssertEquals('&amp;lt;', SimpleHtmlQuote('&lt;'));
   AssertEquals('&amp;amp;', SimpleHtmlQuote('&amp;'));
+end;
+
+procedure TTestCastleFonts.TestWoff;
+var
+  F: TCastleFont;
+begin
+  FailIfFreeTypeMissing;
+
+  { WOFF (1.0) font is supported by FreeType library,
+    and by CastleInternalFreeTypeHPascal. }
+  F := TCastleFont.Create(nil);
+  try
+    F.Url := 'castle-data:/fonts/FreeCheese-Regular.woff';
+    AssertTrue(F.Height > 0);
+    AssertTrue(F.TextWidth('Hello') > 0);
+  finally FreeAndNil(F) end;
 end;
 
 initialization

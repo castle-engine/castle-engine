@@ -1708,12 +1708,11 @@
                     "BorderColorPersistent" : {
                       "$$ClassName" : "TCastleColorPersistent"
                     },
-                    "Caption" : "Forward",
+                    "Caption" : "Reverse",
                     "CheckboxColorPersistent" : {
                       "$$ClassName" : "TCastleColorPersistent"
                     },
-                    "Checked" : true,
-                    "Name" : "CheckboxForward",
+                    "Name" : "CheckboxReverse",
                     "TextColorPersistent" : {
                       "$$ClassName" : "TCastleColorPersistent"
                     },

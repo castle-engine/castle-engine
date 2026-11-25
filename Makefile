@@ -222,7 +222,7 @@ endif
 
 EXAMPLES_BASE_NAMES :=
 
-EXAMPLES_LAZARUS_BASE_NAMES := 
+EXAMPLES_LAZARUS_BASE_NAMES :=
 
 EXAMPLES_UNIX_EXECUTABLES := $(EXAMPLES_BASE_NAMES) \
   $(EXAMPLES_LAZARUS_BASE_NAMES)
@@ -520,9 +520,9 @@ tests:
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ clean
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ --mode=debug --compiler-option=-dCASTLE_DISABLE_LIBPNG compile
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ run -- --console --no-window-create
-# Run in debug mode with CASTLE_FREETYPE_PASCAL
+# Run in debug mode with CASTLE_FREETYPE_DISABLE_DYNAMIC
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ clean
-	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ --mode=debug --compiler-option=-dCASTLE_FREETYPE_PASCAL compile
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ --mode=debug --compiler-option=-dCASTLE_FREETYPE_DISABLE_DYNAMIC compile
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ run -- --console --no-window-create
 # Run in release mode, since all tests must pass the same when optimizations are enabled
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ clean

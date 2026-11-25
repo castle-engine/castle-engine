@@ -289,6 +289,15 @@ function LoadScene_FileFilters: String;
 function SaveNode_FileFilters: String;
 
 type
+  { Raised when loading or saving a model in an unknown format.
+    That is, the format (MIME type, usually determined from the URL extension)
+    is not registered using @link(RegisterModelFormat).
+
+    Note that some formats are registered only in some cases.
+    E.g. SVG format is registered only when compiling with
+    the latest FPC that includes fcl-svg package. }
+  EModelFormatUnknown = class(Exception);
+
   { Load model from given Stream, that represents given URL.
     @param LoadOptions Optional (may be @nil) loading options. }
   TModelLoadEvent = function (const Stream: TStream; const BaseUrl: String;
@@ -420,7 +429,8 @@ uses
   {$IFNDEF CASTLE_COCOS2D_SUPPORT_DISABLE}, X3DLoadInternalCocos2d {$ENDIF}
   {$IFNDEF CASTLE_SPRITESHEET_SUPPORT_DISABLE}, CastleInternalSpritesheet {$ENDIF}
   {$IFNDEF CASTLE_TILED_MAP_SUPPORT_DISABLE}, X3DLoadInternalTiledMap {$ENDIF}
-  {$IFNDEF CASTLE_IFC_SUPPORT_DISABLE}, CastleIfc {$ENDIF};
+  {$IFNDEF CASTLE_IFC_SUPPORT_DISABLE}, CastleIfc {$ENDIF}
+  {$IFNDEF CASTLE_SVG_SUPPORT_DISABLE}, X3DLoadInternalSvg {$ENDIF};
 
 { declare FRegisteredModelFormats early ------------------------------------- }
 
@@ -517,7 +527,7 @@ var
 
     ModelFormat := FRegisteredModelFormats.FindMimeType(MimeType);
     if ModelFormat = nil then
-      raise Exception.CreateFmt('Unrecognized file type "%s" for scene with base URL "%s"', [
+      raise EModelFormatUnknown.CreateFmt('Unrecognized file type "%s" for scene with base URL "%s"', [
         MimeType,
         UriDisplay(Url)
       ]);
@@ -615,7 +625,7 @@ begin
 
   ModelFormat := FRegisteredModelFormats.FindMimeType(MimeType);
   if ModelFormat = nil then
-    raise Exception.CreateFmt('Unrecognized file type "%s" for scene with base URL "%s"', [
+    raise EModelFormatUnknown.CreateFmt('Unrecognized file type "%s" for scene with base URL "%s"', [
       MimeType,
       UriDisplay(BaseUrl)
     ]);
@@ -670,7 +680,7 @@ begin
 
   ModelFormat := FRegisteredModelFormats.FindMimeType(MimeType);
   if ModelFormat = nil then
-    raise Exception.CreateFmt('Unrecognized file type "%s" for saving scene', [
+    raise EModelFormatUnknown.CreateFmt('Unrecognized file type "%s" for saving scene', [
       MimeType
     ]);
 
