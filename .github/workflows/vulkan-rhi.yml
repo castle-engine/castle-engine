@@ -1,0 +1,200 @@
+# ----------------------------------------------------------------------------
+# GitHub Action workflow for Castle Game Engine Vulkan RHI CI Gate:
+# - Compiles vkxml2pas, castle-engine build tool, Vulkan examples, and castle_tester_standalone
+# - Runs all TTestCastleVulkanRHI tests (including side-by-side rbOpenGL vs rbVulkan
+#   perceptual RMSE visual regression suite) under Xvfb + Mesa Lavapipe +
+#   VK_LAYER_KHRONOS_validation (CASTLE_VULKAN_VALIDATION=1)
+# - Verifies castle-engine package automatic SPIR-V shader_cache bundling
+# ----------------------------------------------------------------------------
+
+name: Vulkan RHI & Visual Regression Gate
+
+on:
+  push:
+    branches:
+      - vulkan-renderer
+      - master
+  pull_request:
+  workflow_call:
+
+defaults:
+  run:
+    shell: bash
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vulkan-rhi-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  vulkan-rhi-linux:
+    name: Vulkan RHI + Validation Layer + OpenGL vs Vulkan Visual Regression (Ubuntu Lavapipe)
+    runs-on: ubuntu-latest
+    env:
+      CASTLE_VULKAN_VALIDATION: "1"
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install FPC+Lazarus
+        run: |
+          cd /tmp/
+          git clone https://github.com/castle-engine/castle-build-ci.git --depth=1 --single-branch --branch=master
+          castle-build-ci/install_dependencies
+          castle-build-ci/setup_castle_engine --install-castle-engine=false --install-fpc=true --install-lazarus=false
+      - name: Install Vulkan Loader, Mesa Lavapipe, Validation Layers, libshaderc & glslang
+        run: |
+          sudo apt-get update
+          sudo apt-get --no-install-recommends -y install \
+            libgl-dev libx11-dev libxmu-dev libxxf86vm-dev xvfb xauth \
+            libvulkan1 libvulkan-dev mesa-vulkan-drivers vulkan-validationlayers vulkan-tools \
+            libshaderc1 glslang-tools
+      - name: Set environment
+        run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Verify Vulkan Loader & Khronos Validation Layer Discovery
+        run: vulkaninfo --summary
+      - name: Compile vkxml2pas Generator
+        run: fpc -Mobjfpc -Sh tools/internal/generate_vulkan_api/vkxml2pas.dpr
+      - name: Compile castle-engine Build Tool
+        run: ./tools/build-tool/castle-engine_compile.sh
+      - name: Package Vulkan 3D Scene & Verify Bundled SPIR-V Shader Cache + CastleDataInformation.xml
+        run: |
+          ./tools/build-tool/castle-engine --project ./examples/vulkan/vulkan_3d_scene/ compile --compiler-option=-dCASTLE_WINDOW_XLIB
+          ./tools/build-tool/castle-engine --project ./examples/vulkan/vulkan_3d_scene/ package --package-format=directory --fast
+          ls -la ./examples/vulkan/vulkan_3d_scene/vulkan_3d_scene-1.0.0-linux-x86_64/data/shader_cache/
+          test -n "$(ls -A ./examples/vulkan/vulkan_3d_scene/vulkan_3d_scene-1.0.0-linux-x86_64/data/shader_cache/*.spv)"
+          grep -q 'name="shader_cache"' ./examples/vulkan/vulkan_3d_scene/vulkan_3d_scene-1.0.0-linux-x86_64/data/auto_generated/CastleDataInformation.xml
+          grep -q 'ANDROID_VULKAN_FEATURE' ./tools/build-tool/data/android/integrated/app/src/main/AndroidManifest.xml
+      - name: Run Headless Vulkan Examples & CLI Override under Validation Gate
+        run: |
+          ./tools/build-tool/castle-engine --project ./examples/vulkan/vulkan_triangle/ compile --compiler-option=-dCASTLE_WINDOW_XLIB
+          ./examples/vulkan/vulkan_triangle/vulkan_triangle --headless --render-backend=vulkan
+          ./tools/build-tool/castle-engine --project ./examples/vulkan/vulkan_sprite_batch/ compile --compiler-option=-dCASTLE_WINDOW_XLIB
+          ./examples/vulkan/vulkan_sprite_batch/vulkan_sprite_batch --headless --render-backend=vulkan
+          ./examples/vulkan/vulkan_3d_scene/vulkan_3d_scene --headless --render-backend=vulkan
+      - name: Run TTestCastleVulkanRHI Suite (libshaderc + glslang + Flagship Demos + OpenGL vs Vulkan Visual Regression)
+        run: |
+          ./tools/build-tool/castle-engine --project ./tests/ compile --mode=debug --compiler-option=-dCASTLE_WINDOW_XLIB
+          xvfb-run -a ./tools/build-tool/castle-engine --project ./tests/ run -- --console --filter=TTestCastleVulkanRHI*
+          CASTLE_SHADER_COMPILER=builtin xvfb-run -a ./tools/build-tool/castle-engine --project ./tests/ run -- --console --filter=TTestCastleVulkanRHI.TestBuiltInSPIRVCoreShadersAndRealLavapipeDrawPrimitive2DRHI
+      - name: Verify Upstream PR Slice Manifest & Pascal uses DAG
+        run: |
+          chmod +x ./tools/internal/vulkan_upstream_slices/prepare_upstream_slices.sh
+          ./tools/internal/vulkan_upstream_slices/prepare_upstream_slices.sh --verify --summary
+      - name: Run Broader Example Catalog Vulkan Smoke & Screenshot Sweep (animations, shaders, viewport_and_scenes, physics)
+        run: |
+          chmod +x ./tools/internal/vulkan_example_sweep/run_vulkan_example_sweep.sh
+          xvfb-run -a ./tools/internal/vulkan_example_sweep/run_vulkan_example_sweep.sh --window-backend=xlib --clean-after
+
+  vulkan-rhi-macos-moltenvk:
+    name: Vulkan RHI + MoltenVK Portability Subset + Cocoa WSI (macOS Apple Silicon)
+    runs-on: macos-latest
+    env:
+      CASTLE_VULKAN_VALIDATION: "1"
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install FPC
+        run: |
+          cd /tmp/
+          git clone https://github.com/castle-engine/castle-build-ci.git --depth=1 --single-branch --branch=master
+          castle-build-ci/install_dependencies
+          castle-build-ci/setup_castle_engine --install-castle-engine=false --install-fpc=true --install-lazarus=false --os=darwin --cpu=aarch64
+      - name: Install MoltenVK, Vulkan Loader, Validation Layers, libshaderc & glslang
+        run: |
+          brew install molten-vk vulkan-loader vulkan-validationlayers vulkan-tools shaderc glslang
+          BREW_PREFIX="$(brew --prefix)"
+          for icd in \
+            "$(brew --prefix molten-vk)/etc/vulkan/icd.d/MoltenVK_icd.json" \
+            "$(brew --prefix molten-vk)/share/vulkan/icd.d/MoltenVK_icd.json" \
+            "$BREW_PREFIX/etc/vulkan/icd.d/MoltenVK_icd.json" \
+            "$BREW_PREFIX/share/vulkan/icd.d/MoltenVK_icd.json"; do
+            if [ -f "$icd" ]; then
+              echo "VK_ICD_FILENAMES=$icd" >> "$GITHUB_ENV"
+              break
+            fi
+          done
+          for layer_dir in \
+            "$(brew --prefix vulkan-validationlayers)/share/vulkan/explicit_layer.d" \
+            "$BREW_PREFIX/share/vulkan/explicit_layer.d"; do
+            if [ -d "$layer_dir" ]; then
+              echo "VK_LAYER_PATH=$layer_dir" >> "$GITHUB_ENV"
+              break
+            fi
+          done
+          echo "DYLD_FALLBACK_LIBRARY_PATH=$BREW_PREFIX/lib:$(brew --prefix molten-vk)/lib:$(brew --prefix vulkan-loader)/lib:$(brew --prefix shaderc)/lib" >> "$GITHUB_ENV"
+          echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> "$GITHUB_ENV"
+      - name: Verify Apple Metal / MoltenVK & VK_KHR_portability_subset Discovery
+        run: vulkaninfo --summary
+      - name: Compile vkxml2pas Generator & castle-engine Build Tool
+        run: |
+          fpc -Mobjfpc -Sh tools/internal/generate_vulkan_api/vkxml2pas.dpr
+          ./tools/build-tool/castle-engine_compile.sh
+      - name: Compile Cocoa WSI Examples, Package macOS .app Bundle & Verify Bundled SPIR-V Cache
+        run: |
+          ./tools/build-tool/castle-engine --project ./examples/vulkan/vulkan_3d_scene/ compile --compiler-option=-dCASTLE_WINDOW_COCOA
+          ./tools/build-tool/castle-engine --project ./examples/vulkan/vulkan_3d_scene/ package --package-format=mac-app-bundle --fast
+          APP_DIR="$(ls -1d ./examples/vulkan/vulkan_3d_scene/*.app | head -n 1)"
+          ls -la "$APP_DIR/Contents/Resources/data/shader_cache/"
+          compgen -G "$APP_DIR/Contents/Resources/data/shader_cache/*.spv" > /dev/null
+          grep -q 'name="shader_cache"' "$APP_DIR/Contents/Resources/data/auto_generated/CastleDataInformation.xml"
+          ./tools/build-tool/castle-engine --project ./examples/vulkan/vulkan_triangle/ compile --compiler-option=-dCASTLE_WINDOW_COCOA
+          ./tools/build-tool/castle-engine --project ./examples/vulkan/vulkan_triangle/ run -- --headless --render-backend=vulkan
+          ./tools/build-tool/castle-engine --project ./examples/vulkan/vulkan_sprite_batch/ compile --compiler-option=-dCASTLE_WINDOW_COCOA
+          ./tools/build-tool/castle-engine --project ./examples/vulkan/vulkan_sprite_batch/ run -- --headless --render-backend=vulkan
+          ./tools/build-tool/castle-engine --project ./examples/vulkan/vulkan_3d_scene/ run -- --headless --render-backend=vulkan
+      - name: Run TTestCastleVulkanRHI Suite Live on MoltenVK (VK_KHR_portability_subset)
+        run: |
+          ./tools/build-tool/castle-engine --project ./tests/ compile --mode=debug --compiler-option=-dCASTLE_WINDOW_COCOA
+          ./tools/build-tool/castle-engine --project ./tests/ run -- --console --no-window-create --filter=TTestCastleVulkanRHI*
+      - name: Verify Upstream PR Slice Manifest & Pascal uses DAG
+        run: |
+          chmod +x ./tools/internal/vulkan_upstream_slices/prepare_upstream_slices.sh
+          ./tools/internal/vulkan_upstream_slices/prepare_upstream_slices.sh --verify --summary
+      - name: Compile Broader Example Catalog on Cocoa WSI (animations, shaders, viewport_and_scenes, physics)
+        run: |
+          chmod +x ./tools/internal/vulkan_example_sweep/run_vulkan_example_sweep.sh
+          ./tools/internal/vulkan_example_sweep/run_vulkan_example_sweep.sh --window-backend=cocoa --compile-only --clean-after
+
+  vulkan-rhi-windows:
+    name: Vulkan RHI + Win32 WSI + Packaging (Windows x64)
+    runs-on: windows-latest
+    env:
+      CASTLE_VULKAN_VALIDATION: "1"
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install FPC
+        run: |
+          cd /tmp/
+          git clone https://github.com/castle-engine/castle-build-ci.git --depth=1 --single-branch --branch=master
+          castle-build-ci/install_dependencies
+          castle-build-ci/setup_castle_engine --install-castle-engine=false --install-fpc=true --install-lazarus=false --os=win64 --cpu=x86_64
+      - name: Configure Windows Environment
+        run: |
+          echo "WINDOWS_FORCE_GIT_BASH=true" >> "$GITHUB_ENV"
+          echo "MSYS2_ENV_CONV_EXCL=*" >> "$GITHUB_ENV"
+          echo "MSYS2_ARG_CONV_EXCL=*" >> "$GITHUB_ENV"
+          echo "MSYS_NO_PATHCONV=1" >> "$GITHUB_ENV"
+          echo "CASTLE_ENGINE_PATH=$(cygpath --mixed "$GITHUB_WORKSPACE")" >> "$GITHUB_ENV"
+      - name: Compile vkxml2pas Generator & castle-engine Build Tool
+        run: |
+          fpc -Mobjfpc -Sh tools/internal/generate_vulkan_api/vkxml2pas.dpr
+          ./tools/build-tool/castle-engine_compile.sh
+      - name: Compile Win32 WSI Examples & Verify Bundled SPIR-V Cache
+        run: |
+          ./tools/build-tool/castle-engine.exe --project ./examples/vulkan/vulkan_3d_scene/ compile --compiler-option=-dCASTLE_WINDOW_WINAPI
+          ./tools/build-tool/castle-engine.exe --project ./examples/vulkan/vulkan_3d_scene/ package --package-format=directory --fast
+          ls -la ./examples/vulkan/vulkan_3d_scene/vulkan_3d_scene-1.0.0-win64-x86_64/data/shader_cache/
+          test -n "$(ls -A ./examples/vulkan/vulkan_3d_scene/vulkan_3d_scene-1.0.0-win64-x86_64/data/shader_cache/*.spv)"
+          grep -q 'name="shader_cache"' ./examples/vulkan/vulkan_3d_scene/vulkan_3d_scene-1.0.0-win64-x86_64/data/auto_generated/CastleDataInformation.xml
+          ./tools/build-tool/castle-engine.exe --project ./examples/vulkan/vulkan_triangle/ compile --compiler-option=-dCASTLE_WINDOW_WINAPI
+          ./tools/build-tool/castle-engine.exe --project ./examples/vulkan/vulkan_sprite_batch/ compile --compiler-option=-dCASTLE_WINDOW_WINAPI
+      - name: Run TTestCastleVulkanRHI Suite on Windows x64
+        run: |
+          ./tools/build-tool/castle-engine.exe --project ./tests/ compile --mode=debug --compiler-option=-dCASTLE_WINDOW_WINAPI
+          ./tools/build-tool/castle-engine.exe --project ./tests/ run -- --console --no-window-create --filter=TTestCastleVulkanRHI*
+      - name: Verify Upstream PR Slice Manifest & Pascal uses DAG
+        run: |
+          bash ./tools/internal/vulkan_upstream_slices/prepare_upstream_slices.sh --verify --summary
+      - name: Compile Broader Example Catalog on Win32 WSI (animations, shaders, viewport_and_scenes, physics)
+        run: |
+          bash ./tools/internal/vulkan_example_sweep/run_vulkan_example_sweep.sh --window-backend=winapi --compile-only --clean-after

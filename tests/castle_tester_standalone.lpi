@@ -22,7 +22,7 @@
             <Filename Value="castle-tester"/>
           </Target>
           <SearchPaths>
-            <IncludeFiles Value="code/;code/testcases/;code/tester-castle/;../tools/common-code/"/>
+            <IncludeFiles Value="code/;code/testcases/;code/tester-castle/;../tools/common-code/;../src/common_includes/"/>
             <OtherUnitFiles Value="code/;code/testcases/;code/tester-castle/;../tools/common-code/"/>
             <UnitOutputDirectory Value="castle-engine-output/standalone/lazarus-lib/$(TargetCPU)-$(TargetOS)"/>
             <Libraries Value="" />
@@ -627,7 +627,7 @@
       <Filename Value="castle-tester"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value="code/;code/testcases/;code/tester-castle/;../tools/common-code/"/>
+      <IncludeFiles Value="code/;code/testcases/;code/tester-castle/;../tools/common-code/;../src/common_includes/"/>
       <OtherUnitFiles Value="code/;code/testcases/;code/tester-castle/;../tools/common-code/"/>
       <UnitOutputDirectory Value="castle-engine-output/standalone/lazarus-lib/$(TargetCPU)-$(TargetOS)"/>
       <Libraries Value="" />
