@@ -338,8 +338,12 @@ var
       begin
         FlushVertexes;
 
-        SavedDepthFunc := RenderContext.DepthFunc;
-        RenderContext.DepthFunc := dfNever;
+        if RenderContext <> nil then
+        begin
+          SavedDepthFunc := RenderContext.DepthFunc;
+          RenderContext.DepthFunc := dfNever;
+        end else
+          SavedDepthFunc := dfLess;
       end;
     end;
 
@@ -349,7 +353,8 @@ var
       begin
         FlushVertexes;
 
-        RenderContext.DepthFunc := SavedDepthFunc;
+        if RenderContext <> nil then
+          RenderContext.DepthFunc := SavedDepthFunc;
       end;
     end;
 
@@ -410,8 +415,13 @@ begin
      (not WholeSceneManifold) then
     Exit;
 
-  Mesh.ModelViewProjection := RenderContext.ProjectionMatrix *
-    Params.RenderingCamera.CurrentMatrix;
+  if RenderContext <> nil then
+    Mesh.ModelViewProjection := RenderContext.ProjectionMatrix *
+      Params.RenderingCamera.CurrentMatrix
+  else if (Params <> nil) and (Params.RenderingCamera <> nil) then
+    Mesh.ModelViewProjection := Params.RenderingCamera.CurrentMatrix
+  else
+    Mesh.ModelViewProjection := TMatrix4.Identity;
 
   Triangles := TrianglesListShadowCasters;
 

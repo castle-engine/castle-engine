@@ -39,6 +39,7 @@ type
     procedure SchedulePrepareResources;
     function PrepareTexture(Shape: TShape; Texture: TAbstractTextureNode): Pointer;
     function UnprepareTexture(Shape: TShape; Texture: TAbstractTextureNode): Pointer;
+    function UnprepareTextureOnContextClose(Shape: TShape; Texture: TAbstractTextureNode): Pointer;
     procedure UnprepareAllTextures;
   public
     PassedFrustumAndDistanceCulling: Boolean;
@@ -47,8 +48,14 @@ type
       OcclusionQueryId is GLObjectNone if not initialized yet.
       When it's GLObjectNone, value of OcclusionQueryAsked doesn't matter,
       OcclusionQueryAsked is always reset to @false when initializing
-      OcclusionQueryId. }
+      OcclusionQueryId.
+      When rendering via RHI/Vulkan (RHIDevice <> nil), RHIQuerySlot stores the
+      1-based query slot index allocated from TOcclusionCullingRenderer (0 = unallocated). }
     OcclusionQueryId: TGLQuery;
+    RHIQuerySlot: Cardinal;
+    RHILastAskedBank: Byte;
+    RHIBankAsked: array[0..1] of Boolean;
+    RHIBankAskedFrameId: array[0..1] of TFrameId;
     OcclusionQueryAsked: boolean;
     OcclusionQueryAskedFrameId: TFrameId;
 
@@ -145,7 +152,7 @@ type
 implementation
 
 uses Generics.Defaults, Math, SysUtils,
-  CastleScene, CastleBoxes, CastleInternalGLUtils;
+  CastleScene, CastleBoxes, CastleInternalGLUtils, CastleInternalRHI;
 
 { TGLShape --------------------------------------------------------------- }
 
@@ -263,6 +270,12 @@ begin
     TTextureResources.Unprepare(Texture);
 end;
 
+function TGLShape.UnprepareTextureOnContextClose(Shape: TShape; Texture: TAbstractTextureNode): Pointer;
+begin
+  Result := nil;
+  TTextureResources.Unprepare(Texture);
+end;
+
 function TGLShape.PrepareTexture(Shape: TShape; Texture: TAbstractTextureNode): Pointer;
 var
   RenderOptions: TCastleRenderOptions;
@@ -322,9 +335,23 @@ procedure TGLShape.GLContextClose;
   end;
 
 begin
-  UnprepareAllTextures;
+  if TexturesPrepared or (Cache <> nil) then
+  begin
+    TexturesPrepared := false;
+    if RHIDevice <> nil then
+      EnumerateTextures({$ifdef FPC}@{$endif} UnprepareTextureOnContextClose)
+    else
+      EnumerateTextures({$ifdef FPC}@{$endif} UnprepareTexture);
+  end;
   FreeCaches;
   FreeQuery(OcclusionQueryId);
+  RHIQuerySlot := 0;
+  RHILastAskedBank := 0;
+  RHIBankAsked[0] := False;
+  RHIBankAsked[1] := False;
+  RHIBankAskedFrameId[0] := 0;
+  RHIBankAskedFrameId[1] := 0;
+  OcclusionQueryAsked := false;
 end;
 
 procedure TGLShape.SchedulePrepareResources;

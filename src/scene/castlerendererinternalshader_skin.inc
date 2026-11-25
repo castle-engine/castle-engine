@@ -62,6 +62,7 @@ const
 var
   SavedWarnMissingPlugs: Boolean;
   Defines: String;
+  MaxSkinJoints: Integer;
 begin
   if Enabled then
   begin
@@ -74,9 +75,13 @@ begin
     if JointTextureUnit >= 0 then
       Defines := '#define CASTLE_JOINT_TEXTURE' + NL
     else
-      Defines := Format('#define CASTLE_MAX_SKIN_JOINTS %d', [
-        GLFeatures.MaxSkinJointsInUniforms
-      ]) + NL;
+    begin
+      if GLFeatures <> nil then
+        MaxSkinJoints := Integer(GLFeatures.MaxSkinJointsInUniforms)
+      else
+        MaxSkinJoints := 256;
+      Defines := Format('#define CASTLE_MAX_SKIN_JOINTS %d', [MaxSkinJoints]) + NL;
+    end;
 
     Shader.Plug(stVertex, Defines + ShaderSkinAnimation);
 

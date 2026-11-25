@@ -48,6 +48,9 @@ type
   }
   TBackgroundRenderer = class abstract
   private
+    FRHIRenderCount: Cardinal;
+    FRHIClearColor: TCastleColor;
+    FRHIUseClearColor: Boolean;
     { Calculate the sky sphere radius that fits nicely in given projection near/far.
 
       Background spheres (for sky and ground) are rendered at given radius.
@@ -55,6 +58,9 @@ type
       Both spheres and cube must fit nicely within your projection near/far
       to avoid any artifacts. }
     class function NearFarToSkySphereRadius(const zNear, zFar: Single): Single;
+  protected
+    FRHIProjectionMatrix: TMatrix4;
+    function GetRHIScene: TObject; virtual;
   public
     procedure Render(const RenderingCamera: TRenderingCamera;
       const Wireframe: boolean;
@@ -66,8 +72,17 @@ type
       Initially rotation is taken from TBackgroundNode.TransformRotation
       (corresponds to the rotation of Background in the X3D file transformation). }
     procedure UpdateRotation(const Rotation: TVector4); virtual;
+    procedure PrepareResources(const Options: TPrepareResourcesOptions;
+      const AParams: TPrepareParams); virtual;
     procedure FreeResources; virtual;
     procedure Update(const SecondsPassed: Single); virtual;
+
+    { RHI diagnostic state tracked during Render. }
+    property RHIRenderCount: Cardinal read FRHIRenderCount;
+    property RHIProjectionMatrix: TMatrix4 read FRHIProjectionMatrix;
+    property RHIClearColor: TCastleColor read FRHIClearColor;
+    property RHIUseClearColor: Boolean read FRHIUseClearColor;
+    property RHIScene: TObject read GetRHIScene;
   end;
 
 { Create background renderer.
@@ -78,7 +93,8 @@ implementation
 
 uses Math,
   CastleLog, CastleScene, X3DFields, CastleSceneCore, CastleGLImages,
-  CastleRenderContext, CastleRenderOptions, CastleInternalGLUtils;
+  CastleRenderContext, CastleRenderOptions, CastleInternalGLUtils,
+  CastleInternalRHI;
 
 const
   { Background rendering doesn't use the same projection near/far as other content.
@@ -120,6 +136,11 @@ begin
   Result := (Min + Max) / 2;
 end;
 
+function TBackgroundRenderer.GetRHIScene: TObject;
+begin
+  Result := nil;
+end;
+
 procedure TBackgroundRenderer.Render(const RenderingCamera: TRenderingCamera;
   const Wireframe: boolean;
   const RenderRect: TFloatRectangle;
@@ -130,6 +151,11 @@ begin
 end;
 
 procedure TBackgroundRenderer.UpdateRotation(const Rotation: TVector4);
+begin
+end;
+
+procedure TBackgroundRenderer.PrepareResources(const Options: TPrepareResourcesOptions;
+  const AParams: TPrepareParams);
 begin
 end;
 
@@ -154,6 +180,7 @@ type
     Params: TBasicRenderParams;
     ClearColor: TCastleColor;
     UseClearColor: Boolean;
+    function GetRHIScene: TObject; override;
   public
     constructor Create;
     destructor Destroy; override;
@@ -163,9 +190,16 @@ type
       const CurrentProjection: TProjection;
       const AllShapesCollector, FilteredShapesCollector: TShapesCollector;
       const ShapesRenderer: TShapesRenderer); override;
+    procedure PrepareResources(const Options: TPrepareResourcesOptions;
+      const AParams: TPrepareParams); override;
     procedure FreeResources; override;
     procedure Update(const SecondsPassed: Single); override;
   end;
+
+function TBackgroundScene.GetRHIScene: TObject;
+begin
+  Result := Scene;
+end;
 
 constructor TBackgroundScene.Create;
 begin
@@ -269,11 +303,33 @@ begin
   else
     Scene.RenderOptions.WireframeEffect := weNormal;
 
-  if UseClearColor then
+  FRHIClearColor := ClearColor;
+  FRHIUseClearColor := UseClearColor;
+  if RenderContext <> nil then
+    FRHIProjectionMatrix := RenderContext.ProjectionMatrix;
+  Inc(FRHIRenderCount);
+
+  if UseClearColor and (RenderContext <> nil) then
     RenderContext.Clear([cbColor], ClearColor);
 
-  ShapesCollect;
-  ShapesRender;
+  if (AllShapesCollector <> nil) and (FilteredShapesCollector <> nil) and
+     (ShapesRenderer <> nil) then
+  begin
+    ShapesCollect;
+    ShapesRender;
+  end;
+end;
+
+procedure TBackgroundScene.PrepareResources(const Options: TPrepareResourcesOptions;
+  const AParams: TPrepareParams);
+begin
+  inherited;
+  if Scene <> nil then
+  begin
+    {$warnings off}
+    Scene.PrepareResources(Options - [prBackground, prScreenEffects], AParams);
+    {$warnings on}
+  end;
 end;
 
 procedure TBackgroundScene.FreeResources;
@@ -713,7 +769,7 @@ procedure TBackground3D.Render(const RenderingCamera: TRenderingCamera;
   const AllShapesCollector, FilteredShapesCollector: TShapesCollector;
   const ShapesRenderer: TShapesRenderer);
 var
-  SavedProjectionMatrix: TMatrix4;
+  SavedProjectionMatrix, NewProjectionMatrix: TMatrix4;
   AspectRatio: Single;
   TempProjection: TProjection;
 begin
@@ -729,24 +785,35 @@ begin
     We need to set our own BgProjectionNear/Far,
     in order for SkySphereRadius be valid. }
 
-  SavedProjectionMatrix := RenderContext.ProjectionMatrix;
+  if RenderContext <> nil then
+    SavedProjectionMatrix := RenderContext.ProjectionMatrix
+  else
+    SavedProjectionMatrix := TMatrix4.Identity;
 
-  AspectRatio := RenderRect.Width / RenderRect.Height;
+  if RenderRect.Height > 0 then
+    AspectRatio := RenderRect.Width / RenderRect.Height
+  else
+    AspectRatio := 1.0;
   if CurrentProjection.ProjectionType = ptOrthographic then
   begin
-    RenderContext.ProjectionMatrix := PerspectiveProjectionMatrixDeg(
+    NewProjectionMatrix := PerspectiveProjectionMatrixDeg(
       45, AspectRatio, BgProjectionNear, BgProjectionFar)
   end else
   begin
     TempProjection := CurrentProjection;
     TempProjection.ProjectionNear := BgProjectionNear;
     TempProjection.ProjectionFar := BgProjectionFar;
-    RenderContext.ProjectionMatrix := TempProjection.Matrix(AspectRatio);
+    NewProjectionMatrix := TempProjection.Matrix(AspectRatio);
   end;
+
+  FRHIProjectionMatrix := NewProjectionMatrix;
+  if RenderContext <> nil then
+    RenderContext.ProjectionMatrix := NewProjectionMatrix;
 
   inherited;
 
-  RenderContext.ProjectionMatrix := SavedProjectionMatrix;
+  if RenderContext <> nil then
+    RenderContext.ProjectionMatrix := SavedProjectionMatrix;
 end;
 
 { TBackground2D --------------------------------------------------------------- }
@@ -844,30 +911,46 @@ procedure TBackground2D.Render(const RenderingCamera: TRenderingCamera;
   end;
 
 var
-  SavedProjectionMatrix, SavedModelviewMatrix: TMatrix4;
+  SavedProjectionMatrix, SavedModelviewMatrix, NewProjectionMatrix: TMatrix4;
 begin
   if Texture2D = nil then Exit;
 
   UpdateProperties;
 
   { Our Scene geometry assumes that modelview matrix is identity }
-  if GLFeatures.EnableFixedFunction then
+  if (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.EnableFixedFunction then
   begin
     {$ifndef OpenGLES}
     glLoadMatrix(TMatrix4.Identity);
     {$endif}
   end;
-  SavedModelviewMatrix := RenderingCamera.RotationMatrix;
-  RenderingCamera.RotationMatrix := TMatrix4.Identity;
+  if RenderingCamera <> nil then
+  begin
+    SavedModelviewMatrix := RenderingCamera.RotationMatrix;
+    RenderingCamera.RotationMatrix := TMatrix4.Identity;
+  end else
+    SavedModelviewMatrix := TMatrix4.Identity;
 
   { Our Scene geometry assumes an orthographic projection (-1,-1) - (1,1) }
-  SavedProjectionMatrix := RenderContext.ProjectionMatrix;
-  OrthoProjection(FloatRectangle(-1, -1, 2, 2));
+  if RenderContext <> nil then
+    SavedProjectionMatrix := RenderContext.ProjectionMatrix
+  else
+    SavedProjectionMatrix := TMatrix4.Identity;
+
+  NewProjectionMatrix := OrthoProjectionMatrix(FloatRectangle(-1, -1, 2, 2), -1, 1);
+  FRHIProjectionMatrix := NewProjectionMatrix;
+  if (RHIDevice = nil) and (RenderContext <> nil) then
+    OrthoProjection(FloatRectangle(-1, -1, 2, 2))
+  else
+  if RenderContext <> nil then
+    RenderContext.ProjectionMatrix := NewProjectionMatrix;
 
   inherited;
 
-  RenderContext.ProjectionMatrix := SavedProjectionMatrix;
-  RenderingCamera.RotationMatrix := SavedModelviewMatrix;
+  if RenderContext <> nil then
+    RenderContext.ProjectionMatrix := SavedProjectionMatrix;
+  if RenderingCamera <> nil then
+    RenderingCamera.RotationMatrix := SavedModelviewMatrix;
 end;
 
 { global routines ------------------------------------------------------------ }

@@ -382,7 +382,7 @@ begin
     end;
   end;
 
-  FAlphaChannelData := FTextureImage.AlphaChannel;
+  if FTextureImage <> nil then FAlphaChannelData := FTextureImage.AlphaChannel else FAlphaChannelData := acNone;
 end;
 
 function TPixelTexture3DNode.AlphaChannelData: TAlphaChannel;

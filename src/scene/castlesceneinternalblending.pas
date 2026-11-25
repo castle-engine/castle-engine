@@ -71,7 +71,7 @@ implementation
 uses SysUtils,
   {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleLog, X3DNodes, CastleScene, CastleTimeUtils, CastleRenderContext,
-  CastleColors, CastleVectors;
+  CastleColors, CastleVectors, CastleInternalRHI;
 
 { TBlendingRenderer ---------------------------------------------------------- }
 
@@ -148,9 +148,11 @@ begin
     So just set them always, if needed. }
   if ( (NewSrc in SrcConstColor) or (NewDest in DestConstColor) or
        (NewSrc in SrcConstAlpha) or (NewDest in DestConstAlpha) ) and
-     GLFeatures.BlendConstant then
+     ((RHIDevice <> nil) or ((GLFeatures <> nil) and GLFeatures.BlendConstant)) then
   begin
-    glBlendColor(NewConstColor.X, NewConstColor.Y, NewConstColor.Z, NewConstColor.W);
+    RenderContext.BlendingConstantColor := NewConstColor;
+    if (GLFeatures <> nil) and GLFeatures.BlendConstant then
+      glBlendColor(NewConstColor.X, NewConstColor.Y, NewConstColor.Z, NewConstColor.W);
   end;
 end;
 

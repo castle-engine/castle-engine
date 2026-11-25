@@ -852,6 +852,7 @@ procedure TCastleInspector.ChangeProfilerMore(Sender: TObject);
 begin
   RectStatsMore.Exists := RectProfiler.Exists and CheckboxProfilerMore.Checked;
   UpdateLabelProfilerHeader;
+  UpdateLabelStatsMore;
 end;
 
 procedure TCastleInspector.ProfilerSummaryAvailable(Sender: TObject);
@@ -867,13 +868,16 @@ begin
   Data := @ProfilerData[ProfilerDataLast];
 
   TotalTime := FrameProfiler.SummaryTotalFrameTime;
-
-  // fmRender includes fmRenderSwapFlush, we make them separate for display
-  Data^.Time[pmRender] := (FrameProfiler.SummaryTime(fmRender) - FrameProfiler.SummaryTime(fmRenderSwapFlush)) / TotalTime;
-  Data^.Time[pmSwap] := FrameProfiler.SummaryTime(fmRenderSwapFlush) / TotalTime;
-  // fmUpdate includes fmUpdatePhysics, we make them separate for display
-  Data^.Time[pmUpdate] := (FrameProfiler.SummaryTime(fmUpdate) - FrameProfiler.SummaryTime(fmUpdatePhysics)) / TotalTime;
-  Data^.Time[pmPhysics] := FrameProfiler.SummaryTime(fmUpdatePhysics) / TotalTime;
+  if TotalTime > 0 then
+  begin
+    // fmRender includes fmRenderSwapFlush, we make them separate for display
+    Data^.Time[pmRender] := (FrameProfiler.SummaryTime(fmRender) - FrameProfiler.SummaryTime(fmRenderSwapFlush)) / TotalTime;
+    Data^.Time[pmSwap] := FrameProfiler.SummaryTime(fmRenderSwapFlush) / TotalTime;
+    // fmUpdate includes fmUpdatePhysics, we make them separate for display
+    Data^.Time[pmUpdate] := (FrameProfiler.SummaryTime(fmUpdate) - FrameProfiler.SummaryTime(fmUpdatePhysics)) / TotalTime;
+    Data^.Time[pmPhysics] := FrameProfiler.SummaryTime(fmUpdatePhysics) / TotalTime;
+  end else
+    FillChar(Data^.Time, SizeOf(Data^.Time), 0);
 
   Data^.Fps := Container.Fps.RealFps;
 
@@ -1046,8 +1050,11 @@ procedure TCastleInspector.SetSelectedComponent(const Value: TComponent);
 begin
   if FSelectedComponent <> Value then
   begin
-    RectProperties.SelectedComponent := Value;
-    RectHierarchy.SelectedComponent := Value;
+    FSelectedComponent := Value;
+    if RectProperties <> nil then
+      RectProperties.SelectedComponent := Value;
+    if RectHierarchy <> nil then
+      RectHierarchy.SelectedComponent := Value;
   end;
 end;
 

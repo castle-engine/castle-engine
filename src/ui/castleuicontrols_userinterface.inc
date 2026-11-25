@@ -2140,7 +2140,7 @@ procedure TCastleUserInterface.InternalRecursiveRender(const ViewportRect: TRect
     {$warnings off} // using deprecated ContainerRect
     ResultInt := ContainerRect;
     {$warnings on}
-    if RenderContext.FinalScissor(ScissorRect) then
+    if (RenderContext <> nil) and RenderContext.FinalScissor(ScissorRect) then
       ResultInt := ResultInt * ScissorRect;
     Result := FloatRectangle(ResultInt);
   end;

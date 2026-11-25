@@ -1334,6 +1334,8 @@ begin
   {$ifndef CASTLE_SLIM_NODES}
   Result := FdfogCoord.Enumerate(Func);
   if Result <> nil then Exit;
+  Result := FdNormal.Enumerate(Func);
+  if Result <> nil then Exit;
   {$endif}
 
   Result := FdNormal.Enumerate(Func);
@@ -1644,6 +1646,8 @@ begin
   {$ifndef CASTLE_SLIM_NODES}
   Result := FdfogCoord.Enumerate(Func);
   if Result <> nil then Exit;
+  Result := FdNormal.Enumerate(Func);
+  if Result <> nil then Exit;
   {$endif}
 end;
 
@@ -1719,6 +1723,8 @@ begin
 
   {$ifndef CASTLE_SLIM_NODES}
   Result := FdfogCoord.Enumerate(Func);
+  if Result <> nil then Exit;
+  Result := FdNormal.Enumerate(Func);
   if Result <> nil then Exit;
   {$endif}
 end;

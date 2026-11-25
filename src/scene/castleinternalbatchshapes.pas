@@ -78,6 +78,8 @@ type
 
       FPoolGeometries: TGroupNode;
       LogIncreaseSlotsDone: Boolean;
+      FRHICommitBatchCount: Cardinal;
+      FRHILastMergedShape: TGLShape;
 
     { Add CollectedSource into CollectedTarget.
       You can assume that CollectedTarget is one of our pool shapes,
@@ -143,12 +145,17 @@ type
       to make sure further usage of them will be fast. }
     property PoolShapes[const Index: Integer]: TGLShape read GetPoolShapes;
     function PoolShapesCount: Integer;
+
+    { RHI batching statistics and last merged pool shape.
+      @exclude }
+    property RHICommitBatchCount: Cardinal read FRHICommitBatchCount;
+    property RHILastMergedShape: TGLShape read FRHILastMergedShape;
   end;
 
 implementation
 
 uses SysUtils,
-  CastleUtils, CastleLog, CastleVectors, CastleRenderOptions;
+  CastleUtils, CastleLog, CastleVectors, CastleRenderOptions, CastleInternalRHI;
 
 {.$define CASTLE_DEBUG_BATCHING}
 
@@ -162,6 +169,9 @@ procedure ChangeAppearance(const Shape: TGLShape; const NewAppearance: TAppearan
 begin
   Shape.Node.FdAppearance.Value := NewAppearance;
   Shape.State.Appearance := NewAppearance;
+  if Shape.OriginalState <> nil then
+    Shape.OriginalState.Appearance := NewAppearance;
+  Shape.RHIBindlessMaterialRegistered := False;
 end;
 
 constructor TBatchShapes.Create;
@@ -842,6 +852,15 @@ begin
           }
           chCoordinate, chTextureCoordinate, chGeometry
         ]);
+
+        if RHIDevice <> nil then
+        begin
+          FMergeTarget[P, Slot].Shape.PrepareRHIBuffers(
+            FMergeTarget[P, Slot].RenderOptions,
+            Ord(P in MergePipelinesWithTexCoord));
+          FRHILastMergedShape := FMergeTarget[P, Slot].Shape;
+          Inc(FRHICommitBatchCount);
+        end;
       end;
     end;
 

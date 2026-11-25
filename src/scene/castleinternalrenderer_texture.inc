@@ -24,6 +24,13 @@
   { OpenGL resource of a texture node. }
   TTextureResource = class(TRendererResource)
   protected
+    FRHISampler: TRHISampler;
+    FPreparedForRHI: Boolean;
+    procedure CreateRHISampler(
+      const AFilter: TTextureFilter;
+      const ABoundaryS, ABoundaryT, ABoundaryR: TGLenum;
+      const AAnisotropy: Single;
+      const AMipLevels: Cardinal);
     { Calculate things from TextureProperties node.
       If TextureProperties = @nil, they are taken from defaults
       (possibly in RenderOptions) and BoundaryModeS/-T are taken
@@ -147,6 +154,7 @@
     { How to query this texture type from shaders.
       @false if this texture type is not supported by simple query in shaders. }
     function ShaderTextureType(out TextureType: TTextureType): Boolean; virtual;
+    property RHISampler: TRHISampler read FRHISampler;
   end;
 
   { Manage TTextureResource connected to X3D nodes.
@@ -240,6 +248,10 @@
   strict private
     FGLName: TGLTexture;
     FAllocatedWidth, FAllocatedHeight: Cardinal;
+    FRHITexture: TRHITexture;
+    FLastFloatBytes: array of Byte;
+    function GetRHIJointFloatData: Pointer;
+    function GetRHIJointFloatSize: PtrUInt;
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
     procedure PrepareCore(
@@ -262,10 +274,20 @@
 
     procedure UpdateTextureContentsRgbaFloat(
       const Width, Height: Cardinal; const Data: Pointer); override;
+
+    property AllocatedWidth: Cardinal read FAllocatedWidth;
+    property AllocatedHeight: Cardinal read FAllocatedHeight;
+    property RHITexture: TRHITexture read FRHITexture;
+    property RHIJointFloatData: Pointer read GetRHIJointFloatData;
+    property RHIJointFloatSize: PtrUInt read GetRHIJointFloatSize;
   end;
 
   { Renderer resource for TMovieTextureNode. }
   TMovieTextureResource = class(T2DTextureResource)
+  strict private
+    FRHITextureFrames: array of TRHITexture;
+    FFramesPerSecond: Single;
+    FTimeLoop, FTimeBackwards: Boolean;
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
     procedure PrepareCore(
@@ -284,6 +306,8 @@
       Shader: TShader; const Env: TTextureEnv): boolean; override;
     function ShaderTextureType(out TextureType: TTextureType): Boolean; override;
     function GLName: TGLTextureId; override;
+    function RHITexture: TRHITexture;
+    function RHIFrameCount: Cardinal;
   end;
 
   { Renderer resource for TRenderedTextureNode. }
@@ -291,6 +315,9 @@
   strict private
     FGLName: TGLTexture;
     RenderToTexture: TGLRenderToTexture;
+    FRHITexture: TRHITexture;
+    FRHIDepthTexture: TRHITexture;
+    FRHIUpdateCount: Cardinal;
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
     procedure PrepareCore(
@@ -319,11 +346,17 @@
       const CameraViewKnown: boolean;
       const CameraView: TViewVectors;
       const ShapeForViewpointMirror: TX3DRendererShape);
+
+    property RHITexture: TRHITexture read FRHITexture;
+    property RHIDepthTexture: TRHITexture read FRHIDepthTexture;
+    property RHIRenderToTexture: TGLRenderToTexture read RenderToTexture;
+    property RHIUpdateCount: Cardinal read FRHIUpdateCount;
   end;
 
   { Abstract renderer resource for TAbstractEnvironmentTextureNode. }
   TCubeMapTextureResource = class(TSingleTextureResource)
   protected
+    FRHITexture: TRHITexture;
     { Releases GLName by TextureCubeMap_DecReference.
       Suitable for descendants tht initialize GLName by
       TextureCubeMap_IncReference. }
@@ -340,6 +373,8 @@
     function Enable(const TextureUnit: Cardinal;
       Shader: TShader; const Env: TTextureEnv): boolean; override;
     function ShaderTextureType(out TextureType: TTextureType): Boolean; override;
+
+    property RHITexture: TRHITexture read FRHITexture;
   end;
 
   { Renderer resource for TComposedCubeMapTextureNode. }
@@ -366,6 +401,9 @@
   TGeneratedCubeMapTextureResource = class(TCubeMapTextureResource)
   private
     RenderToTexture: TGLRenderToTexture;
+    FRHIDepthTexture: TRHITexture;
+    FRHIFacesRenderedCount: Cardinal;
+    FRHIUpdateCount: Cardinal;
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
     procedure PrepareCore(
@@ -386,10 +424,17 @@
       const Render: TRenderFromViewFunction;
       const ProjectionNear, ProjectionFar: Single;
       const CubeMiddle: TVector3);
+
+    property RHIDepthTexture: TRHITexture read FRHIDepthTexture;
+    property RHIRenderToTexture: TGLRenderToTexture read RenderToTexture;
+    property RHIFacesRenderedCount: Cardinal read FRHIFacesRenderedCount;
+    property RHIUpdateCount: Cardinal read FRHIUpdateCount;
   end;
 
   { Renderer resource for TAbstractTexture3DNode. }
   T3DTextureResource = class(TSingleTextureResource)
+  strict private
+    FRHITexture: TRHITexture;
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
     procedure PrepareCore(
@@ -407,6 +452,8 @@
     function Enable(const TextureUnit: Cardinal;
       Shader: TShader; const Env: TTextureEnv): boolean; override;
     function ShaderTextureType(out TextureType: TTextureType): Boolean; override;
+
+    property RHITexture: TRHITexture read FRHITexture;
   end;
 
   { Renderer resource for TGeneratedShadowMapNode. }
@@ -418,6 +465,10 @@
     NeedsMipmaps: boolean;
     FGLName: TGLTexture;
     WarninigDoneCannotEnable: Boolean;
+    FRHITexture: TRHITexture;
+    FRHIDepthTexture: TRHITexture;
+    FRHIUpdateCount: Cardinal;
+    function GetRHIDepthTexture: TRHITexture;
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
     procedure PrepareCore(
@@ -443,6 +494,12 @@
     { Check would we use Variance Shadow Maps with current ARenderer
       attributes and OpenGL version/extensions. }
     class function ClassVarianceShadowMaps(RenderOptions: TCastleRenderOptions): boolean;
+
+    property RHITexture: TRHITexture read FRHITexture;
+    property RHIDepthTexture: TRHITexture read GetRHIDepthTexture;
+    property RHISampler: TRHISampler read FRHISampler;
+    property RHIRenderToTexture: TGLRenderToTexture read RenderToTexture;
+    property RHIUpdateCount: Cardinal read FRHIUpdateCount;
   end;
 
   { Renderer resource for TShaderTextureNode. }
@@ -480,7 +537,10 @@ begin
   if IsRepeat then
     Result := GL_REPEAT
   else
-    Result := GLFeatures.CLAMP_TO_EDGE;
+  if GLFeatures <> nil then
+    Result := GLFeatures.CLAMP_TO_EDGE
+  else
+    Result := GL_CLAMP_TO_EDGE;
 end;
 
 { TTextureResource ------------------------------------------------------------- }
@@ -514,7 +574,7 @@ procedure TTextureResource.HandleTextureProperties(
 
     { Use GLFeatures.CLAMP_TO_EDGE instead of GL_CLAMP_TO_EDGE, to support even
       ancient OpenGL versions that don't support GL_CLAMP_TO_EDGE. }
-    if Result = GL_CLAMP_TO_EDGE then
+    if (Result = GL_CLAMP_TO_EDGE) and (GLFeatures <> nil) then
       Result := GLFeatures.CLAMP_TO_EDGE;
   end;
 
@@ -524,6 +584,9 @@ procedure TTextureResource.HandleTextureProperties(
   begin
     case FilterAuto of
       minDefault:
+        if RenderOptions = nil then
+          Result := TCastleRenderOptions.DefaultMinificationFilter
+        else
         case RenderOptions.MinificationFilter of
           minDefault: Result := TCastleRenderOptions.DefaultMinificationFilter;
           minFastest: Result := minNearest;
@@ -542,6 +605,9 @@ procedure TTextureResource.HandleTextureProperties(
   begin
     case FilterAuto of
       magDefault:
+        if RenderOptions = nil then
+          Result := TCastleRenderOptions.DefaultMagnificationFilter
+        else
         case RenderOptions.MagnificationFilter of
           magDefault: Result := TCastleRenderOptions.DefaultMagnificationFilter;
           magFastest: Result := magNearest;
@@ -556,6 +622,13 @@ procedure TTextureResource.HandleTextureProperties(
 
   function TextureFilter(const RenderOptions: TCastleRenderOptions): TTextureFilter;
   begin
+    if RenderOptions = nil then
+    begin
+      Result.Minification := TCastleRenderOptions.DefaultMinificationFilter;
+      Result.Magnification := TCastleRenderOptions.DefaultMagnificationFilter;
+      Exit;
+    end;
+
     case RenderOptions.MinificationFilter of
       minDefault: Result.Minification := TCastleRenderOptions.DefaultMinificationFilter;
       minFastest: Result.Minification := minNearest;
@@ -576,6 +649,8 @@ begin
   begin
     Filter.Minification := FinalMinificationFilter(TextureProperties.MinificationFilter);
     Filter.Magnification := FinalMagnificationFilter(TextureProperties.MagnificationFilter);
+    if TextureProperties.GUITexture then
+      Filter.DisableMipmaps;
     Anisotropy := TextureProperties.AnisotropicDegree;
     GUITexture := TextureProperties.GUITexture;
 
@@ -672,13 +747,70 @@ begin
   Result := false;
 end;
 
+procedure TTextureResource.CreateRHISampler(
+  const AFilter: TTextureFilter;
+  const ABoundaryS, ABoundaryT, ABoundaryR: TGLenum;
+  const AAnisotropy: Single;
+  const AMipLevels: Cardinal);
+
+  function BoundaryGLToRHI(const ABoundary: TGLenum): TRHISamplerAddressMode;
+  begin
+    if ABoundary = GL_REPEAT then
+      Result := amRepeat
+    else if ABoundary = GL_MIRRORED_REPEAT then
+      Result := amMirroredRepeat
+    else
+      Result := amClampToEdge;
+  end;
+
+var
+  SamplerDesc: TRHISamplerDesc;
+begin
+  FreeAndNil(FRHISampler);
+  if RHIDevice = nil then
+    Exit;
+  FillChar(SamplerDesc, SizeOf(SamplerDesc), 0);
+  case AFilter.Minification of
+    minNearest, minNearestMipmapNearest, minNearestMipmapLinear:
+      SamplerDesc.MinFilter := sfNearest;
+  else
+    SamplerDesc.MinFilter := sfLinear;
+  end;
+  case AFilter.Magnification of
+    magNearest: SamplerDesc.MagFilter := sfNearest;
+  else
+    SamplerDesc.MagFilter := sfLinear;
+  end;
+  case AFilter.Minification of
+    minNearestMipmapLinear, minLinearMipmapLinear:
+      SamplerDesc.MipFilter := sfLinear;
+  else
+    SamplerDesc.MipFilter := sfNearest;
+  end;
+  SamplerDesc.AddressModeU := BoundaryGLToRHI(ABoundaryS);
+  SamplerDesc.AddressModeV := BoundaryGLToRHI(ABoundaryT);
+  SamplerDesc.AddressModeW := BoundaryGLToRHI(ABoundaryR);
+  SamplerDesc.MaxAnisotropy := Max(1.0, AAnisotropy);
+  SamplerDesc.CompareEnable := False;
+  SamplerDesc.CompareOp := coAlways;
+  SamplerDesc.MinLod := 0.0;
+  if AMipLevels > 1 then
+    SamplerDesc.MaxLod := Single(AMipLevels - 1)
+  else
+    SamplerDesc.MaxLod := 0.0;
+  FRHISampler := RHIDevice.CreateSampler(SamplerDesc);
+end;
+
 { TTextureResources ------------------------------------------------------------ }
 
 class function TTextureResources.Get(const ANode: TAbstractTextureNode): TTextureResource;
 begin
   if ANode <> nil then
-    Result := TTextureResource(ANode.InternalRendererResource)
-  else
+  begin
+    Result := TTextureResource(ANode.InternalRendererResource);
+    if (Result <> nil) and (Result.FPreparedForRHI <> (RHIDevice <> nil)) then
+      Result := nil;
+  end else
     Result := nil;
 end;
 
@@ -689,13 +821,18 @@ var
   TextureRes: TTextureResource;
   TextureResClass: TTextureResourceClass;
 begin
-  if (ANode <> nil) and
-     (ANode.InternalRendererResource = nil) then
+  if ANode = nil then
+    Exit;
+  if (ANode.InternalRendererResource <> nil) and
+     (TTextureResource(ANode.InternalRendererResource).FPreparedForRHI <> (RHIDevice <> nil)) then
+    ANode.InternalRendererResourceFree;
+  if ANode.InternalRendererResource = nil then
   begin
     TextureResClass := TTextureResourceClass.ClassForTextureNode(ANode);
     if TextureResClass <> nil { Ignore if not handled node. } then
     begin
       TextureRes := TextureResClass.Create(ANode);
+      TextureRes.FPreparedForRHI := RHIDevice <> nil;
       TextureRes.Prepare(RenderOptions);
       ANode.InternalRendererResource := TextureRes;
     end;
@@ -789,7 +926,7 @@ begin
   if (TextureUnitsCount > 0) and
      Enable(TextureSlotsUsed, Shader, Env) then
   begin
-    if GLFeatures.EnableFixedFunction then
+    if (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.EnableFixedFunction then
     begin
       {$ifndef OpenGLES}
       { Here we know that Env was initialized above.
@@ -897,7 +1034,7 @@ begin
   InitialTextureSlotsUsed := TextureSlotsUsed;
   TextureSlotsUsed := TextureSlotsUsed + TextureNode.FdTexture.Count;
   MinVar(TextureSlotsUsed, TextureUnitsCount);
-  if not GLFeatures.UseMultiTexturing then
+  if (RHIDevice = nil) and (GLFeatures <> nil) and (not GLFeatures.UseMultiTexturing) then
     MinVar(TextureSlotsUsed, 1);
 
   { TODO: Passing it to shader this way precludes ability to later change it
@@ -937,7 +1074,7 @@ begin
           InitialTextureSlotsUsed + I, Shader, Env);
 
       { Apply Env for fixed-function pipeline. }
-      if Success and GLFeatures.UseMultiTexturing { needed OpenGL exts available } then
+      if Success and (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.UseMultiTexturing { needed OpenGL exts available } then
       begin
         { Set all the multitexture mode-related stuff.
           Below we handle TextureNode.mode, source, color, alpha,
@@ -1036,12 +1173,135 @@ var
   BoundaryModeT: TGLenum;
   TextureWrap: TTextureWrap2D;
   GUITexture, FlipVertically: boolean;
+  MipLevels, MipIdx: Cardinal;
+  TexFormat: TRHIPixelFormat;
+  TexDesc: TRHITextureDesc;
+  TempFlipped: TCastleImage;
+  TempFloat: TRGBAlphaFloatImage;
+  CacheFullUrl: String;
 begin
   { HandledNode already made sure IsTextureImage = @true }
 
   HandleTextureProperties(TextureNode.TextureProperties, RenderOptions,
     TextureRepeatToGL(TextureNode.RepeatS), TextureRepeatToGL(TextureNode.RepeatT),
     Filter, BoundaryModeS, BoundaryModeT, Anisotropy, GUITexture);
+
+  if RHIDevice <> nil then
+  begin
+    if TextureNode.TextureImage <> nil then
+    begin
+      if FRHITexture <> nil then
+        RendererCache.RHITextureImage_DecReference(FRHITexture);
+      FlipVertically :=
+        (TextureNode is TImageTextureNode) and
+        TImageTextureNode(TextureNode).FlipVertically;
+      CacheFullUrl := Iff(TextureNode.TextureUsedFullUrl <> '',
+        TextureNode.TextureUsedFullUrl, TextureNode.TextureImage.URL);
+      TexFormat := EncodedImageToRHIPixelFormat(TextureNode.TextureImage);
+      if (CacheFullUrl <> '') and (TexFormat <> pfRGBA32_Float) then
+      begin
+        FRHITexture := RendererCache.FindRHITextureImage(
+          CacheFullUrl, FlipVertically, Filter, GUITexture, GLTextureScale,
+          FAllocatedWidth, FAllocatedHeight);
+        if FRHITexture <> nil then
+        begin
+          SetLength(FLastFloatBytes, 0);
+          CreateRHISampler(Filter, BoundaryModeS, BoundaryModeT, GL_CLAMP_TO_EDGE,
+            Anisotropy, Max(Cardinal(1), FRHITexture.Desc.MipLevels));
+          Exit;
+        end;
+      end;
+      FAllocatedWidth := Max(Cardinal(1), TextureNode.TextureImage.Width);
+      FAllocatedHeight := Max(Cardinal(1), TextureNode.TextureImage.Height);
+      if (not GUITexture) and (GLTextureScale > 1) and
+         (TextureNode.TextureImage is TCastleImage) and
+         (TexFormat <> pfRGBA32_Float) and
+         ((TextureNode.TextureComposite = nil) or (not TextureNode.TextureComposite.Mipmaps)) then
+      begin
+        if FAllocatedWidth > GLTextureMinSize then
+          FAllocatedWidth := Max(FAllocatedWidth shr (GLTextureScale - 1), GLTextureMinSize);
+        if FAllocatedHeight > GLTextureMinSize then
+          FAllocatedHeight := Max(FAllocatedHeight shr (GLTextureScale - 1), GLTextureMinSize);
+      end;
+      if Filter.NeedsMipmaps then
+      begin
+        if (TextureNode.TextureComposite <> nil) and TextureNode.TextureComposite.Mipmaps and
+           (TextureNode.TextureComposite.Images.Count > 0) then
+          MipLevels := Max(Cardinal(1), Cardinal(TextureNode.TextureComposite.Images.Count))
+        else if TextureNode.TextureImage is TGPUCompressedImage then
+          MipLevels := 1
+        else
+          MipLevels := CalculateTextureMipLevels(Max(FAllocatedWidth, FAllocatedHeight));
+      end else
+        MipLevels := 1;
+      TexDesc := TRHITextureDesc.Create2D(FAllocatedWidth, FAllocatedHeight,
+        TexFormat, [tuSampled, tuTransferDst, tuTransferSrc], MipLevels, 1);
+      TexDesc.DebugName := 'ImageTexture';
+      FRHITexture := RHIDevice.CreateTexture(TexDesc);
+      if ((FlipVertically and (TextureNode.TextureUsedFullUrl = '')) or
+          (FAllocatedWidth <> TextureNode.TextureImage.Width) or
+          (FAllocatedHeight <> TextureNode.TextureImage.Height)) and
+         (TextureNode.TextureImage is TCastleImage) then
+      begin
+        TempFlipped := TCastleImage(TextureNode.TextureImage).MakeCopy;
+        try
+          if FlipVertically and (TextureNode.TextureUsedFullUrl = '') then
+            TempFlipped.FlipVertical;
+          if (FAllocatedWidth <> TempFlipped.Width) or
+             (FAllocatedHeight <> TempFlipped.Height) then
+            TempFlipped.Resize(FAllocatedWidth, FAllocatedHeight, riBilinear);
+          FRHITexture.UploadImage(TempFlipped, 0, 0);
+        finally
+          FreeAndNil(TempFlipped);
+        end;
+      end else
+        FRHITexture.UploadImage(TextureNode.TextureImage, 0, 0);
+      if (TexFormat = pfRGBA32_Float) and (TextureNode.TextureImage is TCastleImage) then
+      begin
+        SetLength(FLastFloatBytes, PtrUInt(FAllocatedWidth) * PtrUInt(FAllocatedHeight) * SizeOf(TVector4));
+        if Length(FLastFloatBytes) > 0 then
+        begin
+          if (TextureNode.TextureImage is TRGBAlphaFloatImage) and
+             (TextureNode.TextureImage.RawPixels <> nil) then
+            Move(TextureNode.TextureImage.RawPixels^, FLastFloatBytes[0], Length(FLastFloatBytes))
+          else
+          begin
+            TempFloat := TRGBAlphaFloatImage.Create(FAllocatedWidth, FAllocatedHeight);
+            try
+              TempFloat.Assign(TCastleImage(TextureNode.TextureImage));
+              Move(TempFloat.RawPixels^, FLastFloatBytes[0], Length(FLastFloatBytes));
+            finally
+              FreeAndNil(TempFloat);
+            end;
+          end;
+        end;
+      end else
+        SetLength(FLastFloatBytes, 0);
+      if (MipLevels > 1) and (TextureNode.TextureComposite <> nil) and
+         TextureNode.TextureComposite.Mipmaps and
+         (TextureNode.TextureComposite.Images.Count > 1) then
+      begin
+        for MipIdx := 1 to Min(Cardinal(TextureNode.TextureComposite.Images.Count) - 1, MipLevels - 1) do
+          FRHITexture.UploadImage(TextureNode.TextureComposite.Images[MipIdx], MipIdx, 0);
+      end else
+      if MipLevels > 1 then
+        FRHITexture.GenerateMipmaps;
+      TextureMemoryProfiler.AllocateRHI(FRHITexture,
+        CacheFullUrl,
+        TextureNode.TextureImage.ClassName,
+        EncodedImageToRHIGpuBytes(TextureNode.TextureImage, FRHITexture.Desc.Format) *
+          Int64(FAllocatedWidth) * Int64(FAllocatedHeight) div
+          Max(Int64(1), Int64(TextureNode.TextureImage.Width) * Int64(TextureNode.TextureImage.Height)) +
+        Iff(MipLevels > 1, TTextureMemoryProfiler.MipmapsSize(TextureNode.TextureImage), 0),
+        MipLevels > 1, FAllocatedWidth, FAllocatedHeight, 1);
+      if (CacheFullUrl <> '') and (TexFormat <> pfRGBA32_Float) then
+        RendererCache.AddRHITextureImage(
+          CacheFullUrl, FlipVertically, Filter, GUITexture, GLTextureScale,
+          FAllocatedWidth, FAllocatedHeight, FRHITexture);
+      CreateRHISampler(Filter, BoundaryModeS, BoundaryModeT, GL_CLAMP_TO_EDGE, Anisotropy, MipLevels);
+    end;
+    Exit;
+  end;
 
   TextureWrap.Data[0] := BoundaryModeS;
   TextureWrap.Data[1] := BoundaryModeT;
@@ -1065,6 +1325,10 @@ end;
 
 procedure TImageTextureResource.UnprepareCore;
 begin
+  SetLength(FLastFloatBytes, 0);
+  if FRHITexture <> nil then
+    RendererCache.RHITextureImage_DecReference(FRHITexture);
+  FreeAndNil(FRHISampler);
   if FGLName <> GLObjectNone then
   begin
     RendererCache.TextureImage_DecReference(FGLName);
@@ -1072,8 +1336,24 @@ begin
   end;
 end;
 
+function TImageTextureResource.GetRHIJointFloatData: Pointer;
+begin
+  if Length(FLastFloatBytes) > 0 then
+    Result := @FLastFloatBytes[0]
+  else
+    Result := nil;
+end;
+
+function TImageTextureResource.GetRHIJointFloatSize: PtrUInt;
+begin
+  Result := Length(FLastFloatBytes);
+end;
+
 function TImageTextureResource.Bind(const TextureUnit: Cardinal): boolean;
 begin
+  if RHIDevice <> nil then
+    Exit(FRHITexture <> nil);
+
   Result := FGLName <> GLObjectNone;
   if not Result then Exit;
 
@@ -1110,7 +1390,47 @@ const
   Level = 0; // always update mipmap level 0;
 var
   GLData: {$ifdef CASTLE_WEBGL} IJSFloat32Array {$else} Pointer {$endif};
+  TexDesc: TRHITextureDesc;
+  TempFloatImg: TRGBAlphaFloatImage;
 begin
+  if RHIDevice <> nil then
+  begin
+    if (FRHITexture = nil) or
+       (FAllocatedWidth <> Width) or
+       (FAllocatedHeight <> Height) or
+       (FRHITexture.Desc.Format <> pfRGBA32_Float) then
+    begin
+      if FRHITexture <> nil then
+        RendererCache.RHITextureImage_DecReference(FRHITexture);
+      FAllocatedWidth := Max(Cardinal(1), Width);
+      FAllocatedHeight := Max(Cardinal(1), Height);
+      TexDesc := TRHITextureDesc.Create2D(FAllocatedWidth, FAllocatedHeight,
+        pfRGBA32_Float, [tuSampled, tuTransferDst, tuTransferSrc], 1, 1);
+      TexDesc.DebugName := 'ImageTexture.RgbaFloat';
+      FRHITexture := RHIDevice.CreateTexture(TexDesc);
+      TextureMemoryProfiler.AllocateRHI(FRHITexture,
+        Iff((TextureNode <> nil) and (TextureNode.TextureUsedFullUrl <> ''),
+          TextureNode.TextureUsedFullUrl, 'generated:/ImageTexture.RgbaFloat'),
+        'TRGBAlphaFloatImage',
+        Int64(FAllocatedWidth) * Int64(FAllocatedHeight) * 16,
+        False, FAllocatedWidth, FAllocatedHeight, 1);
+    end;
+    if (Data <> nil) and (Width > 0) and (Height > 0) and (FRHITexture <> nil) then
+    begin
+      SetLength(FLastFloatBytes, PtrUInt(Width) * PtrUInt(Height) * SizeOf(TVector4));
+      if Length(FLastFloatBytes) > 0 then
+        Move(Data^, FLastFloatBytes[0], Length(FLastFloatBytes));
+      TempFloatImg := TRGBAlphaFloatImage.Create(Width, Height);
+      try
+        Move(Data^, TempFloatImg.RawPixels^, PtrUInt(Width) * PtrUInt(Height) * SizeOf(TVector4));
+        FRHITexture.UploadImage(TempFloatImg, 0, 0);
+      finally
+        FreeAndNil(TempFloatImg);
+      end;
+    end;
+    Exit;
+  end;
+
   if not Bind(0) then Exit;
 
   {$ifdef CASTLE_WEBGL}
@@ -1184,12 +1504,78 @@ var
   BoundaryModeT: TGLenum;
   TextureWrap: TTextureWrap2D;
   GUITexture: boolean;
+  I: Integer;
+  MipLevels, FrameW, FrameH: Cardinal;
+  FrameImg, TempFlipped: TCastleImage;
+  TexDesc: TRHITextureDesc;
 begin
   { HandledNode already made sure IsTextureVideo = @true }
 
   HandleTextureProperties(TextureNode.TextureProperties, RenderOptions,
     TextureRepeatToGL(TextureNode.RepeatS), TextureRepeatToGL(TextureNode.RepeatT),
     Filter, BoundaryModeS, BoundaryModeT, Anisotropy, GUITexture);
+
+  if RHIDevice <> nil then
+  begin
+    if (TextureNode.TextureVideo <> nil) and TextureNode.TextureVideo.Loaded and
+       (TextureNode.TextureVideo.Count > 0) then
+    begin
+      FFramesPerSecond := TextureNode.TextureVideo.FramesPerSecond;
+      FTimeLoop := TextureNode.TextureVideo.TimeLoop;
+      FTimeBackwards := TextureNode.TextureVideo.TimeBackwards;
+      MipLevels := 1;
+      SetLength(FRHITextureFrames, TextureNode.TextureVideo.Count);
+      for I := 0 to TextureNode.TextureVideo.Count - 1 do
+      begin
+        FrameImg := TextureNode.TextureVideo.Items[I];
+        FrameW := Max(Cardinal(1), FrameImg.Width);
+        FrameH := Max(Cardinal(1), FrameImg.Height);
+        if (not GUITexture) and (GLTextureScale > 1) then
+        begin
+          if FrameW > GLTextureMinSize then
+            FrameW := Max(FrameW shr (GLTextureScale - 1), GLTextureMinSize);
+          if FrameH > GLTextureMinSize then
+            FrameH := Max(FrameH shr (GLTextureScale - 1), GLTextureMinSize);
+        end;
+        if Filter.NeedsMipmaps then
+          MipLevels := CalculateTextureMipLevels(Max(FrameW, FrameH))
+        else
+          MipLevels := 1;
+        TexDesc := TRHITextureDesc.Create2D(
+          FrameW,
+          FrameH,
+          pfRGBA8_UNorm, [tuSampled, tuTransferDst, tuTransferSrc], MipLevels, 1);
+        TexDesc.DebugName := Format('MovieTexture.Frame[%d]', [I]);
+        FRHITextureFrames[I] := RHIDevice.CreateTexture(TexDesc);
+        if (TextureNode.FlipVertically and (TextureNode.TextureUsedFullUrl = '')) or
+           (FrameW <> FrameImg.Width) or
+           (FrameH <> FrameImg.Height) then
+        begin
+          TempFlipped := FrameImg.MakeCopy;
+          try
+            if TextureNode.FlipVertically and (TextureNode.TextureUsedFullUrl = '') then
+              TempFlipped.FlipVertical;
+            if (FrameW <> TempFlipped.Width) or (FrameH <> TempFlipped.Height) then
+              TempFlipped.Resize(FrameW, FrameH, riBilinear);
+            FRHITextureFrames[I].UploadImage(TempFlipped, 0, 0);
+          finally
+            FreeAndNil(TempFlipped);
+          end;
+        end else
+          FRHITextureFrames[I].UploadImage(FrameImg, 0, 0);
+        if MipLevels > 1 then
+          FRHITextureFrames[I].GenerateMipmaps;
+        TextureMemoryProfiler.AllocateRHI(FRHITextureFrames[I],
+          Iff(TextureNode.TextureUsedFullUrl <> '', TextureNode.TextureUsedFullUrl, FrameImg.URL),
+          FrameImg.ClassName,
+          Int64(TexDesc.Width) * Int64(TexDesc.Height) * 4 +
+          Iff(MipLevels > 1, TTextureMemoryProfiler.MipmapsSize(FrameImg), 0),
+          MipLevels > 1, TexDesc.Width, TexDesc.Height, 1);
+      end;
+      CreateRHISampler(Filter, BoundaryModeS, BoundaryModeT, GL_CLAMP_TO_EDGE, Anisotropy, MipLevels);
+    end;
+    Exit;
+  end;
 
   TextureWrap.Data[0] := BoundaryModeS;
   TextureWrap.Data[1] := BoundaryModeT;
@@ -1205,9 +1591,58 @@ begin
 end;
 
 procedure TMovieTextureResource.UnprepareCore;
+var
+  I: Integer;
 begin
+  for I := 0 to High(FRHITextureFrames) do
+    if FRHITextureFrames[I] <> nil then
+    begin
+      TextureMemoryProfiler.DeallocateRHI(FRHITextureFrames[I]);
+      FreeAndNil(FRHITextureFrames[I]);
+    end;
+  SetLength(FRHITextureFrames, 0);
+  FFramesPerSecond := 0;
+  FTimeLoop := False;
+  FTimeBackwards := False;
+  FreeAndNil(FRHISampler);
   if GLVideo <> nil then
+  begin
     RendererCache.TextureVideo_DecReference(GLVideo);
+    GLVideo := nil;
+  end;
+end;
+
+function TMovieTextureResource.RHITexture: TRHITexture;
+var
+  VideoUnscaledTime: TFloatTime;
+  FrameIdx: Integer;
+begin
+  { Note: do not access TextureNode.TextureVideo or IsTextureVideo here ---
+    doing so would reload the video from disk after
+    TCastleSceneCore.FreeResources([frTextureDataInNodes]) unloaded CPU frames. }
+  Result := nil;
+  if Length(FRHITextureFrames) > 0 then
+  begin
+    if (TextureNode <> nil) and (FFramesPerSecond > 0) then
+    begin
+      VideoUnscaledTime :=
+        TextureNode.TimeFunctionality.ElapsedTimeInCycle *
+        TextureNode.Speed;
+      if TextureNode.Speed < 0 then
+        VideoUnscaledTime := TextureNode.Duration + VideoUnscaledTime;
+      FrameIdx := EnsureRange(
+        TVideo.FrameIndexFromTime(VideoUnscaledTime, Length(FRHITextureFrames),
+          FFramesPerSecond, FTimeLoop, FTimeBackwards),
+        0, High(FRHITextureFrames));
+      Result := FRHITextureFrames[FrameIdx];
+    end else
+      Result := FRHITextureFrames[0];
+  end;
+end;
+
+function TMovieTextureResource.RHIFrameCount: Cardinal;
+begin
+  Result := Cardinal(Length(FRHITextureFrames));
 end;
 
 function TMovieTextureResource.GLName: TGLTextureId;
@@ -1239,6 +1674,9 @@ function TMovieTextureResource.Bind(const TextureUnit: Cardinal): boolean;
 var
   N: TGLTextureId;
 begin
+  if RHIDevice <> nil then
+    Exit(RHITexture <> nil);
+
   N := GLName;
   Result := N <> GLObjectNone;
   if Result then
@@ -1285,13 +1723,94 @@ var
   BoundaryModeS: TGLenum;
   BoundaryModeT: TGLenum;
   TextureWrap: TTextureWrap2D;
-  NodeWidth, NodeHeight: Cardinal;
+  NodeWidth, NodeHeight, MipLevels: Cardinal;
   GUITexture: boolean;
   Sizing: TTextureSizing;
+  TexDesc: TRHITextureDesc;
 begin
   HandleTextureProperties(TextureNode.TextureProperties, RenderOptions,
     TextureRepeatToGL(TextureNode.FdRepeatS.Value), TextureRepeatToGL(TextureNode.FdRepeatT.Value),
     Filter, BoundaryModeS, BoundaryModeT, Anisotropy, GUITexture);
+
+  if RHIDevice <> nil then
+  begin
+    NeedsMipmaps := Filter.NeedsMipmaps;
+    if TextureNode.FdDimensions.Items.Count - 1 >= 0 then
+      NodeWidth := Max(TextureNode.FdDimensions.Items[0], 1)
+    else
+      NodeWidth := DefaultRenderedTextureWidth;
+    if TextureNode.FdDimensions.Items.Count - 1 >= 1 then
+      NodeHeight := Max(TextureNode.FdDimensions.Items[1], 1)
+    else
+      NodeHeight := DefaultRenderedTextureHeight;
+    Width := NodeWidth;
+    Height := NodeHeight;
+    if (not GUITexture) and (GLTextureScale > 1) then
+    begin
+      if Width > GLTextureMinSize then
+        Width := Max(Width shr (GLTextureScale - 1), GLTextureMinSize);
+      if Height > GLTextureMinSize then
+        Height := Max(Height shr (GLTextureScale - 1), GLTextureMinSize);
+    end;
+    if RHIDevice.Capabilities.MaxTextureSize > 0 then
+    begin
+      Width := Min(Width, RHIDevice.Capabilities.MaxTextureSize);
+      Height := Min(Height, RHIDevice.Capabilities.MaxTextureSize);
+    end;
+
+    if (TextureNode.FdDepthMap.Count > 0) and
+       TextureNode.FdDepthMap.Items[0] then
+    begin
+      WritelnWarning('VRML/X3D', 'RenderedTexture with depthMap = TRUE is no longer supported. For shadow maps, use dedicated CGE nodes.');
+      Exit;
+    end;
+
+    if NeedsMipmaps then
+      MipLevels := CalculateTextureMipLevels(Max(Width, Height))
+    else
+      MipLevels := 1;
+
+    if FRHITexture <> nil then
+    begin
+      TextureMemoryProfiler.DeallocateRHI(FRHITexture);
+      FreeAndNil(FRHITexture);
+    end;
+    TexDesc := TRHITextureDesc.Create2D(Width, Height, pfRGBA8_UNorm,
+      [tuColorAttachment, tuSampled, tuTransferSrc, tuTransferDst], MipLevels, 1);
+    TexDesc.DebugName := 'RenderedTexture.Color';
+    FRHITexture := RHIDevice.CreateTexture(TexDesc);
+
+    InitialImage := TRGBImage.Create(Width, Height);
+    try
+      InitialImage.URL := 'generated:/' + TextureNode.NiceName;
+      InitialImage.Clear(Vector4Byte(255, 0, 255, 255));
+      FRHITexture.UploadImage(InitialImage, 0, 0);
+      if MipLevels > 1 then
+        FRHITexture.GenerateMipmaps;
+      TextureMemoryProfiler.AllocateRHI(FRHITexture,
+        '', InitialImage.ClassName,
+        Int64(Width) * Int64(Height) * 4 +
+        Iff(MipLevels > 1, TTextureMemoryProfiler.MipmapsSize(InitialImage), 0),
+        MipLevels > 1, Width, Height, 1);
+    finally
+      FreeAndNil(InitialImage);
+    end;
+
+    FreeAndNil(FRHIDepthTexture);
+    TexDesc := TRHITextureDesc.Create2D(Width, Height, pfD24_UNorm_S8_UInt,
+      [tuDepthStencil, tuSampled, tuTransferSrc], 1, 1);
+    TexDesc.DebugName := 'RenderedTexture.DepthStencil';
+    FRHIDepthTexture := RHIDevice.CreateTexture(TexDesc);
+
+    FreeAndNil(RenderToTexture);
+    RenderToTexture := TGLRenderToTexture.Create(Width, Height);
+    RenderToTexture.SetRHITexture(FRHITexture, FRHIDepthTexture);
+    RenderToTexture.Buffer := tbColor;
+    RenderToTexture.Stencil := true;
+    RenderToTexture.GLContextOpen;
+    CreateRHISampler(Filter, BoundaryModeS, BoundaryModeT, GL_CLAMP_TO_EDGE, Anisotropy, MipLevels);
+    Exit;
+  end;
 
   { calculate Filter, Anisotropy, NeedsMipmaps }
   NeedsMipmaps := Filter.NeedsMipmaps;
@@ -1377,6 +1896,13 @@ end;
 procedure TRenderedTextureResource.UnprepareCore;
 begin
   FreeAndNil(RenderToTexture);
+  if FRHITexture <> nil then
+  begin
+    TextureMemoryProfiler.DeallocateRHI(FRHITexture);
+    FreeAndNil(FRHITexture);
+  end;
+  FreeAndNil(FRHIDepthTexture);
+  FreeAndNil(FRHISampler);
 
   if FGLName <> GLObjectNone then
   begin
@@ -1387,6 +1913,9 @@ end;
 
 function TRenderedTextureResource.Bind(const TextureUnit: Cardinal): boolean;
 begin
+  if RHIDevice <> nil then
+    Exit(FRHITexture <> nil);
+
   Result := FGLName <> GLObjectNone;
   if not Result then Exit;
 
@@ -1708,7 +2237,7 @@ var
   Camera: TRenderingCamera;
   SavedViewport: TRectangle;
 begin
-  if FGLName = GLObjectNone then Exit;
+  if (FGLName = GLObjectNone) and (FRHITexture = nil) then Exit;
 
   { calculate matrices to use when rendering,
     using algorithm based on TextureNode.Viewpoint }
@@ -1737,22 +2266,31 @@ begin
 
     RenderToTexture.RenderBegin;
 
-      SavedViewport := RenderContext.Viewport;
-      RenderContext.Viewport := Rectangle(0, 0, Width, Height);
+      if RenderContext <> nil then
+      begin
+        SavedViewport := RenderContext.Viewport;
+        RenderContext.Viewport := Rectangle(0, 0, Width, Height);
 
-      SavedProjectionMatrix := RenderContext.ProjectionMatrix;
-      RenderContext.ProjectionMatrix := NewProjectionMatrix;
+        SavedProjectionMatrix := RenderContext.ProjectionMatrix;
+        RenderContext.ProjectionMatrix := NewProjectionMatrix;
+      end;
 
       Render(Camera);
 
-      RenderContext.ProjectionMatrix := SavedProjectionMatrix;
-      RenderContext.Viewport := SavedViewport;
+      if RenderContext <> nil then
+      begin
+        RenderContext.ProjectionMatrix := SavedProjectionMatrix;
+        RenderContext.Viewport := SavedViewport;
+      end;
 
     RenderToTexture.RenderEnd;
   finally FreeAndNil(Camera) end;
 
   if NeedsMipmaps then
     RenderToTexture.GenerateMipmap;
+
+  if RHIDevice <> nil then
+    Inc(FRHIUpdateCount);
 
   TextureNode.EventRendering.Send(false);
 end;
@@ -1771,6 +2309,9 @@ end;
 
 procedure TCubeMapTextureResource.UnprepareCore;
 begin
+  if FRHITexture <> nil then
+    RendererCache.RHITextureCubeMap_DecReference(FRHITexture);
+  FreeAndNil(FRHISampler);
   if GLName <> GLObjectNone then
   begin
     RendererCache.TextureCubeMap_DecReference(GLName);
@@ -1780,6 +2321,9 @@ end;
 
 function TCubeMapTextureResource.Bind(const TextureUnit: Cardinal): boolean;
 begin
+  if RHIDevice <> nil then
+    Exit(FRHITexture <> nil);
+
   Result := GLName <> GLObjectNone;
   if not Result then Exit;
 
@@ -1817,12 +2361,156 @@ end;
 
 procedure TComposedCubeMapTextureResource.PrepareCore(
   const RenderOptions: TCastleRenderOptions);
+
+  function SideUrl(const SideField: TSFNode): String;
+  var
+    SideNode: TAbstractTexture2DNode;
+  begin
+    if (SideField.Value <> nil) and (SideField.Value is TAbstractTexture2DNode) then
+    begin
+      SideNode := TAbstractTexture2DNode(SideField.Value);
+      Result := SideNode.TextureUsedFullUrl;
+      if (Result = '') and (SideNode.TextureImage <> nil) then
+        Result := SideNode.TextureImage.URL;
+    end else
+      Result := '';
+  end;
+
+  function ComposedCubeMapFullUrl: String;
+  var
+    U0, U1, U2, U3, U4, U5: String;
+  begin
+    U0 := SideUrl(TextureNode.FdBack);
+    U1 := SideUrl(TextureNode.FdFront);
+    U2 := SideUrl(TextureNode.FdLeft);
+    U3 := SideUrl(TextureNode.FdRight);
+    U4 := SideUrl(TextureNode.FdTop);
+    U5 := SideUrl(TextureNode.FdBottom);
+    if (U0 <> '') and (U1 <> '') and (U2 <> '') and
+       (U3 <> '') and (U4 <> '') and (U5 <> '') then
+      Result := U0 + '|' + U1 + '|' + U2 + '|' + U3 + '|' + U4 + '|' + U5
+    else
+      Result := '';
+  end;
+
 var
   Filter: TTextureFilter;
   Anisotropy: TGLfloat;
-  BackRot, FrontRot, LeftRot, RightRot: TCastleImage;
+  BackRot, FrontRot, LeftRot, RightRot, TopImg, BottomImg, TopResized, BottomResized: TCastleImage;
   GUITexture: boolean;
+  CubeSize, MipLevels: Cardinal;
+  TexFormat: TRHIPixelFormat;
+  TexDesc: TRHITextureDesc;
+  CacheFullUrl: String;
 begin
+  if RHIDevice <> nil then
+  begin
+    if not TextureNode.LoadSides then
+    begin
+      WritelnWarning('VRML/X3D', 'Not all sides of a CubeMapTexture are correctly set and loaded, cannot use cube map');
+      Exit;
+    end;
+
+    HandleTextureProperties(TextureNode.TextureProperties, RenderOptions,
+      Filter, Anisotropy, GUITexture);
+
+    if FRHITexture <> nil then
+      RendererCache.RHITextureCubeMap_DecReference(FRHITexture);
+    CacheFullUrl := ComposedCubeMapFullUrl;
+    if CacheFullUrl <> '' then
+    begin
+      FRHITexture := RendererCache.FindRHITextureCubeMap(
+        CacheFullUrl, Filter, GUITexture, GLTextureScale);
+      if FRHITexture <> nil then
+      begin
+        CreateRHISampler(Filter, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE,
+          Anisotropy, Max(Cardinal(1), FRHITexture.Desc.MipLevels));
+        Exit;
+      end;
+    end;
+
+    BackRot       := nil;
+    FrontRot      := nil;
+    LeftRot       := nil;
+    RightRot      := nil;
+    TopResized    := nil;
+    BottomResized := nil;
+    try
+      BackRot   := (TAbstractTexture2DNode(TextureNode.FdBack  .Value).TextureImage as TCastleImage).MakeRotated(2);
+      FrontRot  := (TAbstractTexture2DNode(TextureNode.FdFront .Value).TextureImage as TCastleImage).MakeRotated(2);
+      LeftRot   := (TAbstractTexture2DNode(TextureNode.FdLeft  .Value).TextureImage as TCastleImage).MakeRotated(2);
+      RightRot  := (TAbstractTexture2DNode(TextureNode.FdRight .Value).TextureImage as TCastleImage).MakeRotated(2);
+      TopImg    :=  TAbstractTexture2DNode(TextureNode.FdTop   .Value).TextureImage as TCastleImage;
+      BottomImg :=  TAbstractTexture2DNode(TextureNode.FdBottom.Value).TextureImage as TCastleImage;
+
+      CubeSize := Max(1, Max(Max(RightRot.Width, RightRot.Height),
+        Max(Max(LeftRot.Width, LeftRot.Height),
+        Max(Max(TopImg.Width, TopImg.Height),
+        Max(Max(BottomImg.Width, BottomImg.Height),
+        Max(Max(BackRot.Width, BackRot.Height),
+            Max(FrontRot.Width, FrontRot.Height)))))));
+      if (not GUITexture) and (GLTextureScale > 1) and (CubeSize > GLTextureMinSize) then
+        CubeSize := Max(CubeSize shr (GLTextureScale - 1), GLTextureMinSize);
+      if RHIDevice.Capabilities.MaxTextureSize > 0 then
+        CubeSize := Min(CubeSize, RHIDevice.Capabilities.MaxTextureSize);
+
+      if (RightRot.Width <> CubeSize) or (RightRot.Height <> CubeSize) then
+        RightRot.Resize(CubeSize, CubeSize, riBilinear);
+      if (LeftRot.Width <> CubeSize) or (LeftRot.Height <> CubeSize) then
+        LeftRot.Resize(CubeSize, CubeSize, riBilinear);
+      if (BackRot.Width <> CubeSize) or (BackRot.Height <> CubeSize) then
+        BackRot.Resize(CubeSize, CubeSize, riBilinear);
+      if (FrontRot.Width <> CubeSize) or (FrontRot.Height <> CubeSize) then
+        FrontRot.Resize(CubeSize, CubeSize, riBilinear);
+      if (TopImg.Width <> CubeSize) or (TopImg.Height <> CubeSize) then
+      begin
+        TopResized := TopImg.MakeResized(CubeSize, CubeSize, riBilinear);
+        TopImg := TopResized;
+      end;
+      if (BottomImg.Width <> CubeSize) or (BottomImg.Height <> CubeSize) then
+      begin
+        BottomResized := BottomImg.MakeResized(CubeSize, CubeSize, riBilinear);
+        BottomImg := BottomResized;
+      end;
+
+      if Filter.NeedsMipmaps then
+        MipLevels := CalculateTextureMipLevels(CubeSize)
+      else
+        MipLevels := 1;
+
+      TexFormat := EncodedImageToRHIPixelFormat(RightRot);
+      TexDesc := TRHITextureDesc.CreateCube(CubeSize, TexFormat,
+        [tuSampled, tuTransferDst, tuTransferSrc], MipLevels);
+      TexDesc.DebugName := 'ComposedCubeMapTexture';
+      FRHITexture := RHIDevice.CreateTexture(TexDesc);
+      FRHITexture.UploadImage(RightRot,  0, 0);
+      FRHITexture.UploadImage(LeftRot,   0, 1);
+      FRHITexture.UploadImage(TopImg,    0, 2);
+      FRHITexture.UploadImage(BottomImg, 0, 3);
+      FRHITexture.UploadImage(BackRot,   0, 4);
+      FRHITexture.UploadImage(FrontRot,  0, 5);
+      if MipLevels > 1 then
+        FRHITexture.GenerateMipmaps;
+      TextureMemoryProfiler.AllocateRHI(FRHITexture,
+        Iff(CacheFullUrl <> '', CacheFullUrl, RightRot.URL),
+        RightRot.ClassName,
+        EncodedImageToRHIGpuBytes(RightRot, FRHITexture.Desc.Format) * 6,
+        MipLevels > 1, CubeSize, CubeSize, 6);
+      if CacheFullUrl <> '' then
+        RendererCache.AddRHITextureCubeMap(
+          CacheFullUrl, Filter, GUITexture, GLTextureScale, FRHITexture);
+      CreateRHISampler(Filter, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, Anisotropy, MipLevels);
+    finally
+      FreeAndNil(BackRot);
+      FreeAndNil(FrontRot);
+      FreeAndNil(LeftRot);
+      FreeAndNil(RightRot);
+      FreeAndNil(TopResized);
+      FreeAndNil(BottomResized);
+    end;
+    Exit;
+  end;
+
   if not GLFeatures.TextureCubeMap then
   begin
     WritelnWarning('VRML/X3D', 'Rendering context doesn''t support cube maps, cannot use ComposedCubeMapTexture');
@@ -1888,7 +2576,98 @@ var
   Anisotropy: TGLfloat;
   GUITexture: boolean;
   Composite: TCompositeImage;
+  CubeSize, MipLevels, MipIdx: Cardinal;
+  TexFormat: TRHIPixelFormat;
+  TexDesc: TRHITextureDesc;
+  Side: TCubeMapSide;
+  SideImg: TEncodedImage;
+  ResizedSide: TCastleImage;
+  CacheFullUrl: String;
 begin
+  if RHIDevice <> nil then
+  begin
+    Composite := TextureNode.LoadImage;
+    if Composite = nil then Exit;
+    try
+      HandleTextureProperties(TextureNode.TextureProperties, RenderOptions,
+        Filter, Anisotropy, GUITexture);
+      SideImg := Composite.CubeMapImage(csPositiveX);
+      CacheFullUrl := SideImg.URL;
+      if FRHITexture <> nil then
+        RendererCache.RHITextureCubeMap_DecReference(FRHITexture);
+      if CacheFullUrl <> '' then
+      begin
+        FRHITexture := RendererCache.FindRHITextureCubeMap(
+          CacheFullUrl, Filter, GUITexture, GLTextureScale);
+        if FRHITexture <> nil then
+        begin
+          CreateRHISampler(Filter, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE,
+            Anisotropy, Max(Cardinal(1), FRHITexture.Desc.MipLevels));
+          Exit;
+        end;
+      end;
+      TexFormat := EncodedImageToRHIPixelFormat(SideImg);
+      CubeSize := Max(1, Composite.Width);
+      if (not GUITexture) and (GLTextureScale > 1) and (CubeSize > GLTextureMinSize) and
+         (SideImg is TCastleImage) and
+         not (Composite.Mipmaps and (Composite.MipmapsCount > 1)) then
+        CubeSize := Max(CubeSize shr (GLTextureScale - 1), GLTextureMinSize);
+      if RHIDevice.Capabilities.MaxTextureSize > 0 then
+        CubeSize := Min(CubeSize, RHIDevice.Capabilities.MaxTextureSize);
+      if Filter.NeedsMipmaps then
+      begin
+        if Composite.Mipmaps and (Composite.MipmapsCount > 0) then
+          MipLevels := Max(Cardinal(1), Composite.MipmapsCount)
+        else if SideImg is TGPUCompressedImage then
+          MipLevels := 1
+        else
+          MipLevels := CalculateTextureMipLevels(CubeSize);
+      end else
+        MipLevels := 1;
+      TexDesc := TRHITextureDesc.CreateCube(CubeSize, TexFormat,
+        [tuSampled, tuTransferDst, tuTransferSrc], MipLevels);
+      TexDesc.DebugName := 'ImageCubeMapTexture';
+      FRHITexture := RHIDevice.CreateTexture(TexDesc);
+      for Side := Low(TCubeMapSide) to High(TCubeMapSide) do
+      begin
+        SideImg := Composite.CubeMapImage(Side, 0);
+        if (SideImg is TCastleImage) and
+           ((SideImg.Width <> CubeSize) or (SideImg.Height <> CubeSize)) then
+        begin
+          ResizedSide := TCastleImage(SideImg).MakeResized(CubeSize, CubeSize, riBilinear);
+          try
+            FRHITexture.UploadImage(ResizedSide, 0, Ord(Side));
+          finally
+            FreeAndNil(ResizedSide);
+          end;
+        end else
+          FRHITexture.UploadImage(SideImg, 0, Ord(Side));
+        if (MipLevels > 1) and Composite.Mipmaps and (Composite.MipmapsCount > 1) then
+        begin
+          for MipIdx := 1 to Min(Composite.MipmapsCount - 1, MipLevels - 1) do
+            FRHITexture.UploadImage(Composite.CubeMapImage(Side, MipIdx), MipIdx, Ord(Side));
+        end;
+      end;
+      if (MipLevels > 1) and not (Composite.Mipmaps and (Composite.MipmapsCount > 1)) then
+        FRHITexture.GenerateMipmaps;
+      SideImg := Composite.CubeMapImage(csPositiveX);
+      TextureMemoryProfiler.AllocateRHI(FRHITexture,
+        CacheFullUrl,
+        SideImg.ClassName,
+        EncodedImageToRHIGpuBytes(SideImg, FRHITexture.Desc.Format) *
+          Int64(CubeSize) * Int64(CubeSize) div
+          Max(Int64(1), Int64(SideImg.Width) * Int64(SideImg.Height)) * 6,
+        MipLevels > 1, CubeSize, CubeSize, 6);
+      if CacheFullUrl <> '' then
+        RendererCache.AddRHITextureCubeMap(
+          CacheFullUrl, Filter, GUITexture, GLTextureScale, FRHITexture);
+      CreateRHISampler(Filter, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, Anisotropy, MipLevels);
+    finally
+      FreeAndNil(Composite);
+    end;
+    Exit;
+  end;
+
   if not GLFeatures.TextureCubeMap then
   begin
     WritelnWarning('VRML/X3D', 'Rendering context doesn''t support cube maps, cannot use ImageCubeMapTexture');
@@ -1947,7 +2726,68 @@ var
   Anisotropy: TGLfloat;
   GUITexture: boolean;
   InitialImage: TCastleImage;
+  MipLevels, FaceIdx: Cardinal;
+  TexDesc: TRHITextureDesc;
 begin
+  if RHIDevice <> nil then
+  begin
+    HandleTextureProperties(TextureNode.TextureProperties, RenderOptions,
+      Filter, Anisotropy, GUITexture);
+    NeedsMipmaps := Filter.NeedsMipmaps;
+    Size := Max(1, TextureNode.FdSize.Value);
+    if not IsPowerOf2(Size) then
+      Size := 1 shl Biggest2Exponent(Size);
+    if (not GUITexture) and (GLTextureScale > 1) and (Size > GLTextureMinSize) then
+      Size := Max(Size shr (GLTextureScale - 1), GLTextureMinSize);
+    if (RHIDevice.Capabilities.MaxTextureSize > 0) and (Size > RHIDevice.Capabilities.MaxTextureSize) then
+      Size := RHIDevice.Capabilities.MaxTextureSize;
+    if NeedsMipmaps then
+      MipLevels := CalculateTextureMipLevels(Size)
+    else
+      MipLevels := 1;
+
+    if FRHITexture <> nil then
+    begin
+      TextureMemoryProfiler.DeallocateRHI(FRHITexture);
+      FreeAndNil(FRHITexture);
+    end;
+    TexDesc := TRHITextureDesc.CreateCube(Size, pfRGBA8_UNorm,
+      [tuColorAttachment, tuSampled, tuTransferSrc, tuTransferDst], MipLevels);
+    TexDesc.DebugName := 'GeneratedCubeMapTexture';
+    FRHITexture := RHIDevice.CreateTexture(TexDesc);
+
+    InitialImage := TRGBImage.Create(Size, Size);
+    try
+      InitialImage.URL := 'generated:/' + TextureNode.NiceName;
+      InitialImage.Clear(Vector4Byte(255, 0, 255, 255));
+      for FaceIdx := 0 to 5 do
+        FRHITexture.UploadImage(InitialImage, 0, FaceIdx);
+      if MipLevels > 1 then
+        FRHITexture.GenerateMipmaps;
+      TextureMemoryProfiler.AllocateRHI(FRHITexture,
+        '', InitialImage.ClassName,
+        Int64(Size) * Int64(Size) * 4 * 6 +
+        Iff(MipLevels > 1, 6 * TTextureMemoryProfiler.MipmapsSize(InitialImage), 0),
+        MipLevels > 1, Size, Size, 6);
+    finally
+      FreeAndNil(InitialImage);
+    end;
+
+    FreeAndNil(FRHIDepthTexture);
+    TexDesc := TRHITextureDesc.Create2D(Size, Size, pfD24_UNorm_S8_UInt,
+      [tuDepthStencil, tuSampled, tuTransferSrc], 1, 1);
+    TexDesc.DebugName := 'GeneratedCubeMapTexture.Depth';
+    FRHIDepthTexture := RHIDevice.CreateTexture(TexDesc);
+
+    FreeAndNil(RenderToTexture);
+    RenderToTexture := TGLRenderToTexture.Create(Size, Size);
+    RenderToTexture.SetRHITexture(FRHITexture, FRHIDepthTexture);
+    RenderToTexture.Buffer := tbColor;
+    RenderToTexture.GLContextOpen;
+    CreateRHISampler(Filter, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, Anisotropy, MipLevels);
+    Exit;
+  end;
+
   if not GLFeatures.TextureCubeMap then
   begin
     WritelnWarning('VRML/X3D', 'Rendering context doesn''t support cube maps, cannot use GeneratedCubeMapTexture');
@@ -2036,6 +2876,7 @@ end;
 procedure TGeneratedCubeMapTextureResource.UnprepareCore;
 begin
   FreeAndNil(RenderToTexture);
+  FreeAndNil(FRHIDepthTexture);
   inherited;
 end;
 
@@ -2044,14 +2885,20 @@ procedure TGeneratedCubeMapTextureResource.Update(
   const ProjectionNear, ProjectionFar: Single;
   const CubeMiddle: TVector3);
 begin
-  if GLName = GLObjectNone then Exit;
+  if (GLName = GLObjectNone) and (FRHITexture = nil) then Exit;
 
-  if GLVersion.BuggyGenerateCubeMap then Exit;
+  if (RHIDevice = nil) and (GLVersion <> nil) and GLVersion.BuggyGenerateCubeMap then Exit;
 
   GLCaptureCubeMapTexture(GLName, Size,
     CubeMiddle,
     Render, ProjectionNear, ProjectionFar,
     RenderToTexture);
+
+  if RHIDevice <> nil then
+  begin
+    Inc(FRHIUpdateCount);
+    Inc(FRHIFacesRenderedCount, 6);
+  end;
 
   if NeedsMipmaps then
     RenderToTexture.GenerateMipmap;
@@ -2080,7 +2927,78 @@ var
   BoundaryModeR: TGLenum;
   GUITexture: boolean;
   TextureWrap: TTextureWrap3D;
+  TexFormat: TRHIPixelFormat;
+  TexDesc: TRHITextureDesc;
+  MaxDim, MipLevels, MipIdx: Cardinal;
+  CacheFullUrl: String;
 begin
+  if RHIDevice <> nil then
+  begin
+    TextureNode.TextureLoaded := true;
+    if TextureNode.TextureImage = nil then Exit;
+
+    HandleTextureProperties(TextureNode.TextureProperties, RenderOptions,
+      TextureRepeatToGL(TextureNode.FdRepeatS.Value), TextureRepeatToGL(TextureNode.FdRepeatT.Value),
+      TextureRepeatToGL(TextureNode.FdRepeatR.Value), Filter, BoundaryModeS, BoundaryModeT, BoundaryModeR, Anisotropy, GUITexture);
+
+    if FRHITexture <> nil then
+      RendererCache.RHITexture3D_DecReference(FRHITexture);
+    CacheFullUrl := TextureNode.TextureImage.URL;
+    if CacheFullUrl <> '' then
+    begin
+      FRHITexture := RendererCache.FindRHITexture3D(CacheFullUrl, Filter);
+      if FRHITexture <> nil then
+      begin
+        CreateRHISampler(Filter, BoundaryModeS, BoundaryModeT, BoundaryModeR,
+          Anisotropy, Max(Cardinal(1), FRHITexture.Desc.MipLevels));
+        Exit;
+      end;
+    end;
+
+    MaxDim := Max(1, Max(TextureNode.TextureImage.Width,
+      Max(TextureNode.TextureImage.Height, TextureNode.TextureImage.Depth)));
+    if Filter.NeedsMipmaps then
+    begin
+      if (TextureNode.TextureComposite <> nil) and TextureNode.TextureComposite.Mipmaps and
+         (TextureNode.TextureComposite.Images.Count > 0) then
+        MipLevels := Max(Cardinal(1), Cardinal(TextureNode.TextureComposite.Images.Count))
+      else if TextureNode.TextureImage is TGPUCompressedImage then
+        MipLevels := 1
+      else
+        MipLevels := CalculateTextureMipLevels(MaxDim);
+    end else
+      MipLevels := 1;
+
+    TexFormat := EncodedImageToRHIPixelFormat(TextureNode.TextureImage);
+    TexDesc := TRHITextureDesc.Create3D(
+      Max(1, TextureNode.TextureImage.Width),
+      Max(1, TextureNode.TextureImage.Height),
+      Max(1, TextureNode.TextureImage.Depth),
+      TexFormat, [tuSampled, tuTransferDst, tuTransferSrc], MipLevels);
+    TexDesc.DebugName := 'Texture3D';
+    FRHITexture := RHIDevice.CreateTexture(TexDesc);
+    FRHITexture.UploadImage(TextureNode.TextureImage, 0, 0);
+    if (MipLevels > 1) and (TextureNode.TextureComposite <> nil) and
+       TextureNode.TextureComposite.Mipmaps and
+       (TextureNode.TextureComposite.Images.Count > 1) then
+    begin
+      for MipIdx := 1 to Min(Cardinal(TextureNode.TextureComposite.Images.Count) - 1, MipLevels - 1) do
+        FRHITexture.UploadImage(TextureNode.TextureComposite.Images[MipIdx], MipIdx, 0);
+    end else
+    if MipLevels > 1 then
+      FRHITexture.GenerateMipmaps;
+    TextureMemoryProfiler.AllocateRHI(FRHITexture,
+      CacheFullUrl,
+      TextureNode.TextureImage.ClassName,
+      EncodedImageToRHIGpuBytes(TextureNode.TextureImage, FRHITexture.Desc.Format),
+      MipLevels > 1, TexDesc.Width, TexDesc.Height, TexDesc.DepthOrArrayLayers);
+    if CacheFullUrl <> '' then
+      RendererCache.AddRHITexture3D(CacheFullUrl, Filter, FRHITexture);
+    CreateRHISampler(Filter, BoundaryModeS, BoundaryModeT, BoundaryModeR, Anisotropy, MipLevels);
+    Exit;
+  end;
+{$H+}
+
   if not GLFeatures.Texture3D then
   begin
     WritelnWarning('VRML/X3D', 'Rendering context doesn''t support 3D textures, cannot use Texture3D nodes');
@@ -2111,6 +3029,9 @@ end;
 
 procedure T3DTextureResource.UnprepareCore;
 begin
+  if FRHITexture <> nil then
+    RendererCache.RHITexture3D_DecReference(FRHITexture);
+  FreeAndNil(FRHISampler);
   if GLName <> GLObjectNone then
   begin
     RendererCache.Texture3D_DecReference(GLName);
@@ -2120,6 +3041,9 @@ end;
 
 function T3DTextureResource.Bind(const TextureUnit: Cardinal): boolean;
 begin
+  if RHIDevice <> nil then
+    Exit(FRHITexture <> nil);
+
   Result := GLName <> GLObjectNone;
   if not Result then Exit;
 
@@ -2158,6 +3082,9 @@ end;
 class function TGeneratedShadowMapResource.ClassVarianceShadowMaps(
   RenderOptions: TCastleRenderOptions): boolean;
 begin
+  if RHIDevice <> nil then
+    Exit(RenderOptions.ShadowSampling = ssVarianceShadowMaps);
+
   Result :=
     (RenderOptions.ShadowSampling = ssVarianceShadowMaps) and
     GLFeatures.Shaders and
@@ -2169,9 +3096,98 @@ procedure TGeneratedShadowMapResource.PrepareCore(
 var
   TextureWrap: TTextureWrap2D;
   Filter: TTextureFilter;
+  MipLevels: Cardinal;
+  TexDesc: TRHITextureDesc;
+  SamplerDesc: TRHISamplerDesc;
 begin
   // in fixed-function, do not create shadow maps, do not render to shadow maps
-  if GLFeatures.EnableFixedFunction then Exit;
+  if (GLFeatures <> nil) and GLFeatures.EnableFixedFunction then Exit;
+
+  if RHIDevice <> nil then
+  begin
+    VarianceShadowMaps := ClassVarianceShadowMaps(RenderOptions);
+    Size := Max(1, TextureNode.FdSize.Value);
+    if (RHIDevice.Capabilities.MaxTextureSize > 0) and (Size > RHIDevice.Capabilities.MaxTextureSize) then
+      Size := RHIDevice.Capabilities.MaxTextureSize;
+
+    NeedsMipmaps := VarianceShadowMaps;
+    if NeedsMipmaps then
+      MipLevels := CalculateTextureMipLevels(Size)
+    else
+      MipLevels := 1;
+
+    if TextureNode.CompareMode <> smCompareRLEqual then
+      WritelnWarning('VRML/X3D', 'Only the standard GeneratedShadowMap.compareMode value, "COMPARE_R_LEQUAL" (in Pascal: smCompareRLEqual), is supported now. This is the only value sensible for shadow maps.');
+
+    if FRHITexture <> nil then
+    begin
+      TextureMemoryProfiler.DeallocateRHI(FRHITexture);
+      FreeAndNil(FRHITexture);
+    end;
+    FreeAndNil(FRHIDepthTexture);
+    FreeAndNil(FRHISampler);
+    FreeAndNil(RenderToTexture);
+
+    if VarianceShadowMaps then
+    begin
+      TexDesc := TRHITextureDesc.Create2D(Size, Size, pfRGBA32_Float,
+        [tuColorAttachment, tuSampled, tuTransferSrc, tuTransferDst], MipLevels, 1);
+      TexDesc.DebugName := 'GeneratedShadowMap.VSM';
+      FRHITexture := RHIDevice.CreateTexture(TexDesc);
+      TextureMemoryProfiler.AllocateRHI(FRHITexture,
+        '', 'rgb-float',
+        Int64(Size) * Int64(Size) * 16 +
+        Iff(MipLevels > 1, Int64(Size) * Int64(Size) * 16 div 3, 0),
+        MipLevels > 1, Size, Size, 1);
+
+      TexDesc := TRHITextureDesc.Create2D(Size, Size, pfD24_UNorm_S8_UInt,
+        [tuDepthStencil, tuSampled, tuTransferSrc], 1, 1);
+      TexDesc.DebugName := 'GeneratedShadowMap.VSMDepth';
+      FRHIDepthTexture := RHIDevice.CreateTexture(TexDesc);
+    end else
+    begin
+      TexDesc := TRHITextureDesc.Create2D(Size, Size, pfD32_Float,
+        [tuDepthStencil, tuSampled, tuTransferSrc], 1, 1);
+      TexDesc.DebugName := 'GeneratedShadowMap.Depth';
+      FRHITexture := RHIDevice.CreateTexture(TexDesc);
+      FRHIDepthTexture := nil;
+      TextureMemoryProfiler.AllocateRHI(FRHITexture,
+        '', 'depth-int',
+        Int64(Size) * Int64(Size) * 4,
+        False, Size, Size, 1);
+    end;
+
+    FillChar(SamplerDesc, SizeOf(SamplerDesc), 0);
+    SamplerDesc.MinFilter := sfLinear;
+    SamplerDesc.MagFilter := sfLinear;
+    if NeedsMipmaps then
+      SamplerDesc.MipFilter := sfLinear
+    else
+      SamplerDesc.MipFilter := sfNearest;
+    SamplerDesc.AddressModeU := amClampToEdge;
+    SamplerDesc.AddressModeV := amClampToEdge;
+    SamplerDesc.AddressModeW := amClampToEdge;
+    SamplerDesc.MaxAnisotropy := 1.0;
+    SamplerDesc.CompareEnable := not VarianceShadowMaps;
+    SamplerDesc.CompareOp := coLessOrEqual;
+    SamplerDesc.MinLod := 0.0;
+    SamplerDesc.MaxLod := 1000.0;
+    FRHISampler := RHIDevice.CreateSampler(SamplerDesc);
+
+    RenderToTexture := TGLRenderToTexture.Create(Size, Size);
+    if VarianceShadowMaps then
+    begin
+      RenderToTexture.Buffer := tbColor;
+      RenderToTexture.SetRHITexture(FRHITexture, FRHIDepthTexture);
+    end else
+    begin
+      RenderToTexture.Buffer := tbDepth;
+      RenderToTexture.SetRHITexture(nil, FRHITexture);
+    end;
+    RenderToTexture.Stencil := false;
+    RenderToTexture.GLContextOpen;
+    Exit;
+  end;
 
   { Float texture extensions: there is also NV_float_buffer,
     which is the only way for a float texture on old nvidia GPUs.
@@ -2239,9 +3255,24 @@ begin
   RenderToTexture.GLContextOpen;
 end;
 
+function TGeneratedShadowMapResource.GetRHIDepthTexture: TRHITexture;
+begin
+  if FRHIDepthTexture <> nil then
+    Result := FRHIDepthTexture
+  else
+    Result := FRHITexture;
+end;
+
 procedure TGeneratedShadowMapResource.UnprepareCore;
 begin
   FreeAndNil(RenderToTexture);
+  FreeAndNil(FRHISampler);
+  FreeAndNil(FRHIDepthTexture);
+  if FRHITexture <> nil then
+  begin
+    TextureMemoryProfiler.DeallocateRHI(FRHITexture);
+    FreeAndNil(FRHITexture);
+  end;
 
   if FGLName <> GLObjectNone then
   begin
@@ -2255,6 +3286,9 @@ end;
 
 function TGeneratedShadowMapResource.Bind(const TextureUnit: Cardinal): boolean;
 begin
+  if RHIDevice <> nil then
+    Exit(FRHITexture <> nil);
+
   Result := FGLName <> GLObjectNone;
   if not Result then Exit;
 
@@ -2286,10 +3320,13 @@ var
   SavedPolygonOffset: TPolygonOffset;
   CameraRender: TViewVectors;
 begin
-  if FGLName = GLObjectNone then Exit;
+  if (FGLName = GLObjectNone) and (FRHITexture = nil) then Exit;
 
   { Render view for shadow map }
-  NewProjectionMatrix := Light.ProjectionMatrix;
+  if Light <> nil then
+    NewProjectionMatrix := Light.ProjectionMatrix
+  else
+    NewProjectionMatrix := PerspectiveProjectionMatrixDeg(90, 1.0, ProjectionNear, ProjectionFar);
 
   Camera := TRenderingCamera.Create;
   try
@@ -2298,31 +3335,44 @@ begin
     else
       Camera.Target := rtShadowMap;
 
-    Light.GetView(CameraRender);
+    if Light <> nil then
+      Light.GetView(CameraRender)
+    else
+      CameraRender := DefaultX3DCameraView;
     Camera.FromViewVectors(CameraRender, NewProjectionMatrix);
 
     RenderToTexture.RenderBegin;
 
-      SavedViewport := RenderContext.Viewport;
-      RenderContext.Viewport := Rectangle(0, 0, Size, Size);
+      if RenderContext <> nil then
+      begin
+        SavedViewport := RenderContext.Viewport;
+        RenderContext.Viewport := Rectangle(0, 0, Size, Size);
 
-      SavedProjectionMatrix := RenderContext.ProjectionMatrix;
-      RenderContext.ProjectionMatrix := NewProjectionMatrix;
+        SavedProjectionMatrix := RenderContext.ProjectionMatrix;
+        RenderContext.ProjectionMatrix := NewProjectionMatrix;
 
-      { Enable polygon offset for everything (whole scene).
+        { Enable polygon offset for everything (whole scene).
 
-        VarianceShadowMaps notes: can offset be avoided in this case?
-        Practice (on "ATI Mobility Radeon HD 4300 Series") shows that
-        offset is still needed for VSM. Without offset, VSM has some noise,
-        and sunny_street demos have noise on walls. With offset, VSM is perfect. }
-      SavedPolygonOffset := RenderContext.PolygonOffset;
-      RenderContext.PolygonOffsetEnable(TextureNode.FdScale.Value, TextureNode.FdBias.Value);
+          VarianceShadowMaps notes: can offset be avoided in this case?
+          Practice (on "ATI Mobility Radeon HD 4300 Series") shows that
+          offset is still needed for VSM. Without offset, VSM has some noise,
+          and sunny_street demos have noise on walls. With offset, VSM is perfect. }
+        SavedPolygonOffset := RenderContext.PolygonOffset;
+        RenderContext.PolygonOffsetEnable(TextureNode.FdScale.Value, TextureNode.FdBias.Value);
+      end;
+      if (RHIDevice <> nil) and (ActiveCommandList <> nil) then
+        ActiveCommandList.SetDepthBias(TextureNode.FdBias.Value, TextureNode.FdScale.Value);
 
       Render(Camera);
 
-      RenderContext.PolygonOffset := SavedPolygonOffset;
-      RenderContext.ProjectionMatrix := SavedProjectionMatrix;
-      RenderContext.Viewport := SavedViewport;
+      if RenderContext <> nil then
+      begin
+        RenderContext.PolygonOffset := SavedPolygonOffset;
+        RenderContext.ProjectionMatrix := SavedProjectionMatrix;
+        RenderContext.Viewport := SavedViewport;
+      end;
+      if (RHIDevice <> nil) and (ActiveCommandList <> nil) then
+        ActiveCommandList.SetDepthBias(0, 0);
 
     RenderToTexture.RenderEnd;
 
@@ -2330,6 +3380,9 @@ begin
 
   if NeedsMipmaps then
     RenderToTexture.GenerateMipmap;
+
+  if RHIDevice <> nil then
+    Inc(FRHIUpdateCount);
 end;
 
 function TGeneratedShadowMapResource.GLName: TGLTextureId;

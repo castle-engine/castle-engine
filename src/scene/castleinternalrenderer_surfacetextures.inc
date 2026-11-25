@@ -114,9 +114,14 @@ procedure TRenderer.BumpMappingEnable(const Shape: TX3DRendererShape;
       "NormalTextureResource <> nil" lower is enough. }
     if Shape.BumpMappingAllowed and
        (BumpMapping(RenderOptions) <> bmNone) and
-       (ABoundTextureUnits < GLFeatures.MaxTextureUnits) then
+       (((GLFeatures <> nil) and (ABoundTextureUnits < GLFeatures.MaxTextureUnits)) or ((GLFeatures = nil) and (ABoundTextureUnits < 16))) then
     begin
       NormalTextureResource := TTextureResources.Get(NormalTexture);
+      if (NormalTextureResource = nil) and (RHIDevice <> nil) and (NormalTexture <> nil) then
+      begin
+        TTextureResources.Prepare(RenderOptions, NormalTexture);
+        NormalTextureResource := TTextureResources.Get(NormalTexture);
+      end;
       if (NormalTextureResource <> nil) and
          NormalTextureResource.Bind(ABoundTextureUnits) then
       begin
@@ -206,9 +211,17 @@ procedure TRenderer.SurfaceTexturesEnable(const Shape: TX3DRendererShape;
     TextureType: TTextureType;
   begin
     if (TextureNode <> nil) and
-       (ABoundTextureUnits < GLFeatures.MaxTextureUnits) then
+       (((GLFeatures <> nil) and (ABoundTextureUnits < GLFeatures.MaxTextureUnits)) or ((GLFeatures = nil) and (ABoundTextureUnits < 16))) then
     begin
       TextureResource := TTextureResources.Get(TextureNode);
+      if (TextureResource = nil) and (RHIDevice <> nil) then
+      begin
+        if Shape.Cache <> nil then
+          TTextureResources.Prepare(Shape.Cache.RenderOptions, TextureNode)
+        else
+          TTextureResources.Prepare(nil, TextureNode);
+        TextureResource := TTextureResources.Get(TextureNode);
+      end;
       if (TextureResource <> nil) and
          // We have TextureType that fits in TTextureTypeSample for this
          TextureResource.ShaderTextureType(TextureType) and

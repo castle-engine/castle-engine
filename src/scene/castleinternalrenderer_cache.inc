@@ -137,6 +137,50 @@
 
     procedure Texture3D_DecReference(
       const TextureGLName: TGLTexture);
+
+    { RHI texture cache lookup, registration, and reference decrement for 2D,
+      cubemap, and 3D textures. Shared across texture nodes with identical
+      non-empty FullUrl, mipmap/flip/scale parameters, and active RHIDevice. }
+    function FindRHITextureImage(
+      const TextureFullUrl: String;
+      const FlipVertically: Boolean;
+      const Filter: TTextureFilter;
+      const GUITexture: Boolean;
+      const TextureScale: Cardinal;
+      out AllocatedWidth, AllocatedHeight: Cardinal): TRHITexture;
+    procedure AddRHITextureImage(
+      const TextureFullUrl: String;
+      const FlipVertically: Boolean;
+      const Filter: TTextureFilter;
+      const GUITexture: Boolean;
+      const TextureScale, AllocatedWidth, AllocatedHeight: Cardinal;
+      const ARHITexture: TRHITexture);
+    procedure RHITextureImage_DecReference(
+      var ARHITexture: TRHITexture);
+
+    function FindRHITextureCubeMap(
+      const TextureFullUrl: String;
+      const Filter: TTextureFilter;
+      const GUITexture: Boolean;
+      const TextureScale: Cardinal): TRHITexture;
+    procedure AddRHITextureCubeMap(
+      const TextureFullUrl: String;
+      const Filter: TTextureFilter;
+      const GUITexture: Boolean;
+      const TextureScale: Cardinal;
+      const ARHITexture: TRHITexture);
+    procedure RHITextureCubeMap_DecReference(
+      var ARHITexture: TRHITexture);
+
+    function FindRHITexture3D(
+      const TextureFullUrl: String;
+      const Filter: TTextureFilter): TRHITexture;
+    procedure AddRHITexture3D(
+      const TextureFullUrl: String;
+      const Filter: TTextureFilter;
+      const ARHITexture: TRHITexture);
+    procedure RHITexture3D_DecReference(
+      var ARHITexture: TRHITexture);
   public
     constructor Create;
     destructor Destroy; override;
@@ -312,6 +356,7 @@ begin
       For now, I don't use this idea, and rely on TextureFullUrl. }
 
     if (TextureFullUrl <> '') and
+       (TextureCached.GLName <> GLObjectNone) and
        (TextureCached.FullUrl = TextureFullUrl) and
        (TextureCached.FlipVertically = FlipVertically) and
        (TextureCached.Filter = Filter) and
@@ -328,7 +373,7 @@ begin
 
   FreeTextureImage := false;
 
-  if IsFloatImage(TextureImage) then
+  if IsFloatImage(TextureImage) and (GLFeatures <> nil) then
   begin
     { If trying to load float texture, but it's not supported,
       replace it with dummy 1x1 non-float texture.
@@ -435,6 +480,7 @@ begin
     TextureCached := TextureVideoCaches[I];
 
     if (TextureFullUrl <> '') and
+       (TextureCached.GLVideo <> nil) and
        (TextureCached.FullUrl = TextureFullUrl) and
        (TextureCached.FlipVertically = FlipVertically) and
        (TextureCached.Filter = Filter) and
@@ -516,7 +562,8 @@ begin
     begin
       TextureCached := TextureCubeMapCaches[I];
 
-      if (TextureCached.FullUrl = TextureFullUrl) and
+      if (TextureCached.GLName <> GLObjectNone) and
+         (TextureCached.FullUrl = TextureFullUrl) and
          (TextureCached.Filter = Filter) and
          (TextureCached.Anisotropy = Anisotropy) then
       begin
@@ -609,6 +656,7 @@ begin
     TextureCached := Texture3DCaches[I];
 
     if (TextureFullUrl <> '') and
+       (TextureCached.GLName <> GLObjectNone) and
        (TextureCached.FullUrl = TextureFullUrl) and
        (TextureCached.Filter = Filter) and
        (TextureCached.Anisotropy = Anisotropy) and
@@ -674,6 +722,264 @@ begin
   raise EInternalError.CreateFmt(
     'TRendererCache.Texture3D_DecReference: no reference ' +
     'found to texture %d', [TextureGLName]);
+end;
+
+function TRendererCache.FindRHITextureImage(
+  const TextureFullUrl: String;
+  const FlipVertically: Boolean;
+  const Filter: TTextureFilter;
+  const GUITexture: Boolean;
+  const TextureScale: Cardinal;
+  out AllocatedWidth, AllocatedHeight: Cardinal): TRHITexture;
+var
+  I: Integer;
+  TextureCached: TTextureImageCache;
+begin
+  Result := nil;
+  AllocatedWidth := 0;
+  AllocatedHeight := 0;
+  if (TextureFullUrl = '') or (RHIDevice = nil) then
+    Exit;
+  for I := 0 to TextureImageCaches.Count - 1 do
+  begin
+    TextureCached := TextureImageCaches[I];
+    if (TextureCached.RHITexture <> nil) and
+       (TextureCached.RHIOwnerDevice = RHIDevice) and
+       (TextureCached.FullUrl = TextureFullUrl) and
+       (TextureCached.FlipVertically = FlipVertically) and
+       (TextureCached.Filter.NeedsMipmaps = Filter.NeedsMipmaps) and
+       (TextureCached.GUITexture = GUITexture) and
+       (TextureCached.TextureScale = TextureScale) then
+    begin
+      Inc(TextureCached.References);
+      AllocatedWidth := TextureCached.AllocatedWidth;
+      AllocatedHeight := TextureCached.AllocatedHeight;
+      if LogRendererCache then
+        WritelnLog('++', 'RHITextureImage %s: %d', [TextureFullUrl, TextureCached.References]);
+      Exit(TextureCached.RHITexture);
+    end;
+  end;
+end;
+
+procedure TRendererCache.AddRHITextureImage(
+  const TextureFullUrl: String;
+  const FlipVertically: Boolean;
+  const Filter: TTextureFilter;
+  const GUITexture: Boolean;
+  const TextureScale, AllocatedWidth, AllocatedHeight: Cardinal;
+  const ARHITexture: TRHITexture);
+var
+  TextureCached: TTextureImageCache;
+begin
+  if (TextureFullUrl = '') or (ARHITexture = nil) or (RHIDevice = nil) then
+    Exit;
+  TextureCached := TTextureImageCache.Create;
+  TextureImageCaches.Add(TextureCached);
+  TextureCached.FullUrl := TextureFullUrl;
+  TextureCached.FlipVertically := FlipVertically;
+  TextureCached.Filter := Filter;
+  TextureCached.GUITexture := GUITexture;
+  TextureCached.TextureScale := TextureScale;
+  TextureCached.AllocatedWidth := AllocatedWidth;
+  TextureCached.AllocatedHeight := AllocatedHeight;
+  TextureCached.References := 1;
+  TextureCached.RHITexture := ARHITexture;
+  TextureCached.RHIOwnerDevice := RHIDevice;
+  if LogRendererCache then
+    WritelnLog('++', 'RHITextureImage %s: %d', [TextureFullUrl, 1]);
+end;
+
+procedure TRendererCache.RHITextureImage_DecReference(
+  var ARHITexture: TRHITexture);
+var
+  I: Integer;
+begin
+  if ARHITexture = nil then
+    Exit;
+  for I := 0 to TextureImageCaches.Count - 1 do
+    if TextureImageCaches[I].RHITexture = ARHITexture then
+    begin
+      Dec(TextureImageCaches[I].References);
+      if LogRendererCache then
+        WritelnLog('--', 'RHITextureImage %s: %d', [
+          TextureImageCaches[I].FullUrl,
+          TextureImageCaches[I].References
+        ]);
+      if TextureImageCaches[I].References = 0 then
+      begin
+        TextureMemoryProfiler.DeallocateRHI(TextureImageCaches[I].RHITexture);
+        FreeAndNil(TextureImageCaches[I].RHITexture);
+        TextureImageCaches.Delete(I);
+      end;
+      ARHITexture := nil;
+      CheckFreeWhenEmpty;
+      Exit;
+    end;
+
+  TextureMemoryProfiler.DeallocateRHI(ARHITexture);
+  FreeAndNil(ARHITexture);
+end;
+
+function TRendererCache.FindRHITextureCubeMap(
+  const TextureFullUrl: String;
+  const Filter: TTextureFilter;
+  const GUITexture: Boolean;
+  const TextureScale: Cardinal): TRHITexture;
+var
+  I: Integer;
+  TextureCached: TTextureCubeMapCache;
+begin
+  Result := nil;
+  if (TextureFullUrl = '') or (RHIDevice = nil) then
+    Exit;
+  for I := 0 to TextureCubeMapCaches.Count - 1 do
+  begin
+    TextureCached := TextureCubeMapCaches[I];
+    if (TextureCached.RHITexture <> nil) and
+       (TextureCached.RHIOwnerDevice = RHIDevice) and
+       (TextureCached.FullUrl = TextureFullUrl) and
+       (TextureCached.Filter.NeedsMipmaps = Filter.NeedsMipmaps) and
+       (TextureCached.GUITexture = GUITexture) and
+       (TextureCached.TextureScale = TextureScale) then
+    begin
+      Inc(TextureCached.References);
+      if LogRendererCache then
+        WritelnLog('++', 'RHICubeMap %s: %d', [TextureFullUrl, TextureCached.References]);
+      Exit(TextureCached.RHITexture);
+    end;
+  end;
+end;
+
+procedure TRendererCache.AddRHITextureCubeMap(
+  const TextureFullUrl: String;
+  const Filter: TTextureFilter;
+  const GUITexture: Boolean;
+  const TextureScale: Cardinal;
+  const ARHITexture: TRHITexture);
+var
+  TextureCached: TTextureCubeMapCache;
+begin
+  if (TextureFullUrl = '') or (ARHITexture = nil) or (RHIDevice = nil) then
+    Exit;
+  TextureCached := TTextureCubeMapCache.Create;
+  TextureCubeMapCaches.Add(TextureCached);
+  TextureCached.FullUrl := TextureFullUrl;
+  TextureCached.Filter := Filter;
+  TextureCached.GUITexture := GUITexture;
+  TextureCached.TextureScale := TextureScale;
+  TextureCached.References := 1;
+  TextureCached.RHITexture := ARHITexture;
+  TextureCached.RHIOwnerDevice := RHIDevice;
+  if LogRendererCache then
+    WritelnLog('++', 'RHICubeMap %s: %d', [TextureFullUrl, 1]);
+end;
+
+procedure TRendererCache.RHITextureCubeMap_DecReference(
+  var ARHITexture: TRHITexture);
+var
+  I: Integer;
+begin
+  if ARHITexture = nil then
+    Exit;
+  for I := 0 to TextureCubeMapCaches.Count - 1 do
+    if TextureCubeMapCaches[I].RHITexture = ARHITexture then
+    begin
+      Dec(TextureCubeMapCaches[I].References);
+      if LogRendererCache then
+        WritelnLog('--', 'RHICubeMap %s: %d', [
+          TextureCubeMapCaches[I].FullUrl,
+          TextureCubeMapCaches[I].References
+        ]);
+      if TextureCubeMapCaches[I].References = 0 then
+      begin
+        TextureMemoryProfiler.DeallocateRHI(TextureCubeMapCaches[I].RHITexture);
+        FreeAndNil(TextureCubeMapCaches[I].RHITexture);
+        TextureCubeMapCaches.Delete(I);
+      end;
+      ARHITexture := nil;
+      CheckFreeWhenEmpty;
+      Exit;
+    end;
+
+  TextureMemoryProfiler.DeallocateRHI(ARHITexture);
+  FreeAndNil(ARHITexture);
+end;
+
+function TRendererCache.FindRHITexture3D(
+  const TextureFullUrl: String;
+  const Filter: TTextureFilter): TRHITexture;
+var
+  I: Integer;
+  TextureCached: TTexture3DCache;
+begin
+  Result := nil;
+  if (TextureFullUrl = '') or (RHIDevice = nil) then
+    Exit;
+  for I := 0 to Texture3DCaches.Count - 1 do
+  begin
+    TextureCached := Texture3DCaches[I];
+    if (TextureCached.RHITexture <> nil) and
+       (TextureCached.RHIOwnerDevice = RHIDevice) and
+       (TextureCached.FullUrl = TextureFullUrl) and
+       (TextureCached.Filter.NeedsMipmaps = Filter.NeedsMipmaps) then
+    begin
+      Inc(TextureCached.References);
+      if LogRendererCache then
+        WritelnLog('++', 'RHITexture3D %s: %d', [TextureFullUrl, TextureCached.References]);
+      Exit(TextureCached.RHITexture);
+    end;
+  end;
+end;
+
+procedure TRendererCache.AddRHITexture3D(
+  const TextureFullUrl: String;
+  const Filter: TTextureFilter;
+  const ARHITexture: TRHITexture);
+var
+  TextureCached: TTexture3DCache;
+begin
+  if (TextureFullUrl = '') or (ARHITexture = nil) or (RHIDevice = nil) then
+    Exit;
+  TextureCached := TTexture3DCache.Create;
+  Texture3DCaches.Add(TextureCached);
+  TextureCached.FullUrl := TextureFullUrl;
+  TextureCached.Filter := Filter;
+  TextureCached.References := 1;
+  TextureCached.RHITexture := ARHITexture;
+  TextureCached.RHIOwnerDevice := RHIDevice;
+  if LogRendererCache then
+    WritelnLog('++', 'RHITexture3D %s: %d', [TextureFullUrl, 1]);
+end;
+
+procedure TRendererCache.RHITexture3D_DecReference(
+  var ARHITexture: TRHITexture);
+var
+  I: Integer;
+begin
+  if ARHITexture = nil then
+    Exit;
+  for I := 0 to Texture3DCaches.Count - 1 do
+    if Texture3DCaches[I].RHITexture = ARHITexture then
+    begin
+      Dec(Texture3DCaches[I].References);
+      if LogRendererCache then
+        WritelnLog('--', 'RHITexture3D %s: %d', [
+          Texture3DCaches[I].FullUrl,
+          Texture3DCaches[I].References
+        ]);
+      if Texture3DCaches[I].References = 0 then
+      begin
+        TextureMemoryProfiler.DeallocateRHI(Texture3DCaches[I].RHITexture);
+        FreeAndNil(Texture3DCaches[I].RHITexture);
+        Texture3DCaches.Delete(I);
+      end;
+      ARHITexture := nil;
+      CheckFreeWhenEmpty;
+      Exit;
+    end;
+
+  TextureMemoryProfiler.DeallocateRHI(ARHITexture);
+  FreeAndNil(ARHITexture);
 end;
 
 function TRendererCache.TextureDepth_IncReference(
@@ -936,7 +1242,7 @@ begin
   TRenderer.GetFog(Shape.Fog, RenderOptions, FogEnabled, FogVolumetric,
     FogVolumetricDirection, FogVolumetricVisibilityStart);
 
-  DisableSharedCache := TGLShape(Shape).DisableSharedCache;
+  DisableSharedCache := (Shape is TGLShape) and TGLShape(Shape).DisableSharedCache;
   Caches := ShapeCaches[DisableSharedCache];
 
   if not DisableSharedCache then
@@ -984,7 +1290,7 @@ var
   DisableSharedCache: Boolean;
   Caches: TShapeCacheList;
 begin
-  DisableSharedCache := TGLShape(Shape).DisableSharedCache;
+  DisableSharedCache := (Shape is TGLShape) and TGLShape(Shape).DisableSharedCache;
   Caches := ShapeCaches[DisableSharedCache];
   I := Caches.IndexOf(ShapeCache);
 
@@ -1042,7 +1348,7 @@ begin
   end;
 
   { We *must* have some GLSL shader when GLFeatures.EnableFixedFunction = false }
-  if (not GLFeatures.EnableFixedFunction) and (Result.ShaderProgram = nil) then
+  if (RHIDevice = nil) and (GLFeatures <> nil) and (not GLFeatures.EnableFixedFunction) and (Result.ShaderProgram = nil) then
   begin
     try
       Result.ShaderProgram := TX3DGLSLProgram.Create;

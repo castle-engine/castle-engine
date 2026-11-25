@@ -227,7 +227,7 @@ var
   var
     I: Integer;
   begin
-    if CurrentMeshShader = nil then
+    if (CurrentMeshShader = nil) and (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.EnableFixedFunction then
     begin
       {$ifndef OpenGLES}
       { disable fixed-function parameters }
@@ -243,7 +243,7 @@ var
         glDisableClientState(GL_FOG_COORDINATE_ARRAY_EXT);
       }
 
-      if GLFeatures.UseMultiTexturing then
+      if (RHIDevice = nil) and (GLFeatures <> nil) then if GLFeatures.UseMultiTexturing then
       begin
         for I := 0 to Arrays.TexCoords.Count - 1 do
           if (Arrays.TexCoords[I] <> nil) and
@@ -369,12 +369,29 @@ var
   First: Cardinal;
   Mode: TGLenum;
   TexCoordAttrib: TGLSLAttribute;
+  PushConstants: TCastlePushConstantsBlock;
+  NormalMat: TMatrix3;
+  ShadingModel: TCastleShadingModelRHI;
+  ShadowModeOrd: Cardinal;
+  ShapePipeline: TRHIPipeline;
+  PreparedItem: TRHIPreparedShapeDrawItem;
+  SceneDescSet: TRHIDescriptorSet;
 begin
   Attribs := nil;
 
   RenderCoordinateBegin;
   try
-    if not PrepareRenderShape then
+    if PrepareRenderShape then
+    begin
+      if RHIDevice <> nil then
+      begin
+        if (Shape.Cache <> nil) and (RenderOptions <> nil) then
+          Shape.Cache.RenderOptions := RenderOptions;
+        Shape.UploadRHIMaterialToCache(ShadingModel);
+        if Renderer <> nil then
+          Renderer.GetOrCreateShapePipeline(Shape, RenderOptions);
+      end;
+    end else
     begin
       { Initialize vertex arrays that we we will use with indexed nodes. }
       if Vbo[vtCoordinate] <> GLObjectNone then
@@ -383,7 +400,7 @@ begin
       {$ifdef OpenGLES}
       Assert(CurrentMeshShader <> nil, 'OpenGL ES 2.0 rendering must go through shaders');
       {$else}
-      if not GLFeatures.EnableFixedFunction then
+      if (RHIDevice = nil) and (GLFeatures <> nil) and (not GLFeatures.EnableFixedFunction) then
         Assert(CurrentMeshShader <> nil, 'All rendering must go through shaders when GLFeatures.EnableFixedFunction = false');
       {$endif}
 
@@ -414,7 +431,7 @@ begin
         end;
       end else
       begin
-        { set fixed-function parameters }
+        { set fixed-function parameters } {$ifndef OpenGLES} if (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.EnableFixedFunction then begin {$endif}
         {$ifndef OpenGLES}
         glEnableClientState(GL_VERTEX_ARRAY);
         glVertexPointer(3, GL_FLOAT, Arrays.CoordinateSize, Arrays.Position);
@@ -424,7 +441,7 @@ begin
           glEnableClientState(GL_NORMAL_ARRAY);
           glNormalPointer(GL_FLOAT, Arrays.CoordinateSize, Arrays.Normal);
         end;
-        {$endif not OpenGLES}
+        end; {$endif not OpenGLES}
       end;
 
       if Vbo[vtAttribute] <> GLObjectNone then
@@ -476,7 +493,7 @@ begin
           end;
       end else
       begin
-        { set fixed-function parameters }
+        { set fixed-function parameters } {$ifndef OpenGLES} if (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.EnableFixedFunction then begin {$endif}
         {$ifndef OpenGLES}
         if PerVertexColor then
         begin
@@ -500,7 +517,7 @@ begin
         end;
         }
 
-        if GLFeatures.UseMultiTexturing then
+        if (GLFeatures <> nil) and GLFeatures.UseMultiTexturing then
         begin
           for I := 0 to Arrays.TexCoords.Count - 1 do
             if (Arrays.TexCoords[I] <> nil) and
@@ -520,7 +537,7 @@ begin
           glTexCoordPointer(Arrays.TexCoords[0].Dimensions, GL_FLOAT,
             Arrays.AttributeSize, Arrays.TexCoord(0, 0));
         end;
-        {$endif not OpenGLES}
+        end; {$endif not OpenGLES}
       end;
 
       { We know now that CurrentMeshShader is the program set by
@@ -530,34 +547,224 @@ begin
 
       Mode := ToMode[Arrays.Primitive];
       First := 0;
-      if Arrays.HasIndexes then
+      if (ApplicationProperties <> nil) and
+         (ApplicationProperties.RenderBackend = backendVulkan) and
+         (ActiveCommandList <> nil) then
       begin
-        if Vbo[vtIndex] <> GLObjectNone then
-        begin
-          RenderContext.CurrentVao := Vao;
-          RenderContext.BindBuffer[btElementArray] := Vbo[vtIndex];
-        end;
+        { 1. Upload per-shape RHI Material UBO and push constants for ModelView, Normal, and RenderOptions }
+        if (Shape.Cache <> nil) and (RenderOptions <> nil) then
+          Shape.Cache.RenderOptions := RenderOptions;
+        Shape.UploadRHIMaterialToCache(ShadingModel);
+        ShapePipeline := nil;
+        if Renderer <> nil then
+          ShapePipeline := Renderer.GetOrCreateShapePipeline(Shape, RenderOptions);
 
-        if Arrays.Counts = nil then
-          glDrawElements(Mode, Arrays.IndexesCount,
-            GLIndexConst, Pointer(Arrays.IndexesPtr(First)))
-        else
-          for I := 0 to Arrays.Counts.Count - 1 do
+        if RenderOptions <> nil then ShadowModeOrd := Ord(RenderOptions.ShadowMapSystemMode) else ShadowModeOrd := 0;
+        NormalMat := ModelViewToNormalMatrix(ShapeModelView);
+        PushConstants := TCastleShaderGeneratorRHI.BuildShapeRHIPushConstants(
+          ShapeModelView,
+          NormalMat,
+          (Shape.Cache <> nil) and ((Shape.Cache.RHIJointBuffer <> nil) or (Shape.Cache.RHISkinningUBOBuffer <> nil)),
+          (RenderOptions <> nil) and RenderOptions.DualQuaternionSkinning,
+          (RenderOptions = nil) or RenderOptions.SpecularAntiAliasing,
+          ShadowModeOrd,
+          Shape.RHIBindlessMaterialIndex);
+
+        if (Renderer <> nil) and Renderer.IsCollectingParallelDraws then
+        begin
+          PreparedItem := Default(TRHIPreparedShapeDrawItem);
+          PreparedItem.Pipeline := ShapePipeline;
+          PreparedItem.PushConstants := PushConstants;
+          PreparedItem.HasGeometryShader := (Shape.Cache <> nil) and (Shape.Cache.RHIGeometryShader <> nil);
+
+          SceneDescSet := Renderer.EnsureRHISceneDescriptorSet;
+          PreparedItem.SceneSet := SceneDescSet;
+          if (Shape.Cache <> nil) and (Shape.Cache.RHIMaterialDescriptorSet <> nil) then
+            PreparedItem.MaterialSet := Shape.Cache.RHIMaterialDescriptorSet
+          else if RHIDevice <> nil then
+            PreparedItem.MaterialSet := RHIDevice.GetBindlessDescriptorSet;
+          if Shape.Cache <> nil then
           begin
-            glDrawElements(Mode, Arrays.Counts[I],
-              GLIndexConst, Pointer(Arrays.IndexesPtr(First)));
-            First := First + Arrays.Counts[I];
+            PreparedItem.SkinningSet := Shape.Cache.RHISkinningDescriptorSet;
+            PreparedItem.CoordBuf := Shape.Cache.RHICoordinateBuffer;
+            PreparedItem.AttrBuf := Shape.Cache.RHIAttributeBuffer;
+            PreparedItem.IndexBuf := Shape.Cache.RHIIndexBuffer;
           end;
+
+          PreparedItem.HasIndexes := Arrays.HasIndexes;
+          if Arrays.Counts = nil then
+          begin
+            if Arrays.HasIndexes then
+              PreparedItem.Count := Arrays.IndexesCount
+            else
+              PreparedItem.Count := Arrays.Count;
+          end else
+          begin
+            SetLength(PreparedItem.SubDrawCounts, Arrays.Counts.Count);
+            for I := 0 to Arrays.Counts.Count - 1 do
+              PreparedItem.SubDrawCounts[I] := Arrays.Counts[I];
+          end;
+
+          if (RenderContext <> nil) and (not RenderContext.RHILastViewport.IsEmpty) then
+          begin
+            PreparedItem.ViewportRect := RenderContext.RHILastViewport;
+            PreparedItem.ViewportMinDepth := RenderContext.RHILastMinDepth;
+            PreparedItem.ViewportMaxDepth := RenderContext.RHILastMaxDepth;
+          end else
+          if (RenderContext <> nil) and (not RenderContext.Viewport.IsEmpty) then
+          begin
+            PreparedItem.ViewportRect := FloatRectangle(RenderContext.Viewport);
+            PreparedItem.ViewportMinDepth := RenderContext.RHILastMinDepth;
+            PreparedItem.ViewportMaxDepth := RenderContext.RHILastMaxDepth;
+          end else
+          begin
+            PreparedItem.ViewportRect := FloatRectangle(ActiveCommandList.ActiveRenderingInfo.RenderArea);
+            PreparedItem.ViewportMinDepth := 0.0;
+            PreparedItem.ViewportMaxDepth := 1.0;
+          end;
+
+          if (RenderContext <> nil) and RenderContext.RHIScissorActive then
+            PreparedItem.ScissorRect := RenderContext.RHILastScissor
+          else if not ActiveCommandList.ActiveRenderingInfo.RenderArea.IsEmpty then
+            PreparedItem.ScissorRect := ActiveCommandList.ActiveRenderingInfo.RenderArea
+          else
+            PreparedItem.ScissorRect := Rectangle(
+              Round(PreparedItem.ViewportRect.Left),
+              Round(PreparedItem.ViewportRect.Bottom),
+              Max(0, Round(PreparedItem.ViewportRect.Width)),
+              Max(0, Round(PreparedItem.ViewportRect.Height)));
+
+          if (Shape.State <> nil) and (Shape.State.BlendMode <> nil) and
+             ((Shape.State.BlendMode.SrcFactor in [bsConstantColor, bsOneMinusConstantColor, bsConstantAlpha, bsOneMinusConstantAlpha]) or
+              (Shape.State.BlendMode.DestFactor in [bdConstantColor, bdOneMinusConstantColor, bdConstantAlpha, bdOneMinusConstantAlpha])) then
+          begin
+            PreparedItem.UseBlendConstants := True;
+            PreparedItem.BlendConstants := Vector4(
+              Shape.State.BlendMode.FdColor.Value,
+              1.0 - Shape.State.BlendMode.FdColorTransparency.Value);
+            if RenderContext <> nil then
+              RenderContext.BlendingConstantColor := PreparedItem.BlendConstants;
+          end;
+
+          if (RenderContext <> nil) and RenderContext.PolygonOffset.Enabled then
+          begin
+            PreparedItem.DepthBiasConstant := RenderContext.PolygonOffset.Bias;
+            PreparedItem.DepthBiasSlope := RenderContext.PolygonOffset.Scale;
+          end else
+          begin
+            PreparedItem.DepthBiasConstant := 0.0;
+            PreparedItem.DepthBiasSlope := 0.0;
+          end;
+
+          if RenderContext <> nil then
+            PreparedItem.LineWidth := RenderContext.LineWidth
+          else
+            PreparedItem.LineWidth := 1.0;
+
+          Renderer.AppendPreparedDrawItem(PreparedItem);
+        end else
+        begin
+          if ShapePipeline <> nil then
+            ActiveCommandList.BindPipeline(ShapePipeline);
+          if (Renderer <> nil) and (Shape.State <> nil) and (Shape.State.BlendMode <> nil) and
+             ((Shape.State.BlendMode.SrcFactor in [bsConstantColor, bsOneMinusConstantColor, bsConstantAlpha, bsOneMinusConstantAlpha]) or
+              (Shape.State.BlendMode.DestFactor in [bdConstantColor, bdOneMinusConstantColor, bdConstantAlpha, bdOneMinusConstantAlpha])) then
+          begin
+            if RenderContext <> nil then
+              RenderContext.BlendingConstantColor := Vector4(
+                Shape.State.BlendMode.FdColor.Value,
+                1.0 - Shape.State.BlendMode.FdColorTransparency.Value)
+            else
+              ActiveCommandList.SetBlendConstants(Vector4(
+                Shape.State.BlendMode.FdColor.Value,
+                1.0 - Shape.State.BlendMode.FdColorTransparency.Value));
+          end;
+          if (Shape.Cache <> nil) and (Shape.Cache.RHIGeometryShader <> nil) then
+            ActiveCommandList.PushConstants([ssVertex, ssGeometry, ssFragment], 0, SizeOf(PushConstants), PushConstants)
+          else
+            ActiveCommandList.PushConstants([ssVertex, ssFragment], 0, SizeOf(PushConstants), PushConstants);
+
+          { 1b. Bind Set 0 (Global Scene + Lights UBOs), Set 1 (Material UBO / Bindless Table), and Set 2 (Skinning UBO) }
+          if (Renderer <> nil) and (Renderer.EnsureRHISceneDescriptorSet <> nil) then
+            ActiveCommandList.BindDescriptorSet(0, Renderer.RHISceneDescriptorSet, []);
+          if (Shape.Cache <> nil) and (Shape.Cache.RHIMaterialDescriptorSet <> nil) then
+            ActiveCommandList.BindDescriptorSet(1, Shape.Cache.RHIMaterialDescriptorSet, [])
+          else if (RHIDevice <> nil) and (RHIDevice.GetBindlessDescriptorSet <> nil) then
+            ActiveCommandList.BindDescriptorSet(1, RHIDevice.GetBindlessDescriptorSet, []);
+          if (Shape.Cache <> nil) and (Shape.Cache.RHISkinningDescriptorSet <> nil) then
+            ActiveCommandList.BindDescriptorSet(2, Shape.Cache.RHISkinningDescriptorSet, []);
+
+          { 2. Bind vertex buffers (Coordinate and Attribute) }
+          if (Shape.Cache <> nil) and (Shape.Cache.RHICoordinateBuffer <> nil) then
+          begin
+            if Shape.Cache.RHIAttributeBuffer <> nil then
+              ActiveCommandList.BindVertexBuffers(0,
+                [Shape.Cache.RHICoordinateBuffer, Shape.Cache.RHIAttributeBuffer],
+                [0, 0])
+            else
+              ActiveCommandList.BindVertexBuffers(0,
+                [Shape.Cache.RHICoordinateBuffer],
+                [0]);
+          end;
+
+          { 3. DrawIndexed / Draw }
+          if Arrays.HasIndexes then
+          begin
+            if (Shape.Cache <> nil) and (Shape.Cache.RHIIndexBuffer <> nil) then
+              ActiveCommandList.BindIndexBuffer(Shape.Cache.RHIIndexBuffer, 0, {$ifdef GLIndexesShort}itUInt16{$else}itUInt32{$endif});
+
+            if Arrays.Counts = nil then
+              ActiveCommandList.DrawIndexed(Arrays.IndexesCount, 1, First, 0, 0)
+            else
+              for I := 0 to Arrays.Counts.Count - 1 do
+              begin
+                ActiveCommandList.DrawIndexed(Arrays.Counts[I], 1, First, 0, 0);
+                First := First + Arrays.Counts[I];
+              end;
+          end else
+          begin
+            if Arrays.Counts = nil then
+              ActiveCommandList.Draw(Arrays.Count, 1, First, 0)
+            else
+              for I := 0 to Arrays.Counts.Count - 1 do
+              begin
+                ActiveCommandList.Draw(Arrays.Counts[I], 1, First, 0);
+                First := First + Arrays.Counts[I];
+              end;
+          end;
+        end;
       end else
+      if (RHIDevice = nil) and (GLFeatures <> nil) then
       begin
-        if Arrays.Counts = nil then
-          glDrawArrays(Mode, First, Arrays.Count)
-        else
-          for I := 0 to Arrays.Counts.Count - 1 do
+        if Arrays.HasIndexes then
+        begin
+          if Vbo[vtIndex] <> GLObjectNone then
           begin
-            glDrawArrays(Mode, First, Arrays.Counts[I]);
-            First := First + Arrays.Counts[I];
+            RenderContext.CurrentVao := Vao;
+            RenderContext.BindBuffer[btElementArray] := Vbo[vtIndex];
           end;
+
+          if Arrays.Counts = nil then
+            glDrawElements(Mode, Arrays.IndexesCount,
+              GLIndexConst, Pointer(Arrays.IndexesPtr(First)))
+          else
+            for I := 0 to Arrays.Counts.Count - 1 do
+            begin
+              glDrawElements(Mode, Arrays.Counts[I],
+                GLIndexConst, Pointer(Arrays.IndexesPtr(First)));
+              First := First + Arrays.Counts[I];
+            end;
+        end else
+        begin
+          if Arrays.Counts = nil then
+            glDrawArrays(Mode, First, Arrays.Count)
+          else
+            for I := 0 to Arrays.Counts.Count - 1 do
+            begin
+              glDrawArrays(Mode, First, Arrays.Counts[I]);
+              First := First + Arrays.Counts[I];
+            end;
+        end;
       end;
 
       { update Renderer.Statistics.DrawCalls }
@@ -578,6 +785,8 @@ end;
 
 procedure TBaseCoordinateRenderer.RenderCoordinateBegin;
 begin
+  if RenderContext = nil then
+    Exit;
   RenderContext.CullFace := Arrays.CullFace;
   { Following glTF on what to do with negative scale transformations:
 
@@ -619,7 +828,7 @@ end;
   available, and shifting TextureUnit by GL_TEXTURE0) is taken care of inside here. }
 procedure MultiTexCoord(const TextureUnit: Cardinal; const TexCoord: TVector4);
 begin
-  if GLFeatures.UseMultiTexturing then
+  if (RHIDevice = nil) and (GLFeatures <> nil) then if GLFeatures.UseMultiTexturing then
     glMultiTexCoord4fv(GL_TEXTURE0 + TextureUnit, @TexCoord)
   else
     glTexCoord4fv(@TexCoord);
@@ -640,7 +849,7 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
       of this is entirely inside EnableTexGen. }
     procedure TextureTransformToWorldSpace(const SuccessName, FailName: string);
     begin
-      if not GLFeatures.EnableFixedFunction then
+      if (RHIDevice <> nil) or (GLFeatures = nil) or (not GLFeatures.EnableFixedFunction) then
         Exit;
 
       { Set the 4th texture coord component (Q) to 0.0.
@@ -723,7 +932,7 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
         Shader.EnableTexGen(TexUnit, tgSphere);
       tgCoord:
         begin
-          if GLFeatures.EnableFixedFunction then
+          if (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.EnableFixedFunction then
           begin
             {$ifndef OpenGLES}
             glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
@@ -740,7 +949,7 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
         end;
       tgCoordEye:
         begin
-          if GLFeatures.EnableFixedFunction then
+          if (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.EnableFixedFunction then
           begin
             {$ifndef OpenGLES}
             { Vectors given to EYE_PLANE are transformed by inverted
@@ -773,11 +982,11 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
           {$ifdef OpenGLES}
           Assert(GLFeatures.TextureCubeMap); // on OpenGLES, cubemaps are always supported
           {$else}
-          if not GLFeatures.TextureCubeMap then
+          if (RHIDevice = nil) and (GLFeatures <> nil) and (not GLFeatures.TextureCubeMap) then
           begin
             WritelnWarning('VRML/X3D', 'Rendering context doesn''t support cube maps, cannot generate texture coordinates with mode = "CAMERASPACENORMAL", will do "COORD" instead');
 
-            if GLFeatures.EnableFixedFunction then
+            if (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.EnableFixedFunction then
             begin
               glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
               glTexGenv(GL_S, GL_OBJECT_PLANE, GenerationVectorsIdentity[0]);
@@ -806,11 +1015,11 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
           {$ifdef OpenGLES}
           Assert(GLFeatures.TextureCubeMap); // on OpenGLES, cubemaps are always supported
           {$else}
-          if not GLFeatures.TextureCubeMap then
+          if (RHIDevice = nil) and (GLFeatures <> nil) and (not GLFeatures.TextureCubeMap) then
           begin
             WritelnWarning('VRML/X3D', 'Rendering context doesn''t support cube maps, cannot generate texture coordinates with mode = "CAMERASPACEREFLECTIONVECTOR", will do "COORD" instead');
 
-            if GLFeatures.EnableFixedFunction then
+            if (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.EnableFixedFunction then
             begin
               glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
               glTexGenv(GL_S, GL_OBJECT_PLANE, GenerationVectorsIdentity[0]);
@@ -839,7 +1048,7 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
           begin
             ProjectorMatrix := ProjectorScalingMatrix * TexCoord.GenerationProjectorMatrix();
 
-            if GLFeatures.EnableFixedFunction then
+            if (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.EnableFixedFunction then
             begin
               {$ifndef OpenGLES}
               glPushMatrix;
@@ -871,7 +1080,7 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
         end;
       tgBounds2d:
         begin
-          if GLFeatures.EnableFixedFunction then
+          if (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.EnableFixedFunction then
           begin
             {$ifndef OpenGLES}
             glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
@@ -885,7 +1094,7 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
         end;
       tgBounds3d:
         begin
-          if GLFeatures.EnableFixedFunction then
+          if (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.EnableFixedFunction then
           begin
             {$ifndef OpenGLES}
             glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
@@ -932,7 +1141,7 @@ begin
       { Disable OpenGL GL_TEXTURE_GEN_x, if it was (possibly)
         enabled by RenderCoordinateBegin. }
       Shader.DisableTexGen(I);
-      if GLFeatures.EnableFixedFunction then
+      if (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.EnableFixedFunction then
       begin
         {$ifndef OpenGLES}
         { DisableTexGen already set glActiveTexture }
@@ -980,7 +1189,7 @@ begin
 
     {$ifndef OpenGLES}
     { For fixed-function pipeline, GL_COLOR_MATERIAL is needed only if Lighting. }
-    MaterialFromColorEnabled := GLFeatures.EnableFixedFunction and Lighting;
+    MaterialFromColorEnabled := (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.EnableFixedFunction and Lighting;
     if MaterialFromColorEnabled then
       { Note: glColorMaterial is already set by TRenderer.ClassRenderBegin }
       glEnable(GL_COLOR_MATERIAL);
@@ -1009,6 +1218,8 @@ procedure TSkinnedRenderer.RenderCoordinateBegin;
 var
   Weights0: TVector4List;
   Joints0: TInt32List;
+  SkinTexRes: TTextureResource;
+  SkinImgRes: TImageTextureResource;
 begin
   inherited;
 
@@ -1019,7 +1230,47 @@ begin
      (State.Skin.InternalJointMatrix <> nil) and
      (State.Skin.InternalJointMatrix.Count = State.Skin.FdJoints.Count) and
      (Geometry.SkinWeightsJoints(Weights0, Joints0)) then
+  begin
     Shader.EnableSkinnedAnimation(State.Skin.InternalJointMatrix);
+
+    if (RHIDevice <> nil) and
+       (Shape.Cache <> nil) then
+    begin
+      if (State.Skin.InternalMeshCalculation = mcGpuTexture) and
+         (State.Skin.InternalJointTexture <> nil) then
+      begin
+        SkinTexRes := TTextureResources.Get(State.Skin.InternalJointTexture);
+        if SkinTexRes = nil then
+        begin
+          TTextureResources.Prepare(RenderOptions, State.Skin.InternalJointTexture);
+          SkinTexRes := TTextureResources.Get(State.Skin.InternalJointTexture);
+        end;
+        if SkinTexRes is TImageTextureResource then
+        begin
+          SkinImgRes := TImageTextureResource(SkinTexRes);
+          if (SkinImgRes.AllocatedWidth <> 4) or
+             (SkinImgRes.AllocatedHeight <> Cardinal(State.Skin.InternalJointMatrix.Count)) then
+            SkinImgRes.UpdateTextureContentsRgbaFloat(
+              4, State.Skin.InternalJointMatrix.Count, State.Skin.InternalJointMatrix.L);
+          if (SkinImgRes.RHIJointFloatData <> nil) and
+             (SkinImgRes.RHIJointFloatSize = PtrUInt(State.Skin.InternalJointMatrix.Count) * SizeOf(TMatrix4)) then
+            Shape.Cache.UploadJointMatrices(
+              SkinImgRes.RHIJointFloatData,
+              State.Skin.InternalJointMatrix.Count)
+          else
+            Shape.Cache.UploadJointMatrices(
+              State.Skin.InternalJointMatrix.L,
+              State.Skin.InternalJointMatrix.Count);
+        end else
+          Shape.Cache.UploadJointMatrices(
+            State.Skin.InternalJointMatrix.L,
+            State.Skin.InternalJointMatrix.Count);
+      end else
+        Shape.Cache.UploadJointMatrices(
+          State.Skin.InternalJointMatrix.L,
+          State.Skin.InternalJointMatrix.Count);
+    end;
+  end;
 end;
 
 { TShaderCoordinateRenderer -------------------------------------------------- }
@@ -1089,7 +1340,7 @@ begin
       ((ColorSpace = csLinearWhenPhysicalMaterial) and
        (Shader.Material is TPhysicalMaterialInfo));
 
-    if not GLFeatures.EnableFixedFunction then
+    if (RHIDevice = nil) and (GLFeatures <> nil) and (not GLFeatures.EnableFixedFunction) then
     begin
       Pass := Renderer.FPass;
 
@@ -1115,7 +1366,7 @@ begin
       Assert(Shape.ProgramCache[Pass] <> nil);
       CurrentX3DProgram := Shape.ProgramCache[Pass].ShaderProgram;
       CurrentMeshShader := CurrentX3DProgram;
-      if not GLFeatures.EnableFixedFunction then
+      if (RHIDevice = nil) and (GLFeatures <> nil) and (not GLFeatures.EnableFixedFunction) then
         Assert(CurrentX3DProgram <> nil, 'Shader is not initialized, but it has to be (creation of fallback shaders failed?)');
       if CurrentX3DProgram <> nil then // may be nil on desktops
         Shader.SetDynamicUniforms(CurrentX3DProgram);
@@ -1123,7 +1374,8 @@ begin
       CurrentMeshShader := nil;
   end;
 
-  RenderContext.CurrentProgram := CurrentMeshShader; // enable the CurrentMeshShader for OpenGL
+  if RenderContext <> nil then
+    RenderContext.CurrentProgram := CurrentMeshShader; // enable the CurrentMeshShader for OpenGL
 
   if CurrentMeshShader <> nil then
     CurrentMeshShader.SetupUniforms(BoundTextureUnits);

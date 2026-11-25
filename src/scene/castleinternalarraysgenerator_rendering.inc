@@ -25,7 +25,7 @@ type
     procedure GenerateCoordinate; override;
   end;
 
-  TPointSetGenerator = class(TAbstractColorGenerator)
+  TPointSetGenerator = class(TAbstractCompleteGenerator)
   protected
     procedure PrepareIndexesPrimitives; override;
     procedure GenerateCoordinateBegin; override;
@@ -234,6 +234,17 @@ begin
       ColorRGBA := nil;
     end;
   end;
+
+  Normals := Node.InternalNormal;
+  if (Normals <> nil) and (Coord <> nil) and (Normals.Count >= Coord.Count) then
+  begin
+    NorImplementation := niPerVertexNonIndexed;
+    NormalsCcw := true;
+  end else
+  begin
+    Normals := nil;
+    NorImplementation := niUnlit;
+  end;
 end;
 
 procedure TPointSetGenerator.GenerateCoordinateBegin;
@@ -257,7 +268,7 @@ begin
     https://www.web3d.org/documents/specifications/19775-1/V4.0/Part01/components/rendering.html#PointSet
   }
 
-  Arrays.ForceUnlit := true;
+  Arrays.ForceUnlit := NorImplementation = niUnlit;
   M := State.MaterialInfo;
   if M <> nil then
     Arrays.ForcedUnlitColor := Vector4(M.EmissiveColor, M.Opacity)
@@ -1278,7 +1289,27 @@ begin
 
   { do not leave NorImplementation as niNone,
     only because niNone forces less optimal rendering AllowIndexed=false. }
-  NorImplementation := niUnlit;
+  Normals := Geometry.InternalNormal;
+  if Geometry is TIndexedLineSetNode then
+  begin
+    if Normals <> nil then
+    begin
+      NorImplementation := niPerVertexCoordIndexed;
+      NormalsCcw := true;
+    end else
+      NorImplementation := niUnlit;
+  end else
+  begin
+    if (Normals <> nil) and (Coord <> nil) and (Normals.Count >= Coord.Count) then
+    begin
+      NorImplementation := niPerVertexNonIndexed;
+      NormalsCcw := true;
+    end else
+    begin
+      Normals := nil;
+      NorImplementation := niUnlit;
+    end;
+  end;
 end;
 
 procedure TLineSetGenerator.GenerateCoordinateBegin;
@@ -1308,7 +1339,7 @@ begin
        (following general spec remark at Material node that
        Material = NULL makes unlit white color) }
 
-  Arrays.ForceUnlit := true;
+  Arrays.ForceUnlit := NorImplementation = niUnlit;
   M := State.MaterialInfo;
   if M <> nil then
     Arrays.ForcedUnlitColor := Vector4(M.EmissiveColor, M.Opacity)

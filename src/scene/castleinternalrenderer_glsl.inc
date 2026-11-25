@@ -48,13 +48,24 @@ function TX3DGLSLProgram.SetupUniforms(var BoundTextureUnits: Cardinal): boolean
       Returns bound texture number (or -1 if failed).
       You should set shader uniform value to this number. }
     function BindSingleTexture(TextureNode: TX3DNode): Integer;
+    var
+      MaxUnits: Cardinal;
     begin
       Result := -1;
       if (TextureNode <> nil) and
          (TextureNode is TAbstractTextureNode) then
       begin
-        if BoundTextureUnits < GLFeatures.MaxTextureUnits then
+        if GLFeatures <> nil then
+          MaxUnits := GLFeatures.MaxTextureUnits
+        else if RHIDevice <> nil then
+          MaxUnits := 64
+        else
+          MaxUnits := 0;
+
+        if BoundTextureUnits < MaxUnits then
         begin
+          if TTextureResources.Get(TAbstractTextureNode(TextureNode)) = nil then
+            TTextureResources.Prepare(nil, TAbstractTextureNode(TextureNode));
           if TTextureResources.Bind(
             TAbstractTextureNode(TextureNode), BoundTextureUnits) then
           begin

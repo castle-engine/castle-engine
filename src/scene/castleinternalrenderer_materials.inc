@@ -48,7 +48,7 @@ procedure RenderMaterialsBegin;
 
     if RenderOptions.Mode <> rmFull then Exit;
 
-    if GLFeatures.EnableFixedFunction then
+    if (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.EnableFixedFunction then
     begin
       {$ifndef OpenGLES}
       if Lighting then
@@ -127,7 +127,8 @@ begin
   // calculate Lighting ("whether anything requires lighting calculation")
   Lighting := RenderOptions.Lighting and MaterialAndShapeLit and
     (RenderOptions.Mode = rmFull);
-  RenderContext.FixedFunctionLighting := Lighting;
+  if RenderContext <> nil then
+    RenderContext.FixedFunctionLighting := Lighting;
   if Lighting then
     Shader.EnableLighting;
 

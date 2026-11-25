@@ -130,9 +130,50 @@ var
   W, H: Integer;
   RenderToTexture: TGLRenderToTexture;
   TargetTexture: TGLTextureId;
+  TempCmd, SavedCmd: TRHICommandList;
 begin
   W := ViewportRect.Width;
   H := ViewportRect.Height;
+  if RHIDevice <> nil then
+  begin
+    TempCmd := nil;
+    SavedCmd := ActiveCommandList;
+    if SavedCmd = nil then
+    begin
+      TempCmd := RHIDevice.BeginFrame;
+      SetActiveCommandList(TempCmd);
+    end;
+    try
+      RenderToTexture := TGLRenderToTexture.Create(W, H);
+      try
+        RenderToTexture.Buffer := tbColor;
+        RenderToTexture.ColorBufferAlpha := True;
+        RenderToTexture.Stencil := True;
+        RenderToTexture.GLContextOpen;
+        RenderToTexture.RenderBegin;
+
+        if RenderContext <> nil then
+          RenderContext.Clear([cbColor], BackgroundColor);
+        Container.RenderControl(Control, ViewportRect);
+
+        RenderToTexture.RenderEnd;
+
+        Result := RenderToTexture.SaveScreen(TRGBAlphaImage, Rectangle(0, 0, W, H)) as TRGBAlphaImage;
+
+        RenderToTexture.GLContextClose;
+      finally
+        FreeAndNil(RenderToTexture);
+      end;
+    finally
+      if TempCmd <> nil then
+      begin
+        RHIDevice.EndFrameAndPresent;
+        SetActiveCommandList(SavedCmd);
+      end;
+    end;
+    Exit;
+  end;
+
   RenderToTexture := TGLRenderToTexture.Create(W, H);
   try
     // RenderToTexture.Buffer := tbNone;

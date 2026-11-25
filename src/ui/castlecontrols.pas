@@ -62,7 +62,7 @@ uses Math, CastleTextureFont_DefaultUi,
   {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleTextureImages,
   CastleApplicationProperties, CastleMessaging, CastleComponentSerialize,
-  CastleUnicode, CastleRenderOptions;
+  CastleUnicode, CastleRenderOptions, CastleInternalRHI;
 
 {$define read_implementation}
 {$I castlecontrols_uifont.inc} //< Keep this on top, to allow castlecontrols_userinterfacefont.inc to access internals

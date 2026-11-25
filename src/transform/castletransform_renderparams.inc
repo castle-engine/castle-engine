@@ -52,6 +52,18 @@
       to glDrawElements and glDrawArrays. }
     DrawCalls: Cardinal;
 
+    { Diagnostics for RHI / Vulkan backend }
+    ActiveBackend: String;
+    PipelineCacheHits: Cardinal;
+    PipelineCacheMisses: Cardinal;
+    DescriptorSetAllocations: Cardinal;
+    DeviceMemoryUsedMB: Cardinal;
+    DeviceMemoryBudgetMB: Cardinal;
+    GpuFrameTimeMs: Single;
+    ComputeDispatchCount: Cardinal;
+    BindlessActiveTextures: Cardinal;
+    MSAASampleCount: Cardinal;
+
     { Present the statistics information as a string (without any newlines).
       Display it e.g. by assigning to TCastleLabel.Caption. }
     function ToString: String;
@@ -414,6 +426,23 @@ begin
     ScenesVisible,
     DrawCalls
   ]);
+
+  if ActiveBackend <> '' then
+    Result := Result + ', Backend: ' + ActiveBackend;
+  if MSAASampleCount > 1 then
+    Result := Result + Format(', MSAA: %dx', [MSAASampleCount]);
+  if (PipelineCacheHits > 0) or (PipelineCacheMisses > 0) then
+    Result := Result + Format(', PSO hits/misses: %d/%d', [PipelineCacheHits, PipelineCacheMisses]);
+  if DescriptorSetAllocations > 0 then
+    Result := Result + Format(', Descriptors: %d', [DescriptorSetAllocations]);
+  if BindlessActiveTextures > 0 then
+    Result := Result + Format(', Bindless tex: %d', [BindlessActiveTextures]);
+  if ComputeDispatchCount > 0 then
+    Result := Result + Format(', Compute dispatches: %d', [ComputeDispatchCount]);
+  if GpuFrameTimeMs > 0.0 then
+    Result := Result + FormatDot(', GPU: %.2f ms', [GpuFrameTimeMs]);
+  if DeviceMemoryBudgetMB > 0 then
+    Result := Result + Format(', VRAM: %d / %d MB', [DeviceMemoryUsedMB, DeviceMemoryBudgetMB]);
 end;
 
 { TRenderingCamera --------------------------------------------------------------- }

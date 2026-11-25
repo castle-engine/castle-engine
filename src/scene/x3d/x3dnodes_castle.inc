@@ -1230,6 +1230,17 @@ function TSkinNode.InternalMeshCalculation: TInternalMeshCalculation;
   end;
 
 begin
+  if (not InternalFeatures.Shaders) and
+     (ApplicationProperties <> nil) and
+     (ApplicationProperties.RenderBackend = backendVulkan) then
+  begin
+    InternalFeatures.Shaders := True;
+    InternalFeatures.MaxVertexUniformComponents := 16384;
+    InternalFeatures.MaxSkinJointsInUniforms := 256;
+    InternalFeatures.MaxTextureSize := 16384;
+    InternalFeatures.TextureFloat := True;
+  end;
+
   if InternalFeatures.Shaders and
      RenderOptionsSkinnedAnimationShaders and
      (not SomeShapeCastsShadowVolumes) then

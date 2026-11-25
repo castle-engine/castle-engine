@@ -38,7 +38,7 @@ uses SysUtils, Classes, Generics.Collections,
   CastleSceneInternalShape, CastleInternalFileMonitor,
   CastleRenderOptions, CastleTimeUtils, CastleImages,
   CastleBehaviors, CastleInternalShapesRenderer, CastleSceneInternalBlending,
-  CastleInternalPrimitiveMaterial;
+  CastleInternalPrimitiveMaterial, CastleInternalRHI;
 
 {$define read_interface}
 
@@ -480,6 +480,8 @@ type
       @exclude
       @groupBegin }
     function InternalScreenEffects(Index: Integer): TGLSLProgram;
+    function InternalScreenEffectRHIPipeline(Index: Integer): TRHIPipeline; //< @exclude
+    function InternalScreenEffectRHIUserDescriptorSet(Index: Integer): TRHIDescriptorSet; //< @exclude
     function InternalScreenEffectsCount: Integer; //< @exclude
     function InternalScreenEffectsNeedDepth: boolean; //< @exclude
     { @groupEnd }
@@ -1097,6 +1099,7 @@ var
   I: Integer;
   PossiblyTimeConsuming: Boolean;
   TimeStart: TCastleProfilerTime;
+  OwnedRenderer: TRenderer;
 begin
   inherited;
 
@@ -1116,12 +1119,24 @@ begin
     But let the check InternalDirty remain, for future security. }
   if InternalDirty <> 0 then Exit;
 
-  if not ApplicationProperties.IsGLContextOpen then
+  if (not ApplicationProperties.IsGLContextOpen) and (ApplicationProperties.RenderBackend <> backendVulkan) and (RHIDevice = nil) then
   begin
     WritelnLog('PrepareResources', 'Rendering context not available, skipping preparing TCastleScene rendering resources for "%s"', [
       UriDisplay(URL)
     ]);
     Exit;
+  end;
+
+  if (RHIDevice <> nil) and (not TSkinNode.InternalFeatures.Shaders) then
+  begin
+    TSkinNode.InternalFeatures.Shaders := True;
+    TSkinNode.InternalFeatures.MaxVertexUniformComponents := 16384;
+    TSkinNode.InternalFeatures.MaxSkinJointsInUniforms := 256;
+    if RHIDevice.Capabilities.MaxTextureSize > 0 then
+      TSkinNode.InternalFeatures.MaxTextureSize := RHIDevice.Capabilities.MaxTextureSize
+    else
+      TSkinNode.InternalFeatures.MaxTextureSize := 16384;
+    TSkinNode.InternalFeatures.TextureFloat := True;
   end;
 
   Inc(InternalDirty);
@@ -1132,33 +1147,51 @@ begin
       TimeStart := Profiler.Start('Prepare Scene Resources ' + URL);
 
     Assert(Params <> nil);
-    Renderer := Params.RendererToPrepareShapes as TRenderer;
-    Assert(Renderer <> nil);
-
-    if not PreparedShapesResources then
+    OwnedRenderer := nil;
+    if Params.RendererToPrepareShapes = nil then
     begin
-      { Use PreparedShapesResources to avoid expensive (for large scenes)
-        iteration over all shapes in every TCastleScene.PrepareResources call. }
-      PreparedShapesResources := true;
-      PrepareShapesResources;
+      OwnedRenderer := TRenderer.Create(nil);
+      Params.RendererToPrepareShapes := OwnedRenderer;
     end;
+    try
+      Renderer := Params.RendererToPrepareShapes as TRenderer;
+      Assert(Renderer <> nil);
 
-    if ([prRenderSelf, prRenderClones] * Options <> []) and not PreparedRender then
-    begin
-      { We use PreparedRender to avoid potentially expensive iteration
-        over shapes and expensive Renderer.RenderBegin/End. }
-      PreparedRender := true;
-      PrepareRenderShapes;
-    end;
+      if not PreparedShapesResources then
+      begin
+        { Use PreparedShapesResources to avoid expensive (for large scenes)
+          iteration over all shapes in every TCastleScene.PrepareResources call. }
+        PreparedShapesResources := true;
+        PrepareShapesResources;
+      end;
 
-    if prBackground in Options then
-      PrepareBackground;
+      if ([prRenderSelf, prRenderClones] * Options <> []) and not PreparedRender then
+      begin
+        { We use PreparedRender to avoid potentially expensive iteration
+          over shapes and expensive Renderer.RenderBegin/End. }
+        PreparedRender := true;
+        PrepareRenderShapes;
+      end;
 
-    if prScreenEffects in Options then
-    begin
-      for I := 0 to ScreenEffectNodes.Count - 1 do
-        TScreenEffectResources.Prepare(RenderOptions,
-          ScreenEffectNodes[I] as TScreenEffectNode);
+      if prBackground in Options then
+      begin
+        PrepareBackground;
+        if FBackgroundRenderer <> nil then
+          FBackgroundRenderer.PrepareResources(Options, Params);
+      end;
+
+      if prScreenEffects in Options then
+      begin
+        for I := 0 to ScreenEffectNodes.Count - 1 do
+          TScreenEffectResources.Prepare(RenderOptions,
+            ScreenEffectNodes[I] as TScreenEffectNode);
+      end;
+    finally
+      if OwnedRenderer <> nil then
+      begin
+        Params.RendererToPrepareShapes := nil;
+        FreeAndNil(OwnedRenderer);
+      end;
     end;
 
     if PossiblyTimeConsuming then
@@ -1566,6 +1599,11 @@ procedure TCastleScene.Update(const SecondsPassed: Single; var RemoveMe: TRemove
         if Shape.BoundingBox.IsEmpty then Exit;
 
         TextureRes := TGeneratedCubeMapTextureResource(TTextureResources.Get(TexNode));
+        if (TextureRes = nil) and (RHIDevice <> nil) then
+        begin
+          TTextureResources.Prepare(RenderOptions, TexNode);
+          TextureRes := TGeneratedCubeMapTextureResource(TTextureResources.Get(TexNode));
+        end;
         if TextureRes <> nil then
         begin
           TextureRes.Update(Render, ProjectionNear, ProjectionFar,
@@ -1588,6 +1626,11 @@ procedure TCastleScene.Update(const SecondsPassed: Single; var RemoveMe: TRemove
         if TexNode.FdLight.Value is TAbstractPunctualLightNode then
         begin
           TextureRes := TGeneratedShadowMapResource(TTextureResources.Get(TexNode));
+          if (TextureRes = nil) and (RHIDevice <> nil) then
+          begin
+            TTextureResources.Prepare(RenderOptions, TexNode);
+            TextureRes := TGeneratedShadowMapResource(TTextureResources.Get(TexNode));
+          end;
           if TextureRes <> nil then
           begin
             TextureRes.Update(Render, ProjectionNear, ProjectionFar,
@@ -1610,6 +1653,11 @@ procedure TCastleScene.Update(const SecondsPassed: Single; var RemoveMe: TRemove
       if TexNode.GenTexFunctionality.NeedsUpdate then
       begin
         TextureRes := TRenderedTextureResource(TTextureResources.Get(TexNode));
+        if (TextureRes = nil) and (RHIDevice <> nil) then
+        begin
+          TTextureResources.Prepare(RenderOptions, TexNode);
+          TextureRes := TRenderedTextureResource(TTextureResources.Get(TexNode));
+        end;
         if TextureRes <> nil then
         begin
           TextureRes.Update(Render, ProjectionNear, ProjectionFar, CurrentViewpoint,
@@ -1714,7 +1762,7 @@ begin
   inherited;
 
   { This will do FrameProfiler.Start/Stop with fmUpdateGeneratedTextures }
-  if World <> nil then
+  if (World <> nil) and Assigned(World.InternalRenderEverythingEvent) then
     UpdateGeneratedTextures(
       World.InternalRenderEverythingEvent,
       World.InternalProjectionNear,
@@ -1870,6 +1918,7 @@ function TCastleScene.InternalScreenEffectsCount: Integer;
 var
   I: Integer;
   SE: TScreenEffectNode;
+  SeNodeRes: TScreenEffectResource;
 begin
   Result := 0;
 
@@ -1883,9 +1932,13 @@ begin
   for I := 0 to ScreenEffectNodes.Count - 1 do
   begin
     SE := TScreenEffectNode(ScreenEffectNodes[I]);
+    if not SE.FdEnabled.Value then
+      Continue;
     // Note: TScreenEffectResources.Prepare exits fast if already was done on this shape
     TScreenEffectResources.Prepare(RenderOptions, SE);
-    if TScreenEffectResources.Get(SE).ShaderProgram <> nil then
+    SeNodeRes := TScreenEffectResources.Get(SE);
+    if (SeNodeRes <> nil) and
+       ((SeNodeRes.ShaderProgram <> nil) or (SeNodeRes.RHIPipeline <> nil)) then
       Inc(Result);
   end;
 end;
@@ -1903,8 +1956,10 @@ begin
   for I := 0 to ScreenEffectNodes.Count - 1 do
   begin
     SeNode := TScreenEffectNode(ScreenEffectNodes[I]);
+    if not SeNode.FdEnabled.Value then
+      Continue;
     SeNodeRes := TScreenEffectResources.Get(SeNode);
-    if SeNodeRes.ShaderProgram <> nil then
+    if (SeNodeRes <> nil) and (SeNodeRes.ShaderProgram <> nil) then
       if Index = 0 then
         Exit(TGLSLProgram(SeNodeRes.ShaderProgram))
       else
@@ -1914,21 +1969,75 @@ begin
   raise EInternalError.Create('TCastleScene.ScreenEffects: Invalid index');
 end;
 
+function TCastleScene.InternalScreenEffectRHIPipeline(Index: Integer): TRHIPipeline;
+var
+  I: Integer;
+  SeNode: TScreenEffectNode;
+  SeNodeRes: TScreenEffectResource;
+begin
+  for I := 0 to ScreenEffectNodes.Count - 1 do
+  begin
+    SeNode := TScreenEffectNode(ScreenEffectNodes[I]);
+    if not SeNode.FdEnabled.Value then
+      Continue;
+    TScreenEffectResources.Prepare(RenderOptions, SeNode);
+    SeNodeRes := TScreenEffectResources.Get(SeNode);
+    if (SeNodeRes <> nil) and
+       ((SeNodeRes.RHIPipeline <> nil) or (SeNodeRes.ShaderProgram <> nil)) then
+    begin
+      if Index = 0 then
+      begin
+        SeNodeRes.UpdateRHIUniforms;
+        Exit(SeNodeRes.RHIPipeline);
+      end else
+        Dec(Index);
+    end;
+  end;
+  Result := nil;
+end;
+
+function TCastleScene.InternalScreenEffectRHIUserDescriptorSet(Index: Integer): TRHIDescriptorSet;
+var
+  I: Integer;
+  SeNode: TScreenEffectNode;
+  SeNodeRes: TScreenEffectResource;
+begin
+  for I := 0 to ScreenEffectNodes.Count - 1 do
+  begin
+    SeNode := TScreenEffectNode(ScreenEffectNodes[I]);
+    if not SeNode.FdEnabled.Value then
+      Continue;
+    TScreenEffectResources.Prepare(RenderOptions, SeNode);
+    SeNodeRes := TScreenEffectResources.Get(SeNode);
+    if (SeNodeRes <> nil) and
+       ((SeNodeRes.RHIPipeline <> nil) or (SeNodeRes.ShaderProgram <> nil)) then
+    begin
+      if Index = 0 then
+      begin
+        SeNodeRes.UpdateRHIUniforms;
+        Exit(SeNodeRes.RHIUserEffectDescriptorSet);
+      end else
+        Dec(Index);
+    end;
+  end;
+  Result := nil;
+end;
+
 function TCastleScene.InternalScreenEffectsNeedDepth: boolean;
 var
   I: Integer;
   SeNode: TScreenEffectNode;
   SeNodeRes: TScreenEffectResource;
 begin
-  { For now: No need for TScreenEffectResources.Prepare here, ScreenEffectsCount
-    is always called first. But actually for some scenarios we should do
-    here TScreenEffectResources.Prepare? }
-
   for I := 0 to ScreenEffectNodes.Count - 1 do
   begin
     SeNode := TScreenEffectNode(ScreenEffectNodes[I]);
+    if not SeNode.FdEnabled.Value then
+      Continue;
+    TScreenEffectResources.Prepare(RenderOptions, SeNode);
     SeNodeRes := TScreenEffectResources.Get(SeNode);
-    if (SeNodeRes.ShaderProgram <> nil) and
+    if (SeNodeRes <> nil) and
+       ((SeNodeRes.ShaderProgram <> nil) or (SeNodeRes.RHIPipeline <> nil)) and
         SeNode.NeedsDepth then
       Exit(true);
   end;
@@ -2124,11 +2233,25 @@ end;
 
 procedure InitializeSkinInShaders;
 begin
-  TSkinNode.InternalFeatures.Shaders := GLFeatures.Shaders;
-  TSkinNode.InternalFeatures.MaxVertexUniformComponents := GLFeatures.MaxVertexUniformComponents;
-  TSkinNode.InternalFeatures.MaxSkinJointsInUniforms := GLFeatures.MaxSkinJointsInUniforms;
-  TSkinNode.InternalFeatures.MaxTextureSize := GLFeatures.MaxTextureSize;
-  TSkinNode.InternalFeatures.TextureFloat := GLFeatures.TextureFloat;
+  if RHIDevice <> nil then
+  begin
+    TSkinNode.InternalFeatures.Shaders := True;
+    TSkinNode.InternalFeatures.MaxVertexUniformComponents := 16384;
+    TSkinNode.InternalFeatures.MaxSkinJointsInUniforms := 256;
+    if RHIDevice.Capabilities.MaxTextureSize > 0 then
+      TSkinNode.InternalFeatures.MaxTextureSize := RHIDevice.Capabilities.MaxTextureSize
+    else
+      TSkinNode.InternalFeatures.MaxTextureSize := 16384;
+    TSkinNode.InternalFeatures.TextureFloat := True;
+  end else
+  if GLFeatures <> nil then
+  begin
+    TSkinNode.InternalFeatures.Shaders := GLFeatures.Shaders;
+    TSkinNode.InternalFeatures.MaxVertexUniformComponents := GLFeatures.MaxVertexUniformComponents;
+    TSkinNode.InternalFeatures.MaxSkinJointsInUniforms := GLFeatures.MaxSkinJointsInUniforms;
+    TSkinNode.InternalFeatures.MaxTextureSize := GLFeatures.MaxTextureSize;
+    TSkinNode.InternalFeatures.TextureFloat := GLFeatures.TextureFloat;
+  end;
 end;
 
 initialization

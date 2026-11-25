@@ -165,7 +165,8 @@ begin
   end;
 
   { Early test for special case when we don't use Mask. }
-  if (MaskRendering = mrChildrenIgnoreMask) or (GLFeatures.StencilBits = 0) then
+  if (MaskRendering = mrChildrenIgnoreMask) or
+     ((RHIDevice = nil) and ((GLFeatures = nil) or (GLFeatures.StencilBits = 0))) then
   begin
     for I := 0 to ControlsCount - 1 do
       if Controls[I] <> Mask then
@@ -181,9 +182,10 @@ begin
     All CGE operations using stencil buffer must set this state
     before rendering: this applies to TCastleMask and TGLShadowVolumeRenderer. }
 
+  TDrawableImage.BatchingFlush;
   RenderContext.Clear([cbStencil], { ClearColor is meaningless for clearing [cbStencil] } TVector4.Zero);
 
-  glEnable(GL_STENCIL_TEST);
+  RenderContext.StencilTest := true;
 
     { render Mask to set stencil buffer }
 
@@ -194,21 +196,22 @@ begin
     RenderContext.DepthBufferUpdate := false;
     RenderContext.ColorChannels := [];
 
-    glStencilFunc(GL_ALWAYS, 1, 0);
-    { GL_REPLACE means to set stencil to 1 ("ref" argument passed to glStencilFunc)
+    RenderContext.StencilFunc(coAlways, 1, 0);
+    { soReplace (GL_REPLACE) means to set stencil to 1 ("ref" argument passed to StencilFunc)
       where the stencil and depth test pass }
-    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+    RenderContext.StencilOp(soKeep, soKeep, soReplace, $FF);
     Mask.InternalRecursiveRender(ViewportRect);
+    TDrawableImage.BatchingFlush;
 
     RenderContext.DepthBufferUpdate := SavedDepthBufferUpdate;
     RenderContext.ColorChannels := SavedColorChannels;
 
     { render other children, honoring the stencil buffer }
 
-    glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // do not modify stencil anymore
+    RenderContext.StencilOp(soKeep, soKeep, soKeep, 0); // do not modify stencil anymore
     case MaskRendering of
-      mrChildrenWhereMask  : glStencilFunc(GL_EQUAL, 1, 1);
-      mrChildrenWhereNoMask: glStencilFunc(GL_NOTEQUAL, 1, 1);
+      mrChildrenWhereMask  : RenderContext.StencilFunc(coEqual, 1, 1);
+      mrChildrenWhereNoMask: RenderContext.StencilFunc(coNotEqual, 1, 1);
       else raise EInternalError.Create('MaskRendering?');
     end;
 
@@ -220,10 +223,11 @@ begin
     for I := 0 to ControlsCount - 1 do
       if Controls[I] <> Mask then
         Controls[I].InternalRecursiveRender(ViewportRect);
+    TDrawableImage.BatchingFlush;
 
     RenderContext.InternalClearColorsByDraw := SavedInternalClearColorsByDraw;
 
-  glDisable(GL_STENCIL_TEST);
+  RenderContext.StencilTest := false;
 end;
 
 {$endif read_implementation}

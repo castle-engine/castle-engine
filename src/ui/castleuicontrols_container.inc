@@ -166,6 +166,7 @@
       FCurrentViewStack, FPendingViewStack: TCastleViewList;
       FDisableStackChange: Cardinal;
       FControls: TInternalChildrenControls;
+      FRHIRenderedFramesCount: Cardinal;
       FInternalOverrideCursor: TMouseCursor; //< overrides even public OverrideCursor
     class var
       FInputInspector: TInputInspector;
@@ -175,6 +176,8 @@
     { Called when the control C is destroyed or just removed from Controls list. }
     procedure DetachNotification(const C: TCastleUserInterface);
     procedure FlushCollectedMotion;
+    function CaptureRHIContainerScreen(const ImageClass: TCastleImageClass;
+      const SaveRect: TRectangle): TCastleImage;
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
@@ -688,6 +691,9 @@
 
     property Context: TRenderContext read FContext;
 
+    { Phase 60.2: Number of container frames rendered via EventRender while an RHI device is active. }
+    property RHIRenderedFramesCount: Cardinal read FRHIRenderedFramesCount;
+
     { Render a TCastleUserInterface (along with all it's children).
 
       This method can be used to render UI control into an image,
@@ -767,7 +773,7 @@
       An example:
       @includeCode(../../examples/short_api_samples/save_screen_rgba/save_screen_rgba.dpr)
       @groupBegin }
-    function SaveScreenRgba(const SaveRect: TRectangle): TRGBAlphaImage; overload;
+    function SaveScreenRgba(const SaveRect: TRectangle): TRGBAlphaImage; overload; virtual;
     function SaveScreenRgba: TRGBAlphaImage; overload;
     { @groupEnd }
 
@@ -2471,15 +2477,13 @@ begin
   ProcessViewChanges;
 
   if InitializedContextsCount = 1 then
-  begin
     ApplicationProperties._GLContextClose;
 
-    { recreate FContext instance, to reset every variable when context is closed }
-    if RenderContext = FContext then
-      RenderContext := nil;
-    FreeAndNil(FContext);
-    FContext := TRenderContext.Create(nil);
-  end;
+  { Recreate FContext instance on every container close so cached GL/RHI state is reset }
+  if RenderContext = FContext then
+    RenderContext := nil;
+  FreeAndNil(FContext);
+  FContext := TRenderContext.Create(nil);
 end;
 
 function TCastleContainer.AllowSuspendForInput: Boolean;
@@ -2753,24 +2757,27 @@ end;
 
 class procedure TCastleContainer.RenderControlPrepare(const ViewportRect: TRectangle);
 begin
-  if GLFeatures.EnableFixedFunction then
+  if (GLFeatures <> nil) and GLFeatures.EnableFixedFunction then
   begin
     { Set OpenGL state that is guaranteed for TCastleUserInterface.Render calls,
       but TCastleUserInterface.Render cannot change it carelessly. }
     {$ifndef OpenGLES}
-    RenderContext.FixedFunctionLighting := false;
+    if RenderContext <> nil then
+      RenderContext.FixedFunctionLighting := false;
     glDisable(GL_FOG);
     {$endif}
     GLEnableTexture(etNone);
   end;
 
-  RenderContext.DepthTest := false;
+  if RenderContext <> nil then
+    RenderContext.DepthTest := false;
 
-  RenderContext.Viewport := ViewportRect;
+  if RenderContext <> nil then
+    RenderContext.Viewport := ViewportRect;
   OrthoProjection(FloatRectangle(0, 0, ViewportRect.Width, ViewportRect.Height));
 
   {$ifndef OpenGLES}
-  if GLFeatures.EnableFixedFunction then
+  if (GLFeatures <> nil) and GLFeatures.EnableFixedFunction then
   begin
     { Set OpenGL state that may be changed carelessly, and has some
       guaranteed value, for TCastleUserInterface.Render calls. }
@@ -2800,9 +2807,12 @@ procedure TCastleContainer.EventRender;
       {$warnings on}
     end;
 
-    RenderControlPrepare(PixelsRect);
+  RenderControlPrepare(PixelsRect);
   end;
 
+var
+  Batch2D: TCastleBatch2DRenderer;
+  AutoStartedBatch2D: Boolean;
 begin
   FlushCollectedMotion;
 
@@ -2810,18 +2820,40 @@ begin
     we never show outdated view. }
   ProcessViewChanges;
 
-  if BackgroundEnable then
+  if BackgroundEnable and (RenderContext <> nil) then
     RenderContext.Clear([cbColor], BackgroundColor);
+
+  if RHIDevice <> nil then
+    Inc(FRHIRenderedFramesCount);
 
   FillChar(TDrawableImage.Statistics, SizeOf(TDrawableImage.Statistics), #0);
 
-  if UserInterfaceBatching then
+  Batch2D := nil;
+  AutoStartedBatch2D := False;
+  if (RHIDevice <> nil) and (ActiveCommandList <> nil) then
   begin
-    TDrawableImage.BatchingBegin;
-    RenderCore;
-    TDrawableImage.BatchingEnd;
-  end else
-    RenderCore;
+    Batch2D := EnsureBatch2DRenderer(RHIDevice);
+    if (Batch2D <> nil) and (not Batch2D.In2DPass) then
+    begin
+      Batch2D.Begin2DPass(ActiveCommandList, Max(1, PixelsWidth), Max(1, PixelsHeight));
+      AutoStartedBatch2D := True;
+    end;
+  end;
+  try
+    if UserInterfaceBatching then
+    begin
+      TDrawableImage.BatchingBegin;
+      try
+        RenderCore;
+      finally
+        TDrawableImage.BatchingEnd;
+      end;
+    end else
+      RenderCore;
+  finally
+    if AutoStartedBatch2D and (Batch2D <> nil) then
+      Batch2D.End2DPass;
+  end;
 end;
 
 procedure TCastleContainer.RenderControl(const Control: TCastleUserInterface;
@@ -2829,6 +2861,9 @@ procedure TCastleContainer.RenderControl(const Control: TCastleUserInterface;
 var
   NeedsContainerSet, NeedsGLOpen: Boolean;
   OldContainer: TCastleContainer;
+  Batch2D: TCastleBatch2DRenderer;
+  AutoStartedBatch2D, SavedBatchViewport: Boolean;
+  SavedBatchW, SavedBatchH: Single;
 begin
   NeedsContainerSet := Control.Container <> Self;
   NeedsGLOpen := not Control.GLInitialized;
@@ -2845,7 +2880,41 @@ begin
     Control.GLContextOpen;
   Control.CheckResize;
   Control.BeforeRender;
-  Control.InternalRecursiveRender(ViewportRect);
+
+  Batch2D := nil;
+  AutoStartedBatch2D := False;
+  SavedBatchViewport := False;
+  SavedBatchW := 1;
+  SavedBatchH := 1;
+  if (RHIDevice <> nil) and (ActiveCommandList <> nil) then
+  begin
+    Batch2D := EnsureBatch2DRenderer(RHIDevice);
+    if Batch2D <> nil then
+    begin
+      if not Batch2D.In2DPass then
+      begin
+        Batch2D.Begin2DPass(ActiveCommandList, Max(1, ViewportRect.Width), Max(1, ViewportRect.Height));
+        AutoStartedBatch2D := True;
+      end else
+      begin
+        SavedBatchViewport := True;
+        SavedBatchW := Batch2D.ViewportWidth;
+        SavedBatchH := Batch2D.ViewportHeight;
+        Batch2D.SetViewportSize(Max(1, ViewportRect.Width), Max(1, ViewportRect.Height));
+      end;
+    end;
+  end;
+  try
+    Control.InternalRecursiveRender(ViewportRect);
+    if SavedBatchViewport and (Batch2D <> nil) then
+      Batch2D.Flush;
+  finally
+    if AutoStartedBatch2D and (Batch2D <> nil) then
+      Batch2D.End2DPass
+    else
+    if SavedBatchViewport and (Batch2D <> nil) then
+      Batch2D.SetViewportSize(SavedBatchW, SavedBatchH);
+  end;
 
   { TODO: calling the methods below is not recursive,
     it will not unprepare the children correctly. }
@@ -3061,8 +3130,86 @@ begin
   Result := SafeBorder.Top;
 end;
 
+function TCastleContainer.CaptureRHIContainerScreen(
+  const ImageClass: TCastleImageClass; const SaveRect: TRectangle): TCastleImage;
+var
+  SavedCtx: TRenderContext;
+  ColorDesc, DepthDesc: TRHITextureDesc;
+  OffscreenColorTex, OffscreenDepthTex: TRHITexture;
+  Cmd: TRHICommandList;
+  TargetW, TargetH: Cardinal;
+  PassArea: TRectangle;
+  ClearCol: TCastleColor;
+  PassInfo: TRHIRenderingInfo;
+begin
+  Result := nil;
+  SavedCtx := RenderContext;
+  OffscreenColorTex := nil;
+  OffscreenDepthTex := nil;
+  try
+    RenderContext := Context;
+
+    TargetW := Cardinal(Max(1, Max(PixelsWidth, Max(0, SaveRect.Left) + Max(1, SaveRect.Width))));
+    TargetH := Cardinal(Max(1, Max(PixelsHeight, Max(0, SaveRect.Bottom) + Max(1, SaveRect.Height))));
+
+    ColorDesc := TRHITextureDesc.Create2D(TargetW, TargetH, pfRGBA8_UNorm,
+      [tuColorAttachment, tuSampled, tuTransferSrc, tuTransferDst], 1);
+    ColorDesc.DebugName := 'ContainerSaveScreenColor';
+    OffscreenColorTex := RHIDevice.CreateTexture(ColorDesc);
+
+    DepthDesc := TRHITextureDesc.Create2D(TargetW, TargetH, pfD24_UNorm_S8_UInt,
+      [tuDepthStencil], 1);
+    DepthDesc.DebugName := 'ContainerSaveScreenDepth';
+    OffscreenDepthTex := RHIDevice.CreateTexture(DepthDesc);
+
+    RHIDevice.WaitIdle;
+    EventBeforeRender;
+
+    Cmd := RHIDevice.BeginOffscreenFrame;
+    if Cmd <> nil then
+    begin
+      try
+        PassArea := Rectangle(0, 0, Integer(TargetW), Integer(TargetH));
+        if BackgroundEnable then
+          ClearCol := BackgroundColor
+        else
+          ClearCol := Vector4(0.0, 0.0, 0.0, 1.0);
+        PassInfo := TRHIRenderingInfo.CreateColorDepth(
+          PassArea, OffscreenColorTex, loClear, ClearCol,
+          OffscreenDepthTex, loClear, 1.0);
+        Cmd.BeginRendering(PassInfo);
+        Cmd.SetViewport(FloatRectangle(PassArea), 0.0, 1.0);
+        Cmd.SetScissor(PassArea);
+        if RenderContext <> nil then
+          RenderContext.Viewport := PassArea;
+
+        EventRender;
+        TDrawableImage.BatchingFlush;
+        if (ActiveCommandList <> nil) and ActiveCommandList.IsRendering then
+          ActiveCommandList.EndRendering;
+      finally
+        RHIDevice.EndOffscreenFrame;
+      end;
+    end;
+
+    Result := ImageClass.Create(Max(1, SaveRect.Width), Max(1, SaveRect.Height));
+    try
+      RHIDevice.GrabTextureImage(OffscreenColorTex, SaveRect, Result);
+    except
+      FreeAndNil(Result);
+      raise;
+    end;
+  finally
+    FreeAndNil(OffscreenDepthTex);
+    FreeAndNil(OffscreenColorTex);
+    RenderContext := SavedCtx;
+  end;
+end;
+
 function TCastleContainer.SaveScreen(const SaveRect: TRectangle): TRGBImage;
 begin
+  if (RHIDevice <> nil) and (ActiveCommandList = nil) then
+    Exit(CaptureRHIContainerScreen(TRGBImage, SaveRect) as TRGBImage);
   EventBeforeRender;
   EventRender;
   { This is correct if we use double-buffer. }
@@ -3106,6 +3253,8 @@ end;
 
 function TCastleContainer.SaveScreenRgba(const SaveRect: TRectangle): TRGBAlphaImage;
 begin
+  if (RHIDevice <> nil) and (ActiveCommandList = nil) then
+    Exit(CaptureRHIContainerScreen(TRGBAlphaImage, SaveRect) as TRGBAlphaImage);
   EventBeforeRender;
   EventRender;
   { This is correct if we use double-buffer. }

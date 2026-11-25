@@ -92,6 +92,7 @@
       @groupBegin }
     property Field: TX3DField read FField;
     property Event: TX3DEvent read FEvent;
+    function FieldOrLastEventValue: TX3DField;
     { @groupEnd }
 
     procedure Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames;
@@ -187,6 +188,8 @@ procedure TX3DInterfaceDeclaration.SetFieldOrEvent(
   const Value: TX3DFieldOrEvent);
 begin
   FFieldOrEvent := Value;
+  if FFieldOrEvent <> nil then
+    FFieldOrEvent.ParentInterfaceDeclaration := Self;
 
   { set FField and FEvent, for fast access to them }
   if FFieldOrEvent = nil then
@@ -204,6 +207,16 @@ begin
     FField := nil;
     FEvent := TX3DEvent(FFieldOrEvent);
   end;
+end;
+
+function TX3DInterfaceDeclaration.FieldOrLastEventValue: TX3DField;
+begin
+  if FField <> nil then
+    Result := FField
+  else if (FEvent <> nil) and FEvent.InEvent then
+    Result := FEvent.InternalOrDefaultReceivedField
+  else
+    Result := nil;
 end;
 
 procedure TX3DInterfaceDeclaration.Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames;

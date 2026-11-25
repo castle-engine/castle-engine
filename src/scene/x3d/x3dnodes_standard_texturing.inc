@@ -430,6 +430,9 @@
       save memory. }
     property Duration: TFloatTime read FDuration;
 
+    { Load video contents from a ready TVideo instance. }
+    procedure LoadFromVideo(const Video: TVideo; const TakeVideoOwnership: Boolean);
+
   {$I auto_generated_node_helpers/x3dnodes_movietexture.inc}
   end;
 
@@ -1140,6 +1143,32 @@ begin
   if TextureUsedFullUrl <> '' then
     Result := 'video from file "' + TextureUsedFullUrl + '"' else
     Result := 'none';
+end;
+
+procedure TMovieTextureNode.LoadFromVideo(const Video: TVideo; const TakeVideoOwnership: Boolean);
+var
+  I: Integer;
+  CopiedFrames: array of TCastleImage;
+begin
+  FreeAndNilTextureData;
+
+  if TakeVideoOwnership then
+    FTextureVideo := Video
+  else
+  begin
+    FTextureVideo := TVideo.Create;
+    SetLength(CopiedFrames, Video.Count);
+    for I := 0 to Video.Count - 1 do
+      CopiedFrames[I] := Video.Items[I].MakeCopy;
+    FTextureVideo.LoadFromImageArray(CopiedFrames, True, Video.FramesPerSecond);
+    FTextureVideo.TimeLoop := Video.TimeLoop;
+    FTextureVideo.TimeBackwards := Video.TimeBackwards;
+  end;
+
+  FAlphaChannelData := FTextureVideo.AlphaChannel;
+  FIsTextureLoaded := true;
+  UsedCache := nil;
+  FDuration := FTextureVideo.TimeDuration;
 end;
 
 function TMultiTextureNode.AlphaChannelData: TAlphaChannel;

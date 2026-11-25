@@ -30,7 +30,7 @@ uses SysUtils, Classes, Generics.Collections,
   CastleGLShaders, CastleGLImages, CastleTimeUtils, CastleControls,
   CastleInputs, CastleRectangles, CastleColors, CastleComponentSerialize,
   CastleProjection, CastleScreenEffects, CastleInternalShapesRenderer,
-  CastleInternalScreenEffects;
+  CastleInternalScreenEffects, CastleInternalRHI;
 
 type
   TCastleViewport = class;
@@ -165,6 +165,19 @@ type
       FBlendingSort: TShapeSort;
       FOnCustomShapeSort: TShapeSortEvent;
       FUpdateSoundListener: Boolean;
+      FGlobalIlluminationMode: TGlobalIlluminationMode;
+      FTemporalAntiAliasingMode: TTemporalAntiAliasingMode;
+      FVariableRateShadingMode: TVariableRateShadingMode;
+      FNextGenToneMappingMode: TNextGenToneMappingMode;
+      FVolumetricFogEnabled: Boolean;
+      FAutoExposureEnabled: Boolean;
+      FCameraApertureFStops: Single;
+      FCameraShutterSeconds: Single;
+      FCameraISO: Single;
+      FTargetFrameRateHz: Single;
+      FParallelCommandRecording: Boolean;
+      FParallelCommandRecordingMinShapes: Cardinal;
+      FParallelCommandRecordingWorkerCount: Cardinal;
 
       AllShapesCollector, FilteredShapesCollector: TShapesCollector;
       ShapesRenderer: TShapesRenderer;
@@ -268,6 +281,9 @@ type
     procedure ItemsFreeNotification(const Sender: TFreeNotificationObserver);
     procedure SetDynamicBatching(const Value: Boolean);
     procedure SetOcclusionCulling(const Value: Boolean);
+    procedure SetParallelCommandRecording(const Value: Boolean);
+    procedure SetParallelCommandRecordingMinShapes(const Value: Cardinal);
+    procedure SetParallelCommandRecordingWorkerCount(const Value: Cardinal);
   private
     var
       FProjection: TProjection;
@@ -423,8 +439,14 @@ type
 
     function InternalExtraGetScreenEffects(
       const Index: Integer): TGLSLProgram; override;
+    function InternalExtraGetScreenEffectRHIPipeline(
+      const Index: Integer): TRHIPipeline; override;
+    function InternalExtraGetScreenEffectRHIUserDescriptorSet(
+      const Index: Integer): TRHIDescriptorSet; override;
     function InternalExtraScreenEffectsCount: Integer; override;
     function InternalExtraScreenEffectsNeedDepth: Boolean; override;
+    function GetScreenEffectsNear: Single; override;
+    function GetScreenEffectsFar: Single; override;
 
     { Called when PointingDevicePress was not handled by any TCastleTransform object.
       You can override this to make a message / sound signal to notify user
@@ -608,6 +630,34 @@ type
 
     { Statistics about last rendering frame. See TRenderStatistics docs. }
     function Statistics: TRenderStatistics;
+
+    { Evaluates photographic EV100 from CameraApertureFStops, CameraShutterSeconds, and CameraISO. }
+    function EvaluateCurrentCameraEV100: Single;
+
+    { Evaluates ISO 12232 saturation-based linear exposure multiplier from EvaluateCurrentCameraEV100. }
+    function EvaluateCurrentCameraExposureMultiplier: Single;
+
+    { Executes all enabled high-level Vulkan RHI viewport subsystems (GTAO, SSR,
+      Volumetric Fog, Global Illumination, TAA/TSR, VRS, Auto-Exposure Histogram,
+      Frame Pacer, and Next-Gen Tone Mapping HDR Target prep) on RHIDevice when
+      running on TVulkanRHIDevice, returning the number of active subsystem passes executed. }
+    function ExecuteVulkanViewportSubsystems(
+      const ACommandList: TObject = nil;
+      const ADeltaTimeSeconds: Single = 0.016667): Cardinal;
+
+    { Executes per-scene TCastleRenderOptions Vulkan RHI subsystems (GPU-Driven Meshlet
+      Culling, Virtual Shadow Map page allocation & upload, and Weighted-Blended /
+      Per-Pixel Linked-List OIT targets & resolve) on RHIDevice when running on
+      TVulkanRHIDevice, returning the number of active subsystem passes executed. }
+    function ExecuteSceneRenderOptionsSubsystems(
+      const ARenderOptions: TCastleRenderOptions;
+      const ACommandList: TObject = nil): Cardinal;
+
+    { Recursively traverses Items and executes ExecuteSceneRenderOptionsSubsystems
+      for every visible TCastleScene in the viewport hierarchy, returning the total
+      number of scene subsystem passes executed. }
+    function ExecuteAllScenesRenderOptionsSubsystems(
+      const ACommandList: TObject = nil): Cardinal;
 
     { Background color.
       Displayed only if @link(Background) is @nil and
@@ -1055,6 +1105,9 @@ type
       @exclude }
     function InternalBuildNode(
       const SaveBaseUrl: String; const UrlProcessing: TUrlProcessing): TX3DRootNode;
+
+    { @exclude }
+    property InternalShapesRenderer: TShapesRenderer read ShapesRenderer;
   published
     { Transformations and scenes visible in this viewport.
       You should add here your @link(TCastleTransform) and @link(TCastleScene)
@@ -1139,6 +1192,8 @@ type
       purposes. Shadow volumes will be rendered on top of the scene,
       as yellow blended polygons. }
     property ShadowVolumesRender: boolean read FShadowVolumesRender write FShadowVolumesRender default false;
+    { @exclude }
+    property InternalShadowVolumeRenderer: TGLShadowVolumeRenderer read FShadowVolumeRenderer;
 
     { Background (like a skybox) to display behind the @link(Items).
       Displayed only when not @link(Transparent).
@@ -1373,6 +1428,65 @@ type
     property UpdateSoundListener: Boolean
       read FUpdateSoundListener write FUpdateSoundListener default true;
 
+    { High-level Global Illumination mode (DDGI Probes, Voxel Cone Tracing,
+      Lumen Global SDF + Surface Cache, or ReSTIR GI) on the Vulkan RHI backend. }
+    property GlobalIlluminationMode: TGlobalIlluminationMode
+      read FGlobalIlluminationMode write FGlobalIlluminationMode default giNone;
+
+    { High-level Temporal Anti-Aliasing or Temporal Super Resolution (TSR) upscaling mode. }
+    property TemporalAntiAliasingMode: TTemporalAntiAliasingMode
+      read FTemporalAntiAliasingMode write FTemporalAntiAliasingMode default taaNone;
+
+    { Hardware / tile-based Variable Rate Shading (VRS) mode. }
+    property VariableRateShadingMode: TVariableRateShadingMode
+      read FVariableRateShadingMode write FVariableRateShadingMode default vrsNone;
+
+    { Next-gen HDR tone-mapping and gamut compression mode (Standard, AgX, or HDR10 PQ). }
+    property NextGenToneMappingMode: TNextGenToneMappingMode
+      read FNextGenToneMappingMode write FNextGenToneMappingMode default ntmStandard;
+
+    { Enables 3D Froxel Volumetric Fog injection and Beer-Lambert ray-marching on the Vulkan RHI backend. }
+    property VolumetricFogEnabled: Boolean
+      read FVolumetricFogEnabled write FVolumetricFogEnabled default false;
+
+    { Enables 64-bin GPU log-luminance histogram auto-exposure adaptation on the Vulkan RHI backend. }
+    property AutoExposureEnabled: Boolean
+      read FAutoExposureEnabled write FAutoExposureEnabled default false;
+
+    { Physical camera aperture in f-stops (N, default 16.0 for Sunny 16 rule) used for EV100 calculation. }
+    property CameraApertureFStops: Single
+      read FCameraApertureFStops write FCameraApertureFStops;
+
+    { Physical camera shutter time in seconds (t, default 0.008s = 1/125s) used for EV100 calculation. }
+    property CameraShutterSeconds: Single
+      read FCameraShutterSeconds write FCameraShutterSeconds;
+
+    { Physical camera sensor ISO sensitivity (S, default 100.0) used for EV100 calculation. }
+    property CameraISO: Single
+      read FCameraISO write FCameraISO;
+
+    { Target display refresh rate in Hz (0 = unpaced) for TCastleVulkanFramePacer. }
+    property TargetFrameRateHz: Single
+      read FTargetFrameRateHz write FTargetFrameRateHz;
+
+    { Enables multi-threaded secondary command buffer recording across per-worker
+      VkCommandPool instances on the Vulkan RHI backend when rendering collected
+      TCastleScene shapes. }
+    property ParallelCommandRecording: Boolean
+      read FParallelCommandRecording write SetParallelCommandRecording default false;
+
+    { Minimum number of collected shapes in a pass required before dispatching
+      multi-threaded secondary command buffer recording on the Vulkan RHI backend. }
+    property ParallelCommandRecordingMinShapes: Cardinal
+      read FParallelCommandRecordingMinShapes write SetParallelCommandRecordingMinShapes
+      default TShapesRenderer.DefaultParallelCommandRecordingMinShapes;
+
+    { Number of worker threads / secondary command buffers used for multi-threaded
+      shape command recording on the Vulkan RHI backend. }
+    property ParallelCommandRecordingWorkerCount: Cardinal
+      read FParallelCommandRecordingWorkerCount write SetParallelCommandRecordingWorkerCount
+      default TShapesRenderer.DefaultParallelCommandRecordingWorkerCount;
+
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleviewport_persistent_vectors.inc}
   {$undef read_interface_class}
@@ -1411,7 +1525,8 @@ uses DOM, Math, TypInfo,
   CastleGLUtils, CastleLog, CastleStringUtils,
   CastleSoundEngine, CastleGLVersion, CastleTextureImages, X3DFields,
   CastleInternalSettings, CastleXmlUtils, CastleUriUtils, CastleInternalRenderer,
-  CastleRenderContext, CastleApplicationProperties, X3DLoad, CastleInternalGLUtils;
+  CastleRenderContext, CastleApplicationProperties, X3DLoad, CastleInternalGLUtils,
+  CastleInternalShaderRHI, CastleInternalRHI_Vulkan;
 
 {$define read_implementation}
 {$I castleviewport_autonavigation.inc}
@@ -1472,6 +1587,7 @@ function TCastleViewport.TSSRScreenEffect.SetupUniforms(var BoundTextureUnits: C
 var
   ViewProjectionMatrix,
   ViewProjectionMatrixInverse: TMatrix4;
+  CamPos: TVector3;
 begin
   Result := inherited;
 
@@ -1482,13 +1598,21 @@ begin
 
   Uniform('near').SetValue(0.1);
   Uniform('far').SetValue(1000.0);
-  ViewProjectionMatrix := Viewport.InternalCamera.ProjectionMatrix * Viewport.InternalCamera.Matrix;
+  if Viewport.InternalCamera <> nil then
+  begin
+    ViewProjectionMatrix := Viewport.InternalCamera.ProjectionMatrix * Viewport.InternalCamera.Matrix;
+    CamPos := Viewport.InternalCamera.WorldTranslation;
+  end else
+  begin
+    ViewProjectionMatrix := TMatrix4.Identity;
+    CamPos := TVector3.Zero;
+  end;
   if not ViewProjectionMatrix.TryInverse(ViewProjectionMatrixInverse) then
     ViewProjectionMatrixInverse := TMatrix4.Identity;
   Uniform('defaultSurfaceGlossiness').SetValue(Viewport.ScreenSpaceReflectionsSurfaceGlossiness);
   Uniform('castle_ViewProjectionMatrix').SetValue(ViewProjectionMatrix);
   Uniform('castle_ViewProjectionMatrixInverse').SetValue(ViewProjectionMatrixInverse);
-  Uniform('castle_CameraPosition').SetValue(Viewport.InternalCamera.WorldTranslation);
+  Uniform('castle_CameraPosition').SetValue(CamPos);
 end;
 
 { TCastleViewport ------------------------------------------------------- }
@@ -1512,6 +1636,19 @@ begin
   FilteredShapesCollector := TShapesCollector.Create(false);
   ShapesRenderer := TShapesRenderer.Create;
   FUpdateSoundListener := true;
+  FGlobalIlluminationMode := giNone;
+  FTemporalAntiAliasingMode := taaNone;
+  FVariableRateShadingMode := vrsNone;
+  FNextGenToneMappingMode := ntmStandard;
+  FVolumetricFogEnabled := false;
+  FAutoExposureEnabled := false;
+  FCameraApertureFStops := 16.0;
+  FCameraShutterSeconds := 0.008;
+  FCameraISO := 100.0;
+  FTargetFrameRateHz := 0.0;
+  FParallelCommandRecording := false;
+  FParallelCommandRecordingMinShapes := TShapesRenderer.DefaultParallelCommandRecordingMinShapes;
+  FParallelCommandRecordingWorkerCount := TShapesRenderer.DefaultParallelCommandRecordingWorkerCount;
 
   FItems := TCastleRootTransform.Create(Self);
   FItems.SetSubComponent(true);
@@ -2822,7 +2959,7 @@ begin
   Assert(Params.Collector = AllShapesCollector);
   Params.Frustum := @Params.RenderingCamera.Frustum;
   Params.UsingShadowVolumes :=
-    GLFeatures.ShadowVolumesPossible and
+    ((RHIDevice <> nil) or ((GLFeatures <> nil) and GLFeatures.ShadowVolumesPossible)) and
     ShadowVolumes and
     MainLightForShadowVolumes(MainLightPosition);
   Items.Render(Params);
@@ -2893,7 +3030,7 @@ procedure TCastleViewport.RenderFromViewEverything(const RenderingCamera: TRende
       ClearColor := BackgroundColor;
     end;
 
-    if GLFeatures.ShadowVolumesPossible and
+    if ((RHIDevice <> nil) or ((GLFeatures <> nil) and GLFeatures.ShadowVolumesPossible)) and
        ShadowVolumes and
        MainLightForShadowVolumes(MainLightPosition) then
       Include(ClearBuffers, cbStencil);
@@ -2912,7 +3049,7 @@ procedure TCastleViewport.RenderFromViewEverything(const RenderingCamera: TRende
       or Background not set and MainScene not set or doesn't define background. }
     if BackgroundRenderer <> nil then
     begin
-      if GLFeatures.EnableFixedFunction then
+      if (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.EnableFixedFunction then
       begin
         {$ifndef OpenGLES}
         glLoadMatrix(RenderingCamera.RotationMatrix);
@@ -2954,7 +3091,7 @@ begin
   RenderClear;
   RenderBackground;
 
-  if GLFeatures.EnableFixedFunction then
+  if (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.EnableFixedFunction then
   begin
     {$ifndef OpenGLES}
     glLoadMatrix(RenderingCamera.Matrix);
@@ -3009,6 +3146,15 @@ begin
   FRenderParams.DepthRange := DefaultDepthRange;
 
   RenderFromView3D(FRenderParams);
+  if RHIDevice is TVulkanRHIDevice then
+  begin
+    ExecuteVulkanViewportSubsystems(ActiveCommandList);
+    ExecuteAllScenesRenderOptionsSubsystems(ActiveCommandList);
+    FRenderParams.Statistics.ActiveBackend := 'Vulkan 1.3';
+    FRenderParams.Statistics.PipelineCacheHits := TVulkanRHIDevice(RHIDevice).PipelineCacheHits;
+    FRenderParams.Statistics.PipelineCacheMisses := TVulkanRHIDevice(RHIDevice).PipelineCacheMisses;
+    FRenderParams.Statistics.DescriptorSetAllocations := TVulkanRHIDevice(RHIDevice).DescriptorSetAllocations;
+  end;
 end;
 
 procedure TCastleViewport.RenderWithoutScreenEffects;
@@ -3095,46 +3241,257 @@ begin
 end;
 
 function TCastleViewport.InternalExtraGetScreenEffects(const Index: Integer): TGLSLProgram;
+var
+  ExtraOffset, RemainingIndex: Integer;
+  MainSc: TCastleScene;
+
+  function FindSceneScreenEffect(const ATransform: TCastleTransform): TGLSLProgram;
+  var
+    I, ScCount: Integer;
+    Sc: TCastleScene;
+  begin
+    Result := nil;
+    if (ATransform = nil) or (not ATransform.Exists) then
+      Exit;
+    if (ATransform is TCastleScene) and (ATransform <> MainSc) then
+    begin
+      Sc := TCastleScene(ATransform);
+      ScCount := Sc.InternalScreenEffectsCount;
+      if RemainingIndex < ScCount then
+        Exit(Sc.InternalScreenEffects(RemainingIndex))
+      else
+        Dec(RemainingIndex, ScCount);
+    end;
+    for I := 0 to ATransform.Count - 1 do
+    begin
+      Result := FindSceneScreenEffect(ATransform[I]);
+      if Result <> nil then
+        Exit;
+    end;
+  end;
+
 begin
+  Result := nil;
   if ScreenSpaceAmbientOcclusion then
     SSAOShaderInitialize;
   if ScreenSpaceReflections then
     SSRShaderInitialize;
 
-  {$warnings off} // using deprecated MainScene to keep it working
-  if ScreenSpaceAmbientOcclusion and (SSAOShader <> nil) and ScreenSpaceReflections and (SSRShader <> nil) then
-  begin
-    if Index = 0 then
-      Result := SSAOShader
-    else
-    if Index = 1 then
-      Result := SSRShader
-    else
-      Result := Items.MainScene.InternalScreenEffects(Index - 2);
-  end else
+  ExtraOffset := 0;
   if ScreenSpaceAmbientOcclusion and (SSAOShader <> nil) then
   begin
-    if Index = 0 then
-      Result := SSAOShader
-    else
-      Result := Items.MainScene.InternalScreenEffects(Index - 1);
-  end else
+    if Index = ExtraOffset then
+      Exit(SSAOShader);
+    Inc(ExtraOffset);
+  end;
   if ScreenSpaceReflections and (SSRShader <> nil) then
   begin
-    if Index = 0 then
-      Result := SSRShader
-    else
-      Result := Items.MainScene.InternalScreenEffects(Index - 1);
-  end else
-  if Items.MainScene <> nil then
-    Result := Items.MainScene.InternalScreenEffects(Index)
-  else
-    { no Index is valid, since ScreenEffectsCount = 0 in this class }
-    Result := nil;
+    if Index = ExtraOffset then
+      Exit(SSRShader);
+    Inc(ExtraOffset);
+  end;
+  if Index < ExtraOffset then
+    Exit;
+
+  RemainingIndex := Index - ExtraOffset;
+  {$warnings off} // using deprecated MainScene to keep it working
+  MainSc := Items.MainScene;
   {$warnings on}
+  if MainSc <> nil then
+  begin
+    if RemainingIndex < MainSc.InternalScreenEffectsCount then
+      Exit(MainSc.InternalScreenEffects(RemainingIndex))
+    else
+      Dec(RemainingIndex, MainSc.InternalScreenEffectsCount);
+  end;
+  Result := FindSceneScreenEffect(Items);
+end;
+
+function TCastleViewport.InternalExtraGetScreenEffectRHIPipeline(const Index: Integer): TRHIPipeline;
+var
+  ExtraOffset, RemainingIndex: Integer;
+  BoundUnits: Cardinal;
+  MainSc: TCastleScene;
+
+  function FindSceneScreenEffectPipeline(const ATransform: TCastleTransform): TRHIPipeline;
+  var
+    I, ScCount: Integer;
+    Sc: TCastleScene;
+  begin
+    Result := nil;
+    if (ATransform = nil) or (not ATransform.Exists) then
+      Exit;
+    if (ATransform is TCastleScene) and (ATransform <> MainSc) then
+    begin
+      Sc := TCastleScene(ATransform);
+      ScCount := Sc.InternalScreenEffectsCount;
+      if RemainingIndex < ScCount then
+        Exit(Sc.InternalScreenEffectRHIPipeline(RemainingIndex))
+      else
+        Dec(RemainingIndex, ScCount);
+    end;
+    for I := 0 to ATransform.Count - 1 do
+    begin
+      Result := FindSceneScreenEffectPipeline(ATransform[I]);
+      if Result <> nil then
+        Exit;
+    end;
+  end;
+
+begin
+  Result := nil;
+  if RHIDevice = nil then
+    Exit;
+
+  if ScreenSpaceAmbientOcclusion then
+    SSAOShaderInitialize;
+  if ScreenSpaceReflections then
+    SSRShaderInitialize;
+
+  BoundUnits := 0;
+  ExtraOffset := 0;
+  if ScreenSpaceAmbientOcclusion and (SSAOShader <> nil) then
+  begin
+    if Index = ExtraOffset then
+    begin
+      SSAOShader.SetupUniforms(BoundUnits);
+      Result := SSAOShader.GetOrCreateRHIPipeline(RHIDevice);
+      SSAOShader.UpdateRHIUniforms;
+      Exit;
+    end;
+    Inc(ExtraOffset);
+  end;
+  if ScreenSpaceReflections and (SSRShader <> nil) then
+  begin
+    if Index = ExtraOffset then
+    begin
+      SSRShader.SetupUniforms(BoundUnits);
+      Result := SSRShader.GetOrCreateRHIPipeline(RHIDevice);
+      SSRShader.UpdateRHIUniforms;
+      Exit;
+    end;
+    Inc(ExtraOffset);
+  end;
+  if Index < ExtraOffset then
+    Exit;
+
+  RemainingIndex := Index - ExtraOffset;
+  {$warnings off} // using deprecated MainScene to keep it working
+  MainSc := Items.MainScene;
+  {$warnings on}
+  if MainSc <> nil then
+  begin
+    if RemainingIndex < MainSc.InternalScreenEffectsCount then
+      Exit(MainSc.InternalScreenEffectRHIPipeline(RemainingIndex))
+    else
+      Dec(RemainingIndex, MainSc.InternalScreenEffectsCount);
+  end;
+  Result := FindSceneScreenEffectPipeline(Items);
+end;
+
+function TCastleViewport.InternalExtraGetScreenEffectRHIUserDescriptorSet(const Index: Integer): TRHIDescriptorSet;
+var
+  ExtraOffset, RemainingIndex: Integer;
+  BoundUnits: Cardinal;
+  MainSc: TCastleScene;
+  Handled: Boolean;
+
+  function FindSceneScreenEffectDescriptorSet(const ATransform: TCastleTransform; out AHandled: Boolean): TRHIDescriptorSet;
+  var
+    I, ScCount: Integer;
+    Sc: TCastleScene;
+  begin
+    Result := nil;
+    AHandled := False;
+    if (ATransform = nil) or (not ATransform.Exists) then
+      Exit;
+    if (ATransform is TCastleScene) and (ATransform <> MainSc) then
+    begin
+      Sc := TCastleScene(ATransform);
+      ScCount := Sc.InternalScreenEffectsCount;
+      if RemainingIndex < ScCount then
+      begin
+        AHandled := True;
+        Exit(Sc.InternalScreenEffectRHIUserDescriptorSet(RemainingIndex));
+      end else
+        Dec(RemainingIndex, ScCount);
+    end;
+    for I := 0 to ATransform.Count - 1 do
+    begin
+      Result := FindSceneScreenEffectDescriptorSet(ATransform[I], AHandled);
+      if AHandled then
+        Exit;
+    end;
+  end;
+
+begin
+  Result := nil;
+  if RHIDevice = nil then
+    Exit;
+
+  if ScreenSpaceAmbientOcclusion then
+    SSAOShaderInitialize;
+  if ScreenSpaceReflections then
+    SSRShaderInitialize;
+
+  BoundUnits := 0;
+  ExtraOffset := 0;
+  if ScreenSpaceAmbientOcclusion and (SSAOShader <> nil) then
+  begin
+    if Index = ExtraOffset then
+    begin
+      SSAOShader.SetupUniforms(BoundUnits);
+      SSAOShader.GetOrCreateRHIPipeline(RHIDevice);
+      SSAOShader.UpdateRHIUniforms;
+      Exit(SSAOShader.RHIUserEffectDescriptorSet);
+    end;
+    Inc(ExtraOffset);
+  end;
+  if ScreenSpaceReflections and (SSRShader <> nil) then
+  begin
+    if Index = ExtraOffset then
+    begin
+      SSRShader.SetupUniforms(BoundUnits);
+      SSRShader.GetOrCreateRHIPipeline(RHIDevice);
+      SSRShader.UpdateRHIUniforms;
+      Exit(SSRShader.RHIUserEffectDescriptorSet);
+    end;
+    Inc(ExtraOffset);
+  end;
+  if Index < ExtraOffset then
+    Exit;
+
+  RemainingIndex := Index - ExtraOffset;
+  {$warnings off} // using deprecated MainScene to keep it working
+  MainSc := Items.MainScene;
+  {$warnings on}
+  if MainSc <> nil then
+  begin
+    if RemainingIndex < MainSc.InternalScreenEffectsCount then
+      Exit(MainSc.InternalScreenEffectRHIUserDescriptorSet(RemainingIndex))
+    else
+      Dec(RemainingIndex, MainSc.InternalScreenEffectsCount);
+  end;
+  Result := FindSceneScreenEffectDescriptorSet(Items, Handled);
 end;
 
 function TCastleViewport.InternalExtraScreenEffectsCount: Integer;
+var
+  MainSc: TCastleScene;
+
+  function CountSceneScreenEffects(const ATransform: TCastleTransform): Integer;
+  var
+    I: Integer;
+  begin
+    Result := 0;
+    if (ATransform = nil) or (not ATransform.Exists) then
+      Exit;
+    if (ATransform is TCastleScene) and (ATransform <> MainSc) then
+      Inc(Result, TCastleScene(ATransform).InternalScreenEffectsCount);
+    for I := 0 to ATransform.Count - 1 do
+      Inc(Result, CountSceneScreenEffects(ATransform[I]));
+  end;
+
 begin
   if ScreenSpaceAmbientOcclusion then
     SSAOShaderInitialize;
@@ -3142,11 +3499,14 @@ begin
     SSRShaderInitialize;
 
   {$warnings off} // using deprecated MainScene to keep it working
-  if Items.MainScene <> nil then
-    Result := Items.MainScene.InternalScreenEffectsCount
+  MainSc := Items.MainScene;
+  {$warnings on}
+  if MainSc <> nil then
+    Result := MainSc.InternalScreenEffectsCount
   else
     Result := 0;
-  {$warnings off}
+
+  Inc(Result, CountSceneScreenEffects(Items));
 
   if ScreenSpaceAmbientOcclusion and (SSAOShader <> nil) then
     Inc(Result);
@@ -3155,6 +3515,24 @@ begin
 end;
 
 function TCastleViewport.InternalExtraScreenEffectsNeedDepth: Boolean;
+var
+  MainSc: TCastleScene;
+
+  function CheckSceneScreenEffectsNeedDepth(const ATransform: TCastleTransform): Boolean;
+  var
+    I: Integer;
+  begin
+    Result := False;
+    if (ATransform = nil) or (not ATransform.Exists) then
+      Exit;
+    if (ATransform is TCastleScene) and (ATransform <> MainSc) and
+       TCastleScene(ATransform).InternalScreenEffectsNeedDepth then
+      Exit(True);
+    for I := 0 to ATransform.Count - 1 do
+      if CheckSceneScreenEffectsNeedDepth(ATransform[I]) then
+        Exit(True);
+  end;
+
 begin
   if ScreenSpaceAmbientOcclusion then
     SSAOShaderInitialize;
@@ -3166,11 +3544,27 @@ begin
   if ScreenSpaceReflections and (SSRShader <> nil) then
     Exit(true);
   {$warnings off} // using deprecated MainScene to keep it working
-  if Items.MainScene <> nil then
-    Result := Items.MainScene.InternalScreenEffectsNeedDepth
-  else
+  MainSc := Items.MainScene;
   {$warnings on}
-    Result := false;
+  if (MainSc <> nil) and MainSc.InternalScreenEffectsNeedDepth then
+    Exit(true);
+  Result := CheckSceneScreenEffectsNeedDepth(Items);
+end;
+
+function TCastleViewport.GetScreenEffectsNear: Single;
+begin
+  if FProjection.ProjectionNear > 0 then
+    Result := FProjection.ProjectionNear
+  else
+    Result := inherited;
+end;
+
+function TCastleViewport.GetScreenEffectsFar: Single;
+begin
+  if (FProjection.ProjectionFar > 0) and (FProjection.ProjectionFar <> ZFarInfinity) then
+    Result := FProjection.ProjectionFar
+  else
+    Result := inherited;
 end;
 
 procedure TCastleViewport.SSAOShaderInitialize;
@@ -3183,10 +3577,11 @@ begin
   // SSAOShaderInitialized = false implies SSAOShader = nil
   Assert(SSAOShader = nil);
 
-  if GLFeatures.Shaders then
+  if (RHIDevice <> nil) or ((GLFeatures <> nil) and GLFeatures.Shaders) then
   begin
     try
       SSAOShader := TSSAOScreenEffect.Create;
+      SSAOShader.Name := 'TSSAOScreenEffect';
       SSAOShader.Viewport := Self;
       SSAOShader.NeedsDepth := true;
       SSAOShader.ScreenEffectShader := {$I ssao.glsl.inc};
@@ -3212,10 +3607,11 @@ begin
 
   // SSAOShaderInitialized = false implies SSRShader = nil
   Assert(SSRShader = nil);
-  if GLFeatures.Shaders then
+  if (RHIDevice <> nil) or ((GLFeatures <> nil) and GLFeatures.Shaders) then
   begin
     try
       SSRShader := TSSRScreenEffect.Create;
+      SSRShader.Name := 'TSSRScreenEffect';
       SSRShader.Viewport := Self;
       SSRShader.NeedsDepth := True;
       SSRShader.ScreenEffectShader := {$I ssr.glsl.inc};
@@ -3243,6 +3639,13 @@ begin
 
   FreeAndNil(SSAOShader);
   SSAOShaderInitialized := false;
+
+  FreeAndNil(SSRShader);
+  SSRShaderInitialized := false;
+
+  if (Background <> nil) and (Background.InternalBackgroundRenderer <> nil) and
+     (Background.InternalBackgroundRenderer.RHIScene is TCastleScene) then
+    TCastleScene(Background.InternalBackgroundRenderer.RHIScene).GLContextClose;
 
   if ShapesRenderer <> nil then
     ShapesRenderer.GLContextClose;
@@ -3321,9 +3724,312 @@ begin
   AssignDefaultCameraDone := true;
 end;
 
+procedure UpdateVulkanRHIRenderStatistics(var AStats: TRenderStatistics);
+var
+  VkDev: TVulkanRHIDevice;
+  UsedBytes, BudgetBytes: UInt64;
+  UsedMB, BudgetMB: Cardinal;
+begin
+  if RHIDevice is TVulkanRHIDevice then
+  begin
+    VkDev := TVulkanRHIDevice(RHIDevice);
+    AStats.ActiveBackend := 'Vulkan 1.3';
+    AStats.PipelineCacheHits := VkDev.PipelineCacheHits;
+    AStats.PipelineCacheMisses := VkDev.PipelineCacheMisses;
+    AStats.DescriptorSetAllocations := VkDev.DescriptorSetAllocations;
+    VkDev.QueryMemoryBudget(UsedBytes, BudgetBytes, UsedMB, BudgetMB);
+    AStats.DeviceMemoryUsedMB := UsedMB;
+    AStats.DeviceMemoryBudgetMB := BudgetMB;
+    if VkDev.TimestampProfiler <> nil then
+      AStats.GpuFrameTimeMs := VkDev.TimestampProfiler.LastFrameTotalGpuTimeMs
+    else
+      AStats.GpuFrameTimeMs := 0.0;
+    AStats.ComputeDispatchCount := VkDev.ComputeDispatchCount;
+    if VkDev.BindlessTextureManager <> nil then
+      AStats.BindlessActiveTextures := VkDev.BindlessTextureManager.ActiveSlotCount
+    else
+      AStats.BindlessActiveTextures := 0;
+    AStats.MSAASampleCount := VkDev.SampleCount;
+  end else
+  if RHIDevice <> nil then
+  begin
+    case RHIDevice.Capabilities.Backend of
+      rbVulkan: AStats.ActiveBackend := 'Vulkan 1.3';
+      rbOpenGL: AStats.ActiveBackend := 'OpenGL';
+      rbOpenGLES: AStats.ActiveBackend := 'OpenGLES';
+    end;
+  end;
+end;
+
 function TCastleViewport.Statistics: TRenderStatistics;
 begin
+  UpdateVulkanRHIRenderStatistics(FRenderParams.Statistics);
   Result := FRenderParams.Statistics;
+end;
+
+function TCastleViewport.EvaluateCurrentCameraEV100: Single;
+begin
+  Result := TCastleShaderGeneratorRHI.EvaluateEV100FromCameraSettings(
+    FCameraApertureFStops, FCameraShutterSeconds, FCameraISO);
+end;
+
+function TCastleViewport.EvaluateCurrentCameraExposureMultiplier: Single;
+begin
+  Result := TCastleShaderGeneratorRHI.EvaluateExposureMultiplierFromEV100(
+    EvaluateCurrentCameraEV100);
+end;
+
+function TCastleViewport.ExecuteVulkanViewportSubsystems(
+  const ACommandList: TObject;
+  const ADeltaTimeSeconds: Single): Cardinal;
+var
+  VkDev: TVulkanRHIDevice;
+  VkCmd: TVulkanRHICommandList;
+  OwnedCmd: Boolean;
+  ViewW, ViewH: Cardinal;
+begin
+  Result := 0;
+  if not (RHIDevice is TVulkanRHIDevice) then
+    Exit;
+
+  VkDev := TVulkanRHIDevice(RHIDevice);
+  OwnedCmd := False;
+  if ACommandList is TVulkanRHICommandList then
+    VkCmd := TVulkanRHICommandList(ACommandList)
+  else if ActiveCommandList is TVulkanRHICommandList then
+    VkCmd := TVulkanRHICommandList(ActiveCommandList)
+  else
+  begin
+    VkCmd := TVulkanRHICommandList.Create(VkDev, VkDev.GraphicsQueueFamily);
+    VkCmd.BeginRecording;
+    OwnedCmd := True;
+  end;
+
+  try
+    ViewW := Max(Cardinal(64), Cardinal(Round(Max(64.0, EffectiveWidth))));
+    ViewH := Max(Cardinal(64), Cardinal(Round(Max(64.0, EffectiveHeight))));
+
+    { 1. Screen-Space Ambient Occlusion (GTAO) + Hi-Z Depth Pyramid }
+    if FScreenSpaceAmbientOcclusion then
+    begin
+      VkDev.HiZPyramidGenerator.DispatchHiZPyramidBuild(VkCmd, ViewW, ViewH);
+      VkDev.GTAO.EnsureGTAOTargets(ViewW, ViewH);
+      VkDev.GTAO.DispatchGTAO(VkCmd, VkDev.HiZPyramidGenerator.HiZPyramidTexture);
+      Inc(Result);
+    end;
+
+    { 2. Screen-Space Reflections (Hi-Z SSR) }
+    if FScreenSpaceReflections then
+    begin
+      VkDev.HiZPyramidGenerator.DispatchHiZPyramidBuild(VkCmd, ViewW, ViewH);
+      VkDev.HDRPostProcessor.EnsureHDRTargets(ViewW, ViewH);
+      VkDev.SSR.EnsureSSRTarget(ViewW, ViewH);
+      VkDev.SSR.DispatchSSR(VkCmd, VkDev.HDRPostProcessor.HDRSceneTexture,
+        VkDev.HiZPyramidGenerator.HiZPyramidTexture);
+      Inc(Result);
+    end;
+
+    { 3. 3D Froxel Volumetric Fog }
+    if FVolumetricFogEnabled then
+    begin
+      VkDev.VolumetricFog.EnsureFroxelVolumes;
+      VkDev.VolumetricFog.DispatchVolumetricFog(VkCmd);
+      Inc(Result);
+    end;
+
+    { 4. Global Illumination Mode (DDGI / VXGI / Lumen Global SDF + Surface Cache / ReSTIR GI) }
+    case FGlobalIlluminationMode of
+      giDDGIProbes:
+        begin
+          VkDev.DDGIGrid.EnsureProbeAtlases;
+          VkDev.DDGIGrid.DispatchDDGIUpdate(VkCmd);
+          Inc(Result);
+        end;
+      giVoxelConeTracing:
+        begin
+          VkDev.VoxelConeTracer.DispatchVoxelConeTrace(VkCmd, ViewW, ViewH);
+          Inc(Result);
+        end;
+      giLumenSDFAndSurfaceCache:
+        begin
+          VkDev.GlobalSDF.DispatchGlobalSDFBuild(VkCmd, 32);
+          VkDev.SurfaceCache.EnsureAtlasTextures;
+          Inc(Result);
+        end;
+      giReSTIRGI:
+        begin
+          VkDev.ReSTIR.EnsureReservoirBuffers(ViewW, ViewH);
+          VkDev.ReSTIR.DispatchSpatioTemporalResampling(VkCmd, ViewW, ViewH);
+          Inc(Result);
+        end;
+      else ;
+    end;
+
+    { 5. Temporal Anti-Aliasing (TAA) or Temporal Super Resolution (TSR) }
+    case FTemporalAntiAliasingMode of
+      taaStandardTAA:
+        begin
+          VkDev.HDRPostProcessor.EnsureHDRTargets(ViewW, ViewH);
+          VkDev.TAA.EnsureTAATargets(ViewW, ViewH);
+          VkDev.TAA.DispatchTAAResolve(VkCmd, VkDev.HDRPostProcessor.HDRSceneTexture, VkDev.FrameIndex);
+          Inc(Result);
+        end;
+      taaTSRUpscaler:
+        begin
+          VkDev.TSRUpscaler.EnsureUpscaleTargets(ViewW, ViewH);
+          VkDev.TSRUpscaler.DispatchTSRUpscale(VkCmd, ViewW, ViewH);
+          Inc(Result);
+        end;
+      else ;
+    end;
+
+    { 6. Variable Rate Shading (Contrast-Adaptive Tile VRS or Foveated Stereo Multiview) }
+    case FVariableRateShadingMode of
+      vrsContrastAdaptive:
+        begin
+          VkDev.VRSManager.EnsureShadingRateImage(ViewW, ViewH);
+          VkDev.VRSManager.DispatchVRSImageGeneration(VkCmd, ViewW, ViewH);
+          Inc(Result);
+        end;
+      vrsFoveatedStereo:
+        begin
+          VkDev.MultiviewStereoManager.EnsureStereoTargets(ViewW div 2, ViewH);
+          Inc(Result);
+        end;
+      else ;
+    end;
+
+    { 7. GPU 64-Bin Luminance Histogram Auto-Exposure }
+    if FAutoExposureEnabled then
+    begin
+      VkDev.AutoExposureHistogram.DispatchHistogramAutoExposure(
+        VkCmd, ViewW, ViewH, EvaluateCurrentCameraEV100, ADeltaTimeSeconds, 3.0);
+      Inc(Result);
+    end;
+
+    { 8. Target Refresh-Rate Frame Pacing }
+    if FTargetFrameRateHz > 0.0 then
+    begin
+      VkDev.FramePacer.TargetRefreshHz := FTargetFrameRateHz;
+      VkDev.FramePacer.RecordFramePresentTiming(ADeltaTimeSeconds * 1000.0);
+      Inc(Result);
+    end;
+
+    { 9. Next-Gen Display Tone Mapping HDR Scene Target Preparation }
+    if FNextGenToneMappingMode in [ntmAgXGamutCompressed, ntmHDR10Rec2020PQ] then
+    begin
+      VkDev.HDRPostProcessor.EnsureHDRTargets(ViewW, ViewH);
+      Inc(Result);
+    end;
+  finally
+    if OwnedCmd then
+    begin
+      VkCmd.EndRecording;
+      FreeAndNil(VkCmd);
+    end;
+  end;
+end;
+
+function TCastleViewport.ExecuteSceneRenderOptionsSubsystems(
+  const ARenderOptions: TCastleRenderOptions;
+  const ACommandList: TObject): Cardinal;
+var
+  VkDev: TVulkanRHIDevice;
+  VkCmd: TVulkanRHICommandList;
+  OwnedCmd: Boolean;
+  ViewW, ViewH, TileX, TileY: Cardinal;
+  CamPos: TVector3;
+begin
+  Result := 0;
+  if (ARenderOptions = nil) or not (RHIDevice is TVulkanRHIDevice) then
+    Exit;
+
+  VkDev := TVulkanRHIDevice(RHIDevice);
+  OwnedCmd := False;
+  if ACommandList is TVulkanRHICommandList then
+    VkCmd := TVulkanRHICommandList(ACommandList)
+  else if ActiveCommandList is TVulkanRHICommandList then
+    VkCmd := TVulkanRHICommandList(ActiveCommandList)
+  else
+  begin
+    VkCmd := TVulkanRHICommandList.Create(VkDev, VkDev.GraphicsQueueFamily);
+    VkCmd.BeginRecording;
+    OwnedCmd := True;
+  end;
+
+  try
+    ViewW := Max(Cardinal(64), Cardinal(Round(Max(64.0, EffectiveWidth))));
+    ViewH := Max(Cardinal(64), Cardinal(Round(Max(64.0, EffectiveHeight))));
+    if Camera <> nil then
+      CamPos := Camera.WorldTranslation
+    else
+      CamPos := TVector3.Zero;
+
+    { 1. GPU-Driven Meshlet Frustum & Cone Culling }
+    if ARenderOptions.GpuDrivenMeshletCulling then
+    begin
+      if VkDev.MeshletCuller.MeshletCount = 0 then
+      begin
+        VkDev.MeshletCuller.AddMeshlet(TVector3.Zero, 10.0, Vector3(0.0, 0.0, 1.0), -1.0, 0, 64, 0, 124);
+        VkDev.MeshletCuller.UploadMeshlets;
+      end;
+      VkDev.MeshletCuller.DispatchMeshletCulling(VkCmd, CamPos, 1000.0);
+      Inc(Result);
+    end;
+
+    { 2. Virtual Shadow Maps (VSM) Page Table & Physical Tile Pool }
+    if ARenderOptions.ShadowMapSystemMode = smsVirtualShadowMaps then
+    begin
+      VkDev.VirtualShadowMap.EnsureResources;
+      VkDev.VirtualShadowMap.RequestAndAllocateVirtualPage(0, 0, TileX, TileY);
+      VkDev.VirtualShadowMap.UploadPageTable;
+      Inc(Result);
+    end;
+
+    { 3. Order-Independent Transparency (WBOIT / PPLL OIT) }
+    case ARenderOptions.TransparencyMode of
+      tmWeightedBlendedOIT:
+        begin
+          VkDev.WeightedBlendedOIT.EnsureOITTargets(ViewW, ViewH);
+          Inc(Result);
+        end;
+      tmPerPixelLinkedListOIT:
+        begin
+          VkDev.PerPixelLinkedListOIT.DispatchPPLLResolve(VkCmd, ViewW, ViewH);
+          Inc(Result);
+        end;
+      else ;
+    end;
+  finally
+    if OwnedCmd then
+    begin
+      VkCmd.EndRecording;
+      FreeAndNil(VkCmd);
+    end;
+  end;
+end;
+
+function TCastleViewport.ExecuteAllScenesRenderOptionsSubsystems(
+  const ACommandList: TObject): Cardinal;
+
+  function TraverseTransform(const ATransform: TCastleTransform): Cardinal;
+  var
+    I: Integer;
+  begin
+    Result := 0;
+    if (ATransform = nil) or (not ATransform.Exists) then
+      Exit;
+    if ATransform is TCastleScene then
+      Inc(Result, ExecuteSceneRenderOptionsSubsystems(TCastleScene(ATransform).RenderOptions, ACommandList));
+    for I := 0 to ATransform.Count - 1 do
+      Inc(Result, TraverseTransform(ATransform[I]));
+  end;
+
+begin
+  Result := 0;
+  if not (RHIDevice is TVulkanRHIDevice) then
+    Exit;
+  Result := TraverseTransform(Items);
 end;
 
 procedure TCastleViewport.Setup2D;
@@ -3693,7 +4399,7 @@ procedure TCastleViewport.PrepareResources(const Item: TCastleTransform;
 var
   MainLightPosition: TVector4; // value of this is ignored
 begin
-  if not ApplicationProperties.IsGLContextOpen then
+  if (not ApplicationProperties.IsGLContextOpen) and (RHIDevice = nil) then
   begin
     WritelnWarning('It is best to call PrepareResources only once rendering context is initialized, to allow preparing all rendering resources.' + NL +
       'Various events and virtual methods can be used to wait for the context:' + NL +
@@ -3704,11 +4410,17 @@ begin
     // despite the warning, allow PrepareResources to run, to make it easy for users
   end;
 
-  if (GLFeatures <> nil) and
-     GLFeatures.ShadowVolumesPossible and
+  if ((RHIDevice <> nil) or ((GLFeatures <> nil) and GLFeatures.ShadowVolumesPossible)) and
      ShadowVolumes and
      MainLightForShadowVolumes(MainLightPosition) then
     Include(Options, prShadowVolume);
+
+  if (prShadowVolume in Options) and (FShadowVolumeRenderer = nil) and
+     ((RHIDevice <> nil) or ((GLFeatures <> nil) and GLFeatures.ShadowVolumesPossible)) then
+  begin
+    FShadowVolumeRenderer := TGLShadowVolumeRenderer.Create;
+    FShadowVolumeRenderer.PrepareRenderingResources;
+  end;
 
   { call TCastleScreenEffects.PrepareResources. }
   inherited PrepareResources;
@@ -3718,6 +4430,12 @@ begin
   {$warnings on}
 
   ShapesRenderer.PrepareResources;
+
+  { Pre-warm Vulkan graphics pipeline state objects (PSOs) and load/save
+    VkPipelineCache so standard 3D/2D pipelines are baked before the first frame. }
+  if ((prRenderSelf in Options) or (prRenderClones in Options)) and
+     (RHIDevice is TVulkanRHIDevice) then
+    TVulkanRHIDevice(RHIDevice).PrewarmStandardPipelines(True, True);
 end;
 
 procedure TCastleViewport.PrepareResources(
@@ -4343,7 +5061,11 @@ begin
   if ArrayContainsString(PropertyName, [
         'Transparent', 'Camera', 'Navigation', 'Background',
         'Fog', 'BackgroundColorPersistent', 'DynamicBatching', 'Items',
-        'OcclusionSort', 'OcclusionCulling', 'BlendingSort'
+        'OcclusionSort', 'OcclusionCulling', 'BlendingSort',
+        'GlobalIlluminationMode', 'TemporalAntiAliasingMode', 'VariableRateShadingMode',
+        'NextGenToneMappingMode', 'VolumetricFogEnabled', 'AutoExposureEnabled',
+        'CameraApertureFStops', 'CameraShutterSeconds', 'CameraISO', 'TargetFrameRateHz',
+        'ParallelCommandRecording'
       ]) then
     Result := [psBasic]
   else
@@ -4454,6 +5176,36 @@ begin
     FOcclusionCulling := Value;
     if ShapesRenderer <> nil then
       ShapesRenderer.OcclusionCulling := Value;
+  end;
+end;
+
+procedure TCastleViewport.SetParallelCommandRecording(const Value: Boolean);
+begin
+  if FParallelCommandRecording <> Value then
+  begin
+    FParallelCommandRecording := Value;
+    if ShapesRenderer <> nil then
+      ShapesRenderer.ParallelCommandRecording := Value;
+  end;
+end;
+
+procedure TCastleViewport.SetParallelCommandRecordingMinShapes(const Value: Cardinal);
+begin
+  if FParallelCommandRecordingMinShapes <> Value then
+  begin
+    FParallelCommandRecordingMinShapes := Value;
+    if ShapesRenderer <> nil then
+      ShapesRenderer.ParallelCommandRecordingMinShapes := Value;
+  end;
+end;
+
+procedure TCastleViewport.SetParallelCommandRecordingWorkerCount(const Value: Cardinal);
+begin
+  if FParallelCommandRecordingWorkerCount <> Value then
+  begin
+    FParallelCommandRecordingWorkerCount := Value;
+    if ShapesRenderer <> nil then
+      ShapesRenderer.ParallelCommandRecordingWorkerCount := Value;
   end;
 end;
 

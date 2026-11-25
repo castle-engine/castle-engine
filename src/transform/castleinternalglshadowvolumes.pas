@@ -23,7 +23,7 @@ interface
 uses
   {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleTransform, CastleVectors, CastleBoxes, CastleGLUtils, CastleFrustum,
-  CastleRenderPrimitives, CastleUtils;
+  CastleRenderPrimitives, CastleUtils, CastleInternalRHI;
 
 type
   TGLShadowVolumeRenderer = class;
@@ -65,6 +65,11 @@ type
 
     FMesh: TCastleRenderUnlitMesh;
     FDebugRender: Boolean;
+    FInDebugPass: Boolean;
+    FRHIStencilDepthState: TRHIDepthStencilStateDesc;
+    FRHILitPassStencilDepthState: TRHIDepthStencilStateDesc;
+    FRHIBlendState: TRHIBlendStateDesc;
+    FRHIRenderPassCount: Cardinal;
 
     procedure UpdateCount;
     procedure SetDebugRender(const Value: Boolean);
@@ -160,6 +165,12 @@ type
     { Shadow volumes will be also actually drawn to color buffer
       (as yellow blended polygons), useful for debugging. }
     property DebugRender: Boolean read FDebugRender write SetDebugRender default false;
+
+    { RHI stencil and blend state descriptors configured during InitCaster and Render. }
+    property RHIStencilDepthState: TRHIDepthStencilStateDesc read FRHIStencilDepthState;
+    property RHILitPassStencilDepthState: TRHIDepthStencilStateDesc read FRHILitPassStencilDepthState;
+    property RHIBlendState: TRHIBlendStateDesc read FRHIBlendState;
+    property RHIRenderPassCount: Cardinal read FRHIRenderPassCount;
   end;
 
 implementation
@@ -172,12 +183,16 @@ constructor TGLShadowVolumeRenderer.Create;
 begin
   inherited;
   FCount := true;
+  FRHIStencilDepthState := TRHIDepthStencilStateDesc.DefaultDepthTestWrite;
+  FRHILitPassStencilDepthState := TRHIDepthStencilStateDesc.DefaultDepthTestWrite;
+  FRHIBlendState := TRHIBlendStateDesc.DefaultOpaque;
 end;
 
 procedure TGLShadowVolumeRenderer.PrepareRenderingResources;
 begin
   Assert(FMesh = nil, 'Call TGLShadowVolumeRenderer.PrepareRenderingResources only once');
   FMesh := TCastleRenderUnlitMesh.Create(DebugRender);
+  FMesh.Color := Vector4(1, 1, 0, 0.3);
 end;
 
 destructor TGLShadowVolumeRenderer.Destroy;
@@ -439,6 +454,20 @@ procedure TGLShadowVolumeRenderer.InitCaster(const CasterBox: TBox3D);
     procedure ActuallySetStencilConfiguration;
     begin
       if ZFail then
+        FRHIStencilDepthState := TRHIDepthStencilStateDesc.DefaultStencilShadowVolumeZFail
+      else
+        FRHIStencilDepthState := TRHIDepthStencilStateDesc.DefaultStencilShadowVolumeZPass;
+      FRHIBlendState := TRHIBlendStateDesc.DefaultColorMaskNone;
+      if FMesh <> nil then
+      begin
+        FMesh.CustomDepthStencilState := FRHIStencilDepthState;
+        FMesh.UseCustomDepthStencilState := not FInDebugPass;
+      end;
+
+      if RHIDevice <> nil then
+        Exit;
+
+      if ZFail then
       begin
         glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_DECR_WRAP, GL_KEEP);
         glStencilOpSeparate(GL_BACK , GL_KEEP, GL_INCR_WRAP, GL_KEEP);
@@ -524,6 +553,126 @@ var
   SavedCullFace, SavedDepthTest: Boolean;
   PassParams: TRenderOnePassParams;
 begin
+  if RHIDevice <> nil then
+  begin
+    // Pass 1: render opaque stuff that is never in shadow, because it does not receive shadows
+    PassParams.Init;
+    PassParams.UsingBlending := false;
+    PassParams.DisableShadowVolumeCastingLights := false;
+    PassParams.FilterShadowVolumesReceivers := [false];
+    if Assigned(RenderOnePass) then
+      RenderOnePass(Params, PassParams);
+    Inc(FRHIRenderPassCount);
+
+    // Pass 2: render opaque stuff, assuming it is in shadow
+    PassParams.Init;
+    PassParams.UsingBlending := false;
+    PassParams.DisableShadowVolumeCastingLights := true;
+    PassParams.FilterShadowVolumesReceivers := [true];
+    if Assigned(RenderOnePass) then
+      RenderOnePass(Params, PassParams);
+    Inc(FRHIRenderPassCount);
+
+    // Pass 3: calculate shadows into stencil buffer (color writes disabled, depth writes disabled)
+    if RenderContext <> nil then
+    begin
+      SavedCullFace := RenderContext.CullFace;
+      SavedDepthTest := RenderContext.DepthTest;
+      SavedDepthBufferUpdate := RenderContext.DepthBufferUpdate;
+      SavedColorChannels := RenderContext.ColorChannels;
+      RenderContext.DepthTest := true;
+      RenderContext.DepthBufferUpdate := false;
+      RenderContext.ColorChannels := [];
+    end;
+    FRHIBlendState := TRHIBlendStateDesc.DefaultColorMaskNone;
+    if Assigned(RenderShadowVolumes) then
+      RenderShadowVolumes(Params);
+    Inc(FRHIRenderPassCount);
+
+    if RenderContext <> nil then
+    begin
+      RenderContext.DepthBufferUpdate := SavedDepthBufferUpdate;
+      RenderContext.ColorChannels := SavedColorChannels;
+      RenderContext.CullFace := SavedCullFace;
+      RenderContext.DepthTest := SavedDepthTest;
+    end;
+
+    // Pass 4: render opaque stuff that is not in shadow (stencil == 0, depth LEQUAL)
+    if Params <> nil then
+    begin
+      Assert(Params.InternalPass = 0);
+      Inc(Params.InternalPass);
+    end;
+    if RenderContext <> nil then
+    begin
+      SavedDepthFunc := RenderContext.DepthFunc;
+      RenderContext.DepthFunc := dfLessEqual;
+    end else
+      SavedDepthFunc := dfLess;
+    try
+      FRHILitPassStencilDepthState := TRHIDepthStencilStateDesc.DefaultStencilLitPass(0, StencilShadowBits);
+      PassParams.Init;
+      PassParams.UsingBlending := false;
+      PassParams.FilterShadowVolumesReceivers := [true];
+      PassParams.DisableShadowVolumeCastingLights := false;
+      PassParams.InsideStencilTest := true;
+      if Assigned(RenderOnePass) then
+        RenderOnePass(Params, PassParams);
+      Inc(FRHIRenderPassCount);
+    finally
+      if RenderContext <> nil then
+        RenderContext.DepthFunc := SavedDepthFunc;
+    end;
+
+    if DebugRender then
+    begin
+      SavedCount := Count;
+      Count := false;
+      FInDebugPass := true;
+      StencilConfigurationKnown := false;
+      if FMesh <> nil then
+        FMesh.UseCustomDepthStencilState := false;
+      if RenderContext <> nil then
+      begin
+        SavedDepthBufferUpdate := RenderContext.DepthBufferUpdate;
+        SavedDepthTest := RenderContext.DepthTest;
+        RenderContext.DepthBufferUpdate := false;
+        RenderContext.DepthTest := true;
+        RenderContext.BlendingEnable;
+      end else
+      begin
+        SavedDepthBufferUpdate := true;
+        SavedDepthTest := true;
+      end;
+      try
+        FRHIBlendState := TRHIBlendStateDesc.DefaultAlphaBlend;
+        if Assigned(RenderShadowVolumes) then
+          RenderShadowVolumes(Params);
+        Inc(FRHIRenderPassCount);
+      finally
+        if RenderContext <> nil then
+        begin
+          RenderContext.BlendingDisable;
+          RenderContext.DepthBufferUpdate := SavedDepthBufferUpdate;
+          RenderContext.DepthTest := SavedDepthTest;
+        end;
+        FInDebugPass := false;
+        StencilConfigurationKnown := false;
+        Count := SavedCount;
+      end;
+    end;
+
+    // Pass 5: render all transparent stuff
+    PassParams.Init;
+    PassParams.UsingBlending := true;
+    PassParams.DisableShadowVolumeCastingLights := false;
+    PassParams.FilterShadowVolumesReceivers := [false, true];
+    if Assigned(RenderOnePass) then
+      RenderOnePass(Params, PassParams);
+    Inc(FRHIRenderPassCount);
+    Exit;
+  end;
+
   Assert(GLFeatures.ShadowVolumesPossible);
 
   // render opaque stuff that is never in shadow, because it does not receive shadows

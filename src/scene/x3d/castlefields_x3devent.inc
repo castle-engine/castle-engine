@@ -37,6 +37,7 @@
     FFirstNotification: TX3DEventReceive;
     FNotifications: TX3DEventReceiveList;
     FParentExposedField: TX3DField;
+    FLastReceivedField: TX3DField;
     Temp: TX3DField;
     TempUsed: boolean;
 
@@ -148,6 +149,12 @@
       by AddNotification. }
     function SendNeeded: boolean;
 
+    { For inputOnly events belonging to a TX3DInterfaceDeclaration (such as
+      shader uniform events on Effect / ComposedShader / ScreenEffect),
+      returns the most recently received field value (or a default-initialized
+      field of FieldClass if no event has been sent yet). @exclude }
+    function InternalOrDefaultReceivedField: TX3DField;
+
     { @exclude
       How many routes (TX3DRoute) use this event as source or destination.
       This is maintained by TX3DRoute, do not modify this from elsewhere.
@@ -206,6 +213,7 @@ end;
 
 destructor TX3DEvent.Destroy;
 begin
+  FreeAndNil(FLastReceivedField);
   FreeAndNil(Temp);
   FreeAndNil(NotificationsToRemove);
   FreeAndNil(FNotifications);
@@ -243,6 +251,15 @@ begin
   Assert(Field <> nil);
   Assert(Field is FieldClass);
 
+  if FInEvent and (ParentInterfaceDeclaration <> nil) then
+  begin
+    if FLastReceivedField = nil then
+      FLastReceivedField := FieldClass.CreateUndefined(ParentNode, false, X3DName);
+    FLastReceivedField.AssignValue(Field);
+    FLastReceivedField.ChangeAlways := chVisibleNonGeometry;
+    FLastReceivedField.Changed;
+  end;
+
   Inc(SendLevel);
   try
     if Assigned(FFirstNotification) then
@@ -269,7 +286,15 @@ function TX3DEvent.SendNeeded: boolean;
 begin
   Result :=
     Assigned(FFirstNotification) or
-    ((FNotifications <> nil) and (FNotifications.Count <> 0));
+    ((FNotifications <> nil) and (FNotifications.Count <> 0)) or
+    (FInEvent and (ParentInterfaceDeclaration <> nil));
+end;
+
+function TX3DEvent.InternalOrDefaultReceivedField: TX3DField;
+begin
+  if FLastReceivedField = nil then
+    FLastReceivedField := FieldClass.CreateUndefined(ParentNode, false, X3DName);
+  Result := FLastReceivedField;
 end;
 
 procedure TX3DEvent.Assign(Source: TPersistent);

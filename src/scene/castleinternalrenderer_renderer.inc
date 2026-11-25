@@ -18,6 +18,33 @@
 
 {$ifdef read_interface}
 //type
+  { Immutable per-shape draw packet captured on the main thread during
+    TShapesRenderer parallel draw collection and replayed lock-free across
+    worker-thread secondary TVulkanRHICommandList instances. }
+  TRHIPreparedShapeDrawItem = record
+    Pipeline: TRHIPipeline;
+    PushConstants: TCastlePushConstantsBlock;
+    HasGeometryShader: Boolean;
+    SceneSet: TRHIDescriptorSet;
+    MaterialSet: TRHIDescriptorSet;
+    SkinningSet: TRHIDescriptorSet;
+    CoordBuf: TRHIBuffer;
+    AttrBuf: TRHIBuffer;
+    IndexBuf: TRHIBuffer;
+    HasIndexes: Boolean;
+    Count: Cardinal;
+    SubDrawCounts: array of Integer;
+    ViewportRect: TFloatRectangle;
+    ViewportMinDepth: Single;
+    ViewportMaxDepth: Single;
+    ScissorRect: TRectangle;
+    UseBlendConstants: Boolean;
+    BlendConstants: TVector4;
+    DepthBiasConstant: Single;
+    DepthBiasSlope: Single;
+    LineWidth: Single;
+  end;
+
   TRenderer = class(TComponent)
   private
     { For speed, we keep a single instance of TShader,
@@ -82,10 +109,44 @@
 
     {$I castleinternalrenderer_surfacetextures.inc}
   private
+    type
+      TRHISceneStateSlot = record
+        SceneBlock: TCastleSceneUniformBlock;
+        LightsBlock: TCastleLightsUniformBlock;
+        ShadowMapTextures: array[0..3] of TRHITexture;
+        ShadowMapSamplers: array[0..3] of TRHISampler;
+        ShadowMapUniqueIds: array[0..3] of QWord;
+        VarianceShadowMaps: Boolean;
+        SceneBuffer: TRHIBuffer;
+        LightsBuffer: TRHIBuffer;
+        DescriptorSet: TRHIDescriptorSet;
+      end;
+  private
     { ----------------------------------------------------------------- }
 
     { Available between RenderBegin / RenderEnd. }
     LightsRenderer: TLightsRenderer;
+    FRHISceneBuffer: TRHIBuffer;
+    FRHISceneDescriptorSetLayout: TRHIDescriptorSetLayout;
+    FRHISceneDescriptorSet: TRHIDescriptorSet;
+    FRHISceneSlots: array of TRHISceneStateSlot;
+    FRHIActiveSceneSlot: Integer;
+    FNextRHISceneSlotEvict: Cardinal;
+    FSceneUniformBlockInitialized: Boolean;
+    FCurrentShapeLighting: Boolean;
+    FRHIShadowMap0Texture: TRHITexture;
+    FRHIShadowMap0Sampler: TRHISampler;
+    FRHIShadowMapTextures: array[0..3] of TRHITexture;
+    FRHIShadowMapSamplers: array[0..3] of TRHISampler;
+    FRHISceneOwnerDevice: TRHIDevice;
+    FRHIDefaultVertexShader: TRHIShaderModule;
+    FRHIDefaultFragmentShader: TRHIShaderModule;
+    FRHIVSMCasterFragmentShader: TRHIShaderModule;
+    FSceneUniformBlock: TCastleSceneUniformBlock;
+    FRHISceneBufferUploadCount: Cardinal;
+    FCollectingParallelDraws: Boolean;
+    FPreparedDrawItems: array of TRHIPreparedShapeDrawItem;
+    FPreparedDrawItemCount: Integer;
 
     { Currently set fog parameters, during render. }
     FogFunctionality: TFogFunctionality;
@@ -111,6 +172,10 @@
     FWireframePass: TWireframeRenderingPass;
     FUserPass: TUserRenderingPass;
 
+    procedure FreeRHISceneSlots(const ACanDestroyHandles: Boolean);
+    function GetRHISceneSlotCount: Cardinal;
+    function GetRHIShadowMapTexture(const ASlot: Cardinal): TRHITexture;
+    function GetRHIShadowMapSampler(const ASlot: Cardinal): TRHISampler;
     procedure SetWireframePass(const Value: TWireframeRenderingPass);
 
     { Calculate FPass based on FInternalPass, FWireframePass, FUserPass. }
@@ -257,6 +322,50 @@
       Each RenderBegin sets it (to given parameter). }
     property WireframePass: TWireframeRenderingPass
       read FWireframePass write SetWireframePass;
+
+    { Build and upload Set 0 Binding 0 Per-Pass Scene Camera + Fog UBO (TCastleSceneUniformBlock). }
+    procedure BuildSceneUniformBlock(out UniformBlock: TCastleSceneUniformBlock);
+    procedure UploadSceneUniformBlockToRHI;
+    function EnsureRHISceneDescriptorSet: TRHIDescriptorSet;
+    procedure BindShadowMapToSceneDescriptorSet(
+      const ASlot: Cardinal;
+      const AShadowMapTex: TRHITexture;
+      const AShadowMapSampler: TRHISampler = nil);
+    procedure EnsureRHIDefaultShaders;
+    procedure BuildShapePipelineDesc(const AShape: TX3DRendererShape;
+      const ARenderOptions: TCastleRenderOptions;
+      out ADesc: TRHIGraphicsPipelineDesc);
+    function GetOrCreateShapePipeline(const AShape: TX3DRendererShape;
+      const ARenderOptions: TCastleRenderOptions): TRHIPipeline;
+
+    function GetRHISceneSlotSceneBlock(const AIndex: Cardinal): TCastleSceneUniformBlock;
+    function GetRHISceneSlotLightsBlock(const AIndex: Cardinal): TCastleLightsUniformBlock;
+    function GetRHISceneSlotDescriptorSet(const AIndex: Cardinal): TRHIDescriptorSet;
+
+    property RHISceneBuffer: TRHIBuffer read FRHISceneBuffer;
+    property RHISceneDescriptorSetLayout: TRHIDescriptorSetLayout read FRHISceneDescriptorSetLayout;
+    property RHISceneDescriptorSet: TRHIDescriptorSet read FRHISceneDescriptorSet;
+    property RHISceneSlotCount: Cardinal read GetRHISceneSlotCount;
+    property RHIShadowMap0Texture: TRHITexture read FRHIShadowMap0Texture;
+    property RHIShadowMap0Sampler: TRHISampler read FRHIShadowMap0Sampler;
+    property RHIShadowMapTexture[const ASlot: Cardinal]: TRHITexture read GetRHIShadowMapTexture;
+    property RHIShadowMapSampler[const ASlot: Cardinal]: TRHISampler read GetRHIShadowMapSampler;
+    property RHIDefaultVertexShader: TRHIShaderModule read FRHIDefaultVertexShader;
+    property RHIDefaultFragmentShader: TRHIShaderModule read FRHIDefaultFragmentShader;
+    property RHIVSMCasterFragmentShader: TRHIShaderModule read FRHIVSMCasterFragmentShader;
+    procedure BeginParallelDrawCollection;
+    procedure EndParallelDrawCollection;
+    procedure AppendPreparedDrawItem(const AItem: TRHIPreparedShapeDrawItem);
+    function GetPreparedDrawItem(const AIndex: Integer): TRHIPreparedShapeDrawItem;
+    procedure RecordPreparedDrawSlice(const ACmd: TRHICommandList;
+      const AStartIdx, AEndIdx: Integer;
+      const AInitialViewportAlreadySet: Boolean = False);
+
+    property IsCollectingParallelDraws: Boolean read FCollectingParallelDraws;
+    property PreparedDrawItemCount: Integer read FPreparedDrawItemCount;
+    property SceneUniformBlock: TCastleSceneUniformBlock read FSceneUniformBlock;
+    property RHISceneBufferUploadCount: Cardinal read FRHISceneBufferUploadCount;
+    property ActiveLightsRenderer: TLightsRenderer read LightsRenderer;
   end;
 {$endif read_interface}
 
@@ -269,15 +378,987 @@ begin
   inherited;
   TextureTransformUnitsUsedMore := TInt32List.Create;
   PreparedShader := TShader.Create;
+  FRHIActiveSceneSlot := -1;
+  FCurrentShapeLighting := True;
+end;
+
+procedure TRenderer.FreeRHISceneSlots(const ACanDestroyHandles: Boolean);
+var
+  I: Integer;
+begin
+  { Silence unused parameter warning; TRHIDevice.ReleaseRemainingDeviceResources
+    detaches FDevice when a device dies early, so FreeAndNil is always safe. }
+  if ACanDestroyHandles then ;
+  FRHISceneBuffer := nil;
+  FRHISceneDescriptorSet := nil;
+  FRHIActiveSceneSlot := -1;
+  FNextRHISceneSlotEvict := 0;
+  for I := 0 to High(FRHISceneSlots) do
+  begin
+    FreeAndNil(FRHISceneSlots[I].DescriptorSet);
+    FreeAndNil(FRHISceneSlots[I].SceneBuffer);
+    FreeAndNil(FRHISceneSlots[I].LightsBuffer);
+  end;
+  SetLength(FRHISceneSlots, 0);
+end;
+
+function TRenderer.GetRHISceneSlotCount: Cardinal;
+begin
+  Result := Length(FRHISceneSlots);
+end;
+
+function TRenderer.GetRHISceneSlotSceneBlock(const AIndex: Cardinal): TCastleSceneUniformBlock;
+begin
+  if AIndex < Cardinal(Length(FRHISceneSlots)) then
+    Result := FRHISceneSlots[AIndex].SceneBlock
+  else
+    FillChar(Result, SizeOf(Result), 0);
+end;
+
+function TRenderer.GetRHISceneSlotLightsBlock(const AIndex: Cardinal): TCastleLightsUniformBlock;
+begin
+  if AIndex < Cardinal(Length(FRHISceneSlots)) then
+    Result := FRHISceneSlots[AIndex].LightsBlock
+  else
+    FillChar(Result, SizeOf(Result), 0);
+end;
+
+function TRenderer.GetRHISceneSlotDescriptorSet(const AIndex: Cardinal): TRHIDescriptorSet;
+begin
+  if AIndex < Cardinal(Length(FRHISceneSlots)) then
+    Result := FRHISceneSlots[AIndex].DescriptorSet
+  else
+    Result := nil;
 end;
 
 destructor TRenderer.Destroy;
+var
+  I: Integer;
 begin
   FreeAndNil(TextureTransformUnitsUsedMore);
   FreeAndNil(PreparedShader);
   FreeAndNil(ShadowMapsShaders);
   FreeAndNil(VarianceShadowMapsShaders);
+  FreeRHISceneSlots(True);
+  FreeAndNil(FRHISceneDescriptorSetLayout);
+  FreeAndNil(FRHIDefaultVertexShader);
+  FreeAndNil(FRHIDefaultFragmentShader);
+  FreeAndNil(FRHIVSMCasterFragmentShader);
+  FRHISceneOwnerDevice := nil;
+  FRHIShadowMap0Texture := nil;
+  FRHIShadowMap0Sampler := nil;
+  for I := 0 to High(FRHIShadowMapTextures) do
+  begin
+    FRHIShadowMapTextures[I] := nil;
+    FRHIShadowMapSamplers[I] := nil;
+  end;
+  SetLength(FPreparedDrawItems, 0);
+  FPreparedDrawItemCount := 0;
+  FCollectingParallelDraws := False;
   inherited;
+end;
+
+procedure TRenderer.BeginParallelDrawCollection;
+begin
+  FCollectingParallelDraws := True;
+  FPreparedDrawItemCount := 0;
+end;
+
+procedure TRenderer.EndParallelDrawCollection;
+begin
+  FCollectingParallelDraws := False;
+  FPreparedDrawItemCount := 0;
+end;
+
+procedure TRenderer.AppendPreparedDrawItem(const AItem: TRHIPreparedShapeDrawItem);
+begin
+  if FPreparedDrawItemCount >= Length(FPreparedDrawItems) then
+    SetLength(FPreparedDrawItems, Max(32, Length(FPreparedDrawItems) * 2));
+  FPreparedDrawItems[FPreparedDrawItemCount] := AItem;
+  Inc(FPreparedDrawItemCount);
+end;
+
+function TRenderer.GetPreparedDrawItem(const AIndex: Integer): TRHIPreparedShapeDrawItem;
+begin
+  if (AIndex >= 0) and (AIndex < FPreparedDrawItemCount) then
+    Result := FPreparedDrawItems[AIndex]
+  else
+    Result := Default(TRHIPreparedShapeDrawItem);
+end;
+
+procedure TRenderer.RecordPreparedDrawSlice(const ACmd: TRHICommandList;
+  const AStartIdx, AEndIdx: Integer;
+  const AInitialViewportAlreadySet: Boolean);
+var
+  ClampedStart, ClampedEnd, I, J: Integer;
+  First: Cardinal;
+  HasVP: Boolean;
+  LastVP: TFloatRectangle;
+  LastMinD, LastMaxD: Single;
+  LastScissor: TRectangle;
+  LastBiasConst, LastBiasSlope: Single;
+  LastLineWidth: Single;
+  LastPipeline: TRHIPipeline;
+  LastSceneSet, LastMatSet, LastSkinSet: TRHIDescriptorSet;
+begin
+  if ACmd = nil then
+    Exit;
+  ClampedStart := Max(0, AStartIdx);
+  ClampedEnd := Min(FPreparedDrawItemCount, AEndIdx);
+  if ClampedStart >= ClampedEnd then
+    Exit;
+
+  HasVP := AInitialViewportAlreadySet;
+  if HasVP then
+  begin
+    LastVP := FPreparedDrawItems[ClampedStart].ViewportRect;
+    LastMinD := FPreparedDrawItems[ClampedStart].ViewportMinDepth;
+    LastMaxD := FPreparedDrawItems[ClampedStart].ViewportMaxDepth;
+    LastScissor := FPreparedDrawItems[ClampedStart].ScissorRect;
+  end else
+  begin
+    LastVP := TFloatRectangle.Empty;
+    LastMinD := 0.0;
+    LastMaxD := 1.0;
+    LastScissor := TRectangle.Empty;
+  end;
+  LastBiasConst := 0.0;
+  LastBiasSlope := 0.0;
+  LastLineWidth := 1.0;
+  LastPipeline := nil;
+  LastSceneSet := nil;
+  LastMatSet := nil;
+  LastSkinSet := nil;
+
+  for I := ClampedStart to ClampedEnd - 1 do
+  begin
+    with FPreparedDrawItems[I] do
+    begin
+      if (not HasVP) or
+         (not LastVP.PerfectlyEquals(ViewportRect)) or
+         (LastMinD <> ViewportMinDepth) or
+         (LastMaxD <> ViewportMaxDepth) then
+      begin
+        ACmd.SetViewport(ViewportRect, ViewportMinDepth, ViewportMaxDepth);
+        LastVP := ViewportRect;
+        LastMinD := ViewportMinDepth;
+        LastMaxD := ViewportMaxDepth;
+      end;
+
+      if (not HasVP) or (not LastScissor.Equals(ScissorRect)) then
+      begin
+        ACmd.SetScissor(ScissorRect);
+        LastScissor := ScissorRect;
+      end;
+      HasVP := True;
+
+      if (Pipeline <> nil) and (Pipeline <> LastPipeline) then
+      begin
+        ACmd.BindPipeline(Pipeline);
+        LastPipeline := Pipeline;
+      end;
+
+      if UseBlendConstants then
+        ACmd.SetBlendConstants(BlendConstants);
+
+      if (DepthBiasConstant <> LastBiasConst) or (DepthBiasSlope <> LastBiasSlope) then
+      begin
+        ACmd.SetDepthBias(DepthBiasConstant, DepthBiasSlope);
+        LastBiasConst := DepthBiasConstant;
+        LastBiasSlope := DepthBiasSlope;
+      end;
+
+      if LineWidth <> LastLineWidth then
+      begin
+        ACmd.SetLineWidth(LineWidth);
+        LastLineWidth := LineWidth;
+      end;
+
+      if HasGeometryShader then
+        ACmd.PushConstants([ssVertex, ssGeometry, ssFragment], 0, SizeOf(PushConstants), PushConstants)
+      else
+        ACmd.PushConstants([ssVertex, ssFragment], 0, SizeOf(PushConstants), PushConstants);
+
+      if (SceneSet <> nil) and (SceneSet <> LastSceneSet) then
+      begin
+        ACmd.BindDescriptorSet(0, SceneSet, []);
+        LastSceneSet := SceneSet;
+      end;
+      if (MaterialSet <> nil) and (MaterialSet <> LastMatSet) then
+      begin
+        ACmd.BindDescriptorSet(1, MaterialSet, []);
+        LastMatSet := MaterialSet;
+      end;
+      if (SkinningSet <> nil) and (SkinningSet <> LastSkinSet) then
+      begin
+        ACmd.BindDescriptorSet(2, SkinningSet, []);
+        LastSkinSet := SkinningSet;
+      end;
+
+      if CoordBuf <> nil then
+      begin
+        if AttrBuf <> nil then
+          ACmd.BindVertexBuffers(0, [CoordBuf, AttrBuf], [0, 0])
+        else
+          ACmd.BindVertexBuffers(0, [CoordBuf], [0]);
+      end;
+
+      First := 0;
+      if HasIndexes then
+      begin
+        if IndexBuf <> nil then
+          ACmd.BindIndexBuffer(IndexBuf, 0, {$ifdef GLIndexesShort}itUInt16{$else}itUInt32{$endif});
+        if Length(SubDrawCounts) = 0 then
+          ACmd.DrawIndexed(Count, 1, First, 0, 0)
+        else
+          for J := 0 to High(SubDrawCounts) do
+          begin
+            ACmd.DrawIndexed(SubDrawCounts[J], 1, First, 0, 0);
+            First := First + Cardinal(SubDrawCounts[J]);
+          end;
+      end else
+      begin
+        if Length(SubDrawCounts) = 0 then
+          ACmd.Draw(Count, 1, First, 0)
+        else
+          for J := 0 to High(SubDrawCounts) do
+          begin
+            ACmd.Draw(SubDrawCounts[J], 1, First, 0);
+            First := First + Cardinal(SubDrawCounts[J]);
+          end;
+      end;
+    end;
+  end;
+end;
+
+function TRenderer.GetRHIShadowMapTexture(const ASlot: Cardinal): TRHITexture;
+begin
+  if ASlot <= High(FRHIShadowMapTextures) then
+    Result := FRHIShadowMapTextures[ASlot]
+  else
+    Result := nil;
+end;
+
+function TRenderer.GetRHIShadowMapSampler(const ASlot: Cardinal): TRHISampler;
+begin
+  if ASlot <= High(FRHIShadowMapSamplers) then
+    Result := FRHIShadowMapSamplers[ASlot]
+  else
+    Result := nil;
+end;
+
+procedure TRenderer.BuildSceneUniformBlock(out UniformBlock: TCastleSceneUniformBlock);
+var
+  FogDensity: Single;
+begin
+  FillChar(UniformBlock, SizeOf(UniformBlock), 0);
+  if RenderContext <> nil then
+    UniformBlock.ProjectionMatrix := RenderContext.ProjectionMatrix
+  else
+    UniformBlock.ProjectionMatrix := TMatrix4.Identity;
+
+  if RenderingCamera <> nil then
+  begin
+    UniformBlock.ViewMatrix := RenderingCamera.CurrentMatrix;
+    if RenderingCamera.RotationOnly then
+    begin
+      RenderingCamera.RotationInverseMatrixNeeded;
+      UniformBlock.ViewMatrixInverse := RenderingCamera.RotationInverseMatrix;
+      UniformBlock.CameraPosition := Vector4(0.0, 0.0, 0.0, 0.0);
+    end else
+    begin
+      RenderingCamera.InverseMatrixNeeded;
+      UniformBlock.ViewMatrixInverse := RenderingCamera.InverseMatrix;
+      UniformBlock.CameraPosition := Vector4(
+        UniformBlock.ViewMatrixInverse.Rows[0].W,
+        UniformBlock.ViewMatrixInverse.Rows[1].W,
+        UniformBlock.ViewMatrixInverse.Rows[2].W,
+        0.0);
+    end;
+  end else
+  begin
+    UniformBlock.ViewMatrix := TMatrix4.Identity;
+    UniformBlock.ViewMatrixInverse := TMatrix4.Identity;
+  end;
+
+  if FogEnabled then
+  begin
+    if FogVisibilityRangeScaled > 1e-5 then
+      FogDensity := 2.0 / FogVisibilityRangeScaled
+    else
+      FogDensity := 0.0;
+    UniformBlock.FogColor := Vector4(FogColor, FogDensity);
+    UniformBlock.FogParams := Vector4(
+      FogVolumetricVisibilityStart,
+      FogVisibilityRangeScaled,
+      Single(Ord(FogType) + 1),
+      Single(Ord(FogVolumetric)));
+  end else
+  begin
+    UniformBlock.FogColor := Vector4(0.0, 0.0, 0.0, 0.0);
+    UniformBlock.FogParams := Vector4(0.0, 0.0, 0.0, 0.0);
+  end;
+
+  if (LightsRenderer <> nil) and FCurrentShapeLighting then
+    UniformBlock.LightCount := LightsRenderer.LightsUniformBlock.Count;
+end;
+
+procedure TRenderer.UploadSceneUniformBlockToRHI;
+begin
+  BuildSceneUniformBlock(FSceneUniformBlock);
+  FSceneUniformBlockInitialized := True;
+  if RHIDevice = nil then
+    Exit;
+
+  Inc(FRHISceneBufferUploadCount);
+  EnsureRHISceneDescriptorSet;
+end;
+
+function TRenderer.EnsureRHISceneDescriptorSet: TRHIDescriptorSet;
+const
+  MaxRHISceneSlots = 64;
+var
+  Bindings: array[0..5] of TRHIDescriptorBindingDesc;
+  SceneBufDesc, LightsBufDesc: TRHIBufferDesc;
+  DesiredSceneBlock: TCastleSceneUniformBlock;
+  CurrentLightsBlock: TCastleLightsUniformBlock;
+  DesiredShadowIds: array[0..3] of QWord;
+  FoundSlot, SlotIdx, I: Integer;
+  UseVSM: Boolean;
+begin
+  if RHIDevice = nil then
+    Exit(nil);
+  if FRHISceneOwnerDevice <> RHIDevice then
+  begin
+    FreeRHISceneSlots(True);
+    FreeAndNil(FRHISceneDescriptorSetLayout);
+    FRHIShadowMap0Texture := nil;
+    FRHIShadowMap0Sampler := nil;
+    for I := 0 to High(FRHIShadowMapTextures) do
+    begin
+      FRHIShadowMapTextures[I] := nil;
+      FRHIShadowMapSamplers[I] := nil;
+    end;
+    FreeAndNil(FRHIDefaultVertexShader);
+    FreeAndNil(FRHIDefaultFragmentShader);
+    FreeAndNil(FRHIVSMCasterFragmentShader);
+    FRHISceneOwnerDevice := RHIDevice;
+  end;
+  if not FSceneUniformBlockInitialized then
+  begin
+    UploadSceneUniformBlockToRHI;
+    Exit(FRHISceneDescriptorSet);
+  end;
+  if FRHISceneDescriptorSetLayout = nil then
+  begin
+    FillChar(Bindings, SizeOf(Bindings), 0);
+    Bindings[0].Binding := 0;
+    Bindings[0].DescriptorType := dtUniformBuffer;
+    Bindings[0].Count := 1;
+    Bindings[0].StageFlags := [ssVertex, ssGeometry, ssFragment];
+    Bindings[1].Binding := 1;
+    Bindings[1].DescriptorType := dtUniformBuffer;
+    Bindings[1].Count := 1;
+    Bindings[1].StageFlags := [ssVertex, ssGeometry, ssFragment];
+    for I := 2 to 5 do
+    begin
+      Bindings[I].Binding := Cardinal(I);
+      Bindings[I].DescriptorType := dtCombinedImageSampler;
+      Bindings[I].Count := 1;
+      Bindings[I].StageFlags := [ssFragment];
+    end;
+    FRHISceneDescriptorSetLayout := RHIDevice.CreateDescriptorSetLayout(Bindings);
+  end;
+
+  if (LightsRenderer <> nil) and FCurrentShapeLighting then
+  begin
+    CurrentLightsBlock := LightsRenderer.LightsUniformBlock;
+    if LightsRenderer.RHILightsBuffer = nil then
+      LightsRenderer.UploadLightsToRHI;
+  end else
+    FillChar(CurrentLightsBlock, SizeOf(CurrentLightsBlock), 0);
+
+  DesiredSceneBlock := FSceneUniformBlock;
+  if (LightsRenderer <> nil) and FCurrentShapeLighting then
+  begin
+    DesiredSceneBlock.LightCount := CurrentLightsBlock.Count;
+    FSceneUniformBlock.LightCount := CurrentLightsBlock.Count;
+  end else
+  if not FCurrentShapeLighting then
+  begin
+    DesiredSceneBlock.LightCount := 0;
+    FSceneUniformBlock.LightCount := 0;
+  end;
+
+  UseVSM := (PreparedShader <> nil) and (PreparedShader.ShadowSampling = ssVarianceShadowMaps);
+
+  for I := 0 to High(FRHIShadowMapTextures) do
+    if FRHIShadowMapTextures[I] <> nil then
+      DesiredShadowIds[I] := FRHIShadowMapTextures[I].UniqueId
+    else
+      DesiredShadowIds[I] := 0;
+
+  FoundSlot := -1;
+  for I := 0 to High(FRHISceneSlots) do
+  begin
+    if (FRHISceneSlots[I].VarianceShadowMaps = UseVSM) and
+       CompareMem(@FRHISceneSlots[I].SceneBlock, @DesiredSceneBlock, SizeOf(TCastleSceneUniformBlock)) and
+       CompareMem(@FRHISceneSlots[I].LightsBlock, @CurrentLightsBlock, SizeOf(TCastleLightsUniformBlock)) and
+       CompareMem(@FRHISceneSlots[I].ShadowMapTextures[0], @FRHIShadowMapTextures[0], SizeOf(FRHIShadowMapTextures)) and
+       CompareMem(@FRHISceneSlots[I].ShadowMapSamplers[0], @FRHIShadowMapSamplers[0], SizeOf(FRHIShadowMapSamplers)) and
+       CompareMem(@FRHISceneSlots[I].ShadowMapUniqueIds[0], @DesiredShadowIds[0], SizeOf(DesiredShadowIds)) then
+    begin
+      FoundSlot := I;
+      Break;
+    end;
+  end;
+
+  if FoundSlot >= 0 then
+  begin
+    FRHIActiveSceneSlot := FoundSlot;
+    FRHISceneBuffer := FRHISceneSlots[FoundSlot].SceneBuffer;
+    FRHISceneDescriptorSet := FRHISceneSlots[FoundSlot].DescriptorSet;
+    Exit(FRHISceneDescriptorSet);
+  end;
+
+  if Length(FRHISceneSlots) < MaxRHISceneSlots then
+  begin
+    SlotIdx := Length(FRHISceneSlots);
+    SetLength(FRHISceneSlots, SlotIdx + 1);
+    FillChar(FRHISceneSlots[SlotIdx], SizeOf(TRHISceneStateSlot), 0);
+    SceneBufDesc := TRHIBufferDesc.Create(SizeOf(TCastleSceneUniformBlock), [buUniform], muCpuToGpu, 'CastleSceneUBO');
+    FRHISceneSlots[SlotIdx].SceneBuffer := RHIDevice.CreateBuffer(SceneBufDesc, @DesiredSceneBlock);
+    LightsBufDesc := TRHIBufferDesc.Create(SizeOf(TCastleLightsUniformBlock), [buUniform], muCpuToGpu, 'CastleLightsUBO');
+    FRHISceneSlots[SlotIdx].LightsBuffer := RHIDevice.CreateBuffer(LightsBufDesc, @CurrentLightsBlock);
+    if FRHISceneDescriptorSetLayout <> nil then
+      FRHISceneSlots[SlotIdx].DescriptorSet := RHIDevice.CreateDescriptorSet(FRHISceneDescriptorSetLayout);
+  end else
+  begin
+    SlotIdx := Integer(FNextRHISceneSlotEvict mod MaxRHISceneSlots);
+    Inc(FNextRHISceneSlotEvict);
+    if FRHISceneSlots[SlotIdx].SceneBuffer <> nil then
+      FRHISceneSlots[SlotIdx].SceneBuffer.UploadData(DesiredSceneBlock, SizeOf(TCastleSceneUniformBlock));
+    if FRHISceneSlots[SlotIdx].LightsBuffer <> nil then
+      FRHISceneSlots[SlotIdx].LightsBuffer.UploadData(CurrentLightsBlock, SizeOf(TCastleLightsUniformBlock));
+  end;
+
+  FRHISceneSlots[SlotIdx].VarianceShadowMaps := UseVSM;
+  FRHISceneSlots[SlotIdx].SceneBlock := DesiredSceneBlock;
+  FRHISceneSlots[SlotIdx].LightsBlock := CurrentLightsBlock;
+  for I := 0 to High(FRHIShadowMapTextures) do
+  begin
+    FRHISceneSlots[SlotIdx].ShadowMapTextures[I] := FRHIShadowMapTextures[I];
+    FRHISceneSlots[SlotIdx].ShadowMapSamplers[I] := FRHIShadowMapSamplers[I];
+    FRHISceneSlots[SlotIdx].ShadowMapUniqueIds[I] := DesiredShadowIds[I];
+  end;
+
+  if FRHISceneSlots[SlotIdx].DescriptorSet <> nil then
+  begin
+    if FRHISceneSlots[SlotIdx].SceneBuffer <> nil then
+      FRHISceneSlots[SlotIdx].DescriptorSet.BindUniformBuffer(0, FRHISceneSlots[SlotIdx].SceneBuffer);
+    if FRHISceneSlots[SlotIdx].LightsBuffer <> nil then
+      FRHISceneSlots[SlotIdx].DescriptorSet.BindUniformBuffer(1, FRHISceneSlots[SlotIdx].LightsBuffer);
+    for I := 0 to High(FRHIShadowMapTextures) do
+      if FRHIShadowMapTextures[I] <> nil then
+        FRHISceneSlots[SlotIdx].DescriptorSet.BindTexture(2 + Cardinal(I),
+          FRHIShadowMapTextures[I], FRHIShadowMapSamplers[I])
+      {$ifndef WASI}
+      else if (RHIDevice is TVulkanRHIDevice) and
+              (TVulkanRHIDevice(RHIDevice).Handle <> nil) then
+      begin
+        if UseVSM then
+          FRHISceneSlots[SlotIdx].DescriptorSet.BindTexture(2 + Cardinal(I),
+            TVulkanRHIDevice(RHIDevice).GetDefaultWhiteTexture,
+            TVulkanRHIDevice(RHIDevice).GetDefaultSampler)
+        else
+          FRHISceneSlots[SlotIdx].DescriptorSet.BindTexture(2 + Cardinal(I),
+            TVulkanRHIDevice(RHIDevice).GetDefaultShadowDepthTexture,
+            TVulkanRHIDevice(RHIDevice).GetDefaultShadowSampler);
+      end
+      {$endif};
+    FRHISceneSlots[SlotIdx].DescriptorSet.Update;
+  end;
+
+  FRHIActiveSceneSlot := SlotIdx;
+  FRHISceneBuffer := FRHISceneSlots[SlotIdx].SceneBuffer;
+  FRHISceneDescriptorSet := FRHISceneSlots[SlotIdx].DescriptorSet;
+  Result := FRHISceneDescriptorSet;
+end;
+
+procedure TRenderer.BindShadowMapToSceneDescriptorSet(
+  const ASlot: Cardinal;
+  const AShadowMapTex: TRHITexture;
+  const AShadowMapSampler: TRHISampler);
+begin
+  if (RHIDevice <> nil) and (FRHISceneOwnerDevice <> RHIDevice) then
+    EnsureRHISceneDescriptorSet;
+  if ASlot <= High(FRHIShadowMapTextures) then
+  begin
+    FRHIShadowMapTextures[ASlot] := AShadowMapTex;
+    FRHIShadowMapSamplers[ASlot] := AShadowMapSampler;
+  end;
+  if ASlot = 0 then
+  begin
+    FRHIShadowMap0Texture := AShadowMapTex;
+    FRHIShadowMap0Sampler := AShadowMapSampler;
+  end;
+  if (RHIDevice = nil) or (ASlot > 3) or (AShadowMapTex = nil) then
+    Exit;
+  EnsureRHISceneDescriptorSet;
+end;
+
+procedure TRenderer.EnsureRHIDefaultShaders;
+var
+  Gen: TCastleShaderGeneratorRHI;
+  VSMCasterSrc: String;
+begin
+  if RHIDevice = nil then
+    Exit;
+  if FRHISceneOwnerDevice <> RHIDevice then
+  begin
+    FreeRHISceneSlots(True);
+    FreeAndNil(FRHISceneDescriptorSetLayout);
+    FreeAndNil(FRHIDefaultVertexShader);
+    FreeAndNil(FRHIDefaultFragmentShader);
+    FreeAndNil(FRHIVSMCasterFragmentShader);
+    FRHISceneOwnerDevice := RHIDevice;
+  end;
+  if (FRHIDefaultVertexShader = nil) or (FRHIDefaultFragmentShader = nil) or
+     (FRHIVSMCasterFragmentShader = nil) then
+  begin
+    Gen := TCastleShaderGeneratorRHI.Create(rbVulkan);
+    try
+      if FRHIDefaultVertexShader = nil then
+        FRHIDefaultVertexShader := RHIDevice.CreateShaderModuleFromGLSL(
+          ssVertex, Gen.GenerateDefault3DVertexShader(False, False, False, False), 'CastleDefault3DVert');
+      if FRHIDefaultFragmentShader = nil then
+        FRHIDefaultFragmentShader := RHIDevice.CreateShaderModuleFromGLSL(
+          ssFragment, Gen.GenerateDefault3DFragmentShader(False, False, False, False, False, False, False, False, False), 'CastleDefault3DFrag');
+      if FRHIVSMCasterFragmentShader = nil then
+      begin
+        VSMCasterSrc :=
+          Gen.GeneratePreamble(ssFragment) +
+          'void main() {' + LineEnding +
+          '  castle_FragColor = vec4(gl_FragCoord.z, gl_FragCoord.z * gl_FragCoord.z, 0.0, 1.0);' + LineEnding +
+          '}' + LineEnding;
+        FRHIVSMCasterFragmentShader := RHIDevice.CreateShaderModuleFromGLSL(
+          ssFragment, VSMCasterSrc, 'CastleVSMCasterFrag');
+      end;
+    finally
+      FreeAndNil(Gen);
+    end;
+  end;
+end;
+
+procedure TRenderer.BuildShapePipelineDesc(const AShape: TX3DRendererShape;
+  const ARenderOptions: TCastleRenderOptions;
+  out ADesc: TRHIGraphicsPipelineDesc);
+
+  procedure AddVertexAttribute(const ALocation, ABinding: Cardinal;
+    const AFormat: TRHIVertexAttributeFormat; const AOffset: Cardinal;
+    const AName: String);
+  var
+    Idx: Integer;
+  begin
+    Idx := Length(ADesc.VertexInput.Attributes);
+    SetLength(ADesc.VertexInput.Attributes, Idx + 1);
+    ADesc.VertexInput.Attributes[Idx].Location := ALocation;
+    ADesc.VertexInput.Attributes[Idx].Binding := ABinding;
+    ADesc.VertexInput.Attributes[Idx].Format := AFormat;
+    ADesc.VertexInput.Attributes[Idx].Offset := AOffset;
+    ADesc.VertexInput.Attributes[Idx].AttributeName := AName;
+  end;
+
+  function TexCoordDimToFormat(const ADimensions: Cardinal): TRHIVertexAttributeFormat;
+  begin
+    case ADimensions of
+      2: Result := vafVector2;
+      3: Result := vafVector3;
+      4: Result := vafVector4;
+    else
+      Result := vafFloat;
+    end;
+  end;
+
+var
+  Arrays: TGeometryArrays;
+  Set1Layout, Set2Layout: TRHIDescriptorSetLayout;
+  LayoutCount, I: Integer;
+  AttrLoc: Cardinal;
+  AttrOffset: PtrUInt;
+  BlendSrcFactor: TBlendingSourceFactor;
+  BlendDestFactor: TBlendingDestinationFactor;
+  UseBlending: Boolean;
+  OptColorMask: Byte;
+begin
+  FillChar(ADesc, SizeOf(ADesc), 0);
+  EnsureRHIDefaultShaders;
+  EnsureRHISceneDescriptorSet;
+  if (AShape <> nil) and (AShape.Cache <> nil) then
+    AShape.Cache.EnsureRHIDeviceMatch;
+
+  if (AShape <> nil) and (AShape.Cache <> nil) and
+     (AShape.Cache.RHIVertexShader <> nil) and (AShape.Cache.RHIFragmentShader <> nil) then
+  begin
+    ADesc.VertexShader := AShape.Cache.RHIVertexShader;
+    ADesc.FragmentShader := AShape.Cache.RHIFragmentShader;
+    ADesc.GeometryShader := AShape.Cache.RHIGeometryShader;
+  end else
+  begin
+    ADesc.VertexShader := FRHIDefaultVertexShader;
+    ADesc.FragmentShader := FRHIDefaultFragmentShader;
+    ADesc.GeometryShader := nil;
+  end;
+
+  Arrays := nil;
+  if (AShape <> nil) and (AShape.Cache <> nil) then
+    Arrays := AShape.Cache.Arrays;
+
+  if Arrays <> nil then
+  begin
+    if Arrays.AttributeSize > 0 then
+      SetLength(ADesc.VertexInput.Bindings, 2)
+    else
+      SetLength(ADesc.VertexInput.Bindings, 1);
+
+    ADesc.VertexInput.Bindings[0].Binding := 0;
+    ADesc.VertexInput.Bindings[0].Stride := Arrays.CoordinateSize;
+    ADesc.VertexInput.Bindings[0].PerInstance := False;
+
+    if Arrays.AttributeSize > 0 then
+    begin
+      ADesc.VertexInput.Bindings[1].Binding := 1;
+      ADesc.VertexInput.Bindings[1].Stride := Arrays.AttributeSize;
+      ADesc.VertexInput.Bindings[1].PerInstance := False;
+    end;
+
+    AddVertexAttribute(Ord(vlPosition), 0, vafVector3, PtrUInt(Arrays.Position), 'castle_Vertex');
+    AddVertexAttribute(Ord(vlNormal), 0, vafVector3, PtrUInt(Arrays.Normal), 'castle_Normal');
+    if Arrays.HasTangent then
+      AddVertexAttribute(Ord(vlTangent), 0, vafVector4, PtrUInt(Arrays.Tangent), 'castle_Tangent');
+
+    if (Arrays.TexCoords.Count > 0) and (Arrays.TexCoords[0] <> nil) and
+       (Arrays.TexCoords[0].Generation = tgExplicit) then
+      AddVertexAttribute(Ord(vlTexCoord0), 1,
+        TexCoordDimToFormat(Arrays.TexCoords[0].Dimensions),
+        PtrUInt(Arrays.TexCoord(0, 0)), 'castle_MultiTexCoord0')
+    else
+      AddVertexAttribute(Ord(vlTexCoord0), 0, vafVector2, 0, 'castle_MultiTexCoord0');
+
+    if (Arrays.TexCoords.Count > 1) and (Arrays.TexCoords[1] <> nil) and
+       (Arrays.TexCoords[1].Generation = tgExplicit) then
+      AddVertexAttribute(Ord(vlTexCoord1), 1,
+        TexCoordDimToFormat(Arrays.TexCoords[1].Dimensions),
+        PtrUInt(Arrays.TexCoord(1, 0)), 'castle_MultiTexCoord1')
+    else if (AShape <> nil) and (AShape.Cache <> nil) and
+            (AShape.Cache.RHIHasSecondTexture or
+             AShape.Cache.RHIHasTextureTransform1 or
+             (AShape.Cache.RHIBaseColorTexCoordIndex > 0) or
+             (AShape.Cache.RHINormalTexCoordIndex > 0) or
+             (AShape.Cache.RHIMetallicRoughnessTexCoordIndex > 0) or
+             (AShape.Cache.RHIEmissiveTexCoordIndex > 0) or
+             (AShape.Cache.RHIOcclusionTexCoordIndex > 0)) then
+    begin
+      if (Arrays.TexCoords.Count > 0) and (Arrays.TexCoords[0] <> nil) and
+         (Arrays.TexCoords[0].Generation = tgExplicit) then
+        AddVertexAttribute(Ord(vlTexCoord1), 1,
+          TexCoordDimToFormat(Arrays.TexCoords[0].Dimensions),
+          PtrUInt(Arrays.TexCoord(0, 0)), 'castle_MultiTexCoord1')
+      else
+        AddVertexAttribute(Ord(vlTexCoord1), 0, vafVector2, 0, 'castle_MultiTexCoord1');
+    end;
+
+    case Arrays.ColorType of
+      ctRgb:
+        AddVertexAttribute(Ord(vlColor), 1, vafVector3, PtrUInt(Arrays.ColorRgb), 'castle_ColorPerVertex');
+      ctRgbAlpha:
+        AddVertexAttribute(Ord(vlColor), 1, vafVector4, PtrUInt(Arrays.ColorRgbAlpha), 'castle_ColorPerVertex');
+      else ;
+    end;
+
+    if Arrays.HasSkinWeights0 and Arrays.HasSkinJoints0 then
+    begin
+      AddVertexAttribute(Ord(vlJoints0), 1, vafVector4, PtrUInt(Arrays.SkinJoints0), 'castle_SkinJoints0');
+      AddVertexAttribute(Ord(vlWeights0), 1, vafVector4, PtrUInt(Arrays.SkinWeights0), 'castle_SkinWeights0');
+    end;
+
+    if Arrays.HasFogCoord then
+      AddVertexAttribute(8, 1, vafFloat, PtrUInt(Arrays.FogCoord(0)), 'castle_FogCoord');
+
+    if Arrays.Attribs.Count > 0 then
+    begin
+      AttrLoc := 9;
+      for I := 0 to Arrays.Attribs.Count - 1 do
+      begin
+        AttrOffset := PtrUInt(Arrays.GLSLAttribute(Arrays.Attribs[I]));
+        case Arrays.Attribs[I].AType of
+          atFloat:
+            begin
+              AddVertexAttribute(AttrLoc, 1, vafFloat, AttrOffset, Arrays.Attribs[I].Name);
+              Inc(AttrLoc, 1);
+            end;
+          atVector2:
+            begin
+              AddVertexAttribute(AttrLoc, 1, vafVector2, AttrOffset, Arrays.Attribs[I].Name);
+              Inc(AttrLoc, 1);
+            end;
+          atVector3:
+            begin
+              AddVertexAttribute(AttrLoc, 1, vafVector3, AttrOffset, Arrays.Attribs[I].Name);
+              Inc(AttrLoc, 1);
+            end;
+          atVector4:
+            begin
+              AddVertexAttribute(AttrLoc, 1, vafVector4, AttrOffset, Arrays.Attribs[I].Name);
+              Inc(AttrLoc, 1);
+            end;
+          atMatrix3:
+            begin
+              AddVertexAttribute(AttrLoc,     1, vafVector3, AttrOffset,                          Arrays.Attribs[I].Name);
+              AddVertexAttribute(AttrLoc + 1, 1, vafVector3, AttrOffset + SizeOf(TVector3),       Arrays.Attribs[I].Name + '_col1');
+              AddVertexAttribute(AttrLoc + 2, 1, vafVector3, AttrOffset + SizeOf(TVector3) * 2,   Arrays.Attribs[I].Name + '_col2');
+              Inc(AttrLoc, 3);
+            end;
+          atMatrix4:
+            begin
+              AddVertexAttribute(AttrLoc,     1, vafVector4, AttrOffset,                          Arrays.Attribs[I].Name);
+              AddVertexAttribute(AttrLoc + 1, 1, vafVector4, AttrOffset + SizeOf(TVector4),       Arrays.Attribs[I].Name + '_col1');
+              AddVertexAttribute(AttrLoc + 2, 1, vafVector4, AttrOffset + SizeOf(TVector4) * 2,   Arrays.Attribs[I].Name + '_col2');
+              AddVertexAttribute(AttrLoc + 3, 1, vafVector4, AttrOffset + SizeOf(TVector4) * 3,   Arrays.Attribs[I].Name + '_col3');
+              Inc(AttrLoc, 4);
+            end;
+          else ;
+        end;
+      end;
+    end;
+
+    case Arrays.Primitive of
+      gpTriangles, gpTriangleFan: ADesc.Topology := ptTriangleList;
+      gpTriangleStrip:            ADesc.Topology := ptTriangleStrip;
+      gpLines:                    ADesc.Topology := ptLineList;
+      gpLineStrip, gpLineLoop:    ADesc.Topology := ptLineStrip;
+      gpPoints:                   ADesc.Topology := ptPointList;
+    else
+      ADesc.Topology := ptTriangleList;
+    end;
+  end else
+  begin
+    SetLength(ADesc.VertexInput.Bindings, 1);
+    ADesc.VertexInput.Bindings[0].Binding := 0;
+    ADesc.VertexInput.Bindings[0].Stride := 24;
+    ADesc.VertexInput.Bindings[0].PerInstance := False;
+    AddVertexAttribute(Ord(vlPosition), 0, vafVector3, 0, 'castle_Vertex');
+    AddVertexAttribute(Ord(vlNormal), 0, vafVector3, 12, 'castle_Normal');
+    AddVertexAttribute(Ord(vlTexCoord0), 0, vafVector2, 0, 'castle_MultiTexCoord0');
+    ADesc.Topology := ptTriangleList;
+  end;
+
+  ADesc.Rasterizer := TRHIRasterizerStateDesc.DefaultCullBack;
+  if (FWireframePass = 1) or
+     ((ARenderOptions <> nil) and (ARenderOptions.WireframeEffect = weWireframeOnly)) then
+    ADesc.Rasterizer.PolygonMode := pmLine
+  else
+    ADesc.Rasterizer.PolygonMode := pmFill;
+
+  if (AShape <> nil) and (AShape.Cache <> nil) and (AShape.Cache.Arrays <> nil) then
+  begin
+    if AShape.Cache.Arrays.CullFace then
+      ADesc.Rasterizer.CullMode := cmBack
+    else
+      ADesc.Rasterizer.CullMode := cmNone;
+
+    if ((ARenderOptions <> nil) and ARenderOptions.RobustNegativeScale and
+        (AShape.State <> nil) and (AShape.State.Transformation.Transform.Determinant < 0)) xor
+       AShape.Cache.Arrays.FrontFaceCcw then
+      ADesc.Rasterizer.FrontFace := ffCounterClockwise
+    else
+      ADesc.Rasterizer.FrontFace := ffClockwise;
+  end;
+
+  if RenderContext <> nil then
+  begin
+    if RenderContext.CullFace then
+      ADesc.Rasterizer.CullMode := cmBack
+    else
+      ADesc.Rasterizer.CullMode := cmNone;
+
+    if RenderContext.FrontFaceCcw then
+      ADesc.Rasterizer.FrontFace := ffCounterClockwise
+    else
+      ADesc.Rasterizer.FrontFace := ffClockwise;
+
+    ADesc.Rasterizer.DepthBiasEnable := RenderContext.PolygonOffset.Enabled;
+  end;
+
+  UseBlending := ((RenderContext <> nil) and ((not RenderContext.DepthBufferUpdate) or RenderContext.BlendingEnabled)) or
+    ((AShape <> nil) and ((AShape.AlphaChannel = acBlending) or ((AShape.State <> nil) and (AShape.State.BlendMode <> nil)))) or
+    ((ARenderOptions <> nil) and ((ARenderOptions.BlendingSourceFactor <> TCastleRenderOptions.DefaultBlendingSourceFactor) or
+                                  (ARenderOptions.BlendingDestinationFactor <> TCastleRenderOptions.DefaultBlendingDestinationFactor)));
+
+  if UseBlending then
+  begin
+    ADesc.DepthStencil := TRHIDepthStencilStateDesc.DefaultDepthReadOnly;
+    ADesc.BlendState := TRHIBlendStateDesc.DefaultAlphaBlend;
+    if (AShape <> nil) and (AShape.State <> nil) and (AShape.State.BlendMode <> nil) then
+    begin
+      BlendSrcFactor := AShape.State.BlendMode.SrcFactor;
+      BlendDestFactor := AShape.State.BlendMode.DestFactor;
+    end else
+    if (RenderContext <> nil) and RenderContext.BlendingEnabled then
+    begin
+      BlendSrcFactor := RenderContext.BlendingSourceFactor;
+      BlendDestFactor := RenderContext.BlendingDestinationFactor;
+    end else
+    if ARenderOptions <> nil then
+    begin
+      BlendSrcFactor := ARenderOptions.BlendingSourceFactor;
+      BlendDestFactor := ARenderOptions.BlendingDestinationFactor;
+    end else
+    begin
+      BlendSrcFactor := TCastleRenderOptions.DefaultBlendingSourceFactor;
+      BlendDestFactor := TCastleRenderOptions.DefaultBlendingDestinationFactor;
+    end;
+    ADesc.BlendState.SrcColorBlendFactor := TRenderContext.MapBlendSourceFactorToRHI(BlendSrcFactor);
+    ADesc.BlendState.DstColorBlendFactor := TRenderContext.MapBlendDestFactorToRHI(BlendDestFactor);
+    ADesc.BlendState.SrcAlphaBlendFactor := ADesc.BlendState.SrcColorBlendFactor;
+    ADesc.BlendState.DstAlphaBlendFactor := ADesc.BlendState.DstColorBlendFactor;
+  end else
+  if FInternalPass = 1 then
+  begin
+    ADesc.DepthStencil := TRHIDepthStencilStateDesc.DefaultStencilLitPass(0, $FF);
+    ADesc.BlendState := TRHIBlendStateDesc.DefaultOpaque;
+  end else
+  begin
+    ADesc.DepthStencil := TRHIDepthStencilStateDesc.DefaultDepthTestWrite;
+    ADesc.BlendState := TRHIBlendStateDesc.DefaultOpaque;
+  end;
+  if ((RenderContext <> nil) and (not RenderContext.DepthTest)) or
+     ((ARenderOptions <> nil) and (not ARenderOptions.DepthTest)) then
+  begin
+    ADesc.DepthStencil.DepthTestEnable := False;
+    ADesc.DepthStencil.DepthWriteEnable := False;
+  end;
+  if (RenderContext <> nil) and (FInternalPass = 0) then
+  begin
+    RenderContext.ApplyRHIStencilAndColorMask(ADesc.DepthStencil, ADesc.BlendState);
+    if (AShape <> nil) and (AShape.State <> nil) and (AShape.State.BlendMode <> nil) then
+    begin
+      ADesc.BlendState.BlendEnable := True;
+      ADesc.BlendState.SrcColorBlendFactor := TRenderContext.MapBlendSourceFactorToRHI(AShape.State.BlendMode.SrcFactor);
+      ADesc.BlendState.DstColorBlendFactor := TRenderContext.MapBlendDestFactorToRHI(AShape.State.BlendMode.DestFactor);
+      ADesc.BlendState.SrcAlphaBlendFactor := ADesc.BlendState.SrcColorBlendFactor;
+      ADesc.BlendState.DstAlphaBlendFactor := ADesc.BlendState.DstColorBlendFactor;
+    end;
+  end;
+  if (ARenderOptions <> nil) and (ARenderOptions.InternalColorChannels <> AllColorChannels) then
+  begin
+    OptColorMask := 0;
+    if 0 in ARenderOptions.InternalColorChannels then OptColorMask := OptColorMask or $01;
+    if 1 in ARenderOptions.InternalColorChannels then OptColorMask := OptColorMask or $02;
+    if 2 in ARenderOptions.InternalColorChannels then OptColorMask := OptColorMask or $04;
+    if 3 in ARenderOptions.InternalColorChannels then OptColorMask := OptColorMask or $08;
+    ADesc.BlendState.ColorWriteMask := ADesc.BlendState.ColorWriteMask and OptColorMask;
+  end;
+
+  Set1Layout := nil;
+  Set2Layout := nil;
+  if (AShape <> nil) and (AShape.Cache <> nil) then
+  begin
+    Set1Layout := AShape.Cache.RHIMaterialDescriptorLayout;
+    Set2Layout := AShape.Cache.RHISkinningDescriptorLayout;
+    {$ifndef WASI}
+    if (Set1Layout = nil) and
+       (RHIDevice is TVulkanRHIDevice) and (TVulkanRHIDevice(RHIDevice).Handle <> nil) then
+    begin
+      AShape.Cache.UploadMaterialBlock(AShape.Cache.RHIMaterialBlock);
+      Set1Layout := AShape.Cache.RHIMaterialDescriptorLayout;
+    end;
+    {$endif}
+  end;
+
+  if Set2Layout <> nil then
+    LayoutCount := 3
+  else if Set1Layout <> nil then
+    LayoutCount := 2
+  else if FRHISceneDescriptorSetLayout <> nil then
+    LayoutCount := 1
+  else
+    LayoutCount := 0;
+
+  SetLength(ADesc.DescriptorSetLayouts, LayoutCount);
+  if LayoutCount >= 1 then
+    ADesc.DescriptorSetLayouts[0] := FRHISceneDescriptorSetLayout;
+  if LayoutCount >= 2 then
+    ADesc.DescriptorSetLayouts[1] := Set1Layout;
+  if LayoutCount >= 3 then
+    ADesc.DescriptorSetLayouts[2] := Set2Layout;
+
+  ADesc.PushConstantSize := SizeOf(TCastlePushConstantsBlock);
+  if ADesc.GeometryShader <> nil then
+    ADesc.PushConstantStages := [ssVertex, ssGeometry, ssFragment]
+  else
+    ADesc.PushConstantStages := [ssVertex, ssFragment];
+
+  if (ActiveCommandList <> nil) and ActiveCommandList.IsRendering then
+  begin
+    if ActiveCommandList.ActiveRenderingHasColor then
+    begin
+      SetLength(ADesc.ColorAttachmentFormats, 1);
+      ADesc.ColorAttachmentFormats[0] := ActiveCommandList.ActiveRenderingColorFormat;
+    end else
+      SetLength(ADesc.ColorAttachmentFormats, 0);
+    if ActiveCommandList.ActiveRenderingHasDepth then
+      ADesc.DepthAttachmentFormat := ActiveCommandList.ActiveRenderingDepthFormat
+    else
+      ADesc.DepthAttachmentFormat := pfUndefined;
+    ADesc.SampleCount := Max(Cardinal(1), ActiveCommandList.ActiveRenderingSampleCount);
+  end else
+  begin
+    SetLength(ADesc.ColorAttachmentFormats, 1);
+    if (RHIDevice <> nil) and (RHIDevice.GetSwapchainColorTexture <> nil) then
+      ADesc.ColorAttachmentFormats[0] := RHIDevice.GetSwapchainColorTexture.Desc.Format
+    else
+      ADesc.ColorAttachmentFormats[0] := pfBGRA8_UNorm;
+
+    if (RHIDevice <> nil) and (RHIDevice.GetSwapchainDepthTexture <> nil) then
+      ADesc.DepthAttachmentFormat := RHIDevice.GetSwapchainDepthTexture.Desc.Format
+    else
+      ADesc.DepthAttachmentFormat := pfD32_Float;
+
+    ADesc.SampleCount := 1;
+  end;
+
+  if ((RenderingCamera <> nil) and (RenderingCamera.Target = rtShadowMap)) or
+     ((ARenderOptions <> nil) and (ARenderOptions.Mode = rmDepth)) then
+  begin
+    ADesc.FragmentShader := nil;
+    ADesc.Rasterizer.DepthBiasEnable := True;
+    ADesc.DepthStencil := TRHIDepthStencilStateDesc.DefaultShadowMap;
+    SetLength(ADesc.ColorAttachmentFormats, 0);
+    ADesc.DebugName := 'CastleShapeShadowDepthPSO';
+  end else
+  if (RenderingCamera <> nil) and (RenderingCamera.Target = rtVarianceShadowMap) then
+  begin
+    ADesc.FragmentShader := FRHIVSMCasterFragmentShader;
+    ADesc.Rasterizer.DepthBiasEnable := True;
+    ADesc.DepthStencil := TRHIDepthStencilStateDesc.DefaultDepthTestWrite;
+    ADesc.BlendState := TRHIBlendStateDesc.DefaultOpaque;
+    SetLength(ADesc.ColorAttachmentFormats, 1);
+    ADesc.ColorAttachmentFormats[0] := pfRGBA32_Float;
+    ADesc.DebugName := 'CastleShapeVSMPSO';
+  end else
+    ADesc.DebugName := 'CastleShapeForwardPSO';
+end;
+
+function TRenderer.GetOrCreateShapePipeline(const AShape: TX3DRendererShape;
+  const ARenderOptions: TCastleRenderOptions): TRHIPipeline;
+var
+  Desc: TRHIGraphicsPipelineDesc;
+begin
+  if RHIDevice = nil then
+    Exit(nil);
+  BuildShapePipelineDesc(AShape, ARenderOptions, Desc);
+  Result := RHIDevice.GetOrCreatePipeline(Desc);
 end;
 
 function TRenderer.BumpMapping(const RenderOptions: TCastleRenderOptions): TBumpMapping;
@@ -285,21 +1366,21 @@ begin
   if (RenderOptions.BumpMapping <> bmNone) and
      RenderOptions.Textures and
      (RenderOptions.Mode = rmFull) and
-     GLFeatures.UseMultiTexturing and
-     GLFeatures.Shaders then
+     ((RHIDevice <> nil) or ((GLFeatures <> nil) and GLFeatures.UseMultiTexturing)) and
+     ((RHIDevice <> nil) or ((GLFeatures <> nil) and GLFeatures.Shaders)) then
     Result := RenderOptions.BumpMapping else
     Result := bmNone;
 end;
 
 class procedure TRenderer.ActiveTexture(const TextureUnit: Cardinal);
 begin
-  if GLFeatures.UseMultiTexturing then
+  if (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.UseMultiTexturing then
     glActiveTexture(GL_TEXTURE0 + TextureUnit);
 end;
 
 class procedure TRenderer.DisableTexture(const TextureUnit: Cardinal);
 begin
-  if GLFeatures.EnableFixedFunction then
+  if (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.EnableFixedFunction then
   begin
     { This must be synchronized, and disable all that can be enabled
       by TShape.EnableTexture }
@@ -325,7 +1406,7 @@ begin
   Volumetric := Enabled and
     AFogFunctionality.Volumetric and
     // Volumetric fog is now only supported by shaders
-    (not GLFeatures.EnableFixedFunction);
+    ((GLFeatures = nil) or (not GLFeatures.EnableFixedFunction));
 
   if Volumetric then
   begin
@@ -348,7 +1429,7 @@ var
 {$endif}
 begin
   {$ifndef OpenGLES}
-  if GLFeatures.EnableFixedFunction then
+  if (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.EnableFixedFunction then
   begin
     { ------------------------------------------------------------------------
 
@@ -365,7 +1446,7 @@ begin
     }
 
     // set texture unit to 0, this determines what is affected by glDisable(GL_TEXTURE_GEN_xxx)
-    if GLFeatures.UseMultiTexturing then
+    if (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.UseMultiTexturing then
     begin
       ActiveTexture(0);
       glClientActiveTexture(GL_TEXTURE0);
@@ -431,26 +1512,29 @@ begin
     These RenderContext properties are always set before rendering any shape,
     so ClassRenderBegin doesn't care to set them to any value,
     and we just reset them in ClassRenderEnd. }
-  RenderContext.CullFace := false;
-  RenderContext.FrontFaceCcw := true;
-  RenderContext.CurrentProgram := nil;
-  RenderContext.FixedFunctionAlphaTestDisable;
-  RenderContext.FixedFunctionLighting := false;
-  RenderContext.DepthRange := DefaultDepthRange;
+  if RenderContext <> nil then
+  begin
+    RenderContext.CullFace := false;
+    RenderContext.FrontFaceCcw := true;
+    RenderContext.CurrentProgram := nil;
+    RenderContext.FixedFunctionAlphaTestDisable;
+    RenderContext.FixedFunctionLighting := false;
+    RenderContext.DepthRange := DefaultDepthRange;
 
-  { Restore defaults, for other rendering code outside of TRenderer.
+    { Restore defaults, for other rendering code outside of TRenderer.
 
-    These RenderContext properties are always set before rendering any shape, in
-    - InitializeFromRenderOptions,
-    - RenderShapeLineProperties,
-    - RenderShapePointProperties
-    and later they remain constant during shape rendering.
-    So ClassRenderBegin doesn't care to set them to any value,
-    and we just reset them in ClassRenderEnd. }
-  RenderContext.PointSize := 1;
-  RenderContext.LineWidth := 1;
-  RenderContext.DepthTest := false;
-  RenderContext.ColorChannels := AllColorChannels;
+      These RenderContext properties are always set before rendering any shape, in
+      - InitializeFromRenderOptions,
+      - RenderShapeLineProperties,
+      - RenderShapePointProperties
+      and later they remain constant during shape rendering.
+      So ClassRenderBegin doesn't care to set them to any value,
+      and we just reset them in ClassRenderEnd. }
+    RenderContext.PointSize := 1;
+    RenderContext.LineWidth := 1;
+    RenderContext.DepthTest := false;
+    RenderContext.ColorChannels := AllColorChannels;
+  end;
 
   { Restore default fixed-function state, for other rendering code outside of TRenderer.
 
@@ -466,7 +1550,7 @@ begin
     of TRenderer may not be prepared for it). }
 
   {$ifndef OpenGLES}
-  if GLFeatures.EnableFixedFunction then
+  if (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.EnableFixedFunction then
   begin
     for I := 0 to GLFeatures.MaxLights - 1 do
       glDisable(GL_LIGHT0 + I);
@@ -474,7 +1558,7 @@ begin
 
     { Restore active texture unit to 0.
       This also sets texture unit for subsequent glTexEnvi call. }
-    if GLFeatures.UseMultiTexturing then
+    if (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.UseMultiTexturing then
     begin
       ActiveTexture(0);
       {$ifndef OpenGLES}
@@ -513,6 +1597,7 @@ begin
   LightsRenderer := TLightsRenderer.Create;
   LightsRenderer.LightRenderEvent := LightRenderEvent;
   LightsRenderer.RenderingCamera := RenderingCamera;
+  FCurrentShapeLighting := True;
 
   FInternalPass := AInternalPass;
   FWireframePass := AWireframePass;
@@ -537,7 +1622,8 @@ begin
     to any valid texture, causing the glUniform1i setting shader uniform for texture
     to raise OpenGL errors.
     Testcase: 3d_model_viewer template. }
-  RenderContext.CurrentProgram := nil;
+  if RenderContext <> nil then
+    RenderContext.CurrentProgram := nil;
 
   RenderingCamera := nil;
   Statistics := nil;
@@ -569,10 +1655,13 @@ procedure TRenderer.RenderShape(const Shape: TX3DRendererShape;
 
       ClassRenderEnd resets these things, so that this state does not "leak"
       for stuff rendered outside of TCastleViewport. }
-    RenderContext.PointSize := RenderOptions.PointSize;
-    RenderContext.LineWidth := RenderOptions.LineWidth;
-    RenderContext.DepthTest := RenderOptions.DepthTest;
-    RenderContext.ColorChannels := RenderOptions.InternalColorChannels;
+    if RenderContext <> nil then
+    begin
+      RenderContext.PointSize := RenderOptions.PointSize;
+      RenderContext.LineWidth := RenderOptions.LineWidth;
+      RenderContext.DepthTest := RenderOptions.DepthTest;
+      RenderContext.ColorChannels := RenderOptions.InternalColorChannels;
+    end;
 
     LightsRenderer.MaxLightsPerShape := RenderOptions.MaxLightsPerShape;
   end;
@@ -666,7 +1755,7 @@ procedure TRenderer.RenderShape(const Shape: TX3DRendererShape;
   procedure FixedFunctionBegin(const SceneModelView: TMatrix4);
   begin
     {$ifndef OpenGLES}
-    if GLFeatures.EnableFixedFunction then
+    if (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.EnableFixedFunction then
     begin
       glPushMatrix;
       glLoadMatrix(SceneModelView);
@@ -680,7 +1769,7 @@ procedure TRenderer.RenderShape(const Shape: TX3DRendererShape;
   procedure FixedFunctionEnd;
   begin
     {$ifndef OpenGLES}
-    if GLFeatures.EnableFixedFunction then
+    if (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.EnableFixedFunction then
       glPopMatrix;
     {$endif}
   end;
@@ -688,9 +1777,15 @@ procedure TRenderer.RenderShape(const Shape: TX3DRendererShape;
 var
   Shader: TShader;
 begin
+  FillChar(FRHIShadowMapTextures, SizeOf(FRHIShadowMapTextures), 0);
+  FillChar(FRHIShadowMapSamplers, SizeOf(FRHIShadowMapSamplers), 0);
+  FRHIShadowMap0Texture := nil;
+  FRHIShadowMap0Sampler := nil;
+
   InitializeFromRenderOptions;
 
-  RenderContext.DepthRange := DepthRange;
+  if RenderContext <> nil then
+    RenderContext.DepthRange := DepthRange;
 
   Shader := InitializeShader;
   FixedFunctionBegin(Shader.SceneModelView);
@@ -711,14 +1806,17 @@ begin
   else
     LP := nil;
 
-  if (LP <> nil) and LP.FdApplied.Value then
+  if RenderContext <> nil then
   begin
-    RenderContext.LineWidth := Max(1.0, RenderOptions.LineWidth * LP.FdLineWidthScaleFactor.Value);
-    RenderContext.LineType := LP.LineType;
-  end else
-  begin
-    RenderContext.LineWidth := RenderOptions.LineWidth;
-    RenderContext.LineType := ltSolid;
+    if (LP <> nil) and LP.FdApplied.Value then
+    begin
+      RenderContext.LineWidth := Max(1.0, RenderOptions.LineWidth * LP.FdLineWidthScaleFactor.Value);
+      RenderContext.LineType := LP.LineType;
+    end else
+    begin
+      RenderContext.LineWidth := RenderOptions.LineWidth;
+      RenderContext.LineType := ltSolid;
+    end;
   end;
 
   RenderShapePointProperties(Shape, RenderOptions, Shader);
@@ -748,7 +1846,8 @@ begin
     Do this once PointSize is fully calculated, as this changes GL state
     (if RenderContext.PointSize changes) so avoid changing RenderContext.PointSize
     multiple times. }
-  RenderContext.PointSize := PointSize;
+  if RenderContext <> nil then
+    RenderContext.PointSize := PointSize;
 
   RenderShapeMaterials(Shape, RenderOptions, Shader);
 end;
@@ -777,6 +1876,7 @@ begin
 
   { When lighting is off (for either shaders or fixed-function),
     there is no point in setting up lights. }
+  FCurrentShapeLighting := Lighting;
   if Lighting then
   begin
     if RenderOptions.ReceiveGlobalLights then
@@ -790,7 +1890,11 @@ begin
       SceneLights := nil;
 
     LightsRenderer.Render(Shape, FinalGlobalLights, SceneLights, Shader);
-  end;
+    if RHIDevice <> nil then
+      Shape.SetRHIActiveLightNodes(LightsRenderer);
+  end else
+  if RHIDevice <> nil then
+    Shape.ClearRHIActiveLightNodes;
 
   RenderShapeFog(Shape, RenderOptions, Shader, Lighting);
 end;
@@ -842,7 +1946,7 @@ begin
       FogVolumetricDirection, FogVolumetricVisibilityStart);
 
     {$ifndef OpenGLES}
-    if GLFeatures.EnableFixedFunction then
+    if (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.EnableFixedFunction then
     begin
       { Set fixed-function fog parameters. }
       if FogEnabled then
@@ -877,6 +1981,8 @@ begin
   if FogEnabled then
     Shader.EnableFog(FogType, FogCoordinateSource[FogVolumetric],
       FogColor, FogVisibilityRangeScaled);
+  if (RHIDevice <> nil) or ((ApplicationProperties <> nil) and (ApplicationProperties.RenderBackend = backendVulkan)) then
+    UploadSceneUniformBlockToRHI;
   RenderShapeTextureTransform(Shape, RenderOptions, Shader, Lighting);
 end;
 
@@ -887,12 +1993,17 @@ var
   TextureTransform: TAbstractTextureTransformNode;
   Child: TX3DNode;
   Transforms: TMFNode;
-  I, FirstTexUnit: Integer;
+  I, FirstTexUnit, MaxTexUnits: Integer;
   State: TX3DGraphTraverseState;
   Matrix: TMatrix4;
 begin
   TextureTransformUnitsUsed := 0;
   TextureTransformUnitsUsedMore.Count := 0;
+
+  if GLFeatures <> nil then
+    MaxTexUnits := Integer(GLFeatures.MaxTextureUnits)
+  else
+    MaxTexUnits := 16;
 
   { in case of FontTextureNode <> nil, 1 less texture unit is available.
     Everything we do, must be shifted by 1 texture unit. }
@@ -908,7 +2019,7 @@ begin
      ) then
   begin
     {$ifndef OpenGLES}
-    if GLFeatures.EnableFixedFunction then
+    if (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.EnableFixedFunction then
     begin
       glMatrixMode(GL_TEXTURE);
     end;
@@ -940,10 +2051,10 @@ begin
     if State.ShapeNode = nil then
     begin
       { No multitexturing in VRML 1.0, just always transform first tex unit. }
-      if FirstTexUnit < GLFeatures.MaxTextureUnits then
+      if FirstTexUnit < MaxTexUnits then
       begin
         TextureTransformUnitsUsed := 1;
-        if GLFeatures.EnableFixedFunction then
+        if (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.EnableFixedFunction then
         begin
           {$ifndef OpenGLES}
           ActiveTexture(FirstTexUnit);
@@ -970,11 +2081,11 @@ begin
             MultiTextureTransform.textureTransform.
             Cap by available texture units. }
           TextureTransformUnitsUsed := Min(Transforms.Count,
-            GLFeatures.MaxTextureUnits - FirstTexUnit);
+            MaxTexUnits - FirstTexUnit);
 
           for I := 0 to TextureTransformUnitsUsed - 1 do
           begin
-            if GLFeatures.EnableFixedFunction then
+            if (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.EnableFixedFunction then
             begin
               {$ifndef OpenGLES}
               ActiveTexture(FirstTexUnit + I);
@@ -989,7 +2100,7 @@ begin
                 WritelnWarning('VRML/X3D', 'MultiTextureTransform.textureTransform list cannot contain another MultiTextureTransform instance') else
               begin
                 Matrix := TAbstractTextureTransformNode(Child).TransformMatrix;
-                if GLFeatures.EnableFixedFunction then
+                if (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.EnableFixedFunction then
                 begin
                   {$ifndef OpenGLES}
                   glMultMatrix(Matrix);
@@ -1015,11 +2126,11 @@ begin
         if (State.MainTexture <> nil) and
            (not (State.MainTexture is TMultiTextureNode)) then
         begin
-          if FirstTexUnit < GLFeatures.MaxTextureUnits then
+          if FirstTexUnit < MaxTexUnits then
           begin
             TextureTransformUnitsUsed := 1;
             Matrix := TextureTransform.TransformMatrix;
-            if GLFeatures.EnableFixedFunction then
+            if (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.EnableFixedFunction then
             begin
               {$ifndef OpenGLES}
               ActiveTexture(FirstTexUnit);
@@ -1034,7 +2145,7 @@ begin
     end;
 
     {$ifndef OpenGLES}
-    if GLFeatures.EnableFixedFunction then
+    if (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.EnableFixedFunction then
     begin
       { restore GL_MODELVIEW }
       glMatrixMode(GL_MODELVIEW);
@@ -1044,7 +2155,7 @@ begin
 
   RenderShapeClipPlanes(Shape, RenderOptions, Shader, Lighting);
 
-  if GLFeatures.EnableFixedFunction then
+  if (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.EnableFixedFunction then
   begin
     {$ifndef OpenGLES}
     if (TextureTransformUnitsUsed <> 0) or
@@ -1138,7 +2249,7 @@ var
     ClipPlanesEnabled := 0;
     { GLMaxClipPlanes should be >= 6 with every conforming OpenGL,
       but still better check. }
-    if (GLFeatures.MaxClipPlanes > 0) and
+    if ((GLFeatures = nil) or (GLFeatures.MaxClipPlanes > 0)) and
        (ClipPlanes <> nil) and
        (ClipPlanes.Count <> 0) then
     begin
@@ -1149,7 +2260,7 @@ var
         ClipPlane := PClipPlane(ClipPlanes.Ptr(I));
         if ClipPlane^.Node.FdEnabled.Value then
         begin
-          Assert(ClipPlanesEnabled < GLFeatures.MaxClipPlanes);
+          Assert((GLFeatures = nil) or (ClipPlanesEnabled < GLFeatures.MaxClipPlanes));
           Shader.EnableClipPlane(ClipPlanesEnabled,
             PlaneTransform(ClipPlane^.Node.FdPlane.Value, ClipPlane^.Transform),
             GeometryShaderEffectsPossible);
@@ -1157,7 +2268,7 @@ var
 
           { No more clip planes possible, regardless if there are any more
             enabled clip planes on the list. }
-          if ClipPlanesEnabled = GLFeatures.MaxClipPlanes then Break;
+          if ((GLFeatures <> nil) and (ClipPlanesEnabled = GLFeatures.MaxClipPlanes)) or ((GLFeatures = nil) and (ClipPlanesEnabled = 8)) then Break;
         end;
       end;
     end;
@@ -1181,7 +2292,7 @@ begin
   ClipPlanesBegin(Shape.State.ClipPlanes);
 
   {$ifndef OpenGLES}
-  if GLFeatures.EnableFixedFunction then
+  if (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.EnableFixedFunction then
   begin
     glPushMatrix;
       glMultMatrix(Shape.State.Transformation.Transform);
@@ -1191,7 +2302,7 @@ begin
     RenderShapeCreateMeshRenderer(Shape, RenderOptions, Shader, Lighting);
 
   {$ifndef OpenGLES}
-  if GLFeatures.EnableFixedFunction then
+  if (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.EnableFixedFunction then
     glPopMatrix;
   {$endif}
 
@@ -1377,6 +2488,11 @@ procedure TRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
 
       // get TTextureResource instance
       Res := TTextureResources.Get(ShadowMapNode);
+      if (Res = nil) and (RHIDevice <> nil) then
+      begin
+        TTextureResources.Prepare(RenderOptions, ShadowMapNode);
+        Res := TTextureResources.Get(ShadowMapNode);
+      end;
       if Res = nil then
       begin
         WritelnWarning('Shadow Map', 'Shadow map "%s" has no renderer texture resource, cannot use it', [
@@ -1384,6 +2500,10 @@ procedure TRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
         ]);
         Continue;
       end;
+
+      if (RHIDevice <> nil) and (Res is TGeneratedShadowMapResource) and (I < 4) then
+        BindShadowMapToSceneDescriptorSet(Cardinal(I),
+          TGeneratedShadowMapResource(Res).RHITexture, Res.RHISampler);
 
       // bind the texture to the next free texture unit
       Res.Bind(ABoundTextureUnits);
@@ -1418,12 +2538,24 @@ procedure TRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
       end;
 
       Res := TTextureResources.Get(JointTextureNode);
+      if (Res = nil) and (RHIDevice <> nil) then
+      begin
+        TTextureResources.Prepare(RenderOptions, JointTextureNode);
+        Res := TTextureResources.Get(JointTextureNode);
+      end;
       if Res = nil then
       begin
         WritelnWarning('Skin', 'Skin "%s" has no renderer texture resource for joint texture, cannot use it', [
           Skin.NiceName
         ]);
         Exit;
+      end;
+      if (RHIDevice <> nil) and (Res is TImageTextureResource) and
+         ((TImageTextureResource(Res).AllocatedWidth <> 4) or
+          (TImageTextureResource(Res).AllocatedHeight <> Cardinal(Skin.InternalJointMatrix.Count))) then
+      begin
+        TImageTextureResource(Res).UpdateTextureContentsRgbaFloat(
+          4, Skin.InternalJointMatrix.Count, Skin.InternalJointMatrix.L);
       end;
 
       Shader.SkinJointTextureUnit := ABoundTextureUnits;
@@ -1458,7 +2590,8 @@ procedure TRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
       { Make sure each shape sets fixed-function alpha test,
         regardless of RenderOptions.Mode (code for other RenderOptions.Mode values
         is lower in this routine), otherwise it is undefined. }
-      RenderContext.FixedFunctionAlphaTestDisable;
+      if RenderContext <> nil then
+        RenderContext.FixedFunctionAlphaTestDisable;
       Exit;
     end;
 
@@ -1494,10 +2627,10 @@ procedure TRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
       AlphaTest := TGLShape(Shape).AlphaChannel = acTest;
 
       if FontTextureRes <> nil then
-        FontTextureRes.EnableAll(Self, GLFeatures.MaxTextureUnits, TexCoordsNeeded, Shader,
+        if GLFeatures <> nil then FontTextureRes.EnableAll(Self, GLFeatures.MaxTextureUnits, TexCoordsNeeded, Shader, false) else FontTextureRes.EnableAll(Self, 16, TexCoordsNeeded, Shader,
           false);
       if TextureRes <> nil then
-        TextureRes.EnableAll(Self, GLFeatures.MaxTextureUnits, TexCoordsNeeded, Shader,
+        if GLFeatures <> nil then TextureRes.EnableAll(Self, GLFeatures.MaxTextureUnits, TexCoordsNeeded, Shader, FontTextureRes <> nil) else TextureRes.EnableAll(Self, 16, TexCoordsNeeded, Shader,
           FontTextureRes <> nil);
       BoundTextureUnits := TexCoordsNeeded;
 
@@ -1515,9 +2648,11 @@ procedure TRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
     begin
       { only calculate AlphaCutoff when AlphaTest, otherwise it is useless }
       AlphaCutoff := GetAlphaCutoff(Shape);
-      RenderContext.FixedFunctionAlphaTestEnable(AlphaCutoff);
+      if RenderContext <> nil then
+        RenderContext.FixedFunctionAlphaTestEnable(AlphaCutoff);
       Shader.EnableAlphaTest(AlphaCutoff);
     end else
+    if RenderContext <> nil then
       RenderContext.FixedFunctionAlphaTestDisable;
 
     { Make active texture 0. This is helpful for rendering code of
@@ -1526,7 +2661,7 @@ procedure TRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
       this way they will at least define correct texture coordinates
       for texture unit 0. }
 
-    if (TexCoordsNeeded > 0) and GLFeatures.UseMultiTexturing then
+    if (TexCoordsNeeded > 0) and (GLFeatures <> nil) and GLFeatures.UseMultiTexturing then
       ActiveTexture(0);
   end;
 
@@ -1555,6 +2690,11 @@ procedure TRenderer.RenderShapeInside(const Shape: TX3DRendererShape;
 
   procedure SetupShadowMapsGenerationShaders(const MeshRenderer: TMeshRenderer);
   begin
+    if (RHIDevice <> nil) or (GLFeatures = nil) then
+    begin
+      MeshRenderer.CustomShaders := nil;
+      Exit;
+    end;
     case RenderingCamera.Target of
       rtVarianceShadowMap:
         begin
@@ -1644,7 +2784,7 @@ begin
       end;
     end;
 
-    if GLFeatures.VertexBufferObject then
+    if (GLFeatures <> nil) and GLFeatures.VertexBufferObject then
     begin
       { Shape.Arrays contents are already loaded,
         so Vbo contents are already loaded too }
@@ -1664,7 +2804,7 @@ begin
   TMeshRenderer(ExposedMeshRenderer).PrepareRenderShape := RenderMode in [rmPrepareRenderSelf, rmPrepareRenderClones];
   TMeshRenderer(ExposedMeshRenderer).Render;
 
-  if (GeneratorClass <> nil) and GLFeatures.VertexBufferObject then
+  if (GeneratorClass <> nil) and (GLFeatures <> nil) and GLFeatures.VertexBufferObject then
   begin
     { unbind arrays, to have a clean state on exit.
       TODO: this should not be needed, instead move to RenderEnd.
@@ -1684,7 +2824,7 @@ begin
   if (TexUnit >= TextureTransformUnitsUsed) and
      (TextureTransformUnitsUsedMore.IndexOf(TexUnit) = -1) then
   begin
-    if GLFeatures.EnableFixedFunction then
+    if (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.EnableFixedFunction then
       glPushMatrix;
 
     { Simple implementation would just add always TexUnit

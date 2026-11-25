@@ -85,6 +85,13 @@ type
     FOcclusionCulling: Boolean;
     FOcclusionSort, FBlendingSort: TShapeSortNoAuto;
     FOnCustomShapeSort: TShapeSortEvent;
+    FParallelCommandRecording: Boolean;
+    FParallelCommandRecordingMinShapes: Cardinal;
+    FParallelCommandRecordingWorkerCount: Cardinal;
+    FLastParallelWorkerCount: Cardinal;
+    FLastParallelRecordedShapes: Cardinal;
+    FTotalParallelPassCount: Cardinal;
+    FParallelRecordCtx: TObject;
 
     { Checks we need DynamicBatching and we don't use occlusion culling. }
     function EffectiveDynamicBatching: Boolean;
@@ -128,6 +135,10 @@ type
       const CollectedShape: TCollectedShape;
       const Params: TRenderParams; const PassParams: TRenderOnePassParams);
   public
+    const
+      DefaultParallelCommandRecordingMinShapes = 8;
+      DefaultParallelCommandRecordingWorkerCount = 4;
+
     constructor Create;
     destructor Destroy; override;
 
@@ -137,6 +148,8 @@ type
     { Shapes can use this to make a "dummy render" to prepare
       for future rendering. }
     property Renderer: TRenderer read FRenderer;
+    property InternalBatching: TBatchShapes read Batching;
+    property InternalOcclusionCullingRenderer: TOcclusionCullingRenderer read FOcclusionCullingRenderer;
 
     { Render all given shapes.
 
@@ -190,14 +203,80 @@ type
       @seealso TCastleViewport.OnCustomShapeSort }
     property OnCustomShapeSort: TShapeSortEvent
       read FOnCustomShapeSort write FOnCustomShapeSort;
+
+    property OcclusionCullingRenderer: TOcclusionCullingRenderer
+      read FOcclusionCullingRenderer;
+
+    { Enables multi-threaded secondary command buffer recording across per-worker
+      VkCommandPool instances on the Vulkan RHI backend when at least
+      ParallelCommandRecordingMinShapes shapes are collected in the pass. }
+    property ParallelCommandRecording: Boolean
+      read FParallelCommandRecording write FParallelCommandRecording default false;
+
+    { Minimum number of collected shapes required before dispatching parallel
+      secondary command buffer recording (default 8). }
+    property ParallelCommandRecordingMinShapes: Cardinal
+      read FParallelCommandRecordingMinShapes write FParallelCommandRecordingMinShapes
+      default DefaultParallelCommandRecordingMinShapes;
+
+    { Target number of worker threads / secondary command buffers used for
+      parallel command recording on the Vulkan RHI backend (default 4). }
+    property ParallelCommandRecordingWorkerCount: Cardinal
+      read FParallelCommandRecordingWorkerCount write FParallelCommandRecordingWorkerCount
+      default DefaultParallelCommandRecordingWorkerCount;
+
+    { Diagnostics from the most recent parallel secondary command recording pass. }
+    property LastParallelWorkerCount: Cardinal read FLastParallelWorkerCount;
+    property LastParallelRecordedShapes: Cardinal read FLastParallelRecordedShapes;
+    property TotalParallelPassCount: Cardinal read FTotalParallelPassCount;
   end;
 
 implementation
 
-uses SysUtils,
+uses SysUtils, Math,
   {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleScene, CastleGLUtils, CastleRenderContext, CastleColors,
-  X3DCameraUtils, CastleTimeUtils;
+  CastleApplicationProperties, X3DCameraUtils, CastleTimeUtils,
+  CastleInternalRHI, CastleInternalRHI_Vulkan;
+
+type
+  TParallelShapesRecordContext = class
+  public
+    Renderer: TRenderer;
+    InheritedPassInfo: TRHIRenderingInfo;
+    TotalItems: Integer;
+    WorkerCount: Cardinal;
+    procedure RecordWorkerSlice(const AWorkerIndex: Cardinal;
+      const ACommandList: TVulkanRHICommandList);
+  end;
+
+procedure TParallelShapesRecordContext.RecordWorkerSlice(
+  const AWorkerIndex: Cardinal; const ACommandList: TVulkanRHICommandList);
+var
+  SliceStart, SliceEnd: Integer;
+  FirstItem: TRHIPreparedShapeDrawItem;
+begin
+  if (ACommandList = nil) or (Renderer = nil) or (WorkerCount = 0) or (TotalItems <= 0) then
+    Exit;
+  SliceStart := Integer((UInt64(AWorkerIndex) * UInt64(TotalItems)) div UInt64(WorkerCount));
+  SliceEnd := Integer((UInt64(AWorkerIndex + 1) * UInt64(TotalItems)) div UInt64(WorkerCount));
+  if SliceStart < SliceEnd then
+  begin
+    FirstItem := Renderer.GetPreparedDrawItem(SliceStart);
+    ACommandList.BeginSecondaryRecording(
+      InheritedPassInfo,
+      FirstItem.ViewportRect,
+      FirstItem.ScissorRect,
+      FirstItem.ViewportMinDepth,
+      FirstItem.ViewportMaxDepth);
+    Renderer.RecordPreparedDrawSlice(ACommandList, SliceStart, SliceEnd, True);
+    ACommandList.EndRecording;
+  end else
+  begin
+    ACommandList.BeginSecondaryRecording(InheritedPassInfo);
+    ACommandList.EndRecording;
+  end;
+end;
 
 { TRenderEventList ---------------------------------------------------------- }
 
@@ -294,10 +373,14 @@ begin
   FRenderer := TRenderer.Create(nil);
   FOcclusionSort := sortNone;
   FBlendingSort := sortNone;
+  FParallelCommandRecording := False;
+  FParallelCommandRecordingMinShapes := DefaultParallelCommandRecordingMinShapes;
+  FParallelCommandRecordingWorkerCount := DefaultParallelCommandRecordingWorkerCount;
 end;
 
 destructor TShapesRenderer.Destroy;
 begin
+  FreeAndNil(FParallelRecordCtx);
   FreeAndNil(FOcclusionCullingRenderer);
   FreeAndNil(FBlendingRenderer);
   FreeAndNil(FRenderer);
@@ -381,7 +464,7 @@ end;
 procedure TShapesRenderer.GLContextClose;
 begin
   if FOcclusionCullingRenderer <> nil then
-    FOcclusionCullingRenderer.Utils.GLContextClose;
+    FOcclusionCullingRenderer.GLContextClose;
 
   if FBatching <> nil then
     FBatching.GLContextClose;
@@ -457,7 +540,7 @@ var
     SavedSolidColor: TCastleColorRGB;
   begin
     {$ifndef OpenGLES} // TODO-es For OpenGLES, wireframe must be done differently
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    if GLFeatures <> nil then glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     {$endif}
 
     if UseWireframeColor then
@@ -499,7 +582,7 @@ var
          with a mouse in editor.  }
 
     {$ifndef OpenGLES} // TODO-es For OpenGLES, wireframe must be done differently
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    if GLFeatures <> nil then glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     {$endif}
   end;
 
@@ -660,6 +743,13 @@ procedure TShapesRenderer.Render(const Shapes: TShapesCollector;
 var
   LightRenderEvent: TLightRenderEvent;
   CollectedShape: TCollectedShape;
+  UseParallelRecording: Boolean;
+  VkDev: TVulkanRHIDevice;
+  PrimaryVkCmd: TVulkanRHICommandList;
+  EffWorkers: Cardinal;
+  RecCtx: TParallelShapesRecordContext;
+  SecondaryLists: TVulkanCommandListArray;
+  AttIdx: Integer;
 begin
   if Shapes.FRenderEvents <> nil then
     Shapes.FRenderEvents.ExecuteAll(PassParams);
@@ -720,18 +810,92 @@ begin
 
   FrameProfiler.Stop(fmRenderCollectedShapesSort);
 
+  UseParallelRecording :=
+    FParallelCommandRecording and
+    (Renderer.RenderMode = rmRender) and
+    (not EffectiveOcclusionCulling) and
+    (ApplicationProperties <> nil) and
+    (ApplicationProperties.RenderBackend = backendVulkan) and
+    (RHIDevice is TVulkanRHIDevice) and
+    (ActiveCommandList is TVulkanRHICommandList) and
+    (ActiveCommandList.Level = cllPrimary) and
+    ActiveCommandList.IsRendering and
+    (Cardinal(Shapes.FCollected.Count) >= Max(Cardinal(1), FParallelCommandRecordingMinShapes));
+
   Renderer.RenderBegin(Params.GlobalLights as TLightInstancesList,
     Params.RenderingCamera,
     LightRenderEvent, Params.InternalPass, { wireframe pass } 0, Params.UserPass,
     @Params.Statistics);
   try
-    for CollectedShape in Shapes.FCollected do
+    if UseParallelRecording then
     begin
-      if not (EffectiveDynamicBatching and Batching.Batch(CollectedShape)) then
-        RenderShape_OcclusionTests(CollectedShape, Params, PassParams);
-    end;
+      VkDev := TVulkanRHIDevice(RHIDevice);
+      PrimaryVkCmd := TVulkanRHICommandList(ActiveCommandList);
+      Renderer.BeginParallelDrawCollection;
+      try
+        for CollectedShape in Shapes.FCollected do
+        begin
+          if not (EffectiveDynamicBatching and Batching.Batch(CollectedShape)) then
+            RenderShape_OcclusionTests(CollectedShape, Params, PassParams);
+        end;
 
-    BatchingCommit;
+        BatchingCommit;
+
+        if Renderer.PreparedDrawItemCount > 0 then
+        begin
+          EffWorkers := Min(
+            Cardinal(Renderer.PreparedDrawItemCount),
+            Max(Cardinal(1), FParallelCommandRecordingWorkerCount));
+          if VkDev.WorkerCommandPoolManager.WorkerCount < EffWorkers then
+            VkDev.WorkerCommandPoolManager.WorkerCount := EffWorkers;
+
+          if FParallelRecordCtx = nil then
+            FParallelRecordCtx := TParallelShapesRecordContext.Create;
+          RecCtx := TParallelShapesRecordContext(FParallelRecordCtx);
+          RecCtx.Renderer := Renderer;
+          RecCtx.InheritedPassInfo := PrimaryVkCmd.ActiveRenderingInfo;
+          RecCtx.InheritedPassInfo.ColorAttachments := Copy(PrimaryVkCmd.ActiveRenderingInfo.ColorAttachments);
+          for AttIdx := 0 to High(RecCtx.InheritedPassInfo.ColorAttachments) do
+          begin
+            RecCtx.InheritedPassInfo.ColorAttachments[AttIdx].LoadOp := loLoad;
+            RecCtx.InheritedPassInfo.ColorAttachments[AttIdx].StoreOp := soStore;
+            RecCtx.InheritedPassInfo.ColorAttachments[AttIdx].ResolveTexture := nil;
+            RecCtx.InheritedPassInfo.ColorAttachments[AttIdx].ResolveMode := rmNone;
+          end;
+          if RecCtx.InheritedPassInfo.HasDepthAttachment then
+          begin
+            RecCtx.InheritedPassInfo.DepthAttachment.LoadOp := loLoad;
+            RecCtx.InheritedPassInfo.DepthAttachment.StoreOp := soStore;
+            RecCtx.InheritedPassInfo.DepthAttachment.ResolveTexture := nil;
+            RecCtx.InheritedPassInfo.DepthAttachment.ResolveMode := rmNone;
+          end;
+          RecCtx.InheritedPassInfo.ContentsSecondaryCommandBuffers := True;
+          RecCtx.TotalItems := Renderer.PreparedDrawItemCount;
+          RecCtx.WorkerCount := EffWorkers;
+
+          FLastParallelRecordedShapes := Cardinal(Renderer.PreparedDrawItemCount);
+          FLastParallelWorkerCount := VkDev.WorkerCommandPoolManager.ExecuteParallelRecording(
+            EffWorkers, {$ifdef FPC}@{$endif}RecCtx.RecordWorkerSlice, SecondaryLists);
+          PrimaryVkCmd.ExecuteSecondaryCommandsInPass(SecondaryLists);
+          Inc(FTotalParallelPassCount);
+        end else
+        begin
+          FLastParallelRecordedShapes := 0;
+          FLastParallelWorkerCount := 0;
+        end;
+      finally
+        Renderer.EndParallelDrawCollection;
+      end;
+    end else
+    begin
+      for CollectedShape in Shapes.FCollected do
+      begin
+        if not (EffectiveDynamicBatching and Batching.Batch(CollectedShape)) then
+          RenderShape_OcclusionTests(CollectedShape, Params, PassParams);
+      end;
+
+      BatchingCommit;
+    end;
 
     { This must be called after BatchingCommit,
       since BatchingCommit may render some shapes }
@@ -758,10 +922,15 @@ function TShapesRenderer.EffectiveOcclusionCulling: Boolean;
 begin
   Result :=
     OcclusionCulling and
-    (GLFeatures <> nil) and // paranoid check from old code, maybe not needed anymore
-    GLFeatures.OcclusionQuery and
-    GLFeatures.VertexBufferObject and
-    (GLFeatures.OcclusionQueryCounterBits > 0);
+    (
+      (RHIDevice <> nil) or
+      (
+        (GLFeatures <> nil) and // paranoid check from old code, maybe not needed anymore
+        GLFeatures.OcclusionQuery and
+        GLFeatures.VertexBufferObject and
+        (GLFeatures.OcclusionQueryCounterBits > 0)
+      )
+    );
 end;
 
 procedure TShapesRenderer.SetOcclusionCulling(const Value: Boolean);

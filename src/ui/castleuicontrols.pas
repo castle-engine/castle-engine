@@ -1,4 +1,4 @@
-﻿{
+{
   Copyright 2009-2023 Michalis Kamburelis, Tomasz Wojtyś.
 
   This file is part of "Castle Game Engine".
@@ -56,7 +56,8 @@ uses DOM, TypInfo, Math,
   {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleLog, CastleXmlUtils,
   CastleInternalSettings, CastleFilesUtils, CastleUriUtils, CastleRenderOptions,
-  CastleInternalInspector, CastleInternalControlsImages, CastleInternalGLUtils;
+  CastleInternalInspector, CastleInternalControlsImages, CastleInternalGLUtils,
+  CastleInternalRHI, CastleInternalBatch2DRHI;
 
 {$define read_implementation}
 {$I castleuicontrols_initial_types.inc}
