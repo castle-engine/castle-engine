@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="vulkan_3d_scene"
+  qualified_name="io.castleengine.vulkan.scene3d"
+  caption="Castle Game Engine - Vulkan RHI 3D Forward Pass &amp; Lighting"
+  render_backend="vulkan"
+  standalone_source="vulkan_3d_scene.dpr">
+  <version value="1.0.0" />
+</project>
