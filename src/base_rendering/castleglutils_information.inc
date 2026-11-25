@@ -160,6 +160,11 @@ const
   end;
 
 begin
+  if RHIDevice <> nil then
+    Exit(RHIDevice.GetInformationString);
+  if (GLVersion = nil) or (GLFeatures = nil) then
+    Exit(RenderingApiName + ' information: context not initialized');
+
   Result :=
     RenderingApiName +
     ' information (detected by ' + ApplicationName + '):' + NL +
@@ -316,6 +321,11 @@ function GLInformationStringSummary: String;
 var
   VendorStrOrNone: String;
 begin
+  if RHIDevice <> nil then
+    Exit(RHIDevice.GetInformationStringSummary);
+  if (GLVersion = nil) or (GLFeatures = nil) then
+    Exit(RenderingApiName + ' (context not initialized)');
+
   { Show detected vendor type or nothing if we don't know vendor type.
     We show nothing when vendor type is gvOther, to not confuse the user
     ("other" just means we didn't have code to recognize this vendor). }

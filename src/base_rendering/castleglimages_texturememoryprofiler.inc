@@ -27,6 +27,7 @@
   type
     TAllocatedTexture = class
       TextureId: TGLTextureId;
+      RHITexture: TRHITexture;
       Url: String;
       Width, Height, Depth: Integer;
       Mipmaps: boolean;
@@ -40,6 +41,7 @@
     AllocatedTextures: TAllocatedTextures;
     FEnabled: boolean;
     function FindTextureId(const TextureId: TGLTexture): Integer;
+    function FindRHITexture(const ARHITexture: TRHITexture): Integer;
     procedure CheckLeaks;
   public
     constructor Create;
@@ -55,6 +57,14 @@
     { Notify about texture memory deallocation.
       This should be used only by code doing direct OpenGL operations. }
     procedure Deallocate(const TextureId: TGLTextureId);
+
+    { Notify about RHI texture memory allocation/deallocation. }
+    procedure AllocateRHI(const ARHITexture: TRHITexture;
+      const Url, ImageFormat: string; const Size: Int64; const Mipmaps: boolean;
+      const Width, Height, Depth: Integer);
+    procedure DeallocateRHI(const ARHITexture: TRHITexture);
+    function AllocatedCount: Integer;
+    function TotalAllocatedBytes: Int64;
 
     function Summary: string;
 
@@ -210,9 +220,87 @@ var
   I: Integer;
 begin
   for I := 0 to AllocatedTextures.Count - 1 do
-    if AllocatedTextures[I].TextureId = TextureId then
+    if (AllocatedTextures[I].RHITexture = nil) and
+       (AllocatedTextures[I].TextureId = TextureId) then
       Exit(I);
   Result := -1;
+end;
+
+function TTextureMemoryProfiler.FindRHITexture(const ARHITexture: TRHITexture): Integer;
+var
+  I: Integer;
+begin
+  if ARHITexture = nil then
+    Exit(-1);
+  for I := 0 to AllocatedTextures.Count - 1 do
+    if AllocatedTextures[I].RHITexture = ARHITexture then
+      Exit(I);
+  Result := -1;
+end;
+
+procedure TTextureMemoryProfiler.AllocateRHI(const ARHITexture: TRHITexture;
+  const Url, ImageFormat: string; const Size: Int64; const Mipmaps: boolean;
+  const Width, Height, Depth: Integer);
+var
+  AllocatedTex: TAllocatedTexture;
+  I: Integer;
+begin
+  if ARHITexture = nil then
+    Exit;
+  if FEnabled then
+  begin
+    AllocatedTex := TAllocatedTexture.Create;
+    AllocatedTex.Url := Url;
+    AllocatedTex.Width := Width;
+    AllocatedTex.Height := Height;
+    AllocatedTex.Depth := Depth;
+    AllocatedTex.Mipmaps := Mipmaps;
+    AllocatedTex.Size := Size;
+    AllocatedTex.ImageFormat := ImageFormat;
+    AllocatedTex.TextureId := GLObjectNone;
+    AllocatedTex.RHITexture := ARHITexture;
+    I := FindRHITexture(ARHITexture);
+    if I <> -1 then
+      AllocatedTextures[I] := AllocatedTex
+    else
+      AllocatedTextures.Add(AllocatedTex);
+  end;
+
+  if LogTextureLoading then
+  begin
+    WritelnLog('Texture Loading', 'Loaded to GPU RHI texture "%s" size %d x %d',
+      [UriDisplay(Url), Width, Height]);
+    if FEnabled then
+      WritelnLogMultiline('Texture Loading', Summary);
+  end;
+end;
+
+procedure TTextureMemoryProfiler.DeallocateRHI(const ARHITexture: TRHITexture);
+var
+  I: Integer;
+begin
+  if ARHITexture = nil then
+    Exit;
+  if FEnabled then
+  begin
+    I := FindRHITexture(ARHITexture);
+    if I <> -1 then
+      AllocatedTextures.Delete(I);
+  end;
+end;
+
+function TTextureMemoryProfiler.AllocatedCount: Integer;
+begin
+  Result := AllocatedTextures.Count;
+end;
+
+function TTextureMemoryProfiler.TotalAllocatedBytes: Int64;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := 0 to AllocatedTextures.Count - 1 do
+    Result := Result + AllocatedTextures[I].Size;
 end;
 
 class function TTextureMemoryProfiler.MipmapsSize(const Image: TEncodedImage): Int64;
@@ -280,7 +368,7 @@ begin
   begin
     AllocatedTex := AllocatedTextures[I];
     S := S + Format('  %f - %s (size %d : format %s, dimensions %d x %d x %d, mipmaps: %s)',
-      [AllocatedTex.Size / Used, AllocatedTex.Url,
+      [Iff(Used <> 0, AllocatedTex.Size / Used, 0.0), AllocatedTex.Url,
        AllocatedTex.Size, AllocatedTex.ImageFormat,
        AllocatedTex.Width, AllocatedTex.Height, AllocatedTex.Depth,
        BoolToStr(AllocatedTex.Mipmaps, true)]) + NL;

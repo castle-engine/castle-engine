@@ -114,6 +114,9 @@ type
     { Scale applied to the rendered font, compared to @link(FontData).Size.
       Changing this is equivalent to changing the Size property. }
     property Scale: Single read GetScale write SetScale;
+
+    { Internal drawable image used to render glyphs. @exclude }
+    property InternalDrawableImage: TDrawableImage read DrawableImage;
   published
     { Loaded font file.
       Typically this is used for outline (scalable, vector) fonts in ttf or otf formats.
@@ -362,7 +365,10 @@ begin
   if FDistanceField <> AValue then
   begin
     FDistanceField := AValue;
-    Reload;
+    if (FUrl <> '') and (URIProtocol(FUrl) <> 'embedded-font') then
+      Reload
+    else
+      GLContextClose;
   end;
 end;
 
@@ -410,6 +416,13 @@ procedure TCastleFont.PrepareResources;
   var
     VS, FS: String;
   begin
+    if (RHIDevice = nil) and
+       ((GLFeatures = nil) or (ApplicationProperties = nil) or (not ApplicationProperties.IsGLContextOpen)) then
+    begin
+      DrawableImage.SmoothScaling := true;
+      Exit;
+    end;
+
     VS := {$I image.vs.inc};
     FS := {$I distance_field_font.fs.inc};
 
@@ -431,7 +444,7 @@ begin
       { Smooth scaling always true, ready for any Size,
         see TCastleFont.SetSize comments.  }
       true, false);
-    if FFont.DistanceField then
+    if FFont.DistanceField or FDistanceField then
       AttachDistanceFieldShader;
   end;
 end;

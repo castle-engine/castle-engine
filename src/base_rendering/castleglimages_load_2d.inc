@@ -185,6 +185,7 @@ procedure LoadGLGeneratedTexture(const TextureId: TGLTextureId; Image: TEncodedI
     because we cannot load to OpenGL this compressed texture (for example
     because appropriate OpenGL extensions are not available, or such).) }
 function GLDecompressTexture(const Image: TGPUCompressedImage): TCastleImage;
+function RHIDecompressTexture(const Image: TGPUCompressedImage): TCastleImage;
 
 {$endif read_interface_func}
 
@@ -212,9 +213,20 @@ procedure SaveTextureContents(const Image: TCastleImage; const Texture: TGLTextu
   Adjusting image size for 2D texture. }
 
 function ResizeToTextureSize(const Size: Cardinal; const Sizing: TTextureSizing): Cardinal;
+var
+  MaxTexSize: Cardinal;
+  NPOTSupported: Boolean;
 begin
+  NPOTSupported := (RHIDevice <> nil) or (GLFeatures = nil) or GLFeatures.TextureNonPowerOfTwo;
+  if GLFeatures <> nil then
+    MaxTexSize := GLFeatures.MaxTextureSize
+  else if (RHIDevice <> nil) and (RHIDevice.Capabilities.MaxTextureSize > 0) then
+    MaxTexSize := RHIDevice.Capabilities.MaxTextureSize
+  else
+    MaxTexSize := 16384;
+
   { make sure it's power of 2, if necessary }
-  if ((Sizing = tsAny) and GLFeatures.TextureNonPowerOfTwo) or
+  if ((Sizing = tsAny) and NPOTSupported) or
     IsPowerOf2(Size) then
     Result := Size else
     Result := 1 shl (Biggest2Exponent(Size) + 1);
@@ -225,9 +237,9 @@ begin
      (Result > GLTextureMinSize) then
     Result := Max(Result shr (GLTextureScale - 1), GLTextureMinSize);
 
-  { honour GLFeatures.MaxTextureSize }
-  if Result > GLFeatures.MaxTextureSize then
-    Result := GLFeatures.MaxTextureSize;
+  { honour MaxTexSize }
+  if (MaxTexSize > 0) and (Result > MaxTexSize) then
+    Result := MaxTexSize;
 end;
 
 function ResizeToTextureSize(const r: TCastleImage; const Sizing: TTextureSizing): TCastleImage;
@@ -752,6 +764,212 @@ end;
 
 { GLDecompressTexture ------------------------------------------------------------- }
 
+function RHIDecompressTexture(const Image: TGPUCompressedImage): TCastleImage;
+
+  procedure DecodeRGB565(const C: Word; out R, G, B: Byte);
+  var
+    R5, G6, B5: Cardinal;
+  begin
+    R5 := (C shr 11) and $1F;
+    G6 := (C shr 5) and $3F;
+    B5 := C and $1F;
+    R := Byte((R5 * 255 + 15) div 31);
+    G := Byte((G6 * 255 + 31) div 63);
+    B := Byte((B5 * 255 + 15) div 31);
+  end;
+
+var
+  BlockSize, BlocksX, BlocksY, SliceBlocks, ExpectedSize: PtrUInt;
+  SliceIdx, BlockX, BlockY, BX, BY, DestX, DestY: Cardinal;
+  BlockPtr, ColorBlockPtr: PByte;
+  Color0, Color1, AlphaRowWord: Word;
+  R0, G0, B0, R1, G1, B1: Byte;
+  Palette: array[0..3] of TVector4Byte;
+  Alpha0, Alpha1: Cardinal;
+  AlphaPalette: array[0..7] of Byte;
+  AlphaBits48: QWord;
+  ColorRowByte, ColorIdx, AlphaVal: Byte;
+  IsDXT1: Boolean;
+  OutRGBA: TRGBAlphaImage;
+  OutRGB: TRGBImage;
+  PixRGBA: PVector4Byte;
+  PixRGB: PVector3Byte;
+begin
+  if Image = nil then
+    raise ECannotDecompressTexture.Create('Cannot decompress nil TGPUCompressedImage');
+
+  case Image.Compression of
+    tcDxt1_RGB, tcDxt1_RGBA:
+      begin
+        BlockSize := 8;
+        IsDXT1 := True;
+      end;
+    tcDxt3, tcDxt5:
+      begin
+        BlockSize := 16;
+        IsDXT1 := False;
+      end;
+  else
+    raise ECannotDecompressTexture.CreateFmt(
+      'Cannot decompress texture compressed using %s without native OpenGL texture readback',
+      [TextureCompressionInfo[Image.Compression].Name]);
+  end;
+
+  if Image.HasAlpha then
+  begin
+    OutRGBA := TRGBAlphaImage.Create(Image.Width, Image.Height, Image.Depth);
+    OutRGB := nil;
+    Result := OutRGBA;
+  end else
+  begin
+    OutRGB := TRGBImage.Create(Image.Width, Image.Height, Image.Depth);
+    OutRGBA := nil;
+    Result := OutRGB;
+  end;
+
+  if (Image.Width = 0) or (Image.Height = 0) or (Image.Depth = 0) then
+    Exit;
+
+  BlocksX := DivRoundUp(Image.Width, 4);
+  BlocksY := DivRoundUp(Image.Height, 4);
+  SliceBlocks := BlocksX * BlocksY;
+  ExpectedSize := SliceBlocks * PtrUInt(Image.Depth) * BlockSize;
+  if (Image.RawPixels = nil) or (Image.Size < ExpectedSize) then
+  begin
+    FreeAndNil(Result);
+    raise ECannotDecompressTexture.CreateFmt(
+      'Compressed texture buffer too small for %s (%d < %d)',
+      [TextureCompressionInfo[Image.Compression].Name, Image.Size, ExpectedSize]);
+  end;
+
+  BlockPtr := PByte(Image.RawPixels);
+  for SliceIdx := 0 to Image.Depth - 1 do
+  begin
+    for BlockY := 0 to Cardinal(BlocksY) - 1 do
+    begin
+      for BlockX := 0 to Cardinal(BlocksX) - 1 do
+      begin
+        if IsDXT1 then
+          ColorBlockPtr := BlockPtr
+        else
+          ColorBlockPtr := BlockPtr + 8;
+
+        Color0 := Word(ColorBlockPtr[0]) or (Word(ColorBlockPtr[1]) shl 8);
+        Color1 := Word(ColorBlockPtr[2]) or (Word(ColorBlockPtr[3]) shl 8);
+        DecodeRGB565(Color0, R0, G0, B0);
+        DecodeRGB565(Color1, R1, G1, B1);
+
+        Palette[0] := Vector4Byte(R0, G0, B0, 255);
+        Palette[1] := Vector4Byte(R1, G1, B1, 255);
+        if (not IsDXT1) or (Color0 > Color1) then
+        begin
+          Palette[2] := Vector4Byte(
+            Byte((2 * Cardinal(R0) + Cardinal(R1) + 1) div 3),
+            Byte((2 * Cardinal(G0) + Cardinal(G1) + 1) div 3),
+            Byte((2 * Cardinal(B0) + Cardinal(B1) + 1) div 3),
+            255);
+          Palette[3] := Vector4Byte(
+            Byte((Cardinal(R0) + 2 * Cardinal(R1) + 1) div 3),
+            Byte((Cardinal(G0) + 2 * Cardinal(G1) + 1) div 3),
+            Byte((Cardinal(B0) + 2 * Cardinal(B1) + 1) div 3),
+            255);
+        end else
+        begin
+          Palette[2] := Vector4Byte(
+            Byte((Cardinal(R0) + Cardinal(R1)) div 2),
+            Byte((Cardinal(G0) + Cardinal(G1)) div 2),
+            Byte((Cardinal(B0) + Cardinal(B1)) div 2),
+            255);
+          if Image.Compression = tcDxt1_RGBA then
+            Palette[3] := Vector4Byte(0, 0, 0, 0)
+          else
+            Palette[3] := Vector4Byte(0, 0, 0, 255);
+        end;
+
+        AlphaBits48 := 0;
+        if Image.Compression = tcDxt5 then
+        begin
+          Alpha0 := BlockPtr[0];
+          Alpha1 := BlockPtr[1];
+          AlphaPalette[0] := Byte(Alpha0);
+          AlphaPalette[1] := Byte(Alpha1);
+          if Alpha0 > Alpha1 then
+          begin
+            AlphaPalette[2] := Byte((6 * Alpha0 + 1 * Alpha1 + 3) div 7);
+            AlphaPalette[3] := Byte((5 * Alpha0 + 2 * Alpha1 + 3) div 7);
+            AlphaPalette[4] := Byte((4 * Alpha0 + 3 * Alpha1 + 3) div 7);
+            AlphaPalette[5] := Byte((3 * Alpha0 + 4 * Alpha1 + 3) div 7);
+            AlphaPalette[6] := Byte((2 * Alpha0 + 5 * Alpha1 + 3) div 7);
+            AlphaPalette[7] := Byte((1 * Alpha0 + 6 * Alpha1 + 3) div 7);
+          end else
+          begin
+            AlphaPalette[2] := Byte((4 * Alpha0 + 1 * Alpha1 + 2) div 5);
+            AlphaPalette[3] := Byte((3 * Alpha0 + 2 * Alpha1 + 2) div 5);
+            AlphaPalette[4] := Byte((2 * Alpha0 + 3 * Alpha1 + 2) div 5);
+            AlphaPalette[5] := Byte((1 * Alpha0 + 4 * Alpha1 + 2) div 5);
+            AlphaPalette[6] := 0;
+            AlphaPalette[7] := 255;
+          end;
+          AlphaBits48 :=
+            QWord(BlockPtr[2]) or
+            (QWord(BlockPtr[3]) shl 8) or
+            (QWord(BlockPtr[4]) shl 16) or
+            (QWord(BlockPtr[5]) shl 24) or
+            (QWord(BlockPtr[6]) shl 32) or
+            (QWord(BlockPtr[7]) shl 40);
+        end;
+
+        for BY := 0 to 3 do
+        begin
+          DestY := BlockY * 4 + BY;
+          if DestY >= Image.Height then
+            Continue;
+          ColorRowByte := ColorBlockPtr[4 + BY];
+          if Image.Compression = tcDxt3 then
+            AlphaRowWord := Word(BlockPtr[BY * 2]) or (Word(BlockPtr[BY * 2 + 1]) shl 8)
+          else
+            AlphaRowWord := 0;
+
+          for BX := 0 to 3 do
+          begin
+            DestX := BlockX * 4 + BX;
+            if DestX >= Image.Width then
+              Continue;
+            ColorIdx := (ColorRowByte shr (BX * 2)) and $3;
+            case Image.Compression of
+              tcDxt3:
+                AlphaVal := Byte(((AlphaRowWord shr (BX * 4)) and $F) * 17);
+              tcDxt5:
+                AlphaVal := AlphaPalette[(AlphaBits48 shr ((BY * 4 + BX) * 3)) and $7];
+            else
+              AlphaVal := Palette[ColorIdx].W;
+            end;
+
+            if OutRGBA <> nil then
+            begin
+              PixRGBA := OutRGBA.PixelPtr(DestX, DestY, SliceIdx);
+              PixRGBA^ := Vector4Byte(
+                Palette[ColorIdx].X,
+                Palette[ColorIdx].Y,
+                Palette[ColorIdx].Z,
+                AlphaVal);
+            end else
+            begin
+              PixRGB := OutRGB.PixelPtr(DestX, DestY, SliceIdx);
+              PixRGB^ := Vector3Byte(
+                Palette[ColorIdx].X,
+                Palette[ColorIdx].Y,
+                Palette[ColorIdx].Z);
+            end;
+          end;
+        end;
+
+        Inc(BlockPtr, BlockSize);
+      end;
+    end;
+  end;
+end;
+
 function GLDecompressTexture(const Image: TGPUCompressedImage): TCastleImage;
 
 {$ifndef OpenGLES}
@@ -759,6 +977,9 @@ var
   Tex: TGLTextureId;
   LoadedSize: Int64;
 begin
+  if (RHIDevice <> nil) or (GLFeatures = nil) then
+    Exit(RHIDecompressTexture(Image));
+
   Tex := glCreateTexture();
   glBindTexture(GL_TEXTURE_2D, Tex);
 
@@ -793,6 +1014,8 @@ end;
 
 {$else}
 begin
+  if (RHIDevice <> nil) or (GLFeatures = nil) then
+    Exit(RHIDecompressTexture(Image));
   { glGetTexImage is not available on OpenGLES, so the above trick
     will not work on OpenGLES. TODO: We need more elaborate way to do this
     (namely, we need to simply draw the texture to an uncompressed texture,

@@ -155,6 +155,8 @@
       FCustomShader: TGLSLProgram;
 
       FTexture: TGLTextureId;
+      FRHITexture: TRHITexture;
+      FRHIDescriptorSet: TRHIDescriptorSet;
       FImage: TEncodedImage;
       FOwnsImage: boolean;
       FUrl: String;
@@ -163,6 +165,8 @@
       FRenderToImage: TGLRenderToTexture;
       HasViewportToRestore: boolean;
       ViewportToRestore: TRectangle;
+      HasBatcherViewportToRestore: Boolean;
+      BatcherViewportToRestore: TVector2;
 
     function FinalAlpha: TAlphaChannel;
     procedure SetSmoothScaling(const Value: boolean);
@@ -172,6 +176,9 @@
     procedure GLContextCloseEvent(Sender: TObject);
     procedure GLContextOpen(const AImage: TEncodedImage);
     procedure GLContextClose;
+    procedure RHIContextOpen(const AImage: TEncodedImage);
+    procedure RHIContextClose;
+    procedure UpdateRHIDescriptorSet;
     function GetCenterX: Single;
     function GetCenterY: Single;
     procedure SetCenterX(const Value: Single);
@@ -188,6 +195,7 @@
     procedure SetBlendingConstantColor(const Value: TVector4);
     procedure SetClip(const Value: Boolean);
     procedure SetClipLine(const Value: TVector3);
+    procedure SetCustomShader(const Value: TGLSLProgram);
     { If this image state affects current batching operation, flush batching. }
     procedure BatchingFlushIfNeeded;
     procedure DrawNoBatch(
@@ -712,6 +720,8 @@
       or other rendering routines in this class), but it may be useful to
       integrate with external rendering systems. }
     property Texture: TGLTextureId read FTexture;
+    property RHITexture: TRHITexture read FRHITexture;
+    property RHIDescriptorSet: TRHIDescriptorSet read FRHIDescriptorSet;
 
     { Use a custom shader for image rendering.
 
@@ -733,7 +743,7 @@
       for many TDrawableImage and TCastleImageControl instances
       (as TDrawableImage.CustomShader and TCastleImageControl.CustomShader).
       You can also use your own uniforms in your shader code, of course. }
-    property CustomShader: TGLSLProgram read FCustomShader write FCustomShader;
+    property CustomShader: TGLSLProgram read FCustomShader write SetCustomShader;
 
     property Image: TEncodedImage read FImage write SetImage;
     property OwnsImage: boolean read FOwnsImage write FOwnsImage;
@@ -760,6 +770,7 @@
     procedure RenderToImageBegin(const SetAndRestoreViewport: boolean = true);
     procedure RenderToImageEnd;
     procedure RenderToImageFree;
+    property RenderToImage: TGLRenderToTexture read FRenderToImage;
 
     { Draw a SourceImage over this image.
 
@@ -943,6 +954,69 @@ end;
 procedure TDrawableImage.GLContextClose;
 begin
   FreeTexture(FTexture);
+  RHIContextClose;
+end;
+
+procedure TDrawableImage.RHIContextOpen(const AImage: TEncodedImage);
+var
+  TexDesc: TRHITextureDesc;
+  TexFormat: TRHIPixelFormat;
+  TexUsages: TRHITextureUsageFlags;
+begin
+  if (AImage <> nil) and (RHIDevice <> nil) then
+  begin
+    FreeAndNil(FRHIDescriptorSet);
+    if FRHITexture <> nil then
+    begin
+      TextureMemoryProfiler.DeallocateRHI(FRHITexture);
+      FreeAndNil(FRHITexture);
+    end;
+
+    TexFormat := EncodedImageToRHIPixelFormat(AImage);
+    TexUsages := [tuSampled, tuTransferSrc, tuTransferDst];
+    if not (AImage is TGPUCompressedImage) then
+      Include(TexUsages, tuColorAttachment);
+    TexDesc := TRHITextureDesc.Create2D(AImage.Width, AImage.Height, TexFormat, TexUsages);
+    FRHITexture := RHIDevice.CreateTexture(TexDesc);
+    FRHITexture.UploadImage(AImage);
+    TextureMemoryProfiler.AllocateRHI(FRHITexture, AImage.URL,
+      AImage.ClassName, EncodedImageToRHIGpuBytes(AImage, FRHITexture.Desc.Format),
+      False, AImage.Width, AImage.Height, 1);
+
+    UpdateRHIDescriptorSet;
+  end;
+end;
+
+procedure TDrawableImage.RHIContextClose;
+begin
+  RenderToImageFree;
+  FreeAndNil(FRHIDescriptorSet);
+  if FRHITexture <> nil then
+  begin
+    TextureMemoryProfiler.DeallocateRHI(FRHITexture);
+    FreeAndNil(FRHITexture);
+  end;
+end;
+
+procedure TDrawableImage.UpdateRHIDescriptorSet;
+var
+  Batcher: TCastleBatch2DRenderer;
+begin
+  if (FRHITexture = nil) or (FRHITexture.Device = nil) then
+    Exit;
+  Batcher := ActiveBatch2DRenderer;
+  if Batcher = nil then
+    Batcher := EnsureBatch2DRenderer(FRHITexture.Device);
+  if Batcher <> nil then
+  begin
+    if (FRHIDescriptorSet <> nil) and (FRHIDescriptorSet.Device <> Batcher.Device) then
+      FreeAndNil(FRHIDescriptorSet);
+    if FRHIDescriptorSet = nil then
+      FRHIDescriptorSet := Batcher.Device.CreateDescriptorSet(Batcher.TextureSetLayout);
+    FRHIDescriptorSet.BindTexture(0, FRHITexture,
+      Batcher.GetSampler(SmoothScaling, RepeatS, RepeatT));
+    FRHIDescriptorSet.Update;
+  end;
 end;
 
 procedure TDrawableImage.Load(const AImage: TEncodedImage);
@@ -972,7 +1046,11 @@ begin
     (AImage is TGrayscaleImage) and
     (TGrayscaleImage(AImage).TreatAsAlpha);
 
-  if ApplicationProperties.IsGLContextOpen then
+  if RHIDevice <> nil then
+  begin
+    RHIContextOpen(AImage);
+  end;
+  if ApplicationProperties.IsGLContextOpen and (GLFeatures <> nil) then
   begin
     GLContextOpen(AImage);
     StaticGLContextOpen;
@@ -989,6 +1067,8 @@ var
   VS, FS: string;
   I: Integer;
 begin
+  if GLFeatures = nil then
+    Exit;
   if not GLFeatures.EnableFixedFunction then
   begin
     for I := Low(VboStorage) to High(VboStorage) do
@@ -1178,20 +1258,13 @@ procedure TDrawableImage.DrawNoBatch(
       acTest: RenderContext.FixedFunctionAlphaTestEnable;
       acBlending:
         begin
-          if GLFeatures.BlendConstant and
-            ( (BlendingSourceFactor in
-               [bsConstantColor, bsOneMinusConstantColor,
-                bsConstantAlpha, bsOneMinusConstantAlpha]) or
-              (BlendingDestinationFactor in
-               [bdConstantColor, bdOneMinusConstantColor,
-                bdConstantAlpha, bdOneMinusConstantAlpha]) ) then
-          begin
-            glBlendColor(
-              BlendingConstantColor[0],
-              BlendingConstantColor[1],
-              BlendingConstantColor[2],
-              BlendingConstantColor[3]);
-          end;
+          if (BlendingSourceFactor in
+              [bsConstantColor, bsOneMinusConstantColor,
+               bsConstantAlpha, bsOneMinusConstantAlpha]) or
+             (BlendingDestinationFactor in
+              [bdConstantColor, bdOneMinusConstantColor,
+               bdConstantAlpha, bdOneMinusConstantAlpha]) then
+            RenderContext.BlendingConstantColor := BlendingConstantColor;
 
           RenderContext.BlendingEnable(BlendingSourceFactor, BlendingDestinationFactor);
         end;
@@ -1290,12 +1363,165 @@ var
   Vbo: PVboStorage;
   IndexPtr: Pointer;
   UseIndex: Boolean;
+  Batcher: TCastleBatch2DRenderer;
+  BatchBlendMode: TCastle2DBlendMode;
+  BatchAlphaCutoff: Single;
+  BatchCustomBlend: Boolean;
+  BatchSrcBlend, BatchDstBlend: TRHIBlendFactor;
+  BatchUsesConstantBlend: Boolean;
+  BatchCustomFragShader: TRHIShaderModule;
+  BatchCustomParams, BatchColorTint, CustomShaderColor: TVector4;
+  ScissorR: TRectangle;
+  EffRotCenter: TVector2;
+  AutoStarted2DPass: Boolean;
 begin
   if (Count = 0) or
      ((Count = 1) and
       ((ScreenRects^[0].Width = 0) or
        (ScreenRects^[0].Height = 0))) then
     Exit;
+
+  if (ActiveBatch2DRenderer <> nil) or
+     ((RHIDevice <> nil) and
+      (((ApplicationProperties <> nil) and (ApplicationProperties.RenderBackend = backendVulkan)) or
+       (GLFeatures = nil) or (ApplicationProperties = nil) or (not ApplicationProperties.IsGLContextOpen))) then
+  begin
+    PrepareResources;
+    Batcher := ActiveBatch2DRenderer;
+    if (Batcher = nil) and (RHIDevice <> nil) then
+      Batcher := EnsureBatch2DRenderer(RHIDevice);
+    if Batcher <> nil then
+    begin
+      if (FRHIDescriptorSet <> nil) and (FRHIDescriptorSet.Device <> Batcher.Device) then
+        FreeAndNil(FRHIDescriptorSet);
+      if (FRHITexture <> nil) and (FRHIDescriptorSet = nil) and (Batcher.Device <> nil) then
+        UpdateRHIDescriptorSet;
+
+      if FRHITexture <> nil then
+      begin
+        BatchAlphaCutoff := 0.0;
+        BatchCustomBlend := False;
+        BatchSrcBlend := bfSrcAlpha;
+        BatchDstBlend := bfOneMinusSrcAlpha;
+        BatchUsesConstantBlend := (FinalAlpha = acBlending) and
+          ((BlendingSourceFactor in [bsConstantColor, bsOneMinusConstantColor, bsConstantAlpha, bsOneMinusConstantAlpha]) or
+           (BlendingDestinationFactor in [bdConstantColor, bdOneMinusConstantColor, bdConstantAlpha, bdOneMinusConstantAlpha]));
+        case FinalAlpha of
+          acNone:
+            BatchBlendMode := bmNone;
+          acTest:
+            begin
+              BatchBlendMode := bmNone;
+              BatchAlphaCutoff := 0.5;
+            end;
+          acBlending:
+            if (BlendingSourceFactor = bsSrcAlpha) and (BlendingDestinationFactor = bdOneMinusSrcAlpha) then
+              BatchBlendMode := bmAlphaBlend
+            else
+            if (BlendingSourceFactor = bsSrcAlpha) and (BlendingDestinationFactor = bdOne) then
+              BatchBlendMode := bmAdditive
+            else
+            if (BlendingSourceFactor = bsDstColor) and (BlendingDestinationFactor = bdZero) then
+              BatchBlendMode := bmMultiply
+            else
+            begin
+              BatchBlendMode := bmAlphaBlend;
+              BatchCustomBlend := True;
+              BatchSrcBlend := TRenderContext.MapBlendSourceFactorToRHI(BlendingSourceFactor);
+              BatchDstBlend := TRenderContext.MapBlendDestFactorToRHI(BlendingDestinationFactor);
+            end;
+          else
+            BatchBlendMode := bmAlphaBlend;
+        end;
+
+        if (RenderContext = nil) or (not RenderContext.FinalScissor(ScissorR)) then
+        begin
+          if RenderContext <> nil then
+            ScissorR := Rectangle(0, 0,
+              Max(1, Round(RenderContext.Viewport.Width)),
+              Max(1, Round(RenderContext.Viewport.Height)))
+          else
+            ScissorR := Rectangle(0, 0,
+              Max(1, Round(Batcher.ViewportWidth)),
+              Max(1, Round(Batcher.ViewportHeight)));
+        end;
+
+        if UseScreenRotationCenter then
+          EffRotCenter := ScreenRotationCenter
+        else
+          EffRotCenter := RotationCenter;
+
+        BatchCustomFragShader := nil;
+        BatchCustomParams := TVector4.Zero;
+        BatchColorTint := Color;
+        if (FCustomShader <> nil) and (Batcher.Device <> nil) then
+        begin
+          BatchCustomFragShader := FCustomShader.GetOrCreateRHI2DFragmentShader(Batcher.Device);
+          BatchCustomParams := FCustomShader.BuildRHI2DCustomParams;
+          if TCastleColor.PerfectlyEquals(Color, White) and
+             (not TextureHasOnlyAlpha) and
+             FCustomShader.GetRHIUniformValue('color', CustomShaderColor) then
+            BatchColorTint := CustomShaderColor;
+        end;
+
+        AutoStarted2DPass := False;
+        if (not Batcher.In2DPass) and (ActiveCommandList <> nil) then
+        begin
+          if RenderContext <> nil then
+            Batcher.Begin2DPass(ActiveCommandList,
+              Max(1, RenderContext.Viewport.Width),
+              Max(1, RenderContext.Viewport.Height))
+          else
+            Batcher.Begin2DPass(ActiveCommandList,
+              Max(1, Round(Batcher.ViewportWidth)),
+              Max(1, Round(Batcher.ViewportHeight)));
+          AutoStarted2DPass := True;
+        end;
+        try
+          if BatchUsesConstantBlend then
+          begin
+            Batcher.Flush;
+            if RenderContext <> nil then
+              RenderContext.BlendingConstantColor := BlendingConstantColor
+            else if ActiveCommandList <> nil then
+              ActiveCommandList.SetBlendConstants(BlendingConstantColor);
+          end;
+          Batcher.DrawQuads(
+            FRHITexture,
+            FRHIDescriptorSet,
+            ScreenRects,
+            ImageRects,
+            Count,
+            BatchColorTint,
+            BatchBlendMode,
+            SmoothScaling,
+            ScissorR,
+            Rotation,
+            EffRotCenter,
+            UseScreenRotationCenter,
+            Clip,
+            ClipLine,
+            BatchAlphaCutoff,
+            BatchCustomBlend,
+            BatchSrcBlend,
+            BatchDstBlend,
+            TextureHasOnlyAlpha,
+            BatchCustomFragShader,
+            BatchCustomParams
+          );
+          if BatchUsesConstantBlend then
+            Batcher.Flush;
+        finally
+          if AutoStarted2DPass then
+            Batcher.End2DPass;
+        end;
+        Inc(Statistics.DrawCalls);
+        Exit;
+      end;
+    end;
+    if (GLFeatures = nil) or (ApplicationProperties = nil) or (not ApplicationProperties.IsGLContextOpen) then
+      Exit;
+  end;
 
   FrameProfiler.Start(fmDrawImage);
 
@@ -1709,7 +1935,10 @@ function TDrawableImage.CurrentWrap: TTextureWrap2D;
     if IsRepeat then
       Result := GL_REPEAT
     else
-      Result := GLFeatures.CLAMP_TO_EDGE;
+    if GLFeatures <> nil then
+      Result := GLFeatures.CLAMP_TO_EDGE
+    else
+      Result := GL_CLAMP_TO_EDGE;
   end;
 
 begin
@@ -1728,6 +1957,7 @@ begin
       glBindTexture(GL_TEXTURE_2D, FTexture);
       SetTextureFilter(GL_TEXTURE_2D, CurrentFilter);
     end;
+    UpdateRHIDescriptorSet;
   end;
 end;
 
@@ -1743,7 +1973,14 @@ end;
 
 procedure TDrawableImage.PrepareResources;
 begin
-  if ApplicationProperties.IsGLContextOpen then
+  if RHIDevice <> nil then
+  begin
+    if (FRHITexture <> nil) and (FRHITexture.Device <> RHIDevice) then
+      RHIContextClose;
+    if (FRHITexture = nil) and (FImage <> nil) then
+      RHIContextOpen(FImage);
+  end;
+  if ApplicationProperties.IsGLContextOpen and (GLFeatures <> nil) then
   begin
     { initialize OpenGL resources on-demand }
     if not StaticResourcesReady then
@@ -1756,6 +1993,16 @@ end;
 function TDrawableImage.GetContents(const ImageClass: TCastleImageClass): TCastleImage;
 begin
   PrepareResources;
+  if RHIDevice <> nil then
+  begin
+    if FRHITexture = nil then
+      raise ECannotSaveTextureContents.Create('TDrawableImage RHI texture was not created for some reason');
+    Result := ImageClass.Create(Width, Height);
+    if not RHIDevice.GrabTextureImage(FRHITexture, Rectangle(0, 0, Width, Height), Result) then
+      if FImage is TCastleImage then
+        Result.Assign(TCastleImage(FImage));
+    Exit;
+  end;
   if FTexture = GLObjectNone then
     raise ECannotSaveTextureContents.Create('TDrawableImage texture was not created for some reason');
   Result := ImageClass.Create(Width, Height);
@@ -1774,13 +2021,17 @@ procedure TDrawableImage.RenderToImageBegin(const SetAndRestoreViewport: boolean
   begin
     FRenderToImage := TGLRenderToTexture.Create(Width, Height);
     FRenderToImage.Buffer := tbColor;
-    FRenderToImage.SetTexture(FTexture, GL_TEXTURE_2D);
+    if FRHITexture <> nil then
+      FRenderToImage.SetRHITexture(FRHITexture);
+    if FTexture <> GLObjectNone then
+      FRenderToImage.SetTexture(FTexture, GL_TEXTURE_2D);
     FRenderToImage.GLContextOpen;
   end;
 
 begin
+  BatchingFlush;
   PrepareResources;
-  Assert(FTexture <> GLObjectNone);
+  Assert((FTexture <> GLObjectNone) or (FRHITexture <> nil));
 
   if (FRenderToImage = nil) or
      (FRenderToImage.Width <> Width) or
@@ -1788,26 +2039,51 @@ begin
   begin
     RenderToImageFree;
     RenderToImageCreate;
-  end;
+  end else
+  if FRHITexture <> nil then
+    FRenderToImage.SetRHITexture(FRHITexture);
 
   FRenderToImage.RenderBegin;
 
   if SetAndRestoreViewport then
   begin
-    HasViewportToRestore := true;
-    ViewportToRestore := RenderContext.Viewport;
-    RenderContext.Viewport := Rectangle(0, 0, Width, Height);
+    if RenderContext <> nil then
+    begin
+      HasViewportToRestore := true;
+      ViewportToRestore := RenderContext.Viewport;
+      RenderContext.Viewport := Rectangle(0, 0, Width, Height);
+    end;
+    if ActiveBatch2DRenderer <> nil then
+    begin
+      HasBatcherViewportToRestore := True;
+      BatcherViewportToRestore := Vector2(
+        ActiveBatch2DRenderer.ViewportWidth,
+        ActiveBatch2DRenderer.ViewportHeight);
+      ActiveBatch2DRenderer.ViewportWidth := Max(1.0, Single(Width));
+      ActiveBatch2DRenderer.ViewportHeight := Max(1.0, Single(Height));
+    end;
   end;
 end;
 
 procedure TDrawableImage.RenderToImageEnd;
 begin
+  BatchingFlush;
   FRenderToImage.RenderEnd;
 
   if HasViewportToRestore then
   begin
-    RenderContext.Viewport := ViewportToRestore;
+    if RenderContext <> nil then
+      RenderContext.Viewport := ViewportToRestore;
     HasViewportToRestore := false;
+  end;
+  if HasBatcherViewportToRestore then
+  begin
+    if ActiveBatch2DRenderer <> nil then
+    begin
+      ActiveBatch2DRenderer.ViewportWidth := BatcherViewportToRestore.X;
+      ActiveBatch2DRenderer.ViewportHeight := BatcherViewportToRestore.Y;
+    end;
+    HasBatcherViewportToRestore := False;
   end;
 end;
 
@@ -1855,6 +2131,7 @@ begin
       glBindTexture(GL_TEXTURE_2D, FTexture);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, CurrentWrap.Data[0]);
     end;
+    UpdateRHIDescriptorSet;
   end;
 end;
 
@@ -1869,6 +2146,7 @@ begin
       glBindTexture(GL_TEXTURE_2D, FTexture);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, CurrentWrap.Data[1]);
     end;
+    UpdateRHIDescriptorSet;
   end;
 end;
 
@@ -1984,10 +2262,22 @@ begin
   end;
 end;
 
+procedure TDrawableImage.SetCustomShader(const Value: TGLSLProgram);
+begin
+  if FCustomShader <> Value then
+  begin
+    BatchingFlushIfNeeded;
+    FCustomShader := Value;
+  end;
+end;
+
 procedure TDrawableImage.BatchingFlushIfNeeded;
 begin
   if (BatchingLevel <> 0) and (BatchingLastImage = Self) then
-    BatchingFlush;
+    BatchingFlush
+  else
+  if (ActiveBatch2DRenderer <> nil) and ActiveBatch2DRenderer.In2DPass then
+    ActiveBatch2DRenderer.Flush;
 end;
 
 class procedure TDrawableImage.BatchingBegin;
@@ -2033,6 +2323,8 @@ begin
     BatchingLastImageRects.Clear;
     BatchingLastImage := nil;
   end;
+  if (ActiveBatch2DRenderer <> nil) and ActiveBatch2DRenderer.In2DPass then
+    ActiveBatch2DRenderer.Flush;
 end;
 
 function TDrawableImageRenderStatistics.ToString: String;

@@ -144,6 +144,8 @@ const
 
   function ModernFormatEnums: Boolean;
   begin
+    if GLFeatures = nil then
+      Exit(True);
     Result := GLFeatures.TextureModernFormatsAndSwizzle
 
       { - For WebGL:
@@ -474,7 +476,7 @@ end;
 
 procedure TexParameterMaxAnisotropy(const target: TGLenum; const Anisotropy: TGLfloat);
 begin
-  if GLFeatures.TextureFilterAnisotropic then
+  if (GLFeatures <> nil) and GLFeatures.TextureFilterAnisotropic then
     glTexParameterf(Target, GL_TEXTURE_MAX_ANISOTROPY_EXT,
       Min(GLFeatures.MaxTextureMaxAnisotropy, Anisotropy));
 end;

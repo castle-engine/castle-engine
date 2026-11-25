@@ -67,26 +67,53 @@ procedure glTextureImage3D(const TextureIdForProfiler: TGLTextureId;
 {$ifdef read_implementation}
 
 function IsTexture3DSized(const Size: Cardinal): boolean; overload;
+var
+  MaxSize: Cardinal;
 begin
-  Result :=
-    (not GLFeatures.Texture3D) or
-    (
-      IsPowerOf2(Size) and
-      (Size > 0) and
-      (Size <= GLFeatures.MaxTexture3DSize)
-    );
+  if GLFeatures <> nil then
+  begin
+    Result :=
+      (not GLFeatures.Texture3D) or
+      (
+        IsPowerOf2(Size) and
+        (Size > 0) and
+        (Size <= GLFeatures.MaxTexture3DSize)
+      );
+  end else
+  begin
+    if (RHIDevice <> nil) and (RHIDevice.Capabilities.MaxTextureSize > 0) then
+      MaxSize := RHIDevice.Capabilities.MaxTextureSize
+    else
+      MaxSize := 2048;
+    Result := IsPowerOf2(Size) and (Size > 0) and (Size <= MaxSize);
+  end;
 end;
 
 function IsTexture3DSized(const R: TCastleImage): boolean; overload;
+var
+  MaxSize: Cardinal;
 begin
-  if GLFeatures.Texture3D then
+  if GLFeatures <> nil then
   begin
-    Result :=
-      IsPowerOf2(R.Width ) and (R.Width  > 0) and (R.Width  <= GLFeatures.MaxTexture3DSize) and
-      IsPowerOf2(R.Height) and (R.Height > 0) and (R.Height <= GLFeatures.MaxTexture3DSize) and
-      IsPowerOf2(R.Depth ) and (R.Depth  > 0) and (R.Depth  <= GLFeatures.MaxTexture3DSize);
+    if GLFeatures.Texture3D then
+    begin
+      Result :=
+        IsPowerOf2(R.Width ) and (R.Width  > 0) and (R.Width  <= GLFeatures.MaxTexture3DSize) and
+        IsPowerOf2(R.Height) and (R.Height > 0) and (R.Height <= GLFeatures.MaxTexture3DSize) and
+        IsPowerOf2(R.Depth ) and (R.Depth  > 0) and (R.Depth  <= GLFeatures.MaxTexture3DSize);
+    end else
+      Result := true;
   end else
-    Result := true;
+  begin
+    if (RHIDevice <> nil) and (RHIDevice.Capabilities.MaxTextureSize > 0) then
+      MaxSize := RHIDevice.Capabilities.MaxTextureSize
+    else
+      MaxSize := 2048;
+    Result :=
+      IsPowerOf2(R.Width ) and (R.Width  > 0) and (R.Width  <= MaxSize) and
+      IsPowerOf2(R.Height) and (R.Height > 0) and (R.Height <= MaxSize) and
+      IsPowerOf2(R.Depth ) and (R.Depth  > 0) and (R.Depth  <= MaxSize);
+  end;
 end;
 
 procedure glTextureImage3D(const TextureIdForProfiler: TGLTextureId;

@@ -71,6 +71,8 @@
   TGLVideo3D = class(TGLVideo)
   private
     FItems: array of TGLTextureId;
+    FRHITextures: array of TRHITexture;
+    FRHISampler: TRHISampler;
   public
     constructor Create(Video: TVideo;
       const Filter: TTextureFilter;
@@ -80,6 +82,9 @@
     destructor Destroy; override;
 
     function GLTextureFromTime(const Time: TFloatTime): TGLTextureId;
+    function RHITextureFromTime(const Time: TFloatTime): TRHITexture;
+    function RHITexture(const Index: Integer): TRHITexture;
+    property RHISampler: TRHISampler read FRHISampler;
   end;
 
   { Video expressed as a series of TDrawableImage, to play as 2D GUI control. }
@@ -137,16 +142,108 @@ end;
 constructor TGLVideo3D.Create(Video: TVideo;
   const Filter: TTextureFilter; const Anisotropy: TGLfloat;
   const Wrap: TTextureWrap2D; const GUITexture: boolean);
+
+  function WrapGLToRHI(const W: TGLenum): TRHISamplerAddressMode;
+  begin
+    if W = GL_REPEAT then
+      Result := amRepeat
+    else
+    if W = GL_MIRRORED_REPEAT then
+      Result := amMirroredRepeat
+    else
+      Result := amClampToEdge;
+  end;
+
 var
   I: Integer;
+  MipCount, FrameW, FrameH: Cardinal;
+  TexDesc: TRHITextureDesc;
+  SamplerDesc: TRHISamplerDesc;
+  ResizedFrame: TCastleImage;
 begin
   inherited Create(Video);
 
   SetLength(FItems, Count);
-  for I := 0 to High(FItems) do
+  SetLength(FRHITextures, Count);
+
+  if RHIDevice <> nil then
   begin
-    FItems[I] := LoadGLTexture(Video.Items[I], Filter, Wrap, nil, GUITexture);
-    TexParameterMaxAnisotropy(GL_TEXTURE_2D, Anisotropy);
+    for I := 0 to High(FRHITextures) do
+    begin
+      if Video.Items[I] <> nil then
+      begin
+        FrameW := Max(1, Video.Items[I].Width);
+        FrameH := Max(1, Video.Items[I].Height);
+        if (not GUITexture) and (GLTextureScale > 1) then
+        begin
+          if FrameW > GLTextureMinSize then
+            FrameW := Max(FrameW shr (GLTextureScale - 1), GLTextureMinSize);
+          if FrameH > GLTextureMinSize then
+            FrameH := Max(FrameH shr (GLTextureScale - 1), GLTextureMinSize);
+        end;
+        if (not GUITexture) and Filter.NeedsMipmaps then
+          MipCount := CalculateTextureMipLevels(Max(Cardinal(1), Cardinal(Max(FrameW, FrameH))))
+        else
+          MipCount := 1;
+        TexDesc := TRHITextureDesc.Create2D(
+          FrameW,
+          FrameH,
+          pfRGBA8_UNorm,
+          [tuSampled, tuTransferSrc, tuTransferDst],
+          MipCount);
+        FRHITextures[I] := RHIDevice.CreateTexture(TexDesc);
+        if ((FrameW <> Video.Items[I].Width) or (FrameH <> Video.Items[I].Height)) and
+           (Video.Items[I] is TCastleImage) then
+        begin
+          ResizedFrame := TCastleImage(Video.Items[I]).MakeResized(FrameW, FrameH, riBilinear);
+          try
+            FRHITextures[I].UploadImage(ResizedFrame);
+          finally
+            FreeAndNil(ResizedFrame);
+          end;
+        end else
+          FRHITextures[I].UploadImage(Video.Items[I]);
+        if MipCount > 1 then
+          FRHITextures[I].GenerateMipmaps;
+        TextureMemoryProfiler.AllocateRHI(FRHITextures[I], Video.Items[I].URL,
+          Video.Items[I].ClassName,
+          Int64(TexDesc.Width) * Int64(TexDesc.Height) * 4 +
+          Iff(MipCount > 1, TTextureMemoryProfiler.MipmapsSize(Video.Items[I]), 0),
+          MipCount > 1, TexDesc.Width, TexDesc.Height, 1);
+      end;
+    end;
+
+    FillChar(SamplerDesc, SizeOf(SamplerDesc), 0);
+    if Filter.Magnification = magNearest then
+      SamplerDesc.MagFilter := sfNearest
+    else
+      SamplerDesc.MagFilter := sfLinear;
+    if Filter.Minification in [minNearest, minNearestMipmapNearest, minNearestMipmapLinear] then
+      SamplerDesc.MinFilter := sfNearest
+    else
+      SamplerDesc.MinFilter := sfLinear;
+    if Filter.Minification in [minNearestMipmapNearest, minLinearMipmapNearest] then
+      SamplerDesc.MipFilter := sfNearest
+    else
+      SamplerDesc.MipFilter := sfLinear;
+    SamplerDesc.AddressModeU := WrapGLToRHI(Wrap.Data[0]);
+    SamplerDesc.AddressModeV := WrapGLToRHI(Wrap.Data[1]);
+    SamplerDesc.AddressModeW := amClampToEdge;
+    SamplerDesc.MaxAnisotropy := Max(1.0, Anisotropy);
+    if MipCount > 1 then
+      SamplerDesc.MaxLod := 1000.0
+    else
+      SamplerDesc.MaxLod := 0.0;
+    FRHISampler := RHIDevice.CreateSampler(SamplerDesc);
+  end;
+
+  if ApplicationProperties.IsGLContextOpen and (GLFeatures <> nil) then
+  begin
+    for I := 0 to High(FItems) do
+    begin
+      FItems[I] := LoadGLTexture(Video.Items[I], Filter, Wrap, nil, GUITexture);
+      TexParameterMaxAnisotropy(GL_TEXTURE_2D, Anisotropy);
+    end;
   end;
 end;
 
@@ -154,14 +251,35 @@ destructor TGLVideo3D.Destroy;
 var
   I: Integer;
 begin
+  for I := 0 to High(FRHITextures) do
+    if FRHITextures[I] <> nil then
+    begin
+      TextureMemoryProfiler.DeallocateRHI(FRHITextures[I]);
+      FreeAndNil(FRHITextures[I]);
+    end;
+  FreeAndNil(FRHISampler);
   for I := 0 to High(FItems) do
-    FreeTexture(FItems[I]);
+    if FItems[I] <> GLObjectNone then
+      FreeTexture(FItems[I]);
   inherited;
 end;
 
 function TGLVideo3D.GLTextureFromTime(const Time: TFloatTime): TGLTextureId;
 begin
   Result := FItems[IndexFromTime(Time)];
+end;
+
+function TGLVideo3D.RHITextureFromTime(const Time: TFloatTime): TRHITexture;
+begin
+  Result := FRHITextures[IndexFromTime(Time)];
+end;
+
+function TGLVideo3D.RHITexture(const Index: Integer): TRHITexture;
+begin
+  if (Index >= 0) and (Index <= High(FRHITextures)) then
+    Result := FRHITextures[Index]
+  else
+    Result := nil;
 end;
 
 { TGLVideo2D ----------------------------------------------------------------- }

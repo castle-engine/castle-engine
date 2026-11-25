@@ -45,7 +45,7 @@ implementation
 uses
   CastleFilesUtils, CastleStringUtils, CastleGLVersion, CastleGLShaders,
   CastleLog, CastleApplicationProperties, CastleRenderContext, CastleGLImages,
-  CastleInternalGLUtils, CastleTimeUtils
+  CastleInternalGLUtils, CastleTimeUtils, CastleInternalRHI
   {$ifdef WASI} , Job.Js {$endif};
 
 {$I castleglutils_types.inc}
@@ -67,6 +67,25 @@ begin
   FreeAndNil(GLFeatures);
 end;
 
+procedure Primitive2DRHIDeviceChanged(const ADevice: TRHIDevice);
+begin
+  if (Primitive2DRes <> nil) and (Primitive2DRes.RHIOwnerDevice <> ADevice) then
+  begin
+    FreeAndNil(Primitive2DRes.RHIVbo);
+    Primitive2DRes.RHIVboWriteOffset := 0;
+    Primitive2DRes.RHILastVertexByteOffset := 0;
+    Primitive2DRes.RHILastFrameIndex := 0;
+    Primitive2DRes.RHILastFramesPresented := 0;
+    Primitive2DRes.RHILastCmdList := nil;
+    FreeAndNil(Primitive2DRes.RHIVertShader);
+    FreeAndNil(Primitive2DRes.RHIFragShader);
+    Primitive2DRes.RHIPipeline := nil;
+    Primitive2DRes.RHIOwnerDevice := ADevice;
+    if (ADevice = nil) and ((ApplicationProperties = nil) or (not ApplicationProperties.IsGLContextOpen)) then
+      FreeAndNil(Primitive2DRes);
+  end;
+end;
+
 initialization
   { Our GLVersion, GLFeatures should be freed at the very end,
     as a lot of code uses them. So place ContextClose to be called last,
@@ -74,4 +93,7 @@ initialization
     Every other unit initializion does OnGLContextClose.Add,
     so our initialization will stay as OnGLContextClose[0]. }
   ApplicationProperties.OnGLContextClose.Insert(0, @ContextClose);
+  RegisterRHIDeviceChangeCallback({$ifdef FPC}@{$endif}Primitive2DRHIDeviceChanged);
+finalization
+  FreeAndNil(Primitive2DRes);
 end.

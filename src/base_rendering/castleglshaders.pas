@@ -112,7 +112,8 @@ interface
 
 uses SysUtils, Classes, Generics.Collections,
   {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
-  CastleGLUtils, CastleUtils, CastleVectors, CastleRenderOptions;
+  CastleGLUtils, CastleUtils, CastleVectors, CastleRenderOptions,
+  CastleInternalRHI;
 
 type
   { Common class for exceptions related to GLSL programs. }
@@ -267,6 +268,13 @@ type
 
   TUniformLocationCache = {$ifdef FPC}specialize{$endif} TDictionary<String, TGLUniformLocation>;
   TAttribLocationCache = {$ifdef FPC}specialize{$endif} TDictionary<String, TGLAttribLocation>;
+  TRHIUniformValueMap = {$ifdef FPC}specialize{$endif} TDictionary<String, TVector4>;
+
+  TRHI2DUniformMapping = record
+    Name: String;
+    ComponentOffset: Integer;
+    ComponentCount: Integer;
+  end;
 
   TGLShaderList = {$ifdef FPC}specialize{$endif} TList<TGLShader>;
 
@@ -284,9 +292,12 @@ type
     // Given stage was attached and compiled by @link(AttachShader).
     HasStage: array [TShaderType] of Boolean;
 
-    {$ifdef CASTLE_COLLECT_SHADER_SOURCE}
     FSource: array [TShaderType] of TStringList;
-    {$endif CASTLE_COLLECT_SHADER_SOURCE}
+    FRHIUniformValues: TRHIUniformValueMap;
+    FRHIUniformOrder: TStringList;
+    FRHI2DUniformMappings: array of TRHI2DUniformMapping;
+    FRHI2DFragmentShader: TRHIShaderModule;
+    FRHI2DAdaptedFragmentSource: String;
 
     class function GetCurrent: TGLSLProgram; static;
     class procedure SetCurrent(const Value: TGLSLProgram); static;
@@ -619,6 +630,24 @@ type
       calls. }
     class property Current: TGLSLProgram read GetCurrent write SetCurrent; deprecated 'use RenderContext.CurrentProgram';
     {$endif}
+
+    { Collected shader source code for the given stage. }
+    function Source(const ShaderType: TShaderType): String;
+
+    { Store and query uniform values for RHI custom shader execution. }
+    procedure SetRHIUniformValue(const AName: String; const AValue: TVector4);
+    function GetRHIUniformValue(const AName: String; out AValue: TVector4): Boolean;
+
+    { Lazily adapts attached 2D fragment shader source to GLSL 450 and compiles
+      a TRHIShaderModule for TCastleBatch2DRenderer custom 2D shader rendering. }
+    function GetOrCreateRHI2DFragmentShader(const ADevice: TRHIDevice): TRHIShaderModule;
+
+    { Packs custom 2D shader uniform values into a vec4 payload for
+      CastleDraw.u_ModelViewMatrix[3] (TCastle2DPushConstants.CustomParams). }
+    function BuildRHI2DCustomParams: TVector4;
+
+    property RHI2DFragmentShader: TRHIShaderModule read FRHI2DFragmentShader;
+    property RHI2DAdaptedFragmentSource: String read FRHI2DAdaptedFragmentSource;
   end;
 
   TGLSLProgramList = {$ifdef FPC}specialize{$endif} TObjectList<TGLSLProgram>;
@@ -662,7 +691,7 @@ var
 implementation
 
 uses CastleStringUtils, CastleLog, CastleGLVersion, CastleRenderContext,
-  CastleInternalGLUtils, CastleApplicationProperties;
+  CastleInternalGLUtils, CastleApplicationProperties, CastleInternalShaderRHI;
 
 { Wrapper around glGetShaderInfoLog. }
 function GetShaderInfoLog(const ShaderId: TGLShader): String;
@@ -717,16 +746,22 @@ end;
 
 function GetCurrentProgram: TGLSLProgram;
 begin
-  Result := RenderContext.CurrentProgram;
+  if RenderContext <> nil then
+    Result := RenderContext.CurrentProgram
+  else
+    Result := nil;
 end;
 
 procedure SetCurrentProgram(const Value: TGLSLProgram);
 begin
-  RenderContext.CurrentProgram := Value;
+  if RenderContext <> nil then
+    RenderContext.CurrentProgram := Value;
 end;
 
 procedure InternalSetCurrentProgram(const Value: TGLSLProgram);
 begin
+  if (GLFeatures = nil) or (not GLFeatures.Shaders) then
+    Exit;
   if Value <> nil then
   begin
     if Value.ProgramId = GLObjectNone then
@@ -755,7 +790,10 @@ end;
 
 procedure TGLSLUniform.SetValue(const Value: boolean);
 begin
+  if (Owner <> nil) and (Name <> '') then
+    Owner.SetRHIUniformValue(Name, Vector4(Ord(Value), 0, 0, 0));
   if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
+  if (GLFeatures = nil) or (not GLFeatures.Shaders) then Exit;
 
   { GLSL "bool" types are set using the "i" version. From manpage:
 
@@ -775,7 +813,10 @@ end;
 
 procedure TGLSLUniform.SetValue(const Value: TGLint);
 begin
+  if (Owner <> nil) and (Name <> '') then
+    Owner.SetRHIUniformValue(Name, Vector4(Value, 0, 0, 0));
   if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
+  if (GLFeatures = nil) or (not GLFeatures.Shaders) then Exit;
   Owner.Enable;
   if GLFeatures.Shaders then
     glUniform1i(Location, Value);
@@ -783,7 +824,10 @@ end;
 
 procedure TGLSLUniform.SetValue(const Value: TVector2Integer);
 begin
+  if (Owner <> nil) and (Name <> '') then
+    Owner.SetRHIUniformValue(Name, Vector4(Value[0], Value[1], 0, 0));
   if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
+  if (GLFeatures = nil) or (not GLFeatures.Shaders) then Exit;
   Owner.Enable;
   if GLFeatures.Shaders then
     {$ifdef CASTLE_WEBGL}
@@ -795,7 +839,10 @@ end;
 
 procedure TGLSLUniform.SetValue(const Value: TVector3Integer);
 begin
+  if (Owner <> nil) and (Name <> '') then
+    Owner.SetRHIUniformValue(Name, Vector4(Value[0], Value[1], Value[2], 0));
   if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
+  if (GLFeatures = nil) or (not GLFeatures.Shaders) then Exit;
   Owner.Enable;
   if GLFeatures.Shaders then
     {$ifdef CASTLE_WEBGL}
@@ -807,7 +854,10 @@ end;
 
 procedure TGLSLUniform.SetValue(const Value: TVector4Integer);
 begin
+  if (Owner <> nil) and (Name <> '') then
+    Owner.SetRHIUniformValue(Name, Vector4(Value[0], Value[1], Value[2], Value[3]));
   if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
+  if (GLFeatures = nil) or (not GLFeatures.Shaders) then Exit;
   Owner.Enable;
   if GLFeatures.Shaders then
     {$ifdef CASTLE_WEBGL}
@@ -819,7 +869,10 @@ end;
 
 procedure TGLSLUniform.SetValue(const Value: TGLfloat);
 begin
+  if (Owner <> nil) and (Name <> '') then
+    Owner.SetRHIUniformValue(Name, Vector4(Value, 0, 0, 0));
   if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
+  if (GLFeatures = nil) or (not GLFeatures.Shaders) then Exit;
   Owner.Enable;
   if GLFeatures.Shaders then
     glUniform1f(Location, Value);
@@ -827,7 +880,10 @@ end;
 
 procedure TGLSLUniform.SetValue(const Value: TVector2);
 begin
+  if (Owner <> nil) and (Name <> '') then
+    Owner.SetRHIUniformValue(Name, Vector4(Value[0], Value[1], 0, 0));
   if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
+  if (GLFeatures = nil) or (not GLFeatures.Shaders) then Exit;
   Owner.Enable;
   if GLFeatures.Shaders then
     {$ifdef CASTLE_WEBGL}
@@ -839,7 +895,10 @@ end;
 
 procedure TGLSLUniform.SetValue(const Value: TVector3);
 begin
+  if (Owner <> nil) and (Name <> '') then
+    Owner.SetRHIUniformValue(Name, Vector4(Value[0], Value[1], Value[2], 0));
   if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
+  if (GLFeatures = nil) or (not GLFeatures.Shaders) then Exit;
   Owner.Enable;
   if GLFeatures.Shaders then
     {$ifdef CASTLE_WEBGL}
@@ -851,7 +910,10 @@ end;
 
 procedure TGLSLUniform.SetValue(const Value: TVector4);
 begin
+  if (Owner <> nil) and (Name <> '') then
+    Owner.SetRHIUniformValue(Name, Value);
   if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
+  if (GLFeatures = nil) or (not GLFeatures.Shaders) then Exit;
   Owner.Enable;
   if GLFeatures.Shaders then
     {$ifdef CASTLE_WEBGL}
@@ -863,7 +925,14 @@ end;
 
 procedure TGLSLUniform.SetValue(const Value: TMatrix2);
 begin
+  if (Owner <> nil) and (Name <> '') then
+  begin
+    Owner.SetRHIUniformValue(Name, Vector4(Value.Data[0][0], Value.Data[0][1], Value.Data[1][0], Value.Data[1][1]));
+    Owner.SetRHIUniformValue(Name + '[0]', Vector4(Value.Data[0][0], Value.Data[0][1], 0, 0));
+    Owner.SetRHIUniformValue(Name + '[1]', Vector4(Value.Data[1][0], Value.Data[1][1], 0, 0));
+  end;
   if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
+  if (GLFeatures = nil) or (not GLFeatures.Shaders) then Exit;
   Owner.Enable;
   if GLFeatures.Shaders then
     {$ifdef CASTLE_WEBGL}
@@ -874,8 +943,18 @@ begin
 end;
 
 procedure TGLSLUniform.SetValue(const Value: TMatrix3);
+var
+  J: Integer;
 begin
+  if (Owner <> nil) and (Name <> '') then
+  begin
+    Owner.SetRHIUniformValue(Name, Vector4(Value.Data[0][0], Value.Data[0][1], Value.Data[0][2], 0));
+    for J := 0 to 2 do
+      Owner.SetRHIUniformValue(Name + '[' + IntToStr(J) + ']',
+        Vector4(Value.Data[J][0], Value.Data[J][1], Value.Data[J][2], 0));
+  end;
   if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
+  if (GLFeatures = nil) or (not GLFeatures.Shaders) then Exit;
   Owner.Enable;
   if GLFeatures.Shaders then
     {$ifdef CASTLE_WEBGL}
@@ -886,8 +965,17 @@ begin
 end;
 
 procedure TGLSLUniform.SetValue(const Value: TMatrix4);
+var
+  J: Integer;
 begin
+  if (Owner <> nil) and (Name <> '') then
+  begin
+    Owner.SetRHIUniformValue(Name, Value.Columns[0]);
+    for J := 0 to 3 do
+      Owner.SetRHIUniformValue(Name + '[' + IntToStr(J) + ']', Value.Columns[J]);
+  end;
   if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
+  if (GLFeatures = nil) or (not GLFeatures.Shaders) then Exit;
   Owner.Enable;
   if GLFeatures.Shaders then
     {$ifdef CASTLE_WEBGL}
@@ -901,8 +989,6 @@ procedure TGLSLUniform.SetValue(const Value: TBooleanList);
 var
   Ints: TInt32List;
 begin
-  if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
-
   { We cannot pass Value.List, as Pascal booleans do not have 4 bytes
     (well, actually I could change this by compiler directive or
     by using LongBool for TBooleanList --- but for TBooleanList
@@ -918,8 +1004,23 @@ begin
 end;
 
 procedure TGLSLUniform.SetValue(const Value: TInt32List);
+var
+  I: Integer;
+  PackedVec: TVector4;
 begin
+  if (Owner <> nil) and (Name <> '') and (Value <> nil) then
+  begin
+    PackedVec := TVector4.Zero;
+    for I := 0 to Value.Count - 1 do
+    begin
+      if I < 4 then
+        PackedVec.Data[I] := Value[I];
+      Owner.SetRHIUniformValue(Name + '[' + IntToStr(I) + ']', Vector4(Value[I], 0, 0, 0));
+    end;
+    Owner.SetRHIUniformValue(Name, PackedVec);
+  end;
   if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
+  if (GLFeatures = nil) or (not GLFeatures.Shaders) then Exit;
   Assert(SizeOf(Int32) = SizeOf(TGLint));
   Owner.Enable;
   if GLFeatures.Shaders then
@@ -931,8 +1032,23 @@ begin
 end;
 
 procedure TGLSLUniform.SetValue(const Value: TSingleList);
+var
+  I: Integer;
+  PackedVec: TVector4;
 begin
+  if (Owner <> nil) and (Name <> '') and (Value <> nil) then
+  begin
+    PackedVec := TVector4.Zero;
+    for I := 0 to Value.Count - 1 do
+    begin
+      if I < 4 then
+        PackedVec.Data[I] := Value[I];
+      Owner.SetRHIUniformValue(Name + '[' + IntToStr(I) + ']', Vector4(Value[I], 0, 0, 0));
+    end;
+    Owner.SetRHIUniformValue(Name, PackedVec);
+  end;
   if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
+  if (GLFeatures = nil) or (not GLFeatures.Shaders) then Exit;
   Owner.Enable;
   if GLFeatures.Shaders then
     {$ifdef CASTLE_WEBGL}
@@ -943,8 +1059,17 @@ begin
 end;
 
 procedure TGLSLUniform.SetValue(const Value: TVector2List);
+var
+  I: Integer;
 begin
+  if (Owner <> nil) and (Name <> '') and (Value <> nil) and (Value.Count > 0) then
+  begin
+    Owner.SetRHIUniformValue(Name, Vector4(Value[0].X, Value[0].Y, 0, 0));
+    for I := 0 to Value.Count - 1 do
+      Owner.SetRHIUniformValue(Name + '[' + IntToStr(I) + ']', Vector4(Value[I].X, Value[I].Y, 0, 0));
+  end;
   if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
+  if (GLFeatures = nil) or (not GLFeatures.Shaders) then Exit;
   Owner.Enable;
   if GLFeatures.Shaders then
     {$ifdef CASTLE_WEBGL}
@@ -955,8 +1080,17 @@ begin
 end;
 
 procedure TGLSLUniform.SetValue(const Value: TVector3List);
+var
+  I: Integer;
 begin
+  if (Owner <> nil) and (Name <> '') and (Value <> nil) and (Value.Count > 0) then
+  begin
+    Owner.SetRHIUniformValue(Name, Vector4(Value[0].X, Value[0].Y, Value[0].Z, 0));
+    for I := 0 to Value.Count - 1 do
+      Owner.SetRHIUniformValue(Name + '[' + IntToStr(I) + ']', Vector4(Value[I].X, Value[I].Y, Value[I].Z, 0));
+  end;
   if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
+  if (GLFeatures = nil) or (not GLFeatures.Shaders) then Exit;
   Owner.Enable;
   if GLFeatures.Shaders then
     {$ifdef CASTLE_WEBGL}
@@ -967,8 +1101,17 @@ begin
 end;
 
 procedure TGLSLUniform.SetValue(const Value: TVector4List);
+var
+  I: Integer;
 begin
+  if (Owner <> nil) and (Name <> '') and (Value <> nil) and (Value.Count > 0) then
+  begin
+    Owner.SetRHIUniformValue(Name, Value[0]);
+    for I := 0 to Value.Count - 1 do
+      Owner.SetRHIUniformValue(Name + '[' + IntToStr(I) + ']', Value[I]);
+  end;
   if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
+  if (GLFeatures = nil) or (not GLFeatures.Shaders) then Exit;
   Owner.Enable;
   if GLFeatures.Shaders then
     {$ifdef CASTLE_WEBGL}
@@ -981,6 +1124,7 @@ end;
 procedure TGLSLUniform.SetValue(const Value: TMatrix3List);
 begin
   if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
+  if (GLFeatures = nil) or (not GLFeatures.Shaders) then Exit;
   Owner.Enable;
   if GLFeatures.Shaders then
     {$ifdef CASTLE_WEBGL}
@@ -993,6 +1137,7 @@ end;
 procedure TGLSLUniform.SetValue(const Value: TMatrix4List);
 begin
   if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
+  if (GLFeatures = nil) or (not GLFeatures.Shaders) then Exit;
   Owner.Enable;
   if GLFeatures.Shaders then
     {$ifdef CASTLE_WEBGL}
@@ -1007,6 +1152,7 @@ end;
 procedure TGLSLAttribute.SetValue(const Value: TGLfloat);
 begin
   if Location = GLAttribLocationNone then Exit; // ignore non-existing attribute here
+  if (GLFeatures = nil) or (not GLFeatures.Shaders) then Exit;
   Owner.Enable;
   if GLFeatures.Shaders then
     glVertexAttrib1f(Location, Value);
@@ -1015,6 +1161,7 @@ end;
 procedure TGLSLAttribute.SetValue(const Value: TVector2);
 begin
   if Location = GLAttribLocationNone then Exit; // ignore non-existing attribute here
+  if (GLFeatures = nil) or (not GLFeatures.Shaders) then Exit;
   Owner.Enable;
   if GLFeatures.Shaders then
     {$ifdef CASTLE_WEBGL}
@@ -1027,6 +1174,7 @@ end;
 procedure TGLSLAttribute.SetValue(const Value: TVector3);
 begin
   if Location = GLAttribLocationNone then Exit; // ignore non-existing attribute here
+  if (GLFeatures = nil) or (not GLFeatures.Shaders) then Exit;
   Owner.Enable;
   if GLFeatures.Shaders then
     {$ifdef CASTLE_WEBGL}
@@ -1039,6 +1187,7 @@ end;
 procedure TGLSLAttribute.SetValue(const Value: TVector4);
 begin
   if Location = GLAttribLocationNone then Exit; // ignore non-existing attribute here
+  if (GLFeatures = nil) or (not GLFeatures.Shaders) then Exit;
   Owner.Enable;
   if GLFeatures.Shaders then
     {$ifdef CASTLE_WEBGL}
@@ -1061,6 +1210,7 @@ procedure TGLSLAttribute.SetValue(const Value: TMatrix3);
 
 begin
   if Location = GLAttribLocationNone then Exit; // ignore non-existing attribute here
+  if (GLFeatures = nil) or (not GLFeatures.Shaders) then Exit;
   Owner.Enable;
   if GLFeatures.Shaders then
   begin
@@ -1077,12 +1227,13 @@ procedure TGLSLAttribute.SetValue(const Value: TMatrix4);
     {$ifdef CASTLE_WEBGL}
     glVertexAttrib4f(Location + Column, Value[0], Value[1], Value[2], Value[3]);
     {$else}
-    glVertexAttrib4fv(Location + Column, @Value);
+    glVertexAttrib4fv(Location, @Value);
     {$endif}
   end;
 
 begin
   if Location = GLAttribLocationNone then Exit; // ignore non-existing attribute here
+  if (GLFeatures = nil) or (not GLFeatures.Shaders) then Exit;
   Owner.Enable;
   if GLFeatures.Shaders then
   begin
@@ -1097,6 +1248,7 @@ end;
 procedure TGLSLAttribute.SetValue(const Value: TVector4Integer);
 begin
   if Location = GLAttribLocationNone then Exit; // ignore non-existing attribute here
+  if (GLFeatures = nil) or (not GLFeatures.Shaders) then Exit;
   Owner.Enable;
   if GLFeatures.Shaders then
     glVertexAttrib4iv(Location, @Value);
@@ -1105,6 +1257,7 @@ end;
 procedure TGLSLAttribute.SetValue(const Value: TVector4Byte);
 begin
   if Location = GLAttribLocationNone then Exit; // ignore non-existing attribute here
+  if (GLFeatures = nil) or (not GLFeatures.Shaders) then Exit;
   Owner.Enable;
   if GLFeatures.Shaders then
     glVertexAttrib4ubv(Location, @Value);
@@ -1113,6 +1266,7 @@ end;
 procedure TGLSLAttribute.SetValue(const Value: TGLdouble);
 begin
   if Location = GLAttribLocationNone then Exit; // ignore non-existing attribute here
+  if (GLFeatures = nil) or (not GLFeatures.Shaders) then Exit;
   Owner.Enable;
   if GLFeatures.Shaders then
     glVertexAttrib1d(Location, Value);
@@ -1152,7 +1306,7 @@ procedure TGLSLAttribute.EnableArray(const Vao: TVertexArrayObject;
   const Ptr: PtrUInt);
 begin
   if Location = GLAttribLocationNone then Exit; // ignore non-existing attribute here
-  if GLFeatures.Shaders then
+  if (GLFeatures <> nil) and GLFeatures.Shaders then
   begin
     RenderContext.CurrentVao := Vao;
     RenderContext.CurrentProgram := Owner;
@@ -1211,7 +1365,7 @@ var
 begin
   if Location = GLAttribLocationNone then Exit; // ignore non-existing attribute here
 
-  if GLFeatures.Shaders then
+  if (GLFeatures <> nil) and GLFeatures.Shaders then
     for Offset := Low(TLocationOffset) to High(TLocationOffset) do
       if LocationOffsetsToDisable[Offset] then
         glDisableVertexAttribArray(Location + Offset);
@@ -1220,28 +1374,29 @@ end;
 { TGLSLProgram --------------------------------------------------------------- }
 
 constructor TGLSLProgram.Create;
-{$ifdef CASTLE_COLLECT_SHADER_SOURCE}
 var
   ShaderType: TShaderType;
-{$endif CASTLE_COLLECT_SHADER_SOURCE}
 begin
   inherited;
 
-  if GLFeatures.Shaders then
+  if (GLFeatures <> nil) and GLFeatures.Shaders then
+  begin
     ProgramId := glCreateProgram();
 
-  { Program id = 0 means that an error occurred. glCreateProgram docs say
+    { Program id = 0 means that an error occurred. glCreateProgram docs say
 
-      "This function returns 0 if an error occurs creating the program object."
+        "This function returns 0 if an error occurs creating the program object."
 
-    Looking at glGetError, I don't see any error code there.
-    So I just have to raise enigmatic error that creating GLSL program failed.
-  }
+      Looking at glGetError, I don't see any error code there.
+      So I just have to raise enigmatic error that creating GLSL program failed.
+    }
 
-  if ProgramId = GLObjectNone then
-    raise EGLSLError.Create('Cannot create GLSL shader program');
+    if ProgramId = GLObjectNone then
+      raise EGLSLError.Create('Cannot create GLSL shader program');
+  end;
 
-  ApplicationProperties.OnGLContextCloseObject.Add({$ifdef FPC}@{$endif}OnGlContextClose);
+  if ApplicationProperties <> nil then
+    ApplicationProperties.OnGLContextCloseObject.Add({$ifdef FPC}@{$endif}OnGlContextClose);
 
   ShaderIds := TGLShaderList.Create;
 
@@ -1249,11 +1404,12 @@ begin
 
   FUniformLocations := TUniformLocationCache.Create;
   FAttributeLocations := TAttribLocationCache.Create;
+  FRHIUniformValues := TRHIUniformValueMap.Create;
+  FRHIUniformOrder := TStringList.Create;
+  FRHIUniformOrder.CaseSensitive := True;
 
-  {$ifdef CASTLE_COLLECT_SHADER_SOURCE}
   for ShaderType := Low(TShaderType) to High(TShaderType) do
     FSource[ShaderType] := TStringList.Create;
-  {$endif CASTLE_COLLECT_SHADER_SOURCE}
 end;
 
 procedure TGLSLProgram.GLContextClose;
@@ -1270,6 +1426,8 @@ begin
 
   if ShaderIds <> nil then
     DetachAllShaders;
+
+  FreeAndNil(FRHI2DFragmentShader);
 
   { Deleting by glDeleteProgram the shader that is currently used
     (by glUseProgram) is allowed in OpenGL, and it implicitly sets
@@ -1305,7 +1463,7 @@ begin
     { ProgramId can be non-zero only if GLFeatures.Shaders,
       and right now GLFeatures must be <> nil because we must free while
       GL context is available. }
-    Assert(GLFeatures.Shaders);
+    Assert((GLFeatures <> nil) and GLFeatures.Shaders);
     glDeleteProgram(ProgramId);
     ProgramId := GLObjectNone;
   end;
@@ -1326,19 +1484,19 @@ begin
 end;
 
 destructor TGLSLProgram.Destroy;
-{$ifdef CASTLE_COLLECT_SHADER_SOURCE}
 var
   ShaderType: TShaderType;
-{$endif CASTLE_COLLECT_SHADER_SOURCE}
 begin
-  ApplicationProperties.OnGLContextCloseObject.Remove({$ifdef FPC}@{$endif}OnGlContextClose);
+  if ApplicationProperties <> nil then
+    ApplicationProperties.OnGLContextCloseObject.Remove({$ifdef FPC}@{$endif}OnGlContextClose);
   GLContextClose;
 
-  {$ifdef CASTLE_COLLECT_SHADER_SOURCE}
   for ShaderType := Low(TShaderType) to High(TShaderType) do
     FreeAndNil(FSource[ShaderType]);
-  {$endif}
 
+  FreeAndNil(FRHI2DFragmentShader);
+  FreeAndNil(FRHIUniformOrder);
+  FreeAndNil(FRHIUniformValues);
   FreeAndNil(ShaderIds);
   FreeAndNil(FUniformLocations);
   FreeAndNil(FAttributeLocations);
@@ -1349,7 +1507,7 @@ end;
 
 function TGLSLProgram.ProgramInfoLog: string;
 begin
-  if GLFeatures.Shaders then
+  if (GLFeatures <> nil) and GLFeatures.Shaders then
     Result := GetProgramInfoLog(ProgramId)
   else
     Result := '';
@@ -1358,7 +1516,7 @@ end;
 function TGLSLProgram.DebugInfo: string;
 {$ifdef CASTLE_WEBGL}
 begin
-  Result := 'GLSL program support: ' + BoolToStr(GLFeatures.Shaders, true);
+  Result := 'GLSL program support: ' + BoolToStr((GLFeatures <> nil) and GLFeatures.Shaders, true);
 
   // TODO: web: Restore full DebugInfo functionality with WebGL
 {$else}
@@ -1434,7 +1592,7 @@ begin
     Name: Utf8String;
     ErrorCode: TGLenum;
   begin
-    if GLFeatures.Shaders then
+    if (GLFeatures <> nil) and GLFeatures.Shaders then
     begin
       {$ifdef CASTLE_WEBGL}
       UniformsCount := glGetProgramParameter(ProgramId, GL_ACTIVE_UNIFORMS);
@@ -1485,7 +1643,7 @@ begin
     Name: Utf8String;
     ErrorCode: TGLenum;
   begin
-    if GLFeatures.Shaders then
+    if (GLFeatures <> nil) and GLFeatures.Shaders then
     begin
       glGetProgramiv(ProgramId, GL_ACTIVE_ATTRIBUTES, @AttribsCount);
 
@@ -1517,17 +1675,20 @@ begin
 
   function ShaderInfoLog(ShaderId: TGLShader): string;
   begin
-    if GLFeatures.Shaders then
-      Result := GetShaderInfoLog(ShaderId);
+    if (GLFeatures <> nil) and GLFeatures.Shaders then
+      Result := GetShaderInfoLog(ShaderId)
+    else
+      Result := '';
   end;
 
 var
   S: TStringList;
   I: Integer;
 begin
-  Result := 'GLSL program support: ' + BoolToStr(GLFeatures.Shaders, true);
+  Result := 'GLSL program support: ' + BoolToStr((GLFeatures <> nil) and GLFeatures.Shaders, true);
 
-  CheckGLErrors('Check at the beginning of TGLSLProgram.DebugInfo');
+  if (GLFeatures <> nil) and GLFeatures.Shaders then
+    CheckGLErrors('Check at the beginning of TGLSLProgram.DebugInfo');
 
   S := TStringList.Create;
   try
@@ -1789,9 +1950,19 @@ const
 var
   ShaderId: TGLShader;
 begin
-  { When shaders not supported, TGLSLProgram does nothing, silently. }
-  if not GLFeatures.Shaders then
+  if (GLFeatures = nil) or (not GLFeatures.Shaders) then
+  begin
+    if FSource[ShaderType] <> nil then
+      FSource[ShaderType].Add(S);
+    HasStage[ShaderType] := true;
+    if ShaderType = stFragment then
+    begin
+      FreeAndNil(FRHI2DFragmentShader);
+      FRHI2DAdaptedFragmentSource := '';
+      SetLength(FRHI2DUniformMappings, 0);
+    end;
     Exit;
+  end;
 
   { calculate AType }
   case ShaderType of
@@ -1843,9 +2014,8 @@ begin
   glAttachShader(ProgramId, ShaderId);
   ShaderIds.Add(ShaderId);
 
-  {$ifdef CASTLE_COLLECT_SHADER_SOURCE}
-  FSource[ShaderType].Add(S);
-  {$endif CASTLE_COLLECT_SHADER_SOURCE}
+  if FSource[ShaderType] <> nil then
+    FSource[ShaderType].Add(S);
   HasStage[ShaderType] := true;
 end;
 
@@ -1898,7 +2068,7 @@ begin;
   VaryingLength := Length(Varyings);
   if VaryingLength > 0 then
   begin
-    if not GLFeatures.TransformFeedbackVaryings then
+    if (GLFeatures = nil) or (not GLFeatures.TransformFeedbackVaryings) then
       raise EGLSLTransformFeedbackError.Create('Transform Feedback not supported by this context (too low OpenGL / OpenGLES / WebGL version)');
     if IsSingleBufferMode then
       TransformFeedbackBufferMode := GL_INTERLEAVED_ATTRIBS
@@ -1937,18 +2107,20 @@ begin
     { ShaderIds can be non-empty only if GLFeatures.Shaders,
       and right now GLFeatures must be <> nil because we must free while
       GL context is available. }
-    Assert(GLFeatures.Shaders);
+    Assert((GLFeatures <> nil) and GLFeatures.Shaders);
     glDetachShader(ProgramId, ShaderIds[I]);
     glDeleteShader(ShaderIds[I]);
   end;
 
   ShaderIds.Count := 0;
+  FreeAndNil(FRHI2DFragmentShader);
+  FRHI2DAdaptedFragmentSource := '';
+  SetLength(FRHI2DUniformMappings, 0);
 
   for ShaderType := Low(TShaderType) to High(TShaderType) do
   begin
-    {$ifdef CASTLE_COLLECT_SHADER_SOURCE}
-    FSource[ShaderType].Clear;
-    {$endif CASTLE_COLLECT_SHADER_SOURCE}
+    if FSource[ShaderType] <> nil then
+      FSource[ShaderType].Clear;
     HasStage[ShaderType] := false;
   end;
 end;
@@ -2002,7 +2174,7 @@ var
   {$endif}
   Linked: Boolean;
 begin
-  if GLFeatures.Shaders then
+  if (GLFeatures <> nil) and GLFeatures.Shaders then
   begin
     { Produce clear error messages, without waiting for OpenGL errors,
       if required shaders are not attached. }
@@ -2052,12 +2224,14 @@ end;
 
 procedure TGLSLProgram.Enable;
 begin
-  RenderContext.CurrentProgram := Self;
+  if RenderContext <> nil then
+    RenderContext.CurrentProgram := Self;
 end;
 
 class procedure TGLSLProgram.Disable;
 begin
-  RenderContext.CurrentProgram := nil;
+  if RenderContext <> nil then
+    RenderContext.CurrentProgram := nil;
 end;
 
 function TGLSLProgram.SetupUniforms(var BoundTextureUnits: Cardinal): boolean;
@@ -2107,9 +2281,21 @@ begin
 
   if not FUniformLocations.TryGetValue(AName, Result.Location) then
   begin
-    if GLFeatures.Shaders then
+    if (GLFeatures <> nil) and GLFeatures.Shaders then
       Result.Location := glGetUniformLocation(ProgramId, PAnsiCharOrNil(AName))
     else
+    if RHIDevice <> nil then
+    begin
+      if ((FSource[stFragment] <> nil) and (Pos(AName, FSource[stFragment].Text) > 0)) or
+         ((FSource[stVertex] <> nil) and (Pos(AName, FSource[stVertex].Text) > 0)) or
+         (AName = 'viewport_size') or (AName = 'color') or
+         (AName = 'clip_line') or (AName = 'image_texture') or
+         ((FSource[stFragment] <> nil) and (FSource[stFragment].Count = 0) and
+          (FSource[stVertex] <> nil) and (FSource[stVertex].Count = 0)) then
+        Result.Location := 0
+      else
+        Result.Location := GLUniformLocationNone;
+    end else
       Result.Location := GLUniformLocationNone;
 
     {$ifdef CASTLE_LOG_GET_LOCATIONS}
@@ -2329,8 +2515,11 @@ begin
 
   if not FAttributeLocations.TryGetValue(AName, Result.Location) then
   begin
-    if GLFeatures.Shaders then
+    if (GLFeatures <> nil) and GLFeatures.Shaders then
       Result.Location := glGetAttribLocation(ProgramId, PAnsiCharOrNil(AName))
+    else
+    if RHIDevice <> nil then
+      Result.Location := 0
     else
       Result.Location := GLAttribLocationNone;
 
@@ -2415,12 +2604,234 @@ end;
 
 class function TGLSLProgram.GetCurrent: TGLSLProgram;
 begin
-  Result := RenderContext.CurrentProgram;
+  if RenderContext <> nil then
+    Result := RenderContext.CurrentProgram
+  else
+    Result := nil;
 end;
 
 class procedure TGLSLProgram.SetCurrent(const Value: TGLSLProgram);
 begin
-  RenderContext.CurrentProgram := Value;
+  if RenderContext <> nil then
+    RenderContext.CurrentProgram := Value;
+end;
+
+function TGLSLProgram.Source(const ShaderType: TShaderType): String;
+begin
+  if FSource[ShaderType] <> nil then
+    Result := FSource[ShaderType].Text
+  else
+    Result := '';
+end;
+
+procedure TGLSLProgram.SetRHIUniformValue(const AName: String; const AValue: TVector4);
+begin
+  if (AName = '') or (FRHIUniformValues = nil) then
+    Exit;
+  FRHIUniformValues.AddOrSetValue(AName, AValue);
+  if (FRHIUniformOrder <> nil) and
+     (AName <> 'viewport_size') and (AName <> 'color') and
+     (AName <> 'clip_line') and (AName <> 'image_texture') and
+     (FRHIUniformOrder.IndexOf(AName) = -1) then
+    FRHIUniformOrder.Add(AName);
+end;
+
+function TGLSLProgram.GetRHIUniformValue(const AName: String; out AValue: TVector4): Boolean;
+begin
+  if (FRHIUniformValues <> nil) and FRHIUniformValues.TryGetValue(AName, AValue) then
+    Result := True
+  else
+  begin
+    AValue := TVector4.Zero;
+    Result := False;
+  end;
+end;
+
+function TGLSLProgram.GetOrCreateRHI2DFragmentShader(const ADevice: TRHIDevice): TRHIShaderModule;
+const
+  SwizzleComp: array [0..3] of Char = ('x', 'y', 'z', 'w');
+var
+  Gen: TCastleShaderGeneratorRHI;
+  RawLines: TStringList;
+  I, SemiPos, NextCompOffset, CompCount, MapIdx: Integer;
+  LineStr, Trimmed, Rest, Tok1, Tok2, VarType, VarName, SwizStr, AdaptedBody, DebugLabel: String;
+  SeekPos: Integer;
+begin
+  if ADevice = nil then
+    Exit(nil);
+  if (FRHI2DFragmentShader <> nil) and (FRHI2DFragmentShader.Device = ADevice) then
+    Exit(FRHI2DFragmentShader);
+
+  FreeAndNil(FRHI2DFragmentShader);
+  FRHI2DAdaptedFragmentSource := '';
+  SetLength(FRHI2DUniformMappings, 0);
+
+  if (FSource[stFragment] = nil) or (Trim(FSource[stFragment].Text) = '') then
+    Exit(nil);
+
+  Gen := TCastleShaderGeneratorRHI.Create(ADevice.Capabilities.Backend);
+  RawLines := TStringList.Create;
+  try
+    RawLines.Text := FSource[stFragment].Text;
+    AdaptedBody := '';
+    NextCompOffset := 0;
+
+    for I := 0 to RawLines.Count - 1 do
+    begin
+      LineStr := RawLines[I];
+      Trimmed := Trim(LineStr);
+
+      if IsPrefix('#version ', Trimmed, False) or
+         IsPrefix('precision ', Trimmed, False) then
+        Continue;
+
+      if IsPrefix('varying ', Trimmed, False) and (Pos(';', Trimmed) > 0) then
+      begin
+        SemiPos := Pos(';', Trimmed);
+        Rest := Trim(Copy(Trimmed, Length('varying ') + 1, SemiPos - Length('varying ') - 1));
+        SeekPos := 1;
+        VarName := '';
+        while SeekPos <= Length(Rest) do
+        begin
+          Tok1 := NextToken(Rest, SeekPos, WhiteSpaces);
+          if Tok1 <> '' then
+            VarName := Tok1
+          else
+            Break;
+        end;
+        if VarName = 'frag_coord' then
+          AdaptedBody := AdaptedBody + '#define frag_coord gl_FragCoord.xy' + NL
+        else
+        if VarName <> '' then
+          AdaptedBody := AdaptedBody + '#define ' + VarName + ' castle_tex_coord0' + NL;
+        Continue;
+      end;
+
+      if IsPrefix('uniform ', Trimmed, False) and (Pos(';', Trimmed) > 0) then
+      begin
+        SemiPos := Pos(';', Trimmed);
+        Rest := Trim(Copy(Trimmed, Length('uniform ') + 1, SemiPos - Length('uniform ') - 1));
+        SeekPos := 1;
+        Tok1 := NextToken(Rest, SeekPos, WhiteSpaces);
+        if (Tok1 = 'lowp') or (Tok1 = 'mediump') or (Tok1 = 'highp') then
+          VarType := NextToken(Rest, SeekPos, WhiteSpaces)
+        else
+          VarType := Tok1;
+        Tok2 := NextToken(Rest, SeekPos, WhiteSpaces);
+        VarName := Tok2;
+
+        if VarType = 'sampler2D' then
+        begin
+          if VarName <> '' then
+            AdaptedBody := AdaptedBody + 'CASTLE_SAMPLER(0, 0) uniform sampler2D ' + VarName + ';' + NL;
+          Continue;
+        end else
+        if VarName = 'color' then
+        begin
+          AdaptedBody := AdaptedBody + '#define color castle_color_per_vertex' + NL;
+          Continue;
+        end else
+        if VarName = 'clip_line' then
+        begin
+          AdaptedBody := AdaptedBody + '#define clip_line (CastleDraw.u_ModelViewMatrix[1].xyz)' + NL;
+          Continue;
+        end else
+        if VarName = 'viewport_size' then
+        begin
+          AdaptedBody := AdaptedBody +
+            '#define viewport_size (vec2(2.0 / max(CastleDraw.u_ModelViewMatrix[0].x, 1e-6), 2.0 / max(CastleDraw.u_ModelViewMatrix[0].y, 1e-6)))' + NL;
+          Continue;
+        end else
+        if (VarName <> '') and
+           ((VarType = 'float') or (VarType = 'int') or (VarType = 'bool') or
+            (VarType = 'vec2') or (VarType = 'vec3') or (VarType = 'vec4')) then
+        begin
+          if VarType = 'vec4' then
+            CompCount := 4
+          else
+          if VarType = 'vec3' then
+            CompCount := 3
+          else
+          if VarType = 'vec2' then
+            CompCount := 2
+          else
+            CompCount := 1;
+
+          if NextCompOffset + CompCount > 4 then
+            NextCompOffset := 4 - CompCount;
+
+          MapIdx := Length(FRHI2DUniformMappings);
+          SetLength(FRHI2DUniformMappings, MapIdx + 1);
+          FRHI2DUniformMappings[MapIdx].Name := VarName;
+          FRHI2DUniformMappings[MapIdx].ComponentOffset := NextCompOffset;
+          FRHI2DUniformMappings[MapIdx].ComponentCount := CompCount;
+
+          case CompCount of
+            1: SwizStr := SwizzleComp[NextCompOffset];
+            2: SwizStr := SwizzleComp[NextCompOffset] + SwizzleComp[NextCompOffset + 1];
+            3: SwizStr := SwizzleComp[NextCompOffset] + SwizzleComp[NextCompOffset + 1] + SwizzleComp[NextCompOffset + 2];
+            else SwizStr := 'xyzw';
+          end;
+
+          if VarType = 'int' then
+            AdaptedBody := AdaptedBody + '#define ' + VarName + ' int(CastleDraw.u_ModelViewMatrix[3].' + SwizStr + ')' + NL
+          else
+          if VarType = 'bool' then
+            AdaptedBody := AdaptedBody + '#define ' + VarName + ' (CastleDraw.u_ModelViewMatrix[3].' + SwizStr + ' != 0.0)' + NL
+          else
+          if CompCount = 4 then
+            AdaptedBody := AdaptedBody + '#define ' + VarName + ' (CastleDraw.u_ModelViewMatrix[3])' + NL
+          else
+            AdaptedBody := AdaptedBody + '#define ' + VarName + ' (CastleDraw.u_ModelViewMatrix[3].' + SwizStr + ')' + NL;
+
+          if NextCompOffset + CompCount < 4 then
+            Inc(NextCompOffset, CompCount);
+          Continue;
+        end;
+      end;
+
+      AdaptedBody := AdaptedBody + LineStr + NL;
+    end;
+
+    FRHI2DAdaptedFragmentSource :=
+      Gen.GenerateBatch2DFragmentPreamble +
+      '#define texture2D texture' + NL +
+      '#define gl_FragColor castle_FragColor' + NL +
+      AdaptedBody;
+
+    if Name <> '' then
+      DebugLabel := Name + '.RHI2D.frag'
+    else
+      DebugLabel := 'CustomShader2D.RHI2D.frag';
+    FRHI2DFragmentShader := ADevice.CreateShaderModuleFromGLSL(
+      ssFragment, FRHI2DAdaptedFragmentSource, DebugLabel);
+    Result := FRHI2DFragmentShader;
+  finally
+    FreeAndNil(RawLines);
+    FreeAndNil(Gen);
+  end;
+end;
+
+function TGLSLProgram.BuildRHI2DCustomParams: TVector4;
+var
+  I, C: Integer;
+  Val: TVector4;
+begin
+  Result := TVector4.Zero;
+  if Length(FRHI2DUniformMappings) > 0 then
+  begin
+    for I := 0 to High(FRHI2DUniformMappings) do
+      if GetRHIUniformValue(FRHI2DUniformMappings[I].Name, Val) then
+        for C := 0 to FRHI2DUniformMappings[I].ComponentCount - 1 do
+          if (FRHI2DUniformMappings[I].ComponentOffset + C >= 0) and
+             (FRHI2DUniformMappings[I].ComponentOffset + C <= 3) then
+            Result.Data[FRHI2DUniformMappings[I].ComponentOffset + C] := Val.Data[C];
+  end else
+  if (FRHIUniformOrder <> nil) and (FRHIUniformOrder.Count > 0) then
+  begin
+    if GetRHIUniformValue(FRHIUniformOrder[0], Val) then
+      Result := Val;
+  end;
 end;
 
 end.

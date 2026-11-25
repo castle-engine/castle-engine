@@ -165,6 +165,11 @@ type
       const Interpolation: TResizeInterpolation = riBilinear;
       const LoadOptions: TLoadImageOptions = []);
 
+    { Load video frames directly from an array of TCastleImage instances. }
+    procedure LoadFromImageArray(const AImages: array of TCastleImage;
+      const TakeImagesOwnership: Boolean = True;
+      const AFramesPerSecond: Single = 25.0);
+
     { Save video to file (or image sequence).
 
       Handled formats: just like LoadFromFile. Also, just like LoadFromFile,
@@ -515,6 +520,23 @@ var
 begin
   for I := 0 to High(FItems) do
     FItems[I].Resize(ResizeToX, ResizeToY, Interpolation);
+end;
+
+procedure TVideo.LoadFromImageArray(const AImages: array of TCastleImage;
+  const TakeImagesOwnership: Boolean; const AFramesPerSecond: Single);
+var
+  I: Integer;
+begin
+  Close;
+  if Length(AImages) = 0 then Exit;
+  SetLength(FItems, Length(AImages));
+  for I := 0 to High(AImages) do
+    if TakeImagesOwnership then
+      FItems[I] := AImages[I]
+    else
+      FItems[I] := AImages[I].MakeCopy;
+  FFramesPerSecond := AFramesPerSecond;
+  FLoaded := true;
 end;
 
 procedure TVideo.LoadFromFile(const Url: String;

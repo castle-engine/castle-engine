@@ -49,6 +49,21 @@
     FramebufferBound: Boolean;
     FColorBufferAlpha: Boolean;
     FMultiSampling: Cardinal;
+
+    { RHI backend state (Vulkan / explicit RHI when RHIDevice <> nil) }
+    FRHIColorTexture: TRHITexture;
+    FRHIDepthTexture: TRHITexture;
+    FRHIOwnedColorTexture: TRHITexture;
+    FRHIOwnedDepthTexture: TRHITexture;
+    FRHIMSAAColorTexture: TRHITexture;
+    FRHIMSAADepthTexture: TRHITexture;
+    FRHIInitialized: Boolean;
+    FRHIRenderingActive: Boolean;
+    FRHIRenderPassCount: Cardinal;
+    FRHIArrayLayer: Cardinal;
+    FRHIMipLevel: Cardinal;
+    FRHISuspendedOuterPass: Boolean;
+    FRHISuspendedRenderingInfo: TRHIRenderingInfo;
   public
     { Constructor. Doesn't require OpenGL context,
       and doesn't initialize the framebuffer.
@@ -260,6 +275,22 @@
       Call this between RenderBegin and RenderEnd. }
     function SaveScreen(const ImageClass: TCastleImageClass;
       const Rect: TRectangle): TCastleImage;
+
+    { RHI color and depth target textures used when @link(RHIDevice) <> @nil.
+      May be assigned before @link(GLContextOpen) or dynamically switched via
+      @link(SetRHITexture). When left @nil, @link(GLContextOpen) automatically
+      allocates internal RHI textures matching @link(Width), @link(Height),
+      @link(Buffer), and @link(MultiSampling).
+      @groupBegin }
+    property RHIColorTexture: TRHITexture read FRHIColorTexture write FRHIColorTexture;
+    property RHIDepthTexture: TRHITexture read FRHIDepthTexture write FRHIDepthTexture;
+    procedure SetRHITexture(const AColorTexture: TRHITexture;
+      const ADepthTexture: TRHITexture = nil);
+    property RHIInitialized: Boolean read FRHIInitialized;
+    property RHIRenderPassCount: Cardinal read FRHIRenderPassCount;
+    property RHIArrayLayer: Cardinal read FRHIArrayLayer write FRHIArrayLayer;
+    property RHIMipLevel: Cardinal read FRHIMipLevel write FRHIMipLevel;
+    { @groupEnd }
   end;
 {$endif read_interface_type}
 
@@ -447,7 +478,7 @@ constructor TGLRenderToTexture.Create(const AWidth, AHeight: Cardinal);
 begin
   inherited Create;
 
-  if not ApplicationProperties.IsGLContextOpen then
+  if (not ApplicationProperties.IsGLContextOpen) and (RHIDevice = nil) then
     raise EFramebufferError.Create('Cannot create TGLRenderToTexture when OpenGL context is not available. Do this later, e.g. from events like TCastleUserInterface.Render, TCastleUserInterface.GLContextOpen, Application.OnInitialize.');
 
   FTextureTarget := GL_TEXTURE_2D;
@@ -470,6 +501,10 @@ procedure TGLRenderToTexture.SetTexture(
   const ATexture: TGLTextureId;
   const ATextureTarget: TGLenum);
 begin
+  if (ATextureTarget >= GL_TEXTURE_CUBE_MAP_POSITIVE_X) and
+     (ATextureTarget <= GL_TEXTURE_CUBE_MAP_NEGATIVE_Z) then
+    FRHIArrayLayer := ATextureTarget - GL_TEXTURE_CUBE_MAP_POSITIVE_X;
+
   if (ATexture <> FTexture) or (ATextureTarget <> FTextureTarget) then
   begin
     FTexture := ATexture;
@@ -484,6 +519,14 @@ begin
         UnbindFramebuffer;
     end;
   end;
+end;
+
+procedure TGLRenderToTexture.SetRHITexture(const AColorTexture: TRHITexture;
+  const ADepthTexture: TRHITexture);
+begin
+  FRHIColorTexture := AColorTexture;
+  if ADepthTexture <> nil then
+    FRHIDepthTexture := ADepthTexture;
 end;
 
 procedure TGLRenderToTexture.GLContextOpen;
@@ -557,8 +600,85 @@ var
   DepthAttachmentWithStencil: boolean;
   Success: boolean;
   PreviousFboDefaultBuffer: TGLenum;
+  TexDesc: TRHITextureDesc;
+  DepthFmt: TRHIPixelFormat;
+  EffectiveSamples: Cardinal;
 begin
   Assert(not FGLInitialized, 'You cannot call TGLRenderToTexture.GLContextInit on already OpenGL-initialized instance. Call GLContextClose first if this is really what you want.');
+
+  if RHIDevice <> nil then
+  begin
+    if (Width = 0) or (Height = 0) or
+       ((RHIDevice.Capabilities.MaxTextureSize > 0) and
+        ((Width > RHIDevice.Capabilities.MaxTextureSize) or
+         (Height > RHIDevice.Capabilities.MaxTextureSize))) then
+      raise EFramebufferSizeTooLow.CreateFmt(
+        'Invalid or unsupported RHI render-to-texture size %d x %d (MaxTextureSize = %d)',
+        [Width, Height, RHIDevice.Capabilities.MaxTextureSize]);
+
+    if Stencil then
+      DepthFmt := pfD24_UNorm_S8_UInt
+    else
+      DepthFmt := pfD32_Float;
+
+    if Buffer = tbDepth then
+    begin
+      if (FRHIDepthTexture = nil) and (FRHIColorTexture <> nil) and
+         (FRHIColorTexture.Desc.Format in [pfD16_UNorm, pfD24_UNorm_S8_UInt, pfD32_Float, pfD32_Float_S8_UInt]) then
+        FRHIDepthTexture := FRHIColorTexture;
+      if FRHIDepthTexture = nil then
+      begin
+        TexDesc := TRHITextureDesc.Create2D(Width, Height, DepthFmt,
+          [tuDepthStencil, tuSampled, tuTransferSrc], 1, 1);
+        TexDesc.DebugName := 'TGLRenderToTexture.OwnedDepth';
+        FRHIOwnedDepthTexture := RHIDevice.CreateTexture(TexDesc);
+        FRHIDepthTexture := FRHIOwnedDepthTexture;
+      end;
+    end else
+    begin
+      if FRHIColorTexture = nil then
+      begin
+        TexDesc := TRHITextureDesc.Create2D(Width, Height, pfRGBA8_UNorm,
+          [tuColorAttachment, tuSampled, tuTransferSrc, tuTransferDst], 1, 1);
+        TexDesc.DebugName := 'TGLRenderToTexture.OwnedColor';
+        FRHIOwnedColorTexture := RHIDevice.CreateTexture(TexDesc);
+        FRHIColorTexture := FRHIOwnedColorTexture;
+      end;
+      if FRHIDepthTexture = nil then
+      begin
+        TexDesc := TRHITextureDesc.Create2D(Width, Height, DepthFmt,
+          [tuDepthStencil, tuSampled, tuTransferSrc], 1, 1);
+        TexDesc.DebugName := 'TGLRenderToTexture.OwnedDepth';
+        FRHIOwnedDepthTexture := RHIDevice.CreateTexture(TexDesc);
+        FRHIDepthTexture := FRHIOwnedDepthTexture;
+      end;
+    end;
+
+    EffectiveSamples := ClampSampleCountToCapabilities(MultiSampling,
+      RHIDevice.Capabilities.MaxFramebufferSampleCount);
+    if EffectiveSamples > 1 then
+    begin
+      if (Buffer <> tbDepth) and (FRHIColorTexture <> nil) and
+         (FRHIColorTexture.Desc.SampleCount = 1) then
+      begin
+        TexDesc := TRHITextureDesc.Create2D(Width, Height, FRHIColorTexture.Desc.Format,
+          [tuColorAttachment, tuTransferSrc], 1, EffectiveSamples);
+        TexDesc.DebugName := 'TGLRenderToTexture.MSAAColor';
+        FRHIMSAAColorTexture := RHIDevice.CreateTexture(TexDesc);
+      end;
+      if (FRHIDepthTexture <> nil) and (FRHIDepthTexture.Desc.SampleCount = 1) then
+      begin
+        TexDesc := TRHITextureDesc.Create2D(Width, Height, FRHIDepthTexture.Desc.Format,
+          [tuDepthStencil], 1, EffectiveSamples);
+        TexDesc.DebugName := 'TGLRenderToTexture.MSAADepth';
+        FRHIMSAADepthTexture := RHIDevice.CreateTexture(TexDesc);
+      end;
+    end;
+
+    FRHIInitialized := True;
+    FGLInitialized := True;
+    Exit;
+  end;
 
   if GLFeatures.Framebuffer and
      (not (GLVersion.BuggyFBOCubeMap and TargetIsCubeMapSide(TextureTarget))) then
@@ -668,6 +788,18 @@ end;
 
 procedure TGLRenderToTexture.GLContextClose;
 begin
+  if FRHIColorTexture = FRHIOwnedColorTexture then
+    FRHIColorTexture := nil;
+  if FRHIDepthTexture = FRHIOwnedDepthTexture then
+    FRHIDepthTexture := nil;
+  FreeAndNil(FRHIMSAAColorTexture);
+  FreeAndNil(FRHIMSAADepthTexture);
+  FreeAndNil(FRHIOwnedColorTexture);
+  FreeAndNil(FRHIOwnedDepthTexture);
+  FRHIInitialized := False;
+  FRHIRenderingActive := False;
+  FGLInitialized := False;
+
   FreeRenderbuffer(RenderbufferColor);
   FreeRenderbuffer(RenderbufferDepth);
   FreeRenderbuffer(RenderbufferStencil);
@@ -675,8 +807,100 @@ begin
 end;
 
 procedure TGLRenderToTexture.RenderBegin;
+var
+  RenderAreaRect: TRectangle;
+  RenderingInfo: TRHIRenderingInfo;
+  I: Integer;
 begin
+  TDrawableImage.BatchingFlush;
   Inc(FOffscreenRendering);
+
+  if RHIDevice <> nil then
+  begin
+    if not FRHIInitialized then
+      GLContextOpen;
+    if RenderContext <> nil then
+      RenderContext.InternalControlRectIgnore := FOffscreenRendering;
+    if (ActiveCommandList <> nil) and (not FRHIRenderingActive) then
+    begin
+      if not FramebufferBound then
+      begin
+        if ActiveCommandList.IsRendering then
+        begin
+          FRHISuspendedOuterPass := True;
+          FRHISuspendedRenderingInfo := ActiveCommandList.ActiveRenderingInfo;
+          FRHISuspendedRenderingInfo.ColorAttachments := Copy(ActiveCommandList.ActiveRenderingInfo.ColorAttachments);
+          { Only switch to loLoad when draws or clears were already recorded in the outer pass;
+            if the outer pass had 0 commands, preserve its original LoadOp (e.g. loClear) so
+            tile-based / paravirtualized GPUs (MoltenVK Apple Paravirtual device) do not rely on
+            loading from a 0-draw empty render pass encoder. }
+          if ActiveCommandList.CurrentPassHasCommands then
+          begin
+            for I := 0 to High(FRHISuspendedRenderingInfo.ColorAttachments) do
+              FRHISuspendedRenderingInfo.ColorAttachments[I].LoadOp := loLoad;
+            if FRHISuspendedRenderingInfo.HasDepthAttachment then
+              FRHISuspendedRenderingInfo.DepthAttachment.LoadOp := loLoad;
+          end;
+          ActiveCommandList.EndRendering;
+        end else
+          FRHISuspendedOuterPass := False;
+      end;
+
+      RenderAreaRect := Rectangle(0, 0, Width, Height);
+      if Buffer = tbDepth then
+      begin
+        if FRHIDepthTexture <> nil then
+          ActiveCommandList.TransitionTexture(FRHIDepthTexture, rsDepthStencilWrite);
+        RenderingInfo := TRHIRenderingInfo.CreateDepthOnly(
+          RenderAreaRect, FRHIDepthTexture, loClear, soStore, 1.0);
+        RenderingInfo.DepthAttachment.ArrayLayer := FRHIArrayLayer;
+        RenderingInfo.DepthAttachment.MipLevel := FRHIMipLevel;
+      end else
+      begin
+        if FRHIColorTexture <> nil then
+          ActiveCommandList.TransitionTexture(FRHIColorTexture, rsColorAttachment);
+        if FRHIMSAAColorTexture <> nil then
+          ActiveCommandList.TransitionTexture(FRHIMSAAColorTexture, rsColorAttachment);
+        if FRHIDepthTexture <> nil then
+          ActiveCommandList.TransitionTexture(FRHIDepthTexture, rsDepthStencilWrite);
+        if FRHIMSAADepthTexture <> nil then
+          ActiveCommandList.TransitionTexture(FRHIMSAADepthTexture, rsDepthStencilWrite);
+
+        if (FRHIMSAAColorTexture <> nil) and (FRHIColorTexture <> nil) then
+        begin
+          if Buffer = tbColorAndDepth then
+            RenderingInfo := TRHIRenderingInfo.CreateColorDepthMSAA(
+              RenderAreaRect, FRHIMSAAColorTexture, FRHIColorTexture,
+              loClear, Vector4(0, 0, 0, 1),
+              FRHIMSAADepthTexture, loClear, 1.0, FRHIDepthTexture)
+          else
+            RenderingInfo := TRHIRenderingInfo.CreateColorDepthMSAA(
+              RenderAreaRect, FRHIMSAAColorTexture, FRHIColorTexture,
+              loClear, Vector4(0, 0, 0, 1),
+              FRHIMSAADepthTexture, loClear, 1.0, nil);
+        end else
+        begin
+          RenderingInfo := TRHIRenderingInfo.CreateColorDepth(
+            RenderAreaRect, FRHIColorTexture, loClear, Vector4(0, 0, 0, 1),
+            FRHIDepthTexture, loClear, 1.0);
+          if (Buffer = tbColorAndDepth) and RenderingInfo.HasDepthAttachment then
+            RenderingInfo.DepthAttachment.StoreOp := soStore;
+        end;
+        if Length(RenderingInfo.ColorAttachments) > 0 then
+        begin
+          RenderingInfo.ColorAttachments[0].ArrayLayer := FRHIArrayLayer;
+          RenderingInfo.ColorAttachments[0].MipLevel := FRHIMipLevel;
+        end;
+      end;
+      ActiveCommandList.BeginRendering(RenderingInfo);
+      ActiveCommandList.SetViewport(FloatRectangle(0, 0, Width, Height), 0.0, 1.0);
+      ActiveCommandList.SetScissor(RenderAreaRect);
+      FRHIRenderingActive := True;
+      Inc(FRHIRenderPassCount);
+    end;
+    FramebufferBound := True;
+    Exit;
+  end;
 
   if Framebuffer <> GLObjectNone then
   begin
@@ -742,6 +966,37 @@ procedure TGLRenderToTexture.RenderEnd(const RenderBeginFollows: boolean);
 var
   PreviousFboDefaultBuffer: TGLenum;
 begin
+  TDrawableImage.BatchingFlush;
+
+  if RHIDevice <> nil then
+  begin
+    Assert(FramebufferBound);
+    if (ActiveCommandList <> nil) and FRHIRenderingActive then
+    begin
+      ActiveCommandList.EndRendering;
+      FRHIRenderingActive := False;
+      if (Buffer in [tbColor, tbColorAndDepth, tbNone]) and (FRHIColorTexture <> nil) then
+        ActiveCommandList.TransitionTexture(FRHIColorTexture, rsShaderRead);
+      if (Buffer in [tbDepth, tbColorAndDepth]) and (FRHIDepthTexture <> nil) then
+        ActiveCommandList.TransitionTexture(FRHIDepthTexture, rsShaderRead);
+    end;
+    if not RenderBeginFollows then
+    begin
+      if (ActiveCommandList <> nil) and FRHISuspendedOuterPass then
+      begin
+        FRHISuspendedOuterPass := False;
+        ActiveCommandList.BeginRendering(FRHISuspendedRenderingInfo);
+        ActiveCommandList.SetViewport(FloatRectangle(FRHISuspendedRenderingInfo.RenderArea), 0.0, 1.0);
+        ActiveCommandList.SetScissor(FRHISuspendedRenderingInfo.RenderArea);
+      end;
+      FramebufferBound := False;
+    end;
+    Dec(FOffscreenRendering);
+    if RenderContext <> nil then
+      RenderContext.InternalControlRectIgnore := FOffscreenRendering;
+    Exit;
+  end;
+
 {$ifdef DEBUG_SAVE_FRAMEBUFFER_COLOR}
   if Buffer <> tbDepth then
     SaveColor('file:///tmp/framebuffer_color.png');
@@ -785,6 +1040,17 @@ end;
 
 procedure TGLRenderToTexture.GenerateMipmap;
 begin
+  if RHIDevice <> nil then
+  begin
+    if FRHIColorTexture <> nil then
+    begin
+      if ActiveCommandList <> nil then
+        ActiveCommandList.GenerateMipmaps(FRHIColorTexture)
+      else
+        FRHIColorTexture.GenerateMipmaps;
+    end;
+    Exit;
+  end;
   glBindTexture(CompleteTextureTarget, Texture);
   CastleInternalGLUtils.GenerateMipmap(CompleteTextureTarget);
   { TODO: size of these mipmaps is not accounted for in texture memory profiler }
@@ -792,7 +1058,7 @@ end;
 
 function TGLRenderToTexture.ColorBuffer: TColorBuffer;
 begin
-  if Framebuffer <> GLObjectNone then
+  if (Framebuffer <> GLObjectNone) or FRHIInitialized then
     Result := cbColorAttachment0
   else
     Result := cbBack;
@@ -802,8 +1068,34 @@ function TGLRenderToTexture.SaveScreen(const ImageClass: TCastleImageClass;
   const Rect: TRectangle): TCastleImage;
 var
   NonMultiFbo: TGLRenderToTexture;
+  GrabbedRGBA: TRGBAlphaImage;
+  TargetTex: TRHITexture;
 begin
-  Assert(FramebufferBound);
+  Assert(FramebufferBound or (RHIDevice <> nil));
+  TDrawableImage.BatchingFlush;
+
+  if RHIDevice <> nil then
+  begin
+    if Buffer = tbDepth then
+      TargetTex := FRHIDepthTexture
+    else
+      TargetTex := FRHIColorTexture;
+    if TargetTex = nil then
+      raise EFramebufferError.Create('Cannot SaveScreen on TGLRenderToTexture when RHI target texture is nil');
+    GrabbedRGBA := RHIDevice.GrabTextureImage(TargetTex, Rect);
+    if (ImageClass = nil) or (GrabbedRGBA is ImageClass) then
+      Result := GrabbedRGBA
+    else
+    begin
+      try
+        Result := ImageClass.Create(GrabbedRGBA.Width, GrabbedRGBA.Height, GrabbedRGBA.Depth);
+        Result.Assign(GrabbedRGBA);
+      finally
+        FreeAndNil(GrabbedRGBA);
+      end;
+    end;
+    Exit;
+  end;
 
   if (MultiSampling > 1) and
      GLFeatures.FBOMultiSampling then

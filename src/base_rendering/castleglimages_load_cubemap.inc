@@ -82,26 +82,54 @@ procedure glTextureCubeMap(const TextureIdForProfiler: TGLTextureId;
   Adjusting image size for cube map texture. }
 
 function IsCubeMapTextureSized(const Size: Cardinal): boolean; overload;
+var
+  MaxSize: Cardinal;
 begin
-  Result :=
-    (not GLFeatures.TextureCubeMap) or
-    (
-      IsPowerOf2(Size) and
-      (Size > 0) and
-      (Size <= GLFeatures.MaxCubeMapTextureSize)
-    );
+  if GLFeatures <> nil then
+  begin
+    Result :=
+      (not GLFeatures.TextureCubeMap) or
+      (
+        IsPowerOf2(Size) and
+        (Size > 0) and
+        (Size <= GLFeatures.MaxCubeMapTextureSize)
+      );
+  end else
+  begin
+    if (RHIDevice <> nil) and (RHIDevice.Capabilities.MaxTextureSize > 0) then
+      MaxSize := RHIDevice.Capabilities.MaxTextureSize
+    else
+      MaxSize := 16384;
+    Result := IsPowerOf2(Size) and (Size > 0) and (Size <= MaxSize);
+  end;
 end;
 
 function IsCubeMapTextureSized(const R: TEncodedImage): boolean; overload;
+var
+  MaxSize: Cardinal;
 begin
-  Result :=
-    (not GLFeatures.TextureCubeMap) or
-    (
-      (r.Width = r.Height) { must be square } and
+  if GLFeatures <> nil then
+  begin
+    Result :=
+      (not GLFeatures.TextureCubeMap) or
+      (
+        (r.Width = r.Height) { must be square } and
+        IsPowerOf2(r.Width) and
+        (r.Width > 0) and
+        (r.Width <= GLFeatures.MaxCubeMapTextureSize)
+      );
+  end else
+  begin
+    if (RHIDevice <> nil) and (RHIDevice.Capabilities.MaxTextureSize > 0) then
+      MaxSize := RHIDevice.Capabilities.MaxTextureSize
+    else
+      MaxSize := 16384;
+    Result :=
+      (r.Width = r.Height) and
       IsPowerOf2(r.Width) and
       (r.Width > 0) and
-      (r.Width <= GLFeatures.MaxCubeMapTextureSize)
-    );
+      (r.Width <= MaxSize);
+  end;
 end;
 
 function ResizeToCubeMapTextureSize(const r: TCastleImage): TCastleImage; overload; forward;
@@ -119,15 +147,24 @@ begin
 end;
 
 function ResizeToCubeMapTextureSize(const Size: Cardinal): Cardinal; overload;
+var
+  MaxSize: Cardinal;
 begin
   Result := Size;
-  if GLFeatures.TextureCubeMap then
+  if (GLFeatures = nil) or GLFeatures.TextureCubeMap then
   begin
+    if GLFeatures <> nil then
+      MaxSize := GLFeatures.MaxCubeMapTextureSize
+    else if (RHIDevice <> nil) and (RHIDevice.Capabilities.MaxTextureSize > 0) then
+      MaxSize := RHIDevice.Capabilities.MaxTextureSize
+    else
+      MaxSize := 16384;
+
     if Size <= 0 then
       Result := 1
     else
-    if Size > GLFeatures.MaxCubeMapTextureSize then
-      Result := GLFeatures.MaxCubeMapTextureSize
+    if Size > MaxSize then
+      Result := MaxSize
     else
     if IsPowerOf2(Size) then
       Result := Size
@@ -143,7 +180,7 @@ function ResizeToCubeMapTextureSize(const r: TCastleImage): TCastleImage; overlo
 var
   Size: Cardinal;
 begin
-  if GLFeatures.TextureCubeMap then
+  if (GLFeatures = nil) or GLFeatures.TextureCubeMap then
   begin
     Size := Max(r.Width, r.Height);
     Size := ResizeToCubeMapTextureSize(Size);

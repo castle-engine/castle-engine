@@ -85,6 +85,11 @@ function SaveScreenToGL_NoFlush(const Rect: TRectangle;
 function SaveScreenDepth_NoFlush(const Rect: TRectangle): TGrayscaleImage;
 {$endif}
 
+var
+  { Diagnostics for RHI screen and depth readback. }
+  RHISaveScreenCount: Integer = 0;
+  RHISaveScreenDepthCount: Integer = 0;
+
 {$endif read_interface_func}
 
 {$endif read_interface}
@@ -136,6 +141,41 @@ procedure SaveScreen_NoFlush(const Image: TCastleImage;
     finally AfterPackImage(Image) end;
   end;
 
+var
+  X, Y: Integer;
+  TargetColorTex: TRHITexture;
+  {$ifdef OpenGLES}
+  ImageRGBA: TRGBAlphaImage;
+  {$endif}
+begin
+  TDrawableImage.BatchingFlush;
+
+  if RHIDevice <> nil then
+  begin
+    Inc(RHISaveScreenCount);
+    X := Left;
+    Y := Bottom;
+    if (RenderContext <> nil) and (RenderContext.InternalControlRectIgnore = 0) then
+    begin
+      X := X + RenderContext.InternalControlRect.Left;
+      Y := Y + RenderContext.InternalControlRect.Bottom;
+    end;
+    TargetColorTex := RHIDevice.GetSwapchainColorTexture;
+    if ((ReadBuffer = cbColorAttachment0) or (TargetColorTex = nil)) and
+       (ActiveCommandList <> nil) and ActiveCommandList.IsRendering and
+       (Length(ActiveCommandList.ActiveRenderingInfo.ColorAttachments) > 0) then
+    begin
+      if ActiveCommandList.ActiveRenderingInfo.ColorAttachments[0].ResolveTexture <> nil then
+        TargetColorTex := ActiveCommandList.ActiveRenderingInfo.ColorAttachments[0].ResolveTexture
+      else
+        TargetColorTex := ActiveCommandList.ActiveRenderingInfo.ColorAttachments[0].Texture;
+    end;
+    if not RHIDevice.GrabTextureImage(TargetColorTex,
+      Rectangle(X, Y, Image.Width, Image.Height), Image) then
+      Image.Clear(Vector4Byte(0, 0, 0, 255));
+    Exit;
+  end;
+
 {$ifdef OpenGLES}
 
 { Under OpenGLES, the only type+format combination that is guaranteed
@@ -143,9 +183,6 @@ procedure SaveScreen_NoFlush(const Image: TCastleImage;
   see http://www.khronos.org/opengles/sdk/docs/man/xhtml/glReadPixels.xml .
   So grab image to TRGBAlphaImage, and later convert it as necessary. }
 
-var
-  ImageRGBA: TRGBAlphaImage;
-begin
   if Image is TRGBAlphaImage then
     ReadPixels(Image) else
   begin
@@ -156,7 +193,6 @@ begin
     finally FreeAndNil(ImageRGBA) end;
   end;
 {$else}
-begin
   ReadPixels(Image);
 {$endif}
 end;
@@ -191,7 +227,42 @@ end;
 function SaveScreenDepth_NoFlush(const Rect: TRectangle): TGrayscaleImage;
 var
   X, Y: Integer;
+  TargetDepthTex: TRHITexture;
 begin
+  TDrawableImage.BatchingFlush;
+
+  if RHIDevice <> nil then
+  begin
+    Inc(RHISaveScreenDepthCount);
+    Result := TGrayscaleImage.Create(Rect.Width, Rect.Height);
+    try
+      X := Rect.Left;
+      Y := Rect.Bottom;
+      if (RenderContext <> nil) and (RenderContext.InternalControlRectIgnore = 0) then
+      begin
+        X := X + RenderContext.InternalControlRect.Left;
+        Y := Y + RenderContext.InternalControlRect.Bottom;
+      end;
+      TargetDepthTex := RHIDevice.GetSwapchainDepthTexture;
+      if (ActiveCommandList <> nil) and ActiveCommandList.IsRendering and
+         ((ActiveCommandList.ActiveRenderingInfo.DepthAttachment.ResolveTexture <> nil) or
+          (ActiveCommandList.ActiveRenderingInfo.DepthAttachment.Texture <> nil)) then
+      begin
+        if ActiveCommandList.ActiveRenderingInfo.DepthAttachment.ResolveTexture <> nil then
+          TargetDepthTex := ActiveCommandList.ActiveRenderingInfo.DepthAttachment.ResolveTexture
+        else
+          TargetDepthTex := ActiveCommandList.ActiveRenderingInfo.DepthAttachment.Texture;
+      end;
+      if not RHIDevice.GrabTextureImage(TargetDepthTex,
+        Rectangle(X, Y, Rect.Width, Rect.Height), Result) then
+        Result.Clear(Vector4Byte(0, 0, 0, 255));
+    except
+      FreeAndNil(Result);
+      raise;
+    end;
+    Exit;
+  end;
+
   Result := TGrayscaleImage.Create(Rect.Width, Rect.Height);
   try
     BeforePackImage(Result);

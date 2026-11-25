@@ -362,6 +362,22 @@ begin
     P.SourcePath.Add('src/base_rendering/dglopengl');
     P.Targets.AddUnit('castlegl.pas');
 
+    P.SourcePath.Add('src/base_rendering/opengl');
+    P.Targets.AddUnit('castleinternalrhi_opengl.pas');
+
+    P.SourcePath.Add('src/base_rendering/rhi');
+    P.Targets.AddUnit('castleinternalbatch2drhi.pas');
+    P.Targets.AddUnit('castleinternalrenderdoc.pas');
+    P.Targets.AddUnit('castleinternalrhi.pas');
+    P.Targets.AddUnit('castleinternalshaderrhi.pas');
+
+    P.SourcePath.Add('src/base_rendering/vulkan');
+    P.Targets.AddUnit('castleinternalrhi_vulkan.pas');
+    P.Targets.AddUnit('castleinternalshadercompiler.pas');
+    P.Targets.AddUnit('castleinternalvulkan.pas');
+    P.Targets.AddUnit('castleinternalvulkanmemory.pas');
+    P.Targets.AddUnit('castleinternalvulkanwsi.pas');
+
     P.SourcePath.Add('src/services');
     P.Targets.AddUnit('castleactivityrecognition.pas');
     P.Targets.AddUnit('castleads.pas');

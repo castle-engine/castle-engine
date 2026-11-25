@@ -23,7 +23,7 @@ interface
 uses SysUtils, Generics.Collections, Classes,
   {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleUtils, CastleVectors, CastleRectangles, CastleGLShaders, CastleColors,
-  CastleRenderOptions, CastleGLUtils;
+  CastleRenderOptions, CastleGLUtils, CastleInternalRHI;
 
 type
   TClearBuffer = (cbColor, cbDepth, cbStencil);
@@ -135,8 +135,37 @@ type
       FPolygonOffset: TPolygonOffset;
       FBoundBuffer: array [TBufferTarget] of TGLBuffer;
       FInternalControlRectIgnore: Cardinal;
+      FRHIClearCount: Cardinal;
+      FRHILastClearBuffers: TClearBuffers;
+      FRHILastClearColor: TCastleColor;
+      FRHIViewportUpdateCount: Cardinal;
+      FRHILastViewport: TFloatRectangle;
+      FRHILastMinDepth: Single;
+      FRHILastMaxDepth: Single;
+      FRHIScissorUpdateCount: Cardinal;
+      FRHILastScissor: TRectangle;
+      FRHIScissorActive: Boolean;
+      FRHIDepthBiasUpdateCount: Cardinal;
+      FRHILastLineWidth: Single;
+      FRHILineWidthUpdateCount: Cardinal;
+      FRHILastLineType: TLineType;
+      FRHILastLineStipplePattern: Word;
+      FRHILineTypeUpdateCount: Cardinal;
+      FBlendingConstantColor: TCastleColor;
+      FRHILastBlendConstantColor: TCastleColor;
+      FRHIBlendConstantColorUpdateCount: Cardinal;
+      FStencilTest: Boolean;
+      FStencilCompareOp: TRHICompareOp;
+      FStencilReference: Byte;
+      FStencilCompareMask: Byte;
+      FStencilWriteMask: Byte;
+      FStencilFailOp: TRHIStencilOp;
+      FStencilDepthFailOp: TRHIStencilOp;
+      FStencilPassOp: TRHIStencilOp;
 
     procedure SetLineWidth(const Value: Single);
+    procedure SetBlendingConstantColor(const Value: TCastleColor);
+    procedure SetStencilTest(const Value: Boolean);
     procedure SetPointSize(const Value: Single);
     procedure SetGlobalAmbient(const Value: TCastleColorRGB);
     procedure WarnContextNotCurrent;
@@ -162,6 +191,7 @@ type
     function GetBoundBuffer(const Target: TBufferTarget): TGLBuffer;
     procedure SetBoundBuffer(const Target: TBufferTarget; const Value: TGLBuffer);
     procedure SetInternalControlRectIgnore(const Value: Cardinal);
+    procedure GetEffectiveDepthRange(out AMinDepth, AMaxDepth: Single);
 
     { Update OpenGL(ES) state to match the fields of this class.
       Used by SetXxx methods and by SynchronizeState. }
@@ -181,6 +211,7 @@ type
     procedure UpdateCurrentVao;
     procedure UpdateBlendingEnabled;
     procedure UpdateBlendingFunction;
+    procedure UpdateBlendingConstantColor;
     procedure UpdateFixedFunctionAlphaTest;
     procedure UpdateFixedFunctionAlphaCutoff;
     procedure UpdateFixedFunctionLighting;
@@ -228,6 +259,10 @@ type
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+
+    { Effective viewport rectangle after applying @link(ViewportDelta)
+      and @link(InternalControlRect) (when @link(InternalControlRectIgnore) = 0). }
+    function EffectiveViewportRect: TRectangle;
 
     { Clear the whole buffer contents.
 
@@ -371,6 +406,14 @@ type
       const SourceFactor: TBlendingSourceFactor = bsSrcAlpha;
       const DestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha);
     procedure BlendingDisable;
+    property BlendingEnabled: Boolean read FBlendingEnabled;
+    property BlendingSourceFactor: TBlendingSourceFactor read FBlendingSourceFactor;
+    property BlendingDestinationFactor: TBlendingDestinationFactor read FBlendingDestinationFactor;
+    property BlendingConstantColor: TCastleColor read FBlendingConstantColor write SetBlendingConstantColor;
+    class function MapBlendSourceFactorToRHI(const AFactor: TBlendingSourceFactor): TRHIBlendFactor; static;
+    class function MapBlendDestFactorToRHI(const AFactor: TBlendingDestinationFactor): TRHIBlendFactor; static;
+    class function MapDepthFuncToRHI(const ADepthFunc: TDepthFunction): TRHICompareOp; static;
+    class function LineTypeToStipplePattern(const ALineType: TLineType): Word; static;
 
     { Enable alpha test with old/buggy OpenGL implementations that use deprecated fixed-function pipeline.
       This is simply ignored on modern GPUs when "not GLFeatures.EnableFixedFunction". }
@@ -406,6 +449,39 @@ type
       calls that possibly changed the OpenGL(ES) state without going
       through this class. }
     procedure SynchronizeState;
+
+    { RHI state synchronization diagnostics (Phase 12.1). }
+    property RHIClearCount: Cardinal read FRHIClearCount;
+    property RHILastClearBuffers: TClearBuffers read FRHILastClearBuffers;
+    property RHILastClearColor: TCastleColor read FRHILastClearColor;
+    property RHIViewportUpdateCount: Cardinal read FRHIViewportUpdateCount;
+    property RHILastViewport: TFloatRectangle read FRHILastViewport;
+    property RHILastMinDepth: Single read FRHILastMinDepth;
+    property RHILastMaxDepth: Single read FRHILastMaxDepth;
+    property RHIScissorUpdateCount: Cardinal read FRHIScissorUpdateCount;
+    property RHILastScissor: TRectangle read FRHILastScissor;
+    property RHIScissorActive: Boolean read FRHIScissorActive;
+    property RHIDepthBiasUpdateCount: Cardinal read FRHIDepthBiasUpdateCount;
+    property RHILastLineWidth: Single read FRHILastLineWidth;
+    property RHILineWidthUpdateCount: Cardinal read FRHILineWidthUpdateCount;
+    property RHILastLineType: TLineType read FRHILastLineType;
+    property RHILastLineStipplePattern: Word read FRHILastLineStipplePattern;
+    property RHILineTypeUpdateCount: Cardinal read FRHILineTypeUpdateCount;
+    property RHILastBlendConstantColor: TCastleColor read FRHILastBlendConstantColor;
+    property RHIBlendConstantColorUpdateCount: Cardinal read FRHIBlendConstantColorUpdateCount;
+
+    { Stencil test state and RHI pipeline synchronization (used by TCastleMask). }
+    property StencilTest: Boolean read FStencilTest write SetStencilTest default False;
+    property StencilCompareOp: TRHICompareOp read FStencilCompareOp;
+    property StencilReference: Byte read FStencilReference;
+    property StencilCompareMask: Byte read FStencilCompareMask;
+    property StencilWriteMask: Byte read FStencilWriteMask;
+    property StencilFailOp: TRHIStencilOp read FStencilFailOp;
+    property StencilDepthFailOp: TRHIStencilOp read FStencilDepthFailOp;
+    property StencilPassOp: TRHIStencilOp read FStencilPassOp;
+    procedure StencilFunc(const ACompareOp: TRHICompareOp; const AReference, ACompareMask: Byte);
+    procedure StencilOp(const AFailOp, ADepthFailOp, APassOp: TRHIStencilOp; const AWriteMask: Byte = $FF);
+    procedure ApplyRHIStencilAndColorMask(var ADepthStencil: TRHIDepthStencilStateDesc; var ABlendState: TRHIBlendStateDesc);
   end;
 
 var
@@ -441,7 +517,14 @@ const
 
 implementation
 
-uses CastleLog, CastleProjection, CastleInternalGLUtils, CastleGLImages;
+uses CastleLog, CastleProjection, CastleInternalGLUtils, CastleGLImages,
+  CastleApplicationProperties;
+
+function SkipOpenGLStateWhenRHIActive: Boolean; inline;
+begin
+  Result := (RHIDevice <> nil) and
+    ((ActiveCommandList <> nil) or (GLFeatures = nil) or (ApplicationProperties = nil) or (not ApplicationProperties.IsGLContextOpen));
+end;
 
 constructor TRenderContext.Create(AOwner: TComponent);
 begin
@@ -453,6 +536,8 @@ begin
   FEnabledScissors.ParentContext := Self;
   FProjectionMatrix := TMatrix4.Identity;
   FDepthRange := drFull;
+  FRHILastMinDepth := 0.0;
+  FRHILastMaxDepth := 1.0;
   FCullFace := false;
   FFrontFaceCcw := true;
   FColorChannels := AllColorChannels;
@@ -469,6 +554,18 @@ begin
   FFixedFunctionAlphaCutoff := -1;
   FInternalControlRectIgnore := 0;
   InternalControlRect := TRectangle.Empty;
+  FStencilTest := False;
+  FStencilCompareOp := coAlways;
+  FStencilReference := 0;
+  FStencilCompareMask := $FF;
+  FStencilWriteMask := $FF;
+  FStencilFailOp := soKeep;
+  FStencilDepthFailOp := soKeep;
+  FStencilPassOp := soKeep;
+  FRHILastLineType := ltSolid;
+  FRHILastLineStipplePattern := $FFFF;
+  FBlendingConstantColor := Vector4(0, 0, 0, 0);
+  FRHILastBlendConstantColor := Vector4(0, 0, 0, 0);
 end;
 
 destructor TRenderContext.Destroy;
@@ -497,6 +594,8 @@ begin
   if Self <> RenderContext then
     WarnContextNotCurrent;
 
+  TDrawableImage.BatchingFlush;
+
   if InternalClearColorsByDraw and (cbColor in Buffers) then
   begin
     DrawRectangle(Viewport, ClearColor,
@@ -507,12 +606,45 @@ begin
     Exclude(Buffers, cbColor);
   end;
 
+  if (RHIDevice <> nil) and (Buffers <> []) then
+  begin
+    Inc(FRHIClearCount);
+    FRHILastClearBuffers := Buffers;
+    if cbColor in Buffers then
+      FRHILastClearColor := ClearColor;
+    if ActiveCommandList <> nil then
+    begin
+      if ActiveCommandList.IsRendering and (not FRHIScissorActive) then
+      begin
+        ActiveCommandList.SetScissor(ActiveCommandList.ActiveRenderingInfo.RenderArea);
+        try
+          ActiveCommandList.ClearAttachments(
+            cbColor in Buffers, ClearColor,
+            cbDepth in Buffers, 1.0,
+            cbStencil in Buffers, 0);
+        finally
+          if (not EffectiveViewportRect.IsEmpty) and
+             ActiveCommandList.ActiveRenderingInfo.RenderArea.Collides(EffectiveViewportRect) then
+            ActiveCommandList.SetScissor(EffectiveViewportRect);
+        end;
+      end else
+        ActiveCommandList.ClearAttachments(
+          cbColor in Buffers, ClearColor,
+          cbDepth in Buffers, 1.0,
+          cbStencil in Buffers, 0);
+    end;
+  end;
+
   if (cbColor in Buffers) and
      not TVector4.PerfectlyEquals(FClearColor, ClearColor) then
   begin
     FClearColor := ClearColor;
     UpdateClearColor;
   end;
+
+  if SkipOpenGLStateWhenRHIActive then
+    Exit;
+
   Mask := 0;
   for B in Buffers do
     Mask := Mask or ClearBufferMask[B];
@@ -522,6 +654,8 @@ end;
 
 procedure TRenderContext.UpdateClearColor;
 begin
+  if SkipOpenGLStateWhenRHIActive then
+    Exit;
   glClearColor(FClearColor.X, FClearColor.Y, FClearColor.Z, FClearColor.W);
 end;
 
@@ -539,6 +673,15 @@ end;
 
 procedure TRenderContext.UpdateLineWidth;
 begin
+  if RHIDevice <> nil then
+  begin
+    FRHILastLineWidth := FLineWidth;
+    Inc(FRHILineWidthUpdateCount);
+    if ActiveCommandList <> nil then
+      ActiveCommandList.SetLineWidth(FLineWidth);
+    if SkipOpenGLStateWhenRHIActive then
+      Exit;
+  end;
   {$if (not defined(DARWIN)) or defined(OpenGLES)}
   // on desktop macOS, glLineWidth raise GL_INVALID_VALUE for parameters <> 1.0
   glLineWidth(FLineWidth);
@@ -559,6 +702,8 @@ end;
 
 procedure TRenderContext.UpdatePointSize;
 begin
+  if SkipOpenGLStateWhenRHIActive then
+    Exit;
   { Not possible with OpenGL ES.
     See http://stackoverflow.com/questions/9381562/using-gl-points-in-glkit-ios-5
     http://www.idevgames.com/forums/thread-3.html :
@@ -583,7 +728,7 @@ end;
 
 procedure TRenderContext.UpdateGlobalAmbient;
 begin
-  if GLFeatures.EnableFixedFunction then
+  if (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.EnableFixedFunction then
   begin
     {$ifndef OpenGLES}
     { We always set "1" as global ambient alpha.
@@ -627,7 +772,7 @@ end;
 
 procedure TRenderContext.UpdateProjectionMatrix;
 begin
-  if GLFeatures.EnableFixedFunction then
+  if (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.EnableFixedFunction then
   begin
     {$ifndef OpenGLES}
     glMatrixMode(GL_PROJECTION);
@@ -636,6 +781,15 @@ begin
     {$warnings on}
     glMatrixMode(GL_MODELVIEW);
     {$endif}
+  end;
+end;
+
+procedure TRenderContext.GetEffectiveDepthRange(out AMinDepth, AMaxDepth: Single);
+begin
+  case FDepthRange of
+    drFull: begin AMinDepth := 0.0; AMaxDepth := 1.0; end;
+    drNear: begin AMinDepth := 0.0; AMaxDepth := 0.1; end;
+    drFar : begin AMinDepth := 0.1; AMaxDepth := 1.0; end;
   end;
 end;
 
@@ -661,7 +815,22 @@ procedure TRenderContext.UpdateDepthRange;
   end;
   {$endif}
 
+var
+  MinD, MaxD: Single;
 begin
+  GetEffectiveDepthRange(MinD, MaxD);
+  if RHIDevice <> nil then
+  begin
+    FRHILastMinDepth := MinD;
+    FRHILastMaxDepth := MaxD;
+    FRHILastViewport := FloatRectangle(EffectiveViewportRect);
+    Inc(FRHIViewportUpdateCount);
+    if ActiveCommandList <> nil then
+      ActiveCommandList.SetViewport(FRHILastViewport, MinD, MaxD);
+    if SkipOpenGLStateWhenRHIActive then
+      Exit;
+  end;
+
   case FDepthRange of
     drFull: glDepthRange(0  , 1);
     drNear: glDepthRange(0  , 0.1);
@@ -683,6 +852,18 @@ end;
 
 procedure TRenderContext.UpdateCullFace;
 begin
+  if RHIDevice <> nil then
+  begin
+    if ActiveCommandList <> nil then
+    begin
+      if FCullFace then
+        ActiveCommandList.SetCullMode(cmBack)
+      else
+        ActiveCommandList.SetCullMode(cmNone);
+    end;
+    if SkipOpenGLStateWhenRHIActive then
+      Exit;
+  end;
   GLSetEnabled(GL_CULL_FACE, FCullFace);
 end;
 
@@ -700,6 +881,18 @@ end;
 
 procedure TRenderContext.UpdateFrontFace;
 begin
+  if RHIDevice <> nil then
+  begin
+    if ActiveCommandList <> nil then
+    begin
+      if FFrontFaceCcw then
+        ActiveCommandList.SetFrontFace(ffCounterClockwise)
+      else
+        ActiveCommandList.SetFrontFace(ffClockwise);
+    end;
+    if SkipOpenGLStateWhenRHIActive then
+      Exit;
+  end;
   if FFrontFaceCcw then
     glFrontFace(GL_CCW)
   else
@@ -720,6 +913,13 @@ end;
 
 procedure TRenderContext.UpdateDepthTest;
 begin
+  if RHIDevice <> nil then
+  begin
+    if ActiveCommandList <> nil then
+      ActiveCommandList.SetDepthTestEnable(FDepthTest);
+    if SkipOpenGLStateWhenRHIActive then
+      Exit;
+  end;
   GLSetEnabled(GL_DEPTH_TEST, FDepthTest);
 end;
 
@@ -737,6 +937,24 @@ end;
 
 procedure TRenderContext.UpdateDepthFunc;
 begin
+  if RHIDevice <> nil then
+  begin
+    if ActiveCommandList <> nil then
+    begin
+      case FDepthFunc of
+        dfNever:        ActiveCommandList.SetDepthCompareOp(coNever);
+        dfLess:         ActiveCommandList.SetDepthCompareOp(coLess);
+        dfEqual:        ActiveCommandList.SetDepthCompareOp(coEqual);
+        dfLessEqual:    ActiveCommandList.SetDepthCompareOp(coLessOrEqual);
+        dfGreater:      ActiveCommandList.SetDepthCompareOp(coGreater);
+        dfNotEqual:     ActiveCommandList.SetDepthCompareOp(coNotEqual);
+        dfGreaterEqual: ActiveCommandList.SetDepthCompareOp(coGreaterOrEqual);
+        dfAlways:       ActiveCommandList.SetDepthCompareOp(coAlways);
+      end;
+    end;
+    if SkipOpenGLStateWhenRHIActive then
+      Exit;
+  end;
   glDepthFunc(Ord(FDepthFunc));
 end;
 
@@ -760,13 +978,173 @@ begin
 
   if FColorChannels <> Value then
   begin
+    TDrawableImage.BatchingFlush;
     FColorChannels := Value;
     UpdateColorChannels;
   end;
 end;
 
+procedure TRenderContext.SetStencilTest(const Value: Boolean);
+begin
+  if Self <> RenderContext then
+    WarnContextNotCurrent;
+
+  if FStencilTest <> Value then
+  begin
+    TDrawableImage.BatchingFlush;
+    FStencilTest := Value;
+    if not SkipOpenGLStateWhenRHIActive then
+      GLSetEnabled(GL_STENCIL_TEST, FStencilTest);
+  end;
+end;
+
+procedure TRenderContext.StencilFunc(const ACompareOp: TRHICompareOp; const AReference, ACompareMask: Byte);
+const
+  CompareOpToGL: array [TRHICompareOp] of TGLenum = (
+    GL_NEVER, GL_LESS, GL_EQUAL, GL_LEQUAL,
+    GL_GREATER, GL_NOTEQUAL, GL_GEQUAL, GL_ALWAYS
+  );
+begin
+  if Self <> RenderContext then
+    WarnContextNotCurrent;
+
+  TDrawableImage.BatchingFlush;
+  FStencilCompareOp := ACompareOp;
+  FStencilReference := AReference;
+  FStencilCompareMask := ACompareMask;
+  if not SkipOpenGLStateWhenRHIActive then
+    glStencilFunc(CompareOpToGL[ACompareOp], AReference, ACompareMask);
+end;
+
+procedure TRenderContext.StencilOp(const AFailOp, ADepthFailOp, APassOp: TRHIStencilOp; const AWriteMask: Byte);
+const
+  StencilOpToGL: array [TRHIStencilOp] of TGLenum = (
+    GL_KEEP, GL_ZERO, GL_REPLACE, GL_INCR,
+    GL_DECR, GL_INVERT, GL_INCR_WRAP, GL_DECR_WRAP
+  );
+begin
+  if Self <> RenderContext then
+    WarnContextNotCurrent;
+
+  TDrawableImage.BatchingFlush;
+  FStencilFailOp := AFailOp;
+  FStencilDepthFailOp := ADepthFailOp;
+  FStencilPassOp := APassOp;
+  FStencilWriteMask := AWriteMask;
+  if not SkipOpenGLStateWhenRHIActive then
+  begin
+    glStencilMask(AWriteMask);
+    glStencilOp(StencilOpToGL[AFailOp], StencilOpToGL[ADepthFailOp], StencilOpToGL[APassOp]);
+  end;
+end;
+
+class function TRenderContext.MapBlendSourceFactorToRHI(
+  const AFactor: TBlendingSourceFactor): TRHIBlendFactor;
+begin
+  case AFactor of
+    bsZero:                   Result := bfZero;
+    bsOne:                    Result := bfOne;
+    bsSrcColor:               Result := bfSrcColor;
+    bsOneMinusSrcColor:       Result := bfOneMinusSrcColor;
+    bsDstColor:               Result := bfDstColor;
+    bsOneMinusDstColor:       Result := bfOneMinusDstColor;
+    bsSrcAlpha:               Result := bfSrcAlpha;
+    bsOneMinusSrcAlpha:       Result := bfOneMinusSrcAlpha;
+    bsDstAlpha:               Result := bfDstAlpha;
+    bsOneMinusDstAlpha:       Result := bfOneMinusDstAlpha;
+    bsConstantColor:          Result := bfConstantColor;
+    bsOneMinusConstantColor:  Result := bfOneMinusConstantColor;
+    bsConstantAlpha:          Result := bfConstantAlpha;
+    bsOneMinusConstantAlpha:  Result := bfOneMinusConstantAlpha;
+    bsSrcAlphaSaturate:       Result := bfSrcAlphaSaturate;
+    else                      Result := bfSrcAlpha;
+  end;
+end;
+
+class function TRenderContext.MapBlendDestFactorToRHI(
+  const AFactor: TBlendingDestinationFactor): TRHIBlendFactor;
+begin
+  case AFactor of
+    bdZero:                   Result := bfZero;
+    bdOne:                    Result := bfOne;
+    bdSrcColor:               Result := bfSrcColor;
+    bdOneMinusSrcColor:       Result := bfOneMinusSrcColor;
+    bdDstColor:               Result := bfDstColor;
+    bdOneMinusDstColor:       Result := bfOneMinusDstColor;
+    bdSrcAlpha:               Result := bfSrcAlpha;
+    bdOneMinusSrcAlpha:       Result := bfOneMinusSrcAlpha;
+    bdDstAlpha:               Result := bfDstAlpha;
+    bdOneMinusDstAlpha:       Result := bfOneMinusDstAlpha;
+    bdConstantColor:          Result := bfConstantColor;
+    bdOneMinusConstantColor:  Result := bfOneMinusConstantColor;
+    bdConstantAlpha:          Result := bfConstantAlpha;
+    bdOneMinusConstantAlpha:  Result := bfOneMinusConstantAlpha;
+    else                      Result := bfOneMinusSrcAlpha;
+  end;
+end;
+
+class function TRenderContext.MapDepthFuncToRHI(
+  const ADepthFunc: TDepthFunction): TRHICompareOp;
+begin
+  case ADepthFunc of
+    dfNever:        Result := coNever;
+    dfLess:         Result := coLess;
+    dfEqual:        Result := coEqual;
+    dfLessEqual:    Result := coLessOrEqual;
+    dfGreater:      Result := coGreater;
+    dfNotEqual:     Result := coNotEqual;
+    dfGreaterEqual: Result := coGreaterOrEqual;
+    dfAlways:       Result := coAlways;
+    else            Result := coLess;
+  end;
+end;
+
+procedure TRenderContext.ApplyRHIStencilAndColorMask(
+  var ADepthStencil: TRHIDepthStencilStateDesc;
+  var ABlendState: TRHIBlendStateDesc);
+var
+  Mask: Byte;
+begin
+  if FColorChannels <> AllColorChannels then
+  begin
+    Mask := 0;
+    if 0 in FColorChannels then Mask := Mask or $01;
+    if 1 in FColorChannels then Mask := Mask or $02;
+    if 2 in FColorChannels then Mask := Mask or $04;
+    if 3 in FColorChannels then Mask := Mask or $08;
+    ABlendState.ColorWriteMask := Mask;
+  end;
+
+  if FBlendingEnabled then
+  begin
+    ABlendState.BlendEnable := True;
+    ABlendState.SrcColorBlendFactor := MapBlendSourceFactorToRHI(FBlendingSourceFactor);
+    ABlendState.DstColorBlendFactor := MapBlendDestFactorToRHI(FBlendingDestinationFactor);
+    ABlendState.SrcAlphaBlendFactor := ABlendState.SrcColorBlendFactor;
+    ABlendState.DstAlphaBlendFactor := ABlendState.DstColorBlendFactor;
+  end;
+
+  if ADepthStencil.DepthTestEnable then
+    ADepthStencil.DepthCompareOp := MapDepthFuncToRHI(FDepthFunc);
+
+  if FStencilTest then
+  begin
+    ADepthStencil.StencilTestEnable := True;
+    ADepthStencil.FrontStencil.CompareOp := FStencilCompareOp;
+    ADepthStencil.FrontStencil.Reference := FStencilReference;
+    ADepthStencil.FrontStencil.CompareMask := FStencilCompareMask;
+    ADepthStencil.FrontStencil.WriteMask := FStencilWriteMask;
+    ADepthStencil.FrontStencil.FailOp := FStencilFailOp;
+    ADepthStencil.FrontStencil.DepthFailOp := FStencilDepthFailOp;
+    ADepthStencil.FrontStencil.PassOp := FStencilPassOp;
+    ADepthStencil.BackStencil := ADepthStencil.FrontStencil;
+  end;
+end;
+
 procedure TRenderContext.UpdateColorChannels;
 begin
+  if SkipOpenGLStateWhenRHIActive then
+    Exit;
   glColorMask(
     BoolToGL(0 in FColorChannels),
     BoolToGL(1 in FColorChannels),
@@ -789,10 +1167,17 @@ end;
 
 procedure TRenderContext.UpdateDepthBufferUpdate;
 begin
+  if RHIDevice <> nil then
+  begin
+    if ActiveCommandList <> nil then
+      ActiveCommandList.SetDepthWriteEnable(FDepthBufferUpdate);
+    if SkipOpenGLStateWhenRHIActive then
+      Exit;
+  end;
   glDepthMask(BoolToGL(FDepthBufferUpdate));
 end;
 
-procedure TRenderContext.UpdateViewport;
+function TRenderContext.EffectiveViewportRect: TRectangle;
 var
   Delta: TVector2Integer;
 begin
@@ -801,15 +1186,50 @@ begin
      (not InternalControlRect.IsEmpty) then
     Delta := Delta + InternalControlRect.LeftBottom;
 
-  glViewport(
+  Result := Rectangle(
     FViewport.Left   + Delta.X,
     FViewport.Bottom + Delta.Y,
     FViewport.Width,
     FViewport.Height);
 end;
 
+procedure TRenderContext.UpdateViewport;
+var
+  EffRect: TRectangle;
+  MinD, MaxD: Single;
+begin
+  EffRect := EffectiveViewportRect;
+  if RHIDevice <> nil then
+  begin
+    GetEffectiveDepthRange(MinD, MaxD);
+    FRHILastViewport := FloatRectangle(EffRect);
+    FRHILastMinDepth := MinD;
+    FRHILastMaxDepth := MaxD;
+    Inc(FRHIViewportUpdateCount);
+    if ActiveCommandList <> nil then
+      ActiveCommandList.SetViewport(FRHILastViewport, MinD, MaxD);
+    { When no explicit scissor is active, keep the dynamic RHI scissor aligned with the viewport }
+    if not FRHIScissorActive then
+    begin
+      FRHILastScissor := EffRect;
+      if ActiveCommandList <> nil then
+        ActiveCommandList.SetScissor(EffRect);
+    end;
+    if SkipOpenGLStateWhenRHIActive then
+      Exit;
+  end;
+
+  glViewport(
+    EffRect.Left,
+    EffRect.Bottom,
+    EffRect.Width,
+    EffRect.Height);
+end;
+
 procedure TRenderContext.WarningViewportTooLarge;
 begin
+  if GLFeatures = nil then
+    Exit;
   WritelnWarningOnce(WarningViewportTooLargeDone,
     'Setting viewport to %s, which has dimensions larger than maximum allowed %s. (Further warnings of the same type will not be shown.)', [
     FViewport.ToString,
@@ -867,6 +1287,8 @@ end;
 
 procedure TRenderContext.UpdateCurrentProgram;
 begin
+  if SkipOpenGLStateWhenRHIActive then
+    Exit;
   InternalSetCurrentProgram(FCurrentProgram);
 end;
 
@@ -881,7 +1303,7 @@ end;
 
 procedure TRenderContext.UpdateCurrentVao;
 begin
-  if GLFeatures.VertexArrayObject then
+  if (not SkipOpenGLStateWhenRHIActive) and (GLFeatures <> nil) and GLFeatures.VertexArrayObject then
   begin
     if FCurrentVao <> nil then
       glBindVertexArray(FCurrentVao.InternalHandle(Self))
@@ -892,7 +1314,7 @@ end;
 
 function TRenderContext.ColorBufferHasAlpha: Boolean;
 begin
-  Result := GLFeatures.AlphaBits > 0;
+  Result := (RHIDevice <> nil) or ((GLFeatures <> nil) and (GLFeatures.AlphaBits > 0));
 end;
 
 procedure TRenderContext.BlendingEnable(
@@ -925,19 +1347,48 @@ end;
 
 procedure TRenderContext.UpdateBlendingEnabled;
 begin
+  if SkipOpenGLStateWhenRHIActive then
+    Exit;
   GLSetEnabled(GL_BLEND, FBlendingEnabled);
 end;
 
 procedure TRenderContext.UpdateBlendingFunction;
 begin
+  if SkipOpenGLStateWhenRHIActive then
+    Exit;
   {$warnings off} // using deprecated routine that should be internal here
   GLBlendFunction(FBlendingSourceFactor, FBlendingDestinationFactor);
   {$warnings on}
 end;
 
+procedure TRenderContext.SetBlendingConstantColor(const Value: TCastleColor);
+begin
+  if Self <> RenderContext then
+    WarnContextNotCurrent;
+
+  FBlendingConstantColor := Value;
+  UpdateBlendingConstantColor;
+end;
+
+procedure TRenderContext.UpdateBlendingConstantColor;
+begin
+  if RHIDevice <> nil then
+  begin
+    FRHILastBlendConstantColor := FBlendingConstantColor;
+    Inc(FRHIBlendConstantColorUpdateCount);
+    if ActiveCommandList <> nil then
+      ActiveCommandList.SetBlendConstants(FBlendingConstantColor);
+    if SkipOpenGLStateWhenRHIActive then
+      Exit;
+  end;
+  if (GLFeatures <> nil) and GLFeatures.BlendConstant then
+    glBlendColor(FBlendingConstantColor.X, FBlendingConstantColor.Y,
+      FBlendingConstantColor.Z, FBlendingConstantColor.W);
+end;
+
 procedure TRenderContext.FixedFunctionAlphaTestEnable(const AlphaCutoff: Single = 0.5);
 begin
-  if GLFeatures.EnableFixedFunction then
+  if (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.EnableFixedFunction then
   begin
     if not FFixedFunctionAlphaTest then
     begin
@@ -955,7 +1406,7 @@ end;
 
 procedure TRenderContext.FixedFunctionAlphaTestDisable;
 begin
-  if GLFeatures.EnableFixedFunction then
+  if (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.EnableFixedFunction then
   begin
     if FFixedFunctionAlphaTest then
     begin
@@ -968,7 +1419,7 @@ end;
 procedure TRenderContext.UpdateFixedFunctionAlphaTest;
 begin
   {$ifndef OpenGLES}
-  if GLFeatures.EnableFixedFunction then
+  if (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.EnableFixedFunction then
     GLSetEnabled(GL_ALPHA_TEST, FFixedFunctionAlphaTest);
   {$endif}
 end;
@@ -976,7 +1427,7 @@ end;
 procedure TRenderContext.UpdateFixedFunctionAlphaCutoff;
 begin
   {$ifndef OpenGLES}
-  if GLFeatures.EnableFixedFunction then
+  if (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.EnableFixedFunction then
     glAlphaFunc(GL_GEQUAL, FFixedFunctionAlphaCutoff);
   {$endif}
 end;
@@ -993,9 +1444,23 @@ end;
 procedure TRenderContext.UpdateFixedFunctionLighting;
 begin
   {$ifndef OpenGLES}
-  if GLFeatures.EnableFixedFunction then
+  if (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.EnableFixedFunction then
     GLSetEnabled(GL_LIGHTING, FFixedFunctionLighting);
   {$endif}
+end;
+
+class function TRenderContext.LineTypeToStipplePattern(const ALineType: TLineType): Word;
+begin
+  case ALineType of
+    ltSolid       : Result := $FFFF;
+    ltDashed      : Result := $00FF;
+    ltDotted      : Result := $CCCC;
+    ltDashedDotted: Result := $FFCC;
+    ltDashDotDot  : Result := $FCCC;
+    {$ifndef COMPILER_CASE_ANALYSIS}
+    else Result := $FFFF;
+    {$endif}
+  end;
 end;
 
 procedure TRenderContext.SetLineType(const Value: TLineType);
@@ -1009,6 +1474,14 @@ end;
 
 procedure TRenderContext.UpdateLineType;
 begin
+  if RHIDevice <> nil then
+  begin
+    FRHILastLineType := FLineType;
+    FRHILastLineStipplePattern := LineTypeToStipplePattern(FLineType);
+    Inc(FRHILineTypeUpdateCount);
+    if SkipOpenGLStateWhenRHIActive then
+      Exit;
+  end;
   {$ifndef OpenGLES}
   case FLineType of
     ltSolid: glDisable(GL_LINE_STIPPLE);
@@ -1036,6 +1509,20 @@ end;
 
 procedure TRenderContext.UpdatePolygonOffset;
 begin
+  if RHIDevice <> nil then
+  begin
+    Inc(FRHIDepthBiasUpdateCount);
+    if ActiveCommandList <> nil then
+    begin
+      if FPolygonOffset.Enabled then
+        ActiveCommandList.SetDepthBias(FPolygonOffset.Bias, FPolygonOffset.Scale)
+      else
+        ActiveCommandList.SetDepthBias(0, 0);
+    end;
+    if SkipOpenGLStateWhenRHIActive then
+      Exit;
+  end;
+
   if FPolygonOffset.Enabled then
   begin
     glEnable(GL_POLYGON_OFFSET_FILL);
@@ -1082,6 +1569,10 @@ end;
 
 procedure TRenderContext.SetBoundBuffer(const Target: TBufferTarget; const Value: TGLBuffer);
 begin
+  FBoundBuffer[Target] := Value;
+  if SkipOpenGLStateWhenRHIActive then
+    Exit;
+
   { TODO: Optimization (avoiding glBindBuffer) disabled.
     Reason: castle-model-viewer (rock.gltf, triangulatio.x3dv) shows
     that we cannot optimize out glBindBuffer calls like this,
@@ -1134,6 +1625,7 @@ begin
   UpdateCurrentVao;
   UpdateBlendingEnabled;
   UpdateBlendingFunction;
+  UpdateBlendingConstantColor;
   UpdateFixedFunctionAlphaTest;
   UpdateFixedFunctionAlphaCutoff;
   UpdateFixedFunctionLighting;
@@ -1180,10 +1672,32 @@ begin
 
   if (Count <> 0) or UseControlRect then
   begin
-    glScissor(R.Left, R.Bottom, R.Width, R.Height);
-    glEnable(GL_SCISSOR_TEST);
+    if RHIDevice <> nil then
+    begin
+      Inc(ParentContext.FRHIScissorUpdateCount);
+      ParentContext.FRHILastScissor := R;
+      ParentContext.FRHIScissorActive := True;
+      if ActiveCommandList <> nil then
+        ActiveCommandList.SetScissor(R);
+    end;
+    if not SkipOpenGLStateWhenRHIActive then
+    begin
+      glScissor(R.Left, R.Bottom, R.Width, R.Height);
+      glEnable(GL_SCISSOR_TEST);
+    end;
   end else
-    glDisable(GL_SCISSOR_TEST);
+  begin
+    if RHIDevice <> nil then
+    begin
+      Inc(ParentContext.FRHIScissorUpdateCount);
+      ParentContext.FRHILastScissor := ParentContext.EffectiveViewportRect;
+      ParentContext.FRHIScissorActive := False;
+      if ActiveCommandList <> nil then
+        ActiveCommandList.SetScissor(ParentContext.FRHILastScissor);
+    end;
+    if not SkipOpenGLStateWhenRHIActive then
+      glDisable(GL_SCISSOR_TEST);
+  end;
 end;
 
 { TScissor ------------------------------------------------------------------- }
@@ -1205,7 +1719,7 @@ begin
   if FEnabled <> Value then
   begin
     FEnabled := Value;
-    if RenderContext.FEnabledScissors <> nil then
+    if (RenderContext <> nil) and (RenderContext.FEnabledScissors <> nil) then
     begin
       if Value then
         RenderContext.FEnabledScissors.Add(Self) else
@@ -1220,19 +1734,22 @@ end;
 function PerspectiveProjection(const fovy, aspect, ZNear, ZFar: Single): TMatrix4;
 begin
   Result := PerspectiveProjectionMatrixDeg(fovy, aspect, ZNear, ZFar);
-  RenderContext.ProjectionMatrix := Result;
+  if RenderContext <> nil then
+    RenderContext.ProjectionMatrix := Result;
 end;
 
 function OrthoProjection(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4;
 begin
   Result := OrthoProjectionMatrix(Dimensions, ZNear, ZFar);
-  RenderContext.ProjectionMatrix := Result;
+  if RenderContext <> nil then
+    RenderContext.ProjectionMatrix := Result;
 end;
 
 function FrustumProjection(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4;
 begin
   Result := FrustumProjectionMatrix(Dimensions, ZNear, ZFar);
-  RenderContext.ProjectionMatrix := Result;
+  if RenderContext <> nil then
+    RenderContext.ProjectionMatrix := Result;
 end;
 
 end.

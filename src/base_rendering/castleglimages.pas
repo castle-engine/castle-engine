@@ -67,7 +67,8 @@ uses SysUtils, Generics.Collections, Classes,
   CastleImages, CastleVectors, CastleGLUtils, CastleTimeUtils,
   CastleTextureImages, CastleVideos, CastleInternalCompositeImage, CastleRectangles,
   CastleGLShaders, CastleColors, CastleUtils, CastleRenderOptions,
-  CastleInternalGLUtils, CastleInternalFileMonitor;
+  CastleInternalGLUtils, CastleInternalFileMonitor,
+  CastleInternalRHI, CastleInternalBatch2DRHI;
 
 {$define read_interface}
 
@@ -166,15 +167,27 @@ end;
 procedure ContextClose;
 begin
   // Use @ on both sides to compare on Delphi, https://docwiki.embarcadero.com/RADStudio/Alexandria/en/Procedural_Types_(Delphi)
-  if {$ifndef FPC}@{$endif} DecompressTexture = @GLDecompressTexture then
+  if (RHIDevice = nil) and ({$ifndef FPC}@{$endif} DecompressTexture = @GLDecompressTexture) then
     DecompressTexture := nil;
   TextureMemoryProfiler.CheckLeaks;
   TDrawableImage.StaticGLContextClose;
 end;
 
+procedure RHIDeviceChanged(const ADevice: TRHIDevice);
+begin
+  if ADevice <> nil then
+    DecompressTexture := @GLDecompressTexture
+  else if (not ApplicationProperties.IsGLContextOpen) and
+          ({$ifndef FPC}@{$endif} DecompressTexture = @GLDecompressTexture) then
+    DecompressTexture := nil;
+end;
+
 initialization
   ApplicationProperties.OnGLContextOpen.Add(@ContextOpen);
   ApplicationProperties.OnGLContextClose.Add(@ContextClose);
+  RegisterRHIDeviceChangeCallback(@RHIDeviceChanged);
+  if RHIDevice <> nil then
+    DecompressTexture := @GLDecompressTexture;
 finalization
   FreeAndNil(BoundFboStack);
   FreeAndNil(FTextureMemoryProfiler);

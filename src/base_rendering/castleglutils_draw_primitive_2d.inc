@@ -234,6 +234,20 @@ procedure GLBlendFunction(
   SourceFactor: TBlendingSourceFactor;
   DestinationFactor: TBlendingDestinationFactor); deprecated 'use RenderContext.BlendingEnable';
 
+{ RHI 2D primitive drawing statistics and state for testing and diagnostics.
+  @exclude }
+function RHIPrimitive2DDrawCallCount: Cardinal;
+function RHIPrimitive2DLastVertexCount: Cardinal;
+function RHIPrimitive2DLastSubmittedVertexCount: Cardinal;
+function RHIPrimitive2DLastMode: TPrimitiveMode;
+function RHIPrimitive2DLastColor: TCastleColor;
+function RHIPrimitive2DLastLineWidth: Single;
+function RHIPrimitive2DLastPointSize: Cardinal;
+function RHIPrimitive2DBuffer: TObject;
+function RHIPrimitive2DPipeline: TObject;
+function RHIPrimitive2DLastStencilTestEnable: Boolean;
+procedure RHIPrimitive2DResetStats;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -296,7 +310,7 @@ const
   );
 
 type
-  { OpenGL resources for DrawPrimitive2D.
+  { OpenGL and RHI resources for DrawPrimitive2D.
     Shared across OpenGL contexts, must be freed before last OpenGL context is freed. }
   TPrimitive2DResources = class
     { Used only in shader pipeline }
@@ -308,6 +322,27 @@ type
     Vao: TVertexArrayObject;
     PointPtr: Pointer;
     PointPtrAllocated: Integer;
+
+    { RHI resources and diagnostic counters }
+    RHIOwnerDevice: TRHIDevice;
+    RHIVbo: TRHIBuffer;
+    RHIVboWriteOffset: PtrUInt;
+    RHILastVertexByteOffset: PtrUInt;
+    RHILastFrameIndex: Cardinal;
+    RHILastFramesPresented: Cardinal;
+    RHILastCmdList: TRHICommandList;
+    RHIVertShader: TRHIShaderModule;
+    RHIFragShader: TRHIShaderModule;
+    RHIPipeline: TRHIPipeline;
+    RHIPipelineTopology: TRHIPrimitiveTopology;
+    RHIDrawCallCount: Cardinal;
+    RHILastVertexCount: Cardinal;
+    RHILastSubmittedVertexCount: Cardinal;
+    RHILastMode: TPrimitiveMode;
+    RHILastColor: TCastleColor;
+    RHILastLineWidth: Single;
+    RHILastPointSize: Cardinal;
+    RHILastStencilTestEnable: Boolean;
     destructor Destroy; override;
   end;
 
@@ -316,6 +351,10 @@ begin
   FreeBuffer(Vbo);
   FreeAndNil(Vao);
   FreeAndNil(Prog);
+  FreeAndNil(RHIVbo);
+  FreeAndNil(RHIVertShader);
+  FreeAndNil(RHIFragShader);
+  RHIPipeline := nil; // owned by RHIDevice pipeline cache
   FreeMem(PointPtr); // not tied to OpenGL, but freed together anyway
   PointPtr := nil;
   PointPtrAllocated := 0;
@@ -324,6 +363,111 @@ end;
 
 var
   Primitive2DRes: TPrimitive2DResources;
+
+function RHIPrimitive2DDrawCallCount: Cardinal;
+begin
+  if Primitive2DRes <> nil then
+    Result := Primitive2DRes.RHIDrawCallCount
+  else
+    Result := 0;
+end;
+
+function RHIPrimitive2DLastVertexCount: Cardinal;
+begin
+  if Primitive2DRes <> nil then
+    Result := Primitive2DRes.RHILastVertexCount
+  else
+    Result := 0;
+end;
+
+function RHIPrimitive2DLastSubmittedVertexCount: Cardinal;
+begin
+  if Primitive2DRes <> nil then
+    Result := Primitive2DRes.RHILastSubmittedVertexCount
+  else
+    Result := 0;
+end;
+
+function RHIPrimitive2DLastMode: TPrimitiveMode;
+begin
+  if Primitive2DRes <> nil then
+    Result := Primitive2DRes.RHILastMode
+  else
+    Result := pmPoints;
+end;
+
+function RHIPrimitive2DLastColor: TCastleColor;
+begin
+  if Primitive2DRes <> nil then
+    Result := Primitive2DRes.RHILastColor
+  else
+    Result := TVector4.Zero;
+end;
+
+function RHIPrimitive2DLastLineWidth: Single;
+begin
+  if Primitive2DRes <> nil then
+    Result := Primitive2DRes.RHILastLineWidth
+  else
+    Result := 1.0;
+end;
+
+function RHIPrimitive2DLastPointSize: Cardinal;
+begin
+  if Primitive2DRes <> nil then
+    Result := Primitive2DRes.RHILastPointSize
+  else
+    Result := 1;
+end;
+
+function RHIPrimitive2DBuffer: TObject;
+begin
+  if Primitive2DRes <> nil then
+    Result := Primitive2DRes.RHIVbo
+  else
+    Result := nil;
+end;
+
+function RHIPrimitive2DPipeline: TObject;
+begin
+  if Primitive2DRes <> nil then
+    Result := Primitive2DRes.RHIPipeline
+  else
+    Result := nil;
+end;
+
+function RHIPrimitive2DLastStencilTestEnable: Boolean;
+begin
+  if Primitive2DRes <> nil then
+    Result := Primitive2DRes.RHILastStencilTestEnable
+  else
+    Result := False;
+end;
+
+procedure RHIPrimitive2DResetStats;
+begin
+  if Primitive2DRes <> nil then
+  begin
+    FreeAndNil(Primitive2DRes.RHIVbo);
+    Primitive2DRes.RHIVboWriteOffset := 0;
+    Primitive2DRes.RHILastVertexByteOffset := 0;
+    Primitive2DRes.RHILastFrameIndex := 0;
+    Primitive2DRes.RHILastFramesPresented := 0;
+    Primitive2DRes.RHILastCmdList := nil;
+    FreeAndNil(Primitive2DRes.RHIVertShader);
+    FreeAndNil(Primitive2DRes.RHIFragShader);
+    Primitive2DRes.RHIPipeline := nil;
+    Primitive2DRes.RHIOwnerDevice := nil;
+    Primitive2DRes.RHIDrawCallCount := 0;
+    Primitive2DRes.RHILastVertexCount := 0;
+    Primitive2DRes.RHILastSubmittedVertexCount := 0;
+    Primitive2DRes.RHILastMode := pmPoints;
+    Primitive2DRes.RHILastColor := TVector4.Zero;
+    Primitive2DRes.RHILastLineWidth := 1.0;
+    Primitive2DRes.RHILastPointSize := 1;
+    Primitive2DRes.RHILastStencilTestEnable := False;
+  end;
+end;
 
 procedure DrawPrimitive2D(const Mode: TPrimitiveMode;
   const Points: array of TVector2SmallInt; const Color: TCastleColor;
@@ -353,17 +497,314 @@ procedure DrawPrimitive2D(const Mode: TPrimitiveMode;
   const ForceBlending: boolean;
   const LineWidth: Single;
   const PointSize: Cardinal);
+type
+  TPrimitive2DPushConstants = packed record
+    ViewportSize: TVector2;
+    PointSize: Single;
+    Padding: Single;
+    Color: TVector4;
+  end;
+const
+  PrimitiveModeToRHI: array [TPrimitiveMode] of TRHIPrimitiveTopology = (
+    ptPointList,
+    ptLineStrip,
+    ptLineStrip,
+    ptLineList,
+    ptTriangleStrip,
+    ptTriangleList,
+    ptTriangleList
+  );
+  Primitive2DVertGLSL =
+    '#version 450' + LineEnding +
+    'layout(location = 0) in vec2 vertex;' + LineEnding +
+    'layout(push_constant) uniform PushConstants {' + LineEnding +
+    '  vec2 viewport_size;' + LineEnding +
+    '  float point_size;' + LineEnding +
+    '  float padding;' + LineEnding +
+    '  vec4 color;' + LineEnding +
+    '} pc;' + LineEnding +
+    'void main() {' + LineEnding +
+    '  gl_Position = vec4(vertex * 2.0 / pc.viewport_size - vec2(1.0), 0.0, 1.0);' + LineEnding +
+    '  gl_PointSize = pc.point_size;' + LineEnding +
+    '}';
+  Primitive2DFragGLSL =
+    '#version 450' + LineEnding +
+    'layout(push_constant) uniform PushConstants {' + LineEnding +
+    '  vec2 viewport_size;' + LineEnding +
+    '  float point_size;' + LineEnding +
+    '  float padding;' + LineEnding +
+    '  vec4 color;' + LineEnding +
+    '} pc;' + LineEnding +
+    'layout(location = 0) out vec4 out_Color;' + LineEnding +
+    'void main() {' + LineEnding +
+    '  out_Color = pc.color;' + LineEnding +
+    '}';
+
+  function MapBlendSourceFactor(const F: TBlendingSourceFactor): TRHIBlendFactor;
+  begin
+    case F of
+      bsSrcAlpha, bsSrcAlphaSaturate, bsConstantAlpha: Result := bfSrcAlpha;
+      bsOneMinusSrcAlpha, bsOneMinusConstantAlpha: Result := bfOneMinusSrcAlpha;
+      bsZero: Result := bfZero;
+      bsOne: Result := bfOne;
+      bsDstColor: Result := bfDstColor;
+      bsSrcColor, bsConstantColor: Result := bfSrcColor;
+      bsDstAlpha: Result := bfDstAlpha;
+      bsOneMinusDstColor: Result := bfOneMinusDstColor;
+      bsOneMinusSrcColor, bsOneMinusConstantColor: Result := bfOneMinusSrcColor;
+      bsOneMinusDstAlpha: Result := bfOneMinusDstAlpha;
+      else Result := bfSrcAlpha;
+    end;
+  end;
+
+  function MapBlendDestFactor(const F: TBlendingDestinationFactor): TRHIBlendFactor;
+  begin
+    case F of
+      bdSrcAlpha, bdConstantAlpha: Result := bfSrcAlpha;
+      bdOneMinusSrcAlpha, bdOneMinusConstantAlpha: Result := bfOneMinusSrcAlpha;
+      bdZero: Result := bfZero;
+      bdOne: Result := bfOne;
+      bdDstColor: Result := bfDstColor;
+      bdSrcColor, bdConstantColor: Result := bfSrcColor;
+      bdDstAlpha: Result := bfDstAlpha;
+      bdOneMinusDstColor: Result := bfOneMinusDstColor;
+      bdOneMinusSrcColor, bdOneMinusConstantColor: Result := bfOneMinusSrcColor;
+      bdOneMinusDstAlpha: Result := bfOneMinusDstAlpha;
+      else Result := bfOneMinusSrcAlpha;
+    end;
+  end;
+
 var
   Blending: boolean;
   I, RequiredPointPtrSize: Integer;
+  SubmittedVertexCount: Cardinal;
+  ExpandTriangleFan, ExpandLineLoop: Boolean;
   TargetPointPtr: PVector2;
+  RHIBufDesc: TRHIBufferDesc;
+  RHIPipeDesc: TRHIGraphicsPipelineDesc;
+  RHITopology: TRHIPrimitiveTopology;
+  PushConsts: TPrimitive2DPushConstants;
+  ScissorR: TRectangle;
+  CurrentVboOffset, NewVboCapacity: PtrUInt;
 begin
+  if High(Points) = -1 then Exit;
+
   TDrawableImage.BatchingFlush;
 
   FrameProfiler.Start(fmDrawPrimitive2D);
 
   if Primitive2DRes = nil then
     Primitive2DRes := TPrimitive2DResources.Create;
+
+  ExpandTriangleFan := (RHIDevice <> nil) and (Mode = pmTriangleFan) and
+    (Length(Points) >= 3) and
+    (not ((Length(Points) >= 6) and ((Length(Points) mod 3) = 0) and
+      TVector2.PerfectlyEquals(Points[0], Points[3])));
+  ExpandLineLoop := (RHIDevice <> nil) and (Mode = pmLineLoop) and
+    (Length(Points) >= 2);
+
+  if ExpandTriangleFan then
+    SubmittedVertexCount := Cardinal(Length(Points) - 2) * 3
+  else
+  if ExpandLineLoop then
+    SubmittedVertexCount := Cardinal(Length(Points) + 1)
+  else
+    SubmittedVertexCount := Cardinal(High(Points) + 1);
+
+  { make Primitive2DRes.PointPtr have necessary size }
+  RequiredPointPtrSize := SizeOf(TVector2) * Integer(SubmittedVertexCount);
+  if Primitive2DRes.PointPtrAllocated < RequiredPointPtrSize then
+  begin
+    { FreeMem + GetMem, not ReallocMem,
+      because we don't care about preserving previous memory contents }
+    if Primitive2DRes.PointPtr <> nil then
+      FreeMem(Primitive2DRes.PointPtr);
+    Primitive2DRes.PointPtr := GetMem(RequiredPointPtrSize);
+    Primitive2DRes.PointPtrAllocated := RequiredPointPtrSize;
+  end;
+
+  { copy Points to Primitive2DRes.PointPtr }
+  TargetPointPtr := Primitive2DRes.PointPtr;
+  if ExpandTriangleFan then
+  begin
+    for I := 1 to High(Points) - 1 do
+    begin
+      TargetPointPtr^ := Points[0];
+      Inc(TargetPointPtr);
+      TargetPointPtr^ := Points[I];
+      Inc(TargetPointPtr);
+      TargetPointPtr^ := Points[I + 1];
+      Inc(TargetPointPtr);
+    end;
+  end else
+  begin
+    for I := 0 to High(Points) do
+    begin
+      Move(Points[I], TargetPointPtr^, SizeOf(TVector2));
+      Inc(TargetPointPtr);
+    end;
+    if ExpandLineLoop then
+    begin
+      TargetPointPtr^ := Points[0];
+      Inc(TargetPointPtr);
+    end;
+  end;
+
+  if RHIDevice <> nil then
+  begin
+    if (Primitive2DRes.RHIOwnerDevice <> RHIDevice) or
+       ((Primitive2DRes.RHIVbo <> nil) and (Primitive2DRes.RHIVbo.Device <> RHIDevice)) or
+       ((Primitive2DRes.RHIVertShader <> nil) and (Primitive2DRes.RHIVertShader.Device <> RHIDevice)) then
+    begin
+      FreeAndNil(Primitive2DRes.RHIVbo);
+      Primitive2DRes.RHIVboWriteOffset := 0;
+      Primitive2DRes.RHILastVertexByteOffset := 0;
+      Primitive2DRes.RHILastFrameIndex := 0;
+      Primitive2DRes.RHILastFramesPresented := 0;
+      Primitive2DRes.RHILastCmdList := nil;
+      FreeAndNil(Primitive2DRes.RHIVertShader);
+      FreeAndNil(Primitive2DRes.RHIFragShader);
+      Primitive2DRes.RHIPipeline := nil;
+      Primitive2DRes.RHIOwnerDevice := RHIDevice;
+    end;
+    if Primitive2DRes.RHIVertShader = nil then
+      Primitive2DRes.RHIVertShader := RHIDevice.CreateShaderModuleFromGLSL(
+        ssVertex, Primitive2DVertGLSL, 'Primitive2D_VS');
+    if Primitive2DRes.RHIFragShader = nil then
+      Primitive2DRes.RHIFragShader := RHIDevice.CreateShaderModuleFromGLSL(
+        ssFragment, Primitive2DFragGLSL, 'Primitive2D_FS');
+
+    if (Primitive2DRes.RHILastFrameIndex <> RHIDevice.FrameIndex) or
+       (Primitive2DRes.RHILastFramesPresented <> RHIDevice.TotalFramesStarted) or
+       (Primitive2DRes.RHILastCmdList <> ActiveCommandList) then
+    begin
+      Primitive2DRes.RHIVboWriteOffset := 0;
+      Primitive2DRes.RHILastFrameIndex := RHIDevice.FrameIndex;
+      Primitive2DRes.RHILastFramesPresented := RHIDevice.TotalFramesStarted;
+      Primitive2DRes.RHILastCmdList := ActiveCommandList;
+    end;
+
+    CurrentVboOffset := Primitive2DRes.RHIVboWriteOffset;
+    if (Primitive2DRes.RHIVbo = nil) or
+       (Primitive2DRes.RHIVbo.Desc.Size < CurrentVboOffset + PtrUInt(RequiredPointPtrSize)) then
+    begin
+      FreeAndNil(Primitive2DRes.RHIVbo);
+      NewVboCapacity := Max(PtrUInt(65536), (CurrentVboOffset + PtrUInt(RequiredPointPtrSize)) * 2);
+      RHIBufDesc := TRHIBufferDesc.Create(NewVboCapacity, [buVertex, buTransferDst], muCpuToGpu);
+      Primitive2DRes.RHIVbo := RHIDevice.CreateBuffer(RHIBufDesc, nil);
+      CurrentVboOffset := 0;
+      Primitive2DRes.RHIVbo.UploadData(Primitive2DRes.PointPtr^, RequiredPointPtrSize, 0);
+    end else
+      Primitive2DRes.RHIVbo.UploadData(Primitive2DRes.PointPtr^, RequiredPointPtrSize, CurrentVboOffset);
+
+    Primitive2DRes.RHILastVertexByteOffset := CurrentVboOffset;
+    Primitive2DRes.RHIVboWriteOffset := (CurrentVboOffset + PtrUInt(RequiredPointPtrSize) + 15) and not PtrUInt(15);
+
+    RHITopology := PrimitiveModeToRHI[Mode];
+    FillChar(RHIPipeDesc, SizeOf(RHIPipeDesc), 0);
+    RHIPipeDesc.VertexShader := Primitive2DRes.RHIVertShader;
+    RHIPipeDesc.FragmentShader := Primitive2DRes.RHIFragShader;
+    RHIPipeDesc.Topology := RHITopology;
+    SetLength(RHIPipeDesc.VertexInput.Bindings, 1);
+    RHIPipeDesc.VertexInput.Bindings[0].Binding := 0;
+    RHIPipeDesc.VertexInput.Bindings[0].Stride := SizeOf(TVector2);
+    RHIPipeDesc.VertexInput.Bindings[0].PerInstance := False;
+    SetLength(RHIPipeDesc.VertexInput.Attributes, 1);
+    RHIPipeDesc.VertexInput.Attributes[0].Location := 0;
+    RHIPipeDesc.VertexInput.Attributes[0].Binding := 0;
+    RHIPipeDesc.VertexInput.Attributes[0].Format := vafVector2;
+    RHIPipeDesc.VertexInput.Attributes[0].Offset := 0;
+    RHIPipeDesc.Rasterizer.CullMode := cmNone;
+    RHIPipeDesc.Rasterizer.FrontFace := ffCounterClockwise;
+    RHIPipeDesc.Rasterizer.PolygonMode := pmFill;
+    RHIPipeDesc.DepthStencil := TRHIDepthStencilStateDesc.DefaultDisabled;
+    if ForceBlending or (Color.W < 1) then
+    begin
+      RHIPipeDesc.BlendState := TRHIBlendStateDesc.DefaultAlphaBlend;
+      RHIPipeDesc.BlendState.SrcColorBlendFactor := MapBlendSourceFactor(BlendingSourceFactor);
+      RHIPipeDesc.BlendState.DstColorBlendFactor := MapBlendDestFactor(BlendingDestinationFactor);
+    end else
+      RHIPipeDesc.BlendState := TRHIBlendStateDesc.DefaultOpaque;
+    if RenderContext <> nil then
+    begin
+      RenderContext.LineWidth := LineWidth;
+      RenderContext.PointSize := PointSize;
+      RenderContext.ApplyRHIStencilAndColorMask(RHIPipeDesc.DepthStencil, RHIPipeDesc.BlendState);
+    end;
+    RHIPipeDesc.PushConstantSize := SizeOf(TPrimitive2DPushConstants);
+    RHIPipeDesc.PushConstantStages := [ssVertex, ssFragment];
+    if (ActiveCommandList <> nil) and ActiveCommandList.IsRendering then
+    begin
+      if ActiveCommandList.ActiveRenderingHasColor then
+      begin
+        SetLength(RHIPipeDesc.ColorAttachmentFormats, 1);
+        RHIPipeDesc.ColorAttachmentFormats[0] := ActiveCommandList.ActiveRenderingColorFormat;
+      end else
+        SetLength(RHIPipeDesc.ColorAttachmentFormats, 0);
+      if ActiveCommandList.ActiveRenderingHasDepth then
+        RHIPipeDesc.DepthAttachmentFormat := ActiveCommandList.ActiveRenderingDepthFormat
+      else
+        RHIPipeDesc.DepthAttachmentFormat := pfUndefined;
+      RHIPipeDesc.SampleCount := Max(Cardinal(1), ActiveCommandList.ActiveRenderingSampleCount);
+    end else
+    begin
+      SetLength(RHIPipeDesc.ColorAttachmentFormats, 1);
+      if RHIDevice.GetSwapchainColorTexture <> nil then
+        RHIPipeDesc.ColorAttachmentFormats[0] := RHIDevice.GetSwapchainColorTexture.Desc.Format
+      else
+        RHIPipeDesc.ColorAttachmentFormats[0] := pfBGRA8_UNorm;
+      if RHIDevice.GetSwapchainDepthTexture <> nil then
+        RHIPipeDesc.DepthAttachmentFormat := RHIDevice.GetSwapchainDepthTexture.Desc.Format
+      else
+        RHIPipeDesc.DepthAttachmentFormat := pfD24_UNorm_S8_UInt;
+      RHIPipeDesc.SampleCount := 1;
+    end;
+    if RHIPipeDesc.DepthStencil.StencilTestEnable and
+       not (RHIPipeDesc.DepthAttachmentFormat in [pfD24_UNorm_S8_UInt, pfD32_Float_S8_UInt]) then
+      RHIPipeDesc.DepthAttachmentFormat := pfD24_UNorm_S8_UInt;
+    Primitive2DRes.RHIPipeline := RHIDevice.GetOrCreatePipeline(RHIPipeDesc);
+    Primitive2DRes.RHIPipelineTopology := RHITopology;
+
+    Inc(Primitive2DRes.RHIDrawCallCount);
+    Primitive2DRes.RHILastVertexCount := High(Points) + 1;
+    Primitive2DRes.RHILastSubmittedVertexCount := SubmittedVertexCount;
+    Primitive2DRes.RHILastMode := Mode;
+    Primitive2DRes.RHILastColor := Color;
+    Primitive2DRes.RHILastLineWidth := LineWidth;
+    Primitive2DRes.RHILastPointSize := PointSize;
+    Primitive2DRes.RHILastStencilTestEnable := RHIPipeDesc.DepthStencil.StencilTestEnable;
+
+    if ActiveCommandList <> nil then
+    begin
+      ActiveCommandList.BindPipeline(Primitive2DRes.RHIPipeline);
+      ActiveCommandList.SetLineWidth(LineWidth);
+      if (RenderContext <> nil) and RenderContext.FinalScissor(ScissorR) then
+        ActiveCommandList.SetScissor(ScissorR);
+      if (RenderContext <> nil) and (RenderContext.Viewport.Width > 0) and (RenderContext.Viewport.Height > 0) then
+        PushConsts.ViewportSize := Vector2(RenderContext.Viewport.Width, RenderContext.Viewport.Height)
+      else
+      if ActiveCommandList.IsRendering and
+         (ActiveCommandList.ActiveRenderingInfo.RenderArea.Width > 0) and
+         (ActiveCommandList.ActiveRenderingInfo.RenderArea.Height > 0) then
+        PushConsts.ViewportSize := Vector2(
+          ActiveCommandList.ActiveRenderingInfo.RenderArea.Width,
+          ActiveCommandList.ActiveRenderingInfo.RenderArea.Height)
+      else
+        PushConsts.ViewportSize := Vector2(1920, 1080);
+      PushConsts.PointSize := Max(1.0, Single(PointSize));
+      PushConsts.Padding := 0.0;
+      PushConsts.Color := Color;
+      ActiveCommandList.PushConstants([ssVertex, ssFragment], 0, SizeOf(PushConsts), PushConsts);
+      ActiveCommandList.BindVertexBuffers(0, [Primitive2DRes.RHIVbo], [CurrentVboOffset]);
+      ActiveCommandList.Draw(SubmittedVertexCount, 1, 0, 0);
+    end;
+
+    if (ActiveCommandList <> nil) or (GLFeatures = nil) or (ApplicationProperties = nil) or (not ApplicationProperties.IsGLContextOpen) then
+    begin
+      FrameProfiler.Stop(fmDrawPrimitive2D);
+      Exit;
+    end;
+  end;
 
   if not GLFeatures.EnableFixedFunction then
   begin
@@ -398,26 +839,6 @@ begin
   Blending := ForceBlending or (Color.W < 1);
   if Blending then
     RenderContext.BlendingEnable(BlendingSourceFactor, BlendingDestinationFactor);
-
-  { make Primitive2DRes.PointPtr have necessary size }
-  RequiredPointPtrSize := SizeOf(TVector2) * (High(Points) + 1);
-  if Primitive2DRes.PointPtrAllocated < RequiredPointPtrSize then
-  begin
-    { FreeMem + GetMem, not ReallocMem,
-      because we don't care about preserving previous memory contents }
-    if Primitive2DRes.PointPtr <> nil then
-      FreeMem(Primitive2DRes.PointPtr);
-    Primitive2DRes.PointPtr := GetMem(RequiredPointPtrSize);
-    Primitive2DRes.PointPtrAllocated := RequiredPointPtrSize;
-  end;
-
-  { copy Points to Primitive2DRes.PointPtr }
-  TargetPointPtr := Primitive2DRes.PointPtr;
-  for I := 0 to High(Points) do
-  begin
-    Move(Points[I], TargetPointPtr^, SizeOf(TVector2));
-    Inc(TargetPointPtr);
-  end;
 
   if not GLFeatures.EnableFixedFunction then
   begin
@@ -492,8 +913,11 @@ procedure DrawPrimitive2D(const Mode: TPrimitiveMode;
   const PointSize: Cardinal = 1);
 begin
   {$ifndef OpenGLES}
-  glLineStipple(1, LineStipple.Pattern);
-  glEnable(GL_LINE_STIPPLE);
+  if (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.EnableFixedFunction then
+  begin
+    glLineStipple(1, LineStipple.Pattern);
+    glEnable(GL_LINE_STIPPLE);
+  end;
   {$endif}
 
   DrawPrimitive2D(Mode, Points, Color,
@@ -501,7 +925,8 @@ begin
     LineWidth, PointSize);
 
   {$ifndef OpenGLES}
-  glDisable(GL_LINE_STIPPLE);
+  if (RHIDevice = nil) and (GLFeatures <> nil) and GLFeatures.EnableFixedFunction then
+    glDisable(GL_LINE_STIPPLE);
   {$endif}
 end;
 

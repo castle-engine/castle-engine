@@ -23,7 +23,7 @@ interface
 uses SysUtils,
   {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleVectors, CastleGLShaders, CastleGLUtils, CastleInternalGLUtils,
-  CastleColors, CastleUtils;
+  CastleColors, CastleUtils, CastleInternalRHI;
 
 {$define read_interface}
 

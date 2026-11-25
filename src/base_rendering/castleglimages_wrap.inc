@@ -58,7 +58,10 @@ end;
 
 function Texture2DClampToEdge: TTextureWrap2D;
 begin
-  Result.Data[0] := GLFeatures.CLAMP_TO_EDGE;
+  if GLFeatures <> nil then
+    Result.Data[0] := GLFeatures.CLAMP_TO_EDGE
+  else
+    Result.Data[0] := GL_CLAMP_TO_EDGE;
   Result.Data[1] := Result.Data[0];
 end;
 
