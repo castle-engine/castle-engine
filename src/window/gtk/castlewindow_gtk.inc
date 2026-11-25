@@ -2243,6 +2243,18 @@ begin
 
     {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
     CheckNotWayland;
+
+      {$ifdef CASTLE_WINDOW_GTK_3}
+      { Disable GDK integer window scaling (from GDK_SCALE env variable,
+        i.e. when running with GDK_SCALE=2).
+        We assume that GDK/GTK sizes and coordinates, seen in this file,
+        match the real device pixels (which we use to allocate GL area).
+        Without this, with GDK_SCALE=2,
+        we would render only in the lower-left quarter of the window.
+        See https://github.com/castle-engine/castle-engine/issues/750 . }
+      gdk_x11_display_set_window_scale(DisplayGdk, 1);
+      {$endif}
+
     {$endif CASTLE_WINDOW_GTK_WITH_XLIB}
     {$ifdef CASTLE_WINDOW_GTK_WAYLAND}
     CheckWayland;

@@ -67,6 +67,9 @@ function gdk_x11_screen_get_screen_number(Screen: PGdkScreen): Integer;
 function gdk_x11_screen_lookup_visual(Screen: PGdkScreen;
   XVisualid: TVisualID): PGdkVisual;
   cdecl; external LazGdk3_library;
+{ Since GTK 3.10. See https://docs.gtk.org/gdk3-x11/method.X11Display.set_window_scale.html }
+procedure gdk_x11_display_set_window_scale(Display: PGdkDisplay; Scale: GInt);
+  cdecl; external LazGdk3_library;
 {$endif}
 
 { Implement a few methods that match GTK 2 names and signature
