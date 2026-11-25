@@ -56,6 +56,11 @@ type
       FWholeSceneManifold: Boolean;
       FColorChannels: TColorChannels;
       FSkinnedAnimationShaders: Boolean;
+      FSpecularAntiAliasing: Boolean;
+      FDualQuaternionSkinning: Boolean;
+      FGpuDrivenMeshletCulling: Boolean;
+      FTransparencyMode: TTransparencyMode;
+      FShadowMapSystemMode: TShadowMapSystemMode;
 
     { Hash to quickly compare 2 TCastleRenderOptions instances,
       important for efficient batching. }
@@ -93,6 +98,11 @@ type
     procedure SetBumpMappingParallaxHeight(const Value: Single);
     procedure SetLighting(const Value: Boolean);
     procedure SetSkinnedAnimationShaders(const Value: Boolean);
+    procedure SetSpecularAntiAliasing(const Value: Boolean);
+    procedure SetDualQuaternionSkinning(const Value: Boolean);
+    procedure SetGpuDrivenMeshletCulling(const Value: Boolean);
+    procedure SetTransparencyMode(const Value: TTransparencyMode);
+    procedure SetShadowMapSystemMode(const Value: TShadowMapSystemMode);
 
     procedure UpdateHash;
 
@@ -173,6 +183,18 @@ type
       ReleaseCachedResources --- only the ones that affect TShapeCache.
       @exclude }
     function EqualForShapeCache(SecondValue: TCastleRenderOptions): boolean; virtual;
+
+    { Active rendering backend name (e.g. 'Vulkan', 'OpenGL', 'OpenGLES'). }
+    function ActiveRenderBackendName: String;
+
+    { Returns True if RenderDoc dynamic library is loaded and connected. }
+    function RenderDocAvailable: Boolean;
+
+    { Triggers a frame capture using the in-application RenderDoc API. }
+    procedure TriggerRenderDocCapture;
+
+    { Launches the RenderDoc Replay UI to inspect captures. }
+    function LaunchRenderDocReplayUI: Boolean;
 
     { Rendering mode, can be used to disable many rendering features at once. }
     property Mode: TRenderingMode read FMode write SetMode default rmFull;
@@ -582,6 +604,29 @@ type
     property SkinnedAnimationShaders: Boolean
       read FSkinnedAnimationShaders write SetSkinnedAnimationShaders default true;
 
+    { Enables normal-variance Specular Anti-Aliasing (Kaplanyan/Toksvig roughness filtering)
+      to prevent specular shimmering on distant glossy geometry. }
+    property SpecularAntiAliasing: Boolean
+      read FSpecularAntiAliasing write SetSpecularAntiAliasing default true;
+
+    { Enables volume-preserving Dual-Quaternion Skinning (DQS) on articulated joints. }
+    property DualQuaternionSkinning: Boolean
+      read FDualQuaternionSkinning write SetDualQuaternionSkinning default false;
+
+    { Enables GPU-driven 64-vertex / 124-triangle meshlet cone/sphere and Nanite DAG culling. }
+    property GpuDrivenMeshletCulling: Boolean
+      read FGpuDrivenMeshletCulling write SetGpuDrivenMeshletCulling default false;
+
+    { Selects the transparency compositing algorithm (standard alpha blending,
+      Weighted Blended OIT, or exact Per-Pixel Linked List OIT). }
+    property TransparencyMode: TTransparencyMode
+      read FTransparencyMode write SetTransparencyMode default tmAlphaBlending;
+
+    { Selects the shadow map architecture (standard shadow maps, PCSS soft shadows,
+      or Virtual Shadow Maps with 64x64 page tables). }
+    property ShadowMapSystemMode: TShadowMapSystemMode
+      read FShadowMapSystemMode write SetShadowMapSystemMode default smsStandardShadowMaps;
+
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlerenderoptions_persistent_vectors.inc}
   {$undef read_interface_class}
@@ -624,6 +669,11 @@ begin
   FWireframeColor := DefaultWireframeColor;
   FColorChannels := AllColorChannels;
   FSkinnedAnimationShaders := true;
+  FSpecularAntiAliasing := true;
+  FDualQuaternionSkinning := false;
+  FGpuDrivenMeshletCulling := false;
+  FTransparencyMode := tmAlphaBlending;
+  FShadowMapSystemMode := smsStandardShadowMaps;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastlerenderoptions_persistent_vectors.inc}
@@ -674,6 +724,11 @@ begin
     WholeSceneManifold := TCastleRenderOptions(Source).WholeSceneManifold;
     InternalColorChannels := TCastleRenderOptions(Source).InternalColorChannels;
     SkinnedAnimationShaders := TCastleRenderOptions(Source).SkinnedAnimationShaders;
+    SpecularAntiAliasing := TCastleRenderOptions(Source).SpecularAntiAliasing;
+    DualQuaternionSkinning := TCastleRenderOptions(Source).DualQuaternionSkinning;
+    GpuDrivenMeshletCulling := TCastleRenderOptions(Source).GpuDrivenMeshletCulling;
+    TransparencyMode := TCastleRenderOptions(Source).TransparencyMode;
+    ShadowMapSystemMode := TCastleRenderOptions(Source).ShadowMapSystemMode;
   end else
     inherited;
 end;
@@ -761,7 +816,12 @@ begin
     127 * Ord(FRobustNegativeScale) +
     131 * Ord(FWholeSceneManifold) +
     137 * ColorChannelsOrd(FColorChannels) +
-    139 * Ord(FSkinnedAnimationShaders);
+    139 * Ord(FSkinnedAnimationShaders) +
+    149 * Ord(FSpecularAntiAliasing) +
+    151 * Ord(FDualQuaternionSkinning) +
+    157 * Ord(FGpuDrivenMeshletCulling) +
+    163 * Ord(FTransparencyMode) +
+    167 * Ord(FShadowMapSystemMode);
 end;
 {$I norqcheckend.inc}
 
@@ -819,7 +879,9 @@ begin
         'WireframeEffect', 'WireframeColorPersistent',
         'SolidWireframeScale', 'SolidWireframeBias', 'SilhouetteScale',
         'SilhouetteBias', 'RobustNegativeScale',
-        'WholeSceneManifold', 'ColorChannels'
+        'WholeSceneManifold', 'ColorChannels',
+        'SpecularAntiAliasing', 'DualQuaternionSkinning', 'GpuDrivenMeshletCulling',
+        'TransparencyMode', 'ShadowMapSystemMode'
       ]) then
     Result := [psBasic]
   else
@@ -1109,6 +1171,51 @@ begin
   end;
 end;
 
+procedure TCastleRenderOptions.SetSpecularAntiAliasing(const Value: Boolean);
+begin
+  if FSpecularAntiAliasing <> Value then
+  begin
+    FSpecularAntiAliasing := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetDualQuaternionSkinning(const Value: Boolean);
+begin
+  if FDualQuaternionSkinning <> Value then
+  begin
+    FDualQuaternionSkinning := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetGpuDrivenMeshletCulling(const Value: Boolean);
+begin
+  if FGpuDrivenMeshletCulling <> Value then
+  begin
+    FGpuDrivenMeshletCulling := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetTransparencyMode(const Value: TTransparencyMode);
+begin
+  if FTransparencyMode <> Value then
+  begin
+    FTransparencyMode := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetShadowMapSystemMode(const Value: TShadowMapSystemMode);
+begin
+  if FShadowMapSystemMode <> Value then
+  begin
+    FShadowMapSystemMode := Value;
+    UpdateHash;
+  end;
+end;
+
 function TCastleRenderOptions.IsStoredBumpMappingParallaxHeight: Boolean;
 begin
   Result := FBumpMappingParallaxHeight <> Single(DefaultBumpMappingParallaxHeight);
@@ -1142,6 +1249,31 @@ end;
 function TCastleRenderOptions.IsStoredSolidWireframeScale: Boolean;
 begin
   Result := FSolidWireframeScale <> DefaultSolidWireframeScale;
+end;
+
+function TCastleRenderOptions.ActiveRenderBackendName: String;
+begin
+  case ApplicationProperties.RenderBackend of
+    backendAuto: Result := 'Auto';
+    backendOpenGL: Result := 'OpenGL';
+    backendOpenGLES: Result := 'OpenGLES';
+    backendVulkan: Result := 'Vulkan';
+  end;
+end;
+
+function TCastleRenderOptions.RenderDocAvailable: Boolean;
+begin
+  Result := CastleInternalRenderDoc.RenderDocAvailable;
+end;
+
+procedure TCastleRenderOptions.TriggerRenderDocCapture;
+begin
+  CastleInternalRenderDoc.RenderDocTriggerCapture;
+end;
+
+function TCastleRenderOptions.LaunchRenderDocReplayUI: Boolean;
+begin
+  Result := CastleInternalRenderDoc.RenderDocLaunchReplayUI;
 end;
 
 {$define read_implementation_methods}

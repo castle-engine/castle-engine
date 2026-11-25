@@ -34,7 +34,8 @@ uses Classes,
 implementation
 
 uses SysUtils,
-  CastleLog, CastleUtils;
+  CastleLog, CastleUtils, CastleApplicationProperties,
+  CastleInternalRenderDoc;
 
 {$define read_implementation}
 {$I castlerenderoptions_globals.inc}

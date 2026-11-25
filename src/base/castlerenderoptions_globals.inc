@@ -504,7 +504,81 @@ type
     @link(TCastleImageTransform.Material). }
   TPrimitiveMaterial = (pmPhysical, pmPhong, pmUnlit);
 
+  { Anti-aliasing values for TCastleWindow.AntiAliasing and TRHIDevice. }
+  TAntiAliasing = (aaNone,
+    aa2SamplesFaster, //< 2 samples, "don't care" hint.
+    aa2SamplesNicer,  //< 2 samples, "nicest" hint (quincunx (5 taps) for NVidia).
+    aa4SamplesFaster, //< 4 samples, "don't care" hint.
+    aa4SamplesNicer,  //< 4 samples, "nicest" hint (9 taps for NVidia).
+    aa8SamplesFaster, //< 8 samples, "don't care" hint.
+    aa8SamplesNicer,  //< 8 samples, "nicest" hint.
+    aa16SamplesFaster, //< 16 samples, "don't care" hint.
+    aa16SamplesNicer   //< 16 samples, "nicest" hint.
+  );
+
+  { High-level Global Illumination modes for TCastleViewport on the Vulkan RHI backend. }
+  TGlobalIlluminationMode = (
+    giNone,
+    giDDGIProbes,
+    giVoxelConeTracing,
+    giLumenSDFAndSurfaceCache,
+    giReSTIRGI
+  );
+
+  { High-level Temporal Anti-Aliasing & Super Resolution modes for TCastleViewport. }
+  TTemporalAntiAliasingMode = (
+    taaNone,
+    taaStandardTAA,
+    taaTSRUpscaler
+  );
+
+  { Order-Independent Transparency (OIT) & Alpha Blending modes for TCastleRenderOptions. }
+  TTransparencyMode = (
+    tmAlphaBlending,
+    tmWeightedBlendedOIT,
+    tmPerPixelLinkedListOIT
+  );
+
+  { Hardware / Tile Variable Rate Shading (VRS) modes for TCastleViewport. }
+  TVariableRateShadingMode = (
+    vrsNone,
+    vrsContrastAdaptive,
+    vrsFoveatedStereo
+  );
+
+  { Next-gen shadow map architecture modes for TCastleRenderOptions. }
+  TShadowMapSystemMode = (
+    smsStandardShadowMaps,
+    smsPCSSContactHardening,
+    smsVirtualShadowMaps
+  );
+
+  { Next-gen HDR tone-mapping and wide-gamut display output modes for TCastleViewport. }
+  TNextGenToneMappingMode = (
+    ntmStandard,
+    ntmAgXGamutCompressed,
+    ntmHDR10Rec2020PQ
+  );
+
 const
+  DefaultAntiAliasing = aaNone;
+  aa2SamplesRegular = aa2SamplesFaster;
+  aa4SamplesRegular = aa4SamplesFaster;
+  aa8SamplesRegular = aa8SamplesFaster;
+  aa16SamplesRegular = aa16SamplesFaster;
+
+  AntiAliasingNames: array [TAntiAliasing] of string =
+  ( 'None',
+    '2 samples (faster)',
+    '2 samples (nicer)',
+    '4 samples (faster)',
+    '4 samples (nicer)',
+    '8 samples (faster) (only latest GPUs)',
+    '8 samples (nicer) (only latest GPUs)',
+    '16 samples (faster) (only latest GPUs)',
+    '16 samples (nicer) (only latest GPUs)'
+  );
+
   ShadowSamplingNames: array [TShadowSampling] of string =
   ( 'Simple', 'PCF 4', 'PCF 4 Bilinear', 'PCF 16', 'Variance Shadow Maps (Experimental)' );
 
