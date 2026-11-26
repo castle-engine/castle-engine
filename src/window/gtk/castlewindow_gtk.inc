@@ -82,6 +82,11 @@ CastleInternalWindowModes, CastleFindFiles,
 private
   WindowGtk: PGtkWindow;
   GLAreaGtk: PGtkGLArea;
+  { GDK/GTK scaling.
+    In GTK 3: gtk_widget_get_scale_factor returns int.
+    But GTK 4 allows fractional scale factors: gdk_surface_get_scale ,
+    so we're ready for them. }
+  ScaleFactor: Single;
 
   { These things are initialized only when (MainMenu <> nil) and (not Closed). }
   window_vbox: PGtkVBox;
@@ -120,6 +125,27 @@ private
   {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
   function RenderingAreaXID: TWindow;
   {$endif}
+
+  { Convert mouse position to CGE, doing LeftTopToCastle and applying
+    ScaleFactor. }
+  function GdkPositionToCastle(const X, Y: Single): TVector2;
+  { Reverts GdkPositionToCastle. }
+  function CastleToGdkPosition(const V: TVector2): TVector2Integer;
+
+  { Update Container.Dpi, accounting for ScaleFactor. }
+  procedure UpdateDpi;
+
+  { GLAreaGtk size changed (or ScaleFactor changed).
+    GtkWidth, GtkHeight are in GTK logical units,
+    this method applies ScaleFactor to get size in real device pixels. }
+  procedure GtkAreaResized(const GtkWidth, GtkHeight: Integer);
+
+  { GTK scale factor of GLAreaGtk (possibly) changed.
+    Update ScaleFactor and everything that depends on it. }
+  procedure ScaleFactorChanged;
+
+  { Get current GTK scale factor of GLAreaGtk. }
+  function GetScaleFactor: Single;
 private
   FBorderWidth: Cardinal;
 
@@ -157,6 +183,12 @@ private
     1. calling Update and times events of Application and all our windows
     2. taking care of redraw }
   procedure ProcessUpdates;
+
+  { Scaling factor of the primary monitor.
+    TODO: Should be per-monitor, not just for primary monitor.
+    See TODOs in ScreenWidth / ScreenHeight,
+    our API isn't good in this regard yet, we need TCastleMonitor/Screen concept. }
+  function PrimaryMonitorScaleFactor: GInt;
 private
   { Used by SetCursor, each item may be nil if not initialized. }
   Cursors: array [TMouseCursor] of PGdkCursor;
@@ -441,8 +473,8 @@ SIGNAL_WINDOW_BEGIN
     gdk_window_get_root_origin works).
     Reasons -- the same as in castlewindow_xlib.inc. }
   gdk_window_get_root_origin(gtk_widget_get_window(GTK_WIDGET(WindowGtk)), @LeftGtk, @TopGtk);
-  FLeft := LeftGtk;
-  FTop := TopGtk;
+  FLeft := Round(LeftGtk * ScaleFactor);
+  FTop := Round(TopGtk * ScaleFactor);
   { for the sake of gtk, I can't tell that I "handled" this in any way }
   Result := gfalse;
 SIGNAL_WINDOW_END;
@@ -460,14 +492,7 @@ function signal_glarea_configure_event(AGLAreaGtk: PGtkGLArea;
   no DoResize will be called. And that's good -- there's no point in calling
   DoResize when only Left/Top changed. }
 SIGNAL_GLAREA_BEGIN
-  {$ifdef CASTLE_WINDOW_GTK_WAYLAND}
-  { Check WaylandEglWindow <> nil, as configure event may happen before
-    we have WaylandEglWindow. }
-  if WaylandEglWindow <> nil then
-    wl_egl_window_resize(WaylandEglWindow, Event^.Width, Event^.Height, 0, 0);
-  {$endif CASTLE_WINDOW_GTK_WAYLAND}
-
-  DoResize(Event^.Width, Event^.Height, false);
+  GtkAreaResized(Event^.Width, Event^.Height);
   { for the sake of gtk, I can't tell that I "handled" this in any way }
   Result := gfalse;
 SIGNAL_GLAREA_END;
@@ -568,7 +593,7 @@ SIGNAL_GLAREA_BEGIN
     {$ifdef CASTLE_WINDOW_GTK_2} _type {$else} type_ {$endif} = GDK_BUTTON_PRESS) and
     ButtonNumberToMouseButton(Event^.button, mb);
   if Result then
-    DoMouseDown(LeftTopToCastle(Event^.x, Event^.y), mb, 0);
+    DoMouseDown(GdkPositionToCastle(Event^.x, Event^.y), mb, 0);
 SIGNAL_GLAREA_END;
 
 function signal_button_release_event(AGLAreaGtk: PGtkGLArea; Event: PGdkEventButton;
@@ -579,14 +604,14 @@ SIGNAL_GLAREA_BEGIN
     {$ifdef CASTLE_WINDOW_GTK_2} _type {$else} type_ {$endif} = GDK_BUTTON_RELEASE) and
     ButtonNumberToMouseButton(Event^.button, mb);
   if Result then
-    DoMouseUp(LeftTopToCastle(Event^.x, Event^.y), mb, 0);
+    DoMouseUp(GdkPositionToCastle(Event^.x, Event^.y), mb, 0);
 SIGNAL_GLAREA_END;
 
 function signal_motion_notify_event(AGLAreaGtk: PGtkGLArea; Event: PGdkEventMotion;
   data: gpointer): gboolean; cdecl;
 SIGNAL_GLAREA_BEGIN
   DoMotion(InputMotion(Container.MousePosition,
-    LeftTopToCastle(Event^.x, Event^.y), Container.MousePressed, 0));
+    GdkPositionToCastle(Event^.x, Event^.y), Container.MousePressed, 0));
   Result := gtrue;
 SIGNAL_GLAREA_END;
 
@@ -767,7 +792,124 @@ SIGNAL_WINDOW_BEGIN
   Result := gfalse;
 SIGNAL_WINDOW_END;
 
+{$ifdef CASTLE_WINDOW_GTK_3}
+{ Handle "notify::scale-factor" on GLAreaGtk,
+  see https://docs.gtk.org/gtk3/property.Widget.scale-factor.html .
+
+  Emitted when the toplevel window is realized, gets configure event,
+  or changes screen, and the scale factor is different than before.
+  In practice:
+
+  - When realizing, if the scale factor guessed before realization
+    (from the 1st monitor) was wrong.
+
+  - With X11: when Gdk/WindowScalingFactor XSETTING changes
+    (e.g. user changes scaling in KDE settings), unless GDK_SCALE is set.
+
+  - With Wayland: when the window moves to a monitor with different scale.
+}
+procedure signal_glarea_notify_scale_factor(AGLAreaGtk: PGtkGLArea;
+  ParamSpec: PGParamSpec; Data: gpointer); cdecl;
+var
+  Window: TCastleWindow;
+begin
+  SIGNAL_GENERAL_BEGIN
+    Window := Application.TryFindGLAreaGtk(AGLAreaGtk);
+    { Window may be nil in case GTK sends this notification
+      for a window being opened / closed. }
+    if Window <> nil then
+      Window.ScaleFactorChanged;
+  SIGNAL_GENERAL_END;
+end;
+{$endif CASTLE_WINDOW_GTK_3}
+
 { TCastleWindow ------------------------------------------------------------ }
+
+procedure TCastleWindow.GtkAreaResized(const GtkWidth, GtkHeight: Integer);
+var
+  NewWidth, NewHeight: Integer;
+begin
+  NewWidth := Round(GtkWidth * ScaleFactor);
+  NewHeight := Round(GtkHeight * ScaleFactor);
+
+  {$ifdef CASTLE_WINDOW_GTK_WAYLAND}
+  { Check WaylandEglWindow <> nil, as configure event may happen before
+    we have WaylandEglWindow. }
+  if WaylandEglWindow <> nil then
+    wl_egl_window_resize(WaylandEglWindow, NewWidth, NewHeight, 0, 0);
+  {$endif CASTLE_WINDOW_GTK_WAYLAND}
+
+  DoResize(NewWidth, NewHeight, false);
+end;
+
+procedure TCastleWindow.UpdateDpi;
+var
+  ScreenWidthMM: Single;
+  NewDpi: Single;
+begin
+  NewDpi := gdk_screen_get_resolution(Application.ScreenGdk);
+  if NewDpi <= 0 then
+  begin
+    ScreenWidthMM := gdk_screen_width_mm();
+    if ScreenWidthMM <= 0 then
+    begin
+      { Lazarus LCL also secures from this case, with comment:
+        "some TV-out screens don't know there size" (GetScreenWidthMM). }
+      NewDpi := DefaultDpi;
+    end else
+      NewDpi := gdk_screen_width() / (ScreenWidthMM / 25.4);
+  end;
+  Container.Dpi := NewDpi * ScaleFactor;
+  // Too verbose by default, TCastleContainer.InternalCalculateUIScale will log it if UIScaling is usDpiScale.
+  // WritelnLog('GTK', 'Dots (pixels) per inch is %f (%f * default %f)',
+  //   [Container.Dpi, Container.Dpi / DefaultDpi, DefaultDpi]);
+end;
+
+function TCastleWindow.GetScaleFactor: Single;
+begin
+  Result :=
+    {$ifdef CASTLE_WINDOW_GTK_3} gtk_widget_get_scale_factor(GLAreaGtk)
+    {$else} 1 // GTK 2
+    {$endif};
+  // TODO: use gdk_surface_get_scale with GTK 4
+end;
+
+procedure TCastleWindow.ScaleFactorChanged;
+var
+  NewScaleFactor: Single;
+  {$ifdef CASTLE_WINDOW_GTK_3}
+  GtkWidth, GtkHeight: Integer;
+  {$endif}
+begin
+  NewScaleFactor := GetScaleFactor;
+  if ScaleFactor <> NewScaleFactor then
+  begin
+    WritelnLog('GTK', 'GTK scale factor changed from %f to %f', [
+      ScaleFactor,
+      NewScaleFactor
+    ]);
+    ScaleFactor := NewScaleFactor;
+
+    UpdateDpi;
+
+    { Update Width / Height. GTK may not send configure_event for this,
+      as GTK (logical) size didn't change.
+
+      Do nothing if GLAreaGtk doesn't have a real size yet
+      (when this is called during realization):
+      in this case, GTK will send configure_event later,
+      and signal_glarea_configure_event will use new ScaleFactor. }
+    {$ifdef CASTLE_WINDOW_GTK_3} // GTK 2 does not have gtk_widget_get_allocated_width
+    if gtk_widget_get_realized(GTK_WIDGET(GLAreaGtk)) then
+    begin
+      GtkWidth := gtk_widget_get_allocated_width(GTK_WIDGET(GLAreaGtk));
+      GtkHeight := gtk_widget_get_allocated_height(GTK_WIDGET(GLAreaGtk));
+      if (GtkWidth > 1) and (GtkHeight > 1) then
+        GtkAreaResized(GtkWidth, GtkHeight);
+    end;
+    {$endif}
+  end;
+end;
 
 procedure TCastleWindow.SetCursor(const Value: TMouseCursor);
 begin
@@ -874,7 +1016,7 @@ var
   RootX, RootY: GInt;
 {$endif}
 begin
-  P := CastleToLeftTopInt(Value);
+  P := CastleToGdkPosition(Value);
 
   {$ifdef CASTLE_SetMousePosition_USE_XWarpPointer}
   { To work with older GTK (GTK 1, and some initial GTK 2.x versions),
@@ -899,6 +1041,18 @@ begin
     gtk_window_set_title(GTK_WINDOW(WindowGtk), PChar(GetWholeCaption));
 end;
 
+function TCastleWindow.GdkPositionToCastle(const X, Y: Single): TVector2;
+begin
+  Result := LeftTopToCastle(X * ScaleFactor, Y * ScaleFactor);
+end;
+
+function TCastleWindow.CastleToGdkPosition(const V: TVector2): TVector2Integer;
+begin
+  Result := CastleToLeftTopInt(V);
+  Result.X := Round(Result.X / ScaleFactor);
+  Result.Y := Round(Result.Y / ScaleFactor);
+end;
+
 procedure TCastleWindow.GetInitialCursorPos;
 var
   X, Y: {$ifdef CASTLE_WINDOW_GTK_2} GInt {$else} GDouble {$endif};
@@ -917,7 +1071,7 @@ begin
     @X, @Y, nil);
   {$endif}
 
-  (Container as TWindowContainer).InitializeMousePosition(LeftTopToCastle(X, Y));
+  (Container as TWindowContainer).InitializeMousePosition(GdkPositionToCastle(X, Y));
 end;
 
 procedure TCastleWindow.OpenBackend;
@@ -975,46 +1129,25 @@ const
      [ RequestedBufferAttributes ]);
   end;
 
-  procedure InitializeDpi;
-  var
-    ScreenWidthMM: Single;
-    NewDpi: Single;
-  begin
-    NewDpi := gdk_screen_get_resolution(Application.ScreenGdk);
-    if NewDpi <= 0 then
-    begin
-      ScreenWidthMM := gdk_screen_width_mm();
-      if ScreenWidthMM <= 0 then
-      begin
-        { Lazarus LCL also secures from this case, with comment:
-          "some TV-out screens don't know there size" (GetScreenWidthMM). }
-        NewDpi := DefaultDpi;
-      end else
-        NewDpi := gdk_screen_width() / (ScreenWidthMM / 25.4);
-    end;
-    Container.Dpi := NewDpi;
-    // Too verbose by default, TCastleContainer.InternalCalculateUIScale will log it if UIScaling is usDpiScale.
-    // WritelnLog('GTK', 'Dots (pixels) per inch is %f (%f * default %f)',
-    //   [NewDpi, NewDpi / DefaultDpi, DefaultDpi]);
-  end;
-
+var
+  MinWidthScaled, MinHeightScaled,
+    MaxWidthScaled, MaxHeightScaled,
+    WidthScaled, HeightScaled,
+    ScreenWidthScaled, ScreenHeightScaled: Integer;
 { Use gtk_window_set_geometry_hints.
   See below for comments how our current usage of it is imperfect,
   so disabled by default. }
 {.$define CASTLE_USE_gtk_window_set_geometry_hints}
 {$ifdef CASTLE_USE_gtk_window_set_geometry_hints}
-var
   GdkGeometry: TGdkGeometry;
 {$endif}
 {$ifndef USE_EGL}
-var
   GdkVisual: PGdkVisual;
   {$ifdef CASTLE_WINDOW_GTK_2}
   GdkColormap: PGdkColormap;
   {$endif CASTLE_WINDOW_GTK_2}
 {$endif not USE_EGL}
 {$ifdef CASTLE_WINDOW_GTK_WAYLAND}
-var
   WaylandSurface: Pwl_surface;
   WaylandDisplay: Pwl_display;
 {$endif}
@@ -1086,6 +1219,13 @@ begin
 
   gtk_widget_show(GTK_WIDGET(GLAreaGtk));
 
+  { Query this to know early. But this is just a guess from GTK,
+    we don't know yet the current monitor, before the widget is realized.
+    We will receive best value later. }
+  ScaleFactor := GetScaleFactor;
+  if not SameValue(ScaleFactor, 1) then
+    WritelnLog('GTK', 'GTK scale factor is %f', [ScaleFactor]);
+
   { connect signal handlers to GLAreaGtk }
   { What events to catch ? It must cover all signal_yyy_event functions that we
     will connect. This must be called before X Window is created. }
@@ -1130,6 +1270,10 @@ begin
     GTK_SIGNAL_FUNC(@signal_motion_notify_event), nil);
   gtk_signal_connect(GTK_OBJECT(GLAreaGtk), 'scroll_event',
     GTK_SIGNAL_FUNC(@signal_scroll_event), nil);
+  {$ifdef CASTLE_WINDOW_GTK_3}
+  gtk_signal_connect(GTK_OBJECT(GLAreaGtk), 'notify::scale-factor',
+    GTK_SIGNAL_FUNC(@signal_glarea_notify_scale_factor), nil);
+  {$endif}
 
   { connect signal handlers to WindowGtk }
   gtk_widget_set_events(GTK_WIDGET(WindowGtk),
@@ -1169,11 +1313,9 @@ begin
   Application.OpenWindowsAdd(Self);
 
   { setup window position from Left, Top }
-  {$ifdef CASTLE_WINDOW_GTK_2}
-  gtk_widget_set_uposition(GTK_WIDGET(WindowGtk), Left, Top);
-  {$else}
-  gtk_window_move(WindowGtk, Left, Top);
-  {$endif}
+  gtk_window_move(WindowGtk,
+    Round(Left / ScaleFactor),
+    Round(Top / ScaleFactor));
 
   if (MainMenu <> nil) and MainMenuVisible then
   begin
@@ -1187,6 +1329,15 @@ begin
     gtk_container_add(GTK_CONTAINER(WindowGtk), GTK_WIDGET(window_vbox));
   end else
     gtk_container_add(GTK_CONTAINER(WindowGtk), GTK_WIDGET(GLAreaGtk));
+
+  WidthScaled := Round(Width / ScaleFactor);
+  HeightScaled := Round(Height / ScaleFactor);
+  ScreenWidthScaled := Round(Application.ScreenWidth / ScaleFactor);
+  ScreenHeightScaled := Round(Application.ScreenHeight / ScaleFactor);
+  MinWidthScaled := Round(MinWidth / ScaleFactor);
+  MinHeightScaled := Round(MinHeight / ScaleFactor);
+  MaxWidthScaled := Round(MaxWidth / ScaleFactor);
+  MaxHeightScaled := Round(MaxHeight / ScaleFactor);
 
   { setup window/glarea size and resize policy from
     MinWidth, MinHeight, Width, Height, ResizeAllowed }
@@ -1212,17 +1363,17 @@ begin
       Later note: this likely doesn't matter at all, since we use
       gtk_window_fullscreen.
     }
-    gtk_widget_set_size_request(GTK_WIDGET(WindowGtk), MinWidth, MinHeight);
-    gtk_window_set_default_size(WindowGtk, Application.ScreenWidth, Application.ScreenHeight);
+    gtk_widget_set_size_request(GTK_WIDGET(WindowGtk), MinWidthScaled, MinHeightScaled);
+    gtk_window_set_default_size(WindowGtk, ScreenWidthScaled, ScreenHeightScaled);
 
     gtk_window_fullscreen(WindowGtk);
   end else
   begin
     if ResizeAllowed <> raAllowed then
-      gtk_widget_set_size_request(GTK_WIDGET(GLAreaGtk), Width, Height)
+      gtk_widget_set_size_request(GTK_WIDGET(GLAreaGtk), WidthScaled, HeightScaled)
     else
-      gtk_widget_set_size_request(GTK_WIDGET(GLAreaGtk), MinWidth, MinHeight);
-    set_default_glarea_size(Width, Height);
+      gtk_widget_set_size_request(GTK_WIDGET(GLAreaGtk), MinWidthScaled, MinHeightScaled);
+    set_default_glarea_size(WidthScaled, HeightScaled);
     gtk_window_set_resizable(WindowGtk, ResizeAllowed = raAllowed);
 
     {$ifdef CASTLE_USE_gtk_window_set_geometry_hints}
@@ -1239,10 +1390,10 @@ begin
       are already enforced by gtk_widget_set_size_request.
     *)
 
-    GdkGeometry.min_width := MinWidth;
-    GdkGeometry.min_height := MinHeight;
-    GdkGeometry.max_width := MaxWidth;
-    GdkGeometry.max_height := MaxHeight;
+    GdkGeometry.min_width := MinWidthScaled;
+    GdkGeometry.min_height := MinHeightScaled;
+    GdkGeometry.max_width := MaxWidthScaled;
+    GdkGeometry.max_height := MaxHeightScaled;
     gtk_window_set_geometry_hints(WindowGtk,
       { ignored in GTK >= 3.20, we pass it only because GTK 2 docs don't
         say nil is allowed. See
@@ -1256,7 +1407,9 @@ begin
         [ GDK_HINT_MIN_SIZE, GDK_HINT_MAX_SIZE ]
       {$endif});
     WritelnLog('Window size limited using gtk_window_set_geometry_hints to %d x %d - %d x %d, current: %d x %d', [
-      MinWidth, MinHeight, MaxWidth, MaxHeight, Width, Height
+      MinWidthScaled, MinHeightScaled,
+      MaxWidthScaled, MaxHeightScaled,
+      WidthScaled, HeightScaled
     ]);
     {$endif CASTLE_USE_gtk_window_set_geometry_hints}
   end;
@@ -1343,7 +1496,7 @@ begin
 
   GetInitialCursorPos;
   UpdateCursor;
-  InitializeDpi;
+  UpdateDpi;
 end;
 
 procedure TCastleWindow.CloseBackend;
@@ -2035,6 +2188,28 @@ begin
     end;
 end;
 
+function TCastleApplication.PrimaryMonitorScaleFactor: GInt;
+{$ifdef CASTLE_WINDOW_GTK_3}
+var
+  Monitor: PGdkMonitor;
+{$endif}
+begin
+  {$ifdef CASTLE_WINDOW_GTK_3}
+  InitializeDisplay;
+  Monitor := gdk_display_get_primary_monitor(DisplayGdk);
+  { Docs https://docs.gtk.org/gdk3/method.Display.get_primary_monitor.html
+    say it can be nil, if "no primary monitor is configured by the user".
+    Use monitor 0 then, like gdk_screen_get_primary_monitor does
+    (https://docs.gtk.org/gdk3/method.Screen.get_primary_monitor.html says
+    "If no primary monitor is configured by the user, the return value will be 0, defaulting to the first monitor.") }
+  if Monitor = nil then
+    Monitor := gdk_display_get_monitor(DisplayGdk, 0);
+  Result := gdk_monitor_get_scale_factor(Monitor);
+  {$else}
+  Result := 1;
+  {$endif}
+end;
+
 { When CASTLE_WINDOW_USE_XF86VMODE, then castlewindow_xf86vmode.inc
   will provide implementation for ScreenWidth and ScreenHeight. }
 {$ifndef CASTLE_WINDOW_USE_XF86VMODE}
@@ -2050,7 +2225,7 @@ begin
   // TODO: this is actually still bad, different window may be on different monitors with different resolutions
   Monitor := gdk_screen_get_primary_monitor(ScreenGdk);
   gdk_screen_get_monitor_geometry(ScreenGdk, Monitor, @Rect);
-  Result := Rect.Width;
+  Result := Rect.Width * PrimaryMonitorScaleFactor;
 end;
 
 function TCastleApplication.ScreenHeight: integer;
@@ -2065,7 +2240,7 @@ begin
   // TODO: this is actually still bad, different window may be on different monitors with different resolutions
   Monitor := gdk_screen_get_primary_monitor(ScreenGdk);
   gdk_screen_get_monitor_geometry(ScreenGdk, Monitor, @Rect);
-  Result := Rect.Height;
+  Result := Rect.Height * PrimaryMonitorScaleFactor;
 end;
 {$endif CASTLE_WINDOW_USE_XF86VMODE}
 
@@ -2243,18 +2418,6 @@ begin
 
     {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
     CheckNotWayland;
-
-      {$ifdef CASTLE_WINDOW_GTK_3}
-      { Disable GDK integer window scaling (from GDK_SCALE env variable,
-        i.e. when running with GDK_SCALE=2).
-        We assume that GDK/GTK sizes and coordinates, seen in this file,
-        match the real device pixels (which we use to allocate GL area).
-        Without this, with GDK_SCALE=2,
-        we would render only in the lower-left quarter of the window.
-        See https://github.com/castle-engine/castle-engine/issues/750 . }
-      gdk_x11_display_set_window_scale(DisplayGdk, 1);
-      {$endif}
-
     {$endif CASTLE_WINDOW_GTK_WITH_XLIB}
     {$ifdef CASTLE_WINDOW_GTK_WAYLAND}
     CheckWayland;
