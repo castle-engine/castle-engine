@@ -34,6 +34,8 @@
 {$endif not CASTLE_SLIM_NODES}
     function GetNormal: TAbstractNormalNode;
     procedure SetNormal(const Value: TAbstractNormalNode);
+    function GetTargets: TMorphTargetsNode;
+    procedure SetTargets(const Value: TMorphTargetsNode);
   public
     { Create node fields and events. }
     procedure CreateNode; override;
@@ -92,6 +94,12 @@
     procedure SetSkinJoints0(const Value: array of Int32); overload;
     { Joints for the skinned animation. See @link(TAbstractComposedGeometryNode.SetSkinJoints0) for details. }
     procedure SetSkinJoints0(const Value: TInt32List); overload;
+
+    strict private FFdTargets: TSFNode;
+    { Internal wrapper for property @code(Targets). This wrapper API may change, we advise to access simpler @code(Targets) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdTargets: TSFNode read FFdTargets;
+    { Morph targets (blend shapes) that can deform this geometry. }
+    property Targets: TMorphTargetsNode read GetTargets write SetTargets;
     procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
@@ -188,6 +196,19 @@ begin
   FdSkinJoints0.Send(Value);
 end;
 
+function TPointSetNode.GetTargets: TMorphTargetsNode;
+begin
+  if FdTargets.Value is TMorphTargetsNode then
+    Result := TMorphTargetsNode(FdTargets.Value)
+  else
+    Result := nil;
+end;
+
+procedure TPointSetNode.SetTargets(const Value: TMorphTargetsNode);
+begin
+  FdTargets.Send(Value);
+end;
+
 class function TPointSetNode.ClassX3DType: String;
 begin
   Result := 'PointSet';
@@ -230,6 +251,10 @@ begin
   FFdSkinJoints0 := TMFInt32.Create(Self, True, 'skinJoints0', []);
    FdSkinJoints0.ChangeAlways := chGeometry;
   AddField(FFdSkinJoints0);
+
+  FFdTargets := TSFNode.Create(Self, True, 'targets', [TMorphTargetsNode]);
+   FdTargets.ChangeAlways := chGeometry;
+  AddField(FFdTargets);
 end;
 
 procedure TPointSetNode.GetExtensions(const ExtensionNames: TStrings);

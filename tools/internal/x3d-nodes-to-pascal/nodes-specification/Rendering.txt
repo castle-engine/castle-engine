@@ -196,6 +196,11 @@ IndexedLineSet : X3DGeometryNode {
     change: chGeometry
     is-extension: true
     doc: Joints for the skinned animation. See @link(TAbstractComposedGeometryNode.SetSkinJoints0) for details.
+
+  SFNode  [in,out] targets NULL
+    range: MorphTargets
+    change: chGeometry
+    doc: Morph targets (blend shapes) that can deform this geometry.
 }
 
 IndexedTriangleFanSet : X3DComposedGeometryNode {
@@ -285,6 +290,11 @@ LineSet : X3DGeometryNode {
     change: chGeometry
     is-extension: true
     doc: Joints for the skinned animation. See @link(TAbstractComposedGeometryNode.SetSkinJoints0) for details.
+
+  SFNode  [in,out] targets NULL
+    range: MorphTargets
+    change: chGeometry
+    doc: Morph targets (blend shapes) that can deform this geometry.
 }
 
 Normal : X3DNormalNode {
@@ -329,6 +339,11 @@ PointSet : X3DGeometryNode {
     change: chGeometry
     is-extension: true
     doc: Joints for the skinned animation. See @link(TAbstractComposedGeometryNode.SetSkinJoints0) for details.
+
+  SFNode  [in,out] targets NULL
+    range: MorphTargets
+    change: chGeometry
+    doc: Morph targets (blend shapes) that can deform this geometry.
 }
 
 TriangleFanSet : X3DComposedGeometryNode {
