@@ -73,6 +73,7 @@
   TAbstractTextureTransformNode = class;
   TAbstractSingleTextureCoordinateNode = class;
   TTangentNode = class;
+  TMorphTargetsNode = class;
   TTransformFunctionality = class;
   TTimeDependentFunctionality = class;
   TGeneratedTextureFunctionality = class;

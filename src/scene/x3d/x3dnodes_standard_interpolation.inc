@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2023 Michalis Kamburelis.
+  Copyright 2002-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -259,6 +259,35 @@
     function CreateOutputField: TMFFloat; override;
 
   {$I auto_generated_node_helpers/x3dnodes_vectorinterpolator.inc}
+  end;
+
+  { Morph target (Blender "blend shape") which changes various parameters
+    (coordinates, normals and more) of the geometry. }
+  TMorphTargetNode = class(TAbstractNode)
+  {$I auto_generated_node_helpers/x3dnodes_morphtarget.inc}
+  end;
+
+  { Collection of morph targets @link(TMorphTargetNode) and the weights
+    with which they should be applied now.
+    Place it in @link(TAbstractComposedGeometryNode.Targets). }
+  TMorphTargetsNode = class(TAbstractGeometricPropertyNode)
+  {$I auto_generated_node_helpers/x3dnodes_morphtargets.inc}
+  end;
+
+  { Interpolate (animate) a set of floats,
+    for example to animate @link(TMorphTargetsNode.FdWeights). }
+  TCoordinateInterpolator1DNode = class({$ifdef FPC}specialize{$endif} TAbstractCommonInterpolatorNode<
+    TMFFloat>)
+  strict private
+    function FrameValues: TListSize;
+  strict protected
+    function KeyValueCount: TListSize; override;
+    procedure InterpolatorLerp(const Target: TMFFloat; const A: Single;
+      const Index1, Index2: Integer); override;
+    procedure InterpolatorSet(const Target: TMFFloat; const Index: Integer); override;
+    function CreateOutputField: TMFFloat; override;
+
+  {$I auto_generated_node_helpers/x3dnodes_coordinateinterpolator1d.inc}
   end;
 
 {$endif read_interface}
@@ -778,6 +807,42 @@ begin
   Result := TMFFloat.CreateUndefined(Self, false, '');
 end;
 
+{ TCoordinateInterpolator1DNode ---------------------------------------------- }
+
+function TCoordinateInterpolator1DNode.FrameValues: TListSize;
+begin
+  Result := FdKeyValue.Count div FdKey.Count;
+end;
+
+function TCoordinateInterpolator1DNode.KeyValueCount: TListSize;
+begin
+  Result := FdKeyValue.Items.Count div FrameValues;
+end;
+
+procedure TCoordinateInterpolator1DNode.InterpolatorLerp(const Target: TMFFloat; const A: Single;
+  const Index1, Index2: Integer);
+var
+  FV: TListSize;
+begin
+  FV := FrameValues;
+  Target.Items.AssignLerpRange(A, FdKeyValue.Items, FdKeyValue.Items,
+    Index1 * FV, Index2 * FV, FV);
+end;
+
+procedure TCoordinateInterpolator1DNode.InterpolatorSet(const Target: TMFFloat; const Index: Integer);
+var
+  FV: TListSize;
+begin
+  FV := FrameValues;
+  Target.Items.Clear;
+  Target.Items.AddSubRange(FdKeyValue.Items, Index * FV, FV);
+end;
+
+function TCoordinateInterpolator1DNode.CreateOutputField: TMFFloat;
+begin
+  Result := TMFFloat.CreateUndefined(Self, false, '');
+end;
+
 { registration --------------------------------------------------------------- }
 
 procedure RegisterInterpolationNodes;
@@ -786,8 +851,11 @@ begin
     TColorInterpolatorNode,
     TColorSetInterpolatorNode,
     TCoordinateInterpolatorNode,
+    TCoordinateInterpolator1DNode,
     TCoordinateInterpolator2DNode,
     TEaseInEaseOutNode,
+    TMorphTargetNode,
+    TMorphTargetsNode,
     TNormalInterpolatorNode,
     TOrientationInterpolatorNode,
     TPositionInterpolatorNode,

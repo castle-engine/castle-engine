@@ -1,0 +1,90 @@
+#X3D V4.1 utf8 X_ITE V16.8.1
+PROFILE Interchange
+
+# Simple example of a MorphTarget, by Holger from X_ITE.
+
+Shape {
+  appearance Appearance {
+    alphaMode "OPAQUE"
+    material PhysicalMaterial {
+      metallic 0
+    }
+  }
+  geometry IndexedTriangleSet {
+    normalPerVertex FALSE
+    index [
+      0,
+      1,
+      2
+    ]
+    coord Coordinate {
+      point [
+        0 0 0,
+        1 0 0,
+        0.5 0.5 0
+      ]
+    }
+    targets DEF _1 MorphTargets {
+      weights [
+        0.5,
+        0.5
+      ]
+      targets [
+        MorphTarget {
+          displacements Coordinate {
+            point [
+              0 0 0,
+              0 0 0,
+              -1 1 0
+            ]
+          }
+        }
+        MorphTarget {
+          displacements Coordinate {
+            point [
+              0 0 0,
+              0 0 0,
+              1 1 0
+            ]
+          }
+        }
+      ]
+    }
+  }
+}
+
+DEF Animations Group {
+  visible FALSE
+  children DEF Animation1 Group {
+    children [
+      DEF Timer1 TimeSensor {
+        description "Animation 1"
+        cycleInterval 4
+      }
+      DEF WeightsInterpolator CoordinateInterpolator1D {
+        key [
+          0,
+          0.25,
+          0.5,
+          0.75,
+          1
+        ]
+        keyValue [
+          0,
+          0,
+          0,
+          1,
+          1,
+          1,
+          1,
+          0,
+          0,
+          0
+        ]
+      }
+    ]
+  }
+}
+
+ROUTE Timer1.fraction_changed TO WeightsInterpolator.set_fraction
+ROUTE WeightsInterpolator.value_changed TO _1.set_weights

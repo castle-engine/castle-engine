@@ -77,6 +77,9 @@ type
     procedure TestRadiusProjectionNearFromSizeOrNot;
     procedure TestTransformChangeThenChangedAll;
     procedure TestIsBoundRouteDuringChangedAll;
+    { Test loading MorphTargets, MorphTarget, CoordinateInterpolator1D
+      and routing interpolator output to MorphTargets.weights. }
+    procedure TestMorphTargets;
   end;
 
 implementation
@@ -1730,6 +1733,55 @@ begin
     AssertEquals(1, Scene.Shapes.TraverseList(true, true).Count);
   finally
     FreeAndNil(Scene);
+  end;
+end;
+
+procedure TTestSceneCore.TestMorphTargets;
+
+  procedure AssertWeights(const MorphTargets: TMorphTargetsNode;
+    const Expected0, Expected1: Single);
+  begin
+    AssertEquals(2, MorphTargets.FdWeights.Items.Count);
+    AssertSameValue(Expected0, MorphTargets.FdWeights.Items[0], 0.001);
+    AssertSameValue(Expected1, MorphTargets.FdWeights.Items[1], 0.001);
+  end;
+
+var
+  Scene: TCastleSceneCore;
+  MorphTargets: TMorphTargetsNode;
+  Interpolator: TCoordinateInterpolator1DNode;
+  Geometry: TIndexedTriangleSetNode;
+begin
+  ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}OnWarningRaiseException);
+  try
+    Scene := TCastleSceneCore.Create(nil);
+    try
+      Scene.Load('castle-data:/morph_targets.x3dv');
+      Scene.ProcessEvents := true;
+
+      Geometry := (Scene.RootNode.FdChildren[0] as TShapeNode).Geometry as TIndexedTriangleSetNode;
+      MorphTargets := Scene.Node(TMorphTargetsNode, '_1') as TMorphTargetsNode;
+      Interpolator := Scene.Node(TCoordinateInterpolator1DNode, 'WeightsInterpolator') as TCoordinateInterpolator1DNode;
+
+      AssertTrue(Geometry.Targets = MorphTargets);
+      AssertEquals(2, MorphTargets.FdTargets.Count);
+      AssertTrue(MorphTargets.FdTargets[0] is TMorphTargetNode);
+      AssertEquals(1, TMorphTargetNode(MorphTargets.FdTargets[0]).FdDisplacements.Count);
+      AssertTrue(TMorphTargetNode(MorphTargets.FdTargets[0]).FdDisplacements[0] is TCoordinateNode);
+      AssertWeights(MorphTargets, 0.5, 0.5);
+
+      // keyValue has 2 values per key, these should be routed to MorphTargets.weights
+      Interpolator.EventSet_fraction.Send(0, Scene.NextEventTime);
+      AssertWeights(MorphTargets, 0, 0);
+      Interpolator.EventSet_fraction.Send(0.375, Scene.NextEventTime);
+      AssertWeights(MorphTargets, 0.5, 1);
+      Interpolator.EventSet_fraction.Send(0.75, Scene.NextEventTime);
+      AssertWeights(MorphTargets, 1, 0);
+      Interpolator.EventSet_fraction.Send(1, Scene.NextEventTime);
+      AssertWeights(MorphTargets, 0, 0);
+    finally FreeAndNil(Scene) end;
+  finally
+    ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
   end;
 end;
 

@@ -147,3 +147,30 @@ VectorInterpolator : X3DInterpolatorNode {
     change: chNone
   MFFloat  [out]     value_changed
 }
+
+MorphTargets : X3DGeometricPropertyNode {
+  default-container-field: targets
+
+  MFFloat [in,out] weights []
+    range: [0,1]
+    doc: Weights for each morph target in @link(FdTargets), in the range [0,1].
+  MFNode  [in,out] targets []
+    range: MorphTarget
+    doc: Morph targets, applied with the corresponding weights in @link(FdWeights).
+}
+
+MorphTarget : X3DNode {
+  default-container-field: targets
+
+  SFString [in,out] description ""
+    doc: Additional information about the morph target. Just a documentation, does not affect any functionality.
+  MFNode   [in,out] displacements []
+    range: X3DColorNode, X3DTextureCoordinateNode, Tangent, X3DNormalNode, X3DCoordinateNode
+    doc: How does this morph target affect the geometry. Each node type may be present on this list at most once.
+}
+
+CoordinateInterpolator1D : X3DInterpolatorNode {
+  MFFloat [in,out] keyValue      []
+    change: chNone
+  MFFloat [out]    value_changed
+}

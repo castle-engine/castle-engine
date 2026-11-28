@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2025 Michalis Kamburelis.
+  Copyright 2002-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -388,6 +388,7 @@ uses Math, StrUtils, URIParser, TypInfo,
 {$I auto_generated_node_helpers/x3dnodes_coordinate3_1.inc}
 {$I auto_generated_node_helpers/x3dnodes_coordinatedouble.inc}
 {$I auto_generated_node_helpers/x3dnodes_coordinateinterpolator.inc}
+{$I auto_generated_node_helpers/x3dnodes_coordinateinterpolator1d.inc}
 {$I auto_generated_node_helpers/x3dnodes_coordinateinterpolator2d.inc}
 {$I auto_generated_node_helpers/x3dnodes_cube_1.inc}
 {$I auto_generated_node_helpers/x3dnodes_cubicbezier2dorientationinterpolator.inc}
@@ -462,6 +463,8 @@ uses Math, StrUtils, URIParser, TypInfo,
 {$I auto_generated_node_helpers/x3dnodes_metadatainteger.inc}
 {$I auto_generated_node_helpers/x3dnodes_metadataset.inc}
 {$I auto_generated_node_helpers/x3dnodes_metadatastring.inc}
+{$I auto_generated_node_helpers/x3dnodes_morphtarget.inc}
+{$I auto_generated_node_helpers/x3dnodes_morphtargets.inc}
 {$I auto_generated_node_helpers/x3dnodes_movietexture.inc}
 {$I auto_generated_node_helpers/x3dnodes_multigeneratedtexturecoordinate.inc}
 {$I auto_generated_node_helpers/x3dnodes_multitexture.inc}
