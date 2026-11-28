@@ -285,6 +285,9 @@ type
     directly by other code. }
   TShader = class
   private
+    type
+      TLinkProgramMode = (lpAll, lpStart, lpFinish);
+    var
     { When adding new field, remember to clear it in Clear method. }
     { List of effect nodes that determine uniforms of our program. }
     UniformsNodes: TX3DNodeList;
@@ -391,6 +394,8 @@ type
     {$define read_interface_in_shader_class}
     {$I castlerendererinternalshader_geometry_shaders.inc}
     {$undef read_interface_in_shader_class}
+    procedure LinkProgramCore(AProgram: TX3DShaderProgram;
+      const ShapeNiceName: String; const Mode: TLinkProgramMode);
   public
     { Material parameters for current shape.
       Must be set before EnableLight, and be constant later. }
@@ -490,6 +495,18 @@ type
       @raises EGLSLError In case of troubles with linking. }
     procedure LinkProgram(AProgram: TX3DShaderProgram;
       const ShapeNiceName: String);
+
+    { Like LinkProgram, in two steps that let the driver compile on its own
+      threads (TGLFeatures.ParallelShaderCompile): LinkProgramStart adds the
+      code and starts linking, without waiting for the driver.
+      When AProgram.LinkReady, call LinkProgramFinish with a TShader
+      in the same state (the same CodeHash), e.g. prepared again for the same
+      shape in a later frame.
+      @raises EGLSLError In case of troubles with linking
+        (LinkProgramFinish reports compilation errors too). }
+    procedure LinkProgramStart(AProgram: TX3DShaderProgram;
+      const ShapeNiceName: String);
+    procedure LinkProgramFinish(AProgram: TX3DShaderProgram);
 
     { Add a fallback vertex + fragment shader code and link.
       Use this when normal LinkProgram failed, but you want to have
@@ -1637,6 +1654,23 @@ end;
 
 procedure TShader.LinkProgram(AProgram: TX3DShaderProgram;
   const ShapeNiceName: String);
+begin
+  LinkProgramCore(AProgram, ShapeNiceName, lpAll);
+end;
+
+procedure TShader.LinkProgramStart(AProgram: TX3DShaderProgram;
+  const ShapeNiceName: String);
+begin
+  LinkProgramCore(AProgram, ShapeNiceName, lpStart);
+end;
+
+procedure TShader.LinkProgramFinish(AProgram: TX3DShaderProgram);
+begin
+  LinkProgramCore(AProgram, '', lpFinish);
+end;
+
+procedure TShader.LinkProgramCore(AProgram: TX3DShaderProgram;
+  const ShapeNiceName: String; const Mode: TLinkProgramMode);
 var
   TextureApply, TextureColorDeclare, TextureCoordInitialize, TextureCoordMatrix,
     TextureAttributeDeclare, TextureVaryingDeclareVertex,
@@ -2184,19 +2218,31 @@ begin
   end;
 
   try
-    if (Source[stVertex].Count = 0) and
-       (Source[stFragment].Count = 0) then
-      raise EGLSLError.Create('No vertex and no fragment shader for GLSL program');
-
-    for ShaderType := Low(ShaderType) to High(ShaderType) do
+    { lpFinish: the code is generated above only to initialize this TShader
+      for SetupUniformsOnce, the program has it already }
+    if Mode <> lpFinish then
     begin
-      AProgram.AttachShader(ShaderType, Source[ShaderType]);
-      {$ifdef CASTLE_CANNOT_CATCH_EXCEPTIONS}
-      if AProgram.ErrorOnCompileLink then Exit;
-      {$endif}
+      if (Source[stVertex].Count = 0) and
+         (Source[stFragment].Count = 0) then
+        raise EGLSLError.Create('No vertex and no fragment shader for GLSL program');
+
+      AProgram.DeferChecks := Mode = lpStart;
+      for ShaderType := Low(ShaderType) to High(ShaderType) do
+      begin
+        AProgram.AttachShader(ShaderType, Source[ShaderType]);
+        {$ifdef CASTLE_CANNOT_CATCH_EXCEPTIONS}
+        if AProgram.ErrorOnCompileLink then Exit;
+        {$endif}
+      end;
+
+      AProgram.Name := 'TShader:Shape:' + ShapeNiceName;
+      if Mode = lpStart then
+      begin
+        AProgram.LinkStart;
+        Exit;
+      end;
     end;
 
-    AProgram.Name := 'TShader:Shape:' + ShapeNiceName;
     AProgram.Link;
 
     {$ifdef CASTLE_CANNOT_CATCH_EXCEPTIONS}

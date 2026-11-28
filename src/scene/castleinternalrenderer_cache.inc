@@ -158,6 +158,19 @@
     function Program_IncReference(
       Shader: TShader; const ShapeNiceName: string): TShaderProgramCache;
 
+    { Is the program ready to use?
+      When it was still compiling (TShaderProgramCache.Pending)
+      and the driver is done, finish linking it using Shader
+      (prepared for a shape with the same program, so with the same CodeHash).
+      Never waits for the driver. }
+    function Program_Ready(const ProgramCache: TShaderProgramCache;
+      Shader: TShader; const ShapeNiceName: string): Boolean;
+
+    { How many programs the driver is still compiling
+      (when InternalParallelShaderCompile), and how many of them are not
+      done yet (OnlyNotReady). }
+    function ProgramsCompiling(const OnlyNotReady: Boolean): Integer;
+
     procedure Program_DecReference(var ProgramCache: TShaderProgramCache);
 
     { Free (and Self <> nil) when the cache will be empty (maybe immediately,
@@ -1026,7 +1039,13 @@ begin
 
   try
     Result.ShaderProgram := TX3DGLSLProgram.Create;
-    Shader.LinkProgram(Result.ShaderProgram, ShapeNiceName);
+    if InternalParallelShaderCompile and GLFeatures.ParallelShaderCompile then
+    begin
+      { only start: the driver compiles meanwhile, Program_Ready finishes }
+      Shader.LinkProgramStart(Result.ShaderProgram, ShapeNiceName);
+      Result.Pending := true;
+    end else
+      Shader.LinkProgram(Result.ShaderProgram, ShapeNiceName);
     {$ifdef CASTLE_CANNOT_CATCH_EXCEPTIONS}
     if Result.ShaderProgram.ErrorOnCompileLink then
       FreeAndNil(Result.ShaderProgram);
@@ -1060,6 +1079,62 @@ begin
 
   if LogRendererCache then
     WritelnLog('++', 'Shader program (hash %s): %d', [Result.Hash.ToString, Result.References]);
+end;
+
+function TRendererCache.Program_Ready(const ProgramCache: TShaderProgramCache;
+  Shader: TShader; const ShapeNiceName: string): Boolean;
+begin
+  if not ProgramCache.Pending then
+    Exit(true);
+  if (ProgramCache.ShaderProgram <> nil) and
+     (not ProgramCache.ShaderProgram.LinkReady) then
+    Exit(false);
+
+  ProgramCache.Pending := false;
+  Result := true;
+  if ProgramCache.ShaderProgram = nil then
+    Exit;
+  try
+    Shader.LinkProgramFinish(ProgramCache.ShaderProgram);
+    {$ifdef CASTLE_CANNOT_CATCH_EXCEPTIONS}
+    if ProgramCache.ShaderProgram.ErrorOnCompileLink then
+      FreeAndNil(ProgramCache.ShaderProgram);
+    {$endif}
+  except on E: EGLSLError do
+    begin
+      FreeAndNil(ProgramCache.ShaderProgram);
+      WritelnWarning('VRML/X3D', Format('Cannot use GLSL shader for shape "%s": %s',
+        [ShapeNiceName, E.Message]));
+    end;
+  end;
+
+  { like Program_IncReference: some GLSL shader is a must without the fixed-function }
+  if (not GLFeatures.EnableFixedFunction) and (ProgramCache.ShaderProgram = nil) then
+  begin
+    try
+      ProgramCache.ShaderProgram := TX3DGLSLProgram.Create;
+      Shader.LinkFallbackProgram(ProgramCache.ShaderProgram);
+    except on E: EGLSLError do
+      begin
+        FreeAndNil(ProgramCache.ShaderProgram);
+        WritelnWarning('VRML/X3D', Format('Cannot use even fallback GLSL shader for shape "%s": %s',
+          [ShapeNiceName, E.Message]));
+      end;
+    end;
+  end;
+end;
+
+function TRendererCache.ProgramsCompiling(const OnlyNotReady: Boolean): Integer;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := 0 to ProgramCaches.Count - 1 do
+    if ProgramCaches[I].Pending and
+       ( (not OnlyNotReady) or
+         (ProgramCaches[I].ShaderProgram = nil) or
+         (not ProgramCaches[I].ShaderProgram.LinkReady) ) then
+      Inc(Result);
 end;
 
 procedure TRendererCache.Program_DecReference(var ProgramCache: TShaderProgramCache);

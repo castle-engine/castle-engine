@@ -273,8 +273,20 @@ type
   { Manage (build, use) a program in GLSL (OpenGL Shading Language). }
   TGLSLProgram = class
   private
+    type
+      { A shader compiled with DeferChecks, its source kept to report
+        a compilation error when Link finds it. }
+      TDeferredShader = record
+        ShaderId: TGLShader;
+        ShaderType: TShaderType;
+        Source: String;
+      end;
+    var
     ProgramId: TGLprogram;
     ShaderIds: TGLShaderList;
+    FDeferChecks: Boolean;
+    FLinkStarted: Boolean;
+    FDeferredShaders: array of TDeferredShader;
 
     FUniformMissing: TUniformMissing;
     FUniformLocations: TUniformLocationCache;
@@ -330,6 +342,19 @@ type
       when fragment shader is missing. }
     FragmentShaderRequired: Boolean;
 
+    { Don't wait for the driver to compile each shader in @link(AttachShader):
+      check the compilation only when @link(Link) finishes linking.
+
+      Use this with @link(LinkStart) and @link(LinkReady) to let the driver
+      compile and link many programs at once on its own threads
+      (GL_ARB_parallel_shader_compile, see TGLFeatures.ParallelShaderCompile),
+      without stalling the application:
+      set DeferChecks to @true, attach the shaders, call @link(LinkStart),
+      and later, when @link(LinkReady) says so, call @link(Link) to finish.
+      @link(Link) then raises EGLSLShaderCompileError or EGLSLProgramLinkError,
+      like without DeferChecks. }
+    property DeferChecks: Boolean read FDeferChecks write FDeferChecks;
+
     constructor Create;
     destructor Destroy; override;
 
@@ -382,6 +407,19 @@ type
         the error is.) }
     procedure Link; overload; virtual;
     procedure Link(Ignored: boolean); overload; deprecated 'use parameterless Link method';
+
+    { Start linking the program, after attaching all shaders,
+      without waiting for the result.
+      Call @link(Link) later to finish (it waits for the driver if needed,
+      @link(LinkReady) tells whether it would).
+      Calling @link(Link) without LinkStart does both. }
+    procedure LinkStart;
+
+    { Has the driver finished compiling and linking, after @link(LinkStart)?
+      So @link(Link) will not wait.
+      Always @true when the driver cannot tell
+      (without TGLFeatures.ParallelShaderCompile) or when linking was not started. }
+    function LinkReady: Boolean;
 
     { Enable (use) this program. Shortcut for @code(RenderContext.CurrentProgram := Self). }
     procedure Enable;
@@ -1642,6 +1680,11 @@ var
       on E: EAccessViolation do ReportCompileAccessViolation;
     end;
 
+    { asking for the status waits for the compilation:
+      with DeferChecks, Link asks }
+    if DeferChecks then
+      Exit;
+
     {$ifdef CASTLE_WEBGL}
     Compiled := glGetShaderParameter(Result, GL_COMPILE_STATUS);
     {$else}
@@ -1843,6 +1886,14 @@ begin
   glAttachShader(ProgramId, ShaderId);
   ShaderIds.Add(ShaderId);
 
+  if DeferChecks then
+  begin
+    SetLength(FDeferredShaders, Length(FDeferredShaders) + 1);
+    FDeferredShaders[High(FDeferredShaders)].ShaderId := ShaderId;
+    FDeferredShaders[High(FDeferredShaders)].ShaderType := ShaderType;
+    FDeferredShaders[High(FDeferredShaders)].Source := S;
+  end;
+
   {$ifdef CASTLE_COLLECT_SHADER_SOURCE}
   FSource[ShaderType].Add(S);
   {$endif CASTLE_COLLECT_SHADER_SOURCE}
@@ -1943,6 +1994,8 @@ begin
   end;
 
   ShaderIds.Count := 0;
+  FDeferredShaders := nil;
+  FLinkStarted := false;
 
   for ShaderType := Low(TShaderType) to High(TShaderType) do
   begin
@@ -1996,6 +2049,49 @@ procedure TGLSLProgram.Link;
     {$endif}
   end;
 
+  { With DeferChecks, the shaders' compilation was not checked yet:
+    report the first that failed (a clearer error than the link's). }
+  procedure CheckDeferredCompilation;
+  var
+    I: Integer;
+    {$ifndef CASTLE_WEBGL}
+    CompiledInt: TGLint;
+    {$endif}
+    Compiled: Boolean;
+    Message: String;
+  begin
+    for I := 0 to High(FDeferredShaders) do
+    begin
+      {$ifdef CASTLE_WEBGL}
+      Compiled := glGetShaderParameter(FDeferredShaders[I].ShaderId, GL_COMPILE_STATUS);
+      {$else}
+      glGetShaderiv(FDeferredShaders[I].ShaderId, GL_COMPILE_STATUS, @CompiledInt);
+      Compiled := CompiledInt = Ord(GL_TRUE);
+      {$endif}
+      if not Compiled then
+      begin
+        Message := Format('%s shader not compiled:' + NL +
+          '%s' + NL +
+          NL +
+          'The shader source code is below:' + NL +
+          '-------------------------------------------------------' + NL +
+          '%s' + NL +
+          '-------------------------------------------------------',
+          [ ShaderTypeName[FDeferredShaders[I].ShaderType],
+            GetShaderInfoLog(FDeferredShaders[I].ShaderId),
+            FDeferredShaders[I].Source ]);
+        FDeferredShaders := nil;
+        {$ifdef CASTLE_CANNOT_CATCH_EXCEPTIONS}
+        WritelnWarning('GLSL', Message);
+        ErrorOnCompileLink := true;
+        Exit;
+        {$else}
+        raise EGLSLShaderCompileError.Create(Message);
+        {$endif}
+      end;
+    end;
+  end;
+
 var
   {$ifndef CASTLE_WEBGL}
   LinkedInt: TGLuint;
@@ -2004,14 +2100,9 @@ var
 begin
   if GLFeatures.Shaders then
   begin
-    { Produce clear error messages, without waiting for OpenGL errors,
-      if required shaders are not attached. }
-    if not HasStage[stVertex] then
-      raise EGLSLProgramLinkError.Create('Vertex shader not attached');
-    if FragmentShaderRequired and (not HasStage[stFragment]) then
-      raise EGLSLProgramLinkError.Create('Fragment shader not attached');
-
-    glLinkProgram(ProgramId);
+    if not FLinkStarted then
+      LinkStart;
+    FLinkStarted := false;
 
     {$ifdef CASTLE_WEBGL}
     Linked := glGetProgramParameter(ProgramId, GL_LINK_STATUS);
@@ -2021,8 +2112,15 @@ begin
     {$endif}
 
     if not Linked then
+    begin
+      CheckDeferredCompilation;
+      {$ifdef CASTLE_CANNOT_CATCH_EXCEPTIONS}
+      if ErrorOnCompileLink then Exit;
+      {$endif}
       // raises exception
       ReportLinkError(GetProgramInfoLog(ProgramId));
+    end;
+    FDeferredShaders := nil;
 
     {$ifdef CASTLE_CANNOT_CATCH_EXCEPTIONS}
     if ErrorOnCompileLink then Exit;
@@ -2035,6 +2133,39 @@ begin
         DebugInfo +
         LogShaderCode);
   end;
+end;
+
+procedure TGLSLProgram.LinkStart;
+begin
+  if GLFeatures.Shaders then
+  begin
+    { Produce clear error messages, without waiting for OpenGL errors,
+      if required shaders are not attached. }
+    if not HasStage[stVertex] then
+      raise EGLSLProgramLinkError.Create('Vertex shader not attached');
+    if FragmentShaderRequired and (not HasStage[stFragment]) then
+      raise EGLSLProgramLinkError.Create('Fragment shader not attached');
+
+    glLinkProgram(ProgramId);
+    FLinkStarted := true;
+  end;
+end;
+
+function TGLSLProgram.LinkReady: Boolean;
+{$if not (defined(CASTLE_WEBGL) or defined(OpenGLES))}
+var
+  Completed: TGLint;
+{$endif}
+begin
+  Result := true;
+  {$if not (defined(CASTLE_WEBGL) or defined(OpenGLES))}
+  if FLinkStarted and GLFeatures.ParallelShaderCompile then
+  begin
+    Completed := 0;
+    glGetProgramiv(ProgramId, GL_COMPLETION_STATUS_ARB, @Completed);
+    Result := Completed <> 0;
+  end;
+  {$endif}
 end;
 
 procedure TGLSLProgram.Link(Ignored: boolean);

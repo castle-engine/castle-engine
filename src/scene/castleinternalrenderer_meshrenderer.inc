@@ -94,6 +94,11 @@ type
     Arrays: TGeometryArrays;
     function PerVertexColor: Boolean;
   protected
+    { Set by RenderCoordinateBegin when the shape's shader program
+      is still being compiled (InternalParallelShaderCompile):
+      the shape is not drawn then. }
+    ProgramNotReady: Boolean;
+
     { Override these to render contents of Arrays.
       These are all called only when Coord is assigned.
       RenderCoordinateBegin, RenderCoordinateEnd are called around actual
@@ -372,9 +377,10 @@ var
 begin
   Attribs := nil;
 
+  ProgramNotReady := false;
   RenderCoordinateBegin;
   try
-    if not PrepareRenderShape then
+    if not (PrepareRenderShape or ProgramNotReady) then
     begin
       { Initialize vertex arrays that we we will use with indexed nodes. }
       if Vbo[vtCoordinate] <> GLObjectNone then
@@ -1113,6 +1119,17 @@ begin
       end;
 
       Assert(Shape.ProgramCache[Pass] <> nil);
+
+      { the driver is still compiling it (InternalParallelShaderCompile):
+        don't draw the shape this time }
+      if not RendererCache.Program_Ready(Shape.ProgramCache[Pass], Shader, Shape.NiceName) then
+      begin
+        ProgramNotReady := true;
+        CurrentMeshShader := nil;
+        RenderContext.CurrentProgram := nil;
+        Exit;
+      end;
+
       CurrentX3DProgram := Shape.ProgramCache[Pass].ShaderProgram;
       CurrentMeshShader := CurrentX3DProgram;
       if not GLFeatures.EnableFixedFunction then
