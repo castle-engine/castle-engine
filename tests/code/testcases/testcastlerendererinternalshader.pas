@@ -47,6 +47,10 @@ type
     { Shapes for which the same light (with Effect) has a different
       light number must not share a shader program. }
     procedure TestLightEffectsDifferentLightNumber;
+    { Effect nodes without uniforms of their own are hashed by their code:
+      equal effects (in different scenes, or created again later) share
+      a shader program. Effects with uniforms are hashed by the node. }
+    procedure TestEffectCodeHash;
   end;
 
 implementation
@@ -333,6 +337,80 @@ begin
 
     Window.Close;
   finally DestroyWindowForTest(Window) end;
+end;
+
+procedure TTestCastleRendererInternalShader.TestEffectCodeHash;
+const
+  { No uniforms: the effect is fully described by this code. }
+  EffectCode =
+    'void PLUG_light_scale(inout float scale, const in vec3 normal_eye, const in vec3 light_dir)' + LineEnding +
+    '{' + LineEnding +
+    '  scale *= 0.5;' + LineEnding +
+    '}';
+  OtherEffectCode =
+    'void PLUG_light_scale(inout float scale, const in vec3 normal_eye, const in vec3 light_dir)' + LineEnding +
+    '{' + LineEnding +
+    '  scale *= 0.25;' + LineEnding +
+    '}';
+
+  function CreateEffectWithoutUniforms: TEffectNode;
+  var
+    Part: TEffectPartNode;
+  begin
+    Result := TEffectNode.Create;
+    Result.Language := slGLSL;
+    Part := TEffectPartNode.Create;
+    Part.ShaderType := stFragment;
+    Part.Contents := EffectCode;
+    Result.SetParts([Part]);
+  end;
+
+  function HashOf(const Effect: TEffectNode; const Multiplier: UInt32 = 1): TShaderCodeHash;
+  begin
+    Result.Clear;
+    Result.AddEffect(Effect, Multiplier);
+  end;
+
+var
+  A, B, C, WithUniformA, WithUniformB: TEffectNode;
+  Code: UInt32;
+begin
+  A := CreateEffectWithoutUniforms;
+  B := CreateEffectWithoutUniforms;
+  C := CreateEffectWithoutUniforms;
+  WithUniformA := CreateLightFactorEffect(0.5, false);
+  WithUniformB := CreateLightFactorEffect(0.5, false);
+  try
+    { equal code, no uniforms: one hash, although the nodes differ }
+    AssertTrue(A.InternalCodeHash(Code));
+    AssertTrue(HashOf(A) = HashOf(B));
+    { the slot (light number, texture unit) still matters }
+    AssertFalse(HashOf(A, 1) = HashOf(B, 2));
+
+    { other code, other hash; the same code again, the same hash }
+    (C.FdParts[0] as TEffectPartNode).Contents := OtherEffectCode;
+    AssertFalse(HashOf(A) = HashOf(C));
+    (C.FdParts[0] as TEffectPartNode).Contents := EffectCode;
+    AssertTrue(HashOf(A) = HashOf(C));
+    { other part type, other hash }
+    (C.FdParts[0] as TEffectPartNode).ShaderType := stVertex;
+    AssertFalse(HashOf(A) = HashOf(C));
+    { other shader libraries, other hash }
+    B.SetShaderLibraries(['castle-shader:/EyeWorldSpace.glsl']);
+    AssertFalse(HashOf(A) = HashOf(B));
+
+    { effects with their own uniform values: by the node, as the values
+      may differ (see TestLightEffectsNotShared) }
+    AssertFalse(WithUniformA.InternalCodeHash(Code));
+    AssertFalse(HashOf(WithUniformA) = HashOf(WithUniformB));
+    AssertTrue(HashOf(WithUniformA) = HashOf(WithUniformA));
+  finally
+    FreeAndNil(A);
+    FreeAndNil(B);
+    FreeAndNil(C);
+    FreeAndNil(WithUniformA);
+    FreeAndNil(WithUniformB);
+  end;
 end;
 
 initialization
