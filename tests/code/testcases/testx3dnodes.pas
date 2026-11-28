@@ -914,6 +914,7 @@ const
     'StringSensor=children' + NL +
     'SurfaceEmitter=emitter' + NL +
     'Switch=children' + NL +
+    'Tangent=tangent' + NL +
     'TexCoordDamper=children' + NL +
     'Text=geometry' + NL +
     'TextureBackground=children' + NL +

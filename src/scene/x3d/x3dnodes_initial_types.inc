@@ -64,6 +64,7 @@
   TTransformNode = class;
   TAbstractCoordinateNode = class;
   TAbstractNormalNode = class;
+  TAbstractTangentNode = class;
   TFogCoordinateNode = class;
   TAbstractTextureCoordinateNode = class;
   TAbstractEnvironmentTextureNode = class;

@@ -34,7 +34,7 @@ X3DComposedGeometryNode : X3DGeometryNode {
     change: chGeometry
     setter-before: MoveShapeAssociations
   SFNode [in,out] tangent         NULL
-    range: Tangent
+    range: X3DTangentNode
     change: chGeometry
     doc: """
     Tangent vectors determine the tangent coordinate-space, used by the bump mapping algorithms.
@@ -119,6 +119,10 @@ X3DCoordinateNode : X3DGeometricPropertyNode {
 
 X3DNormalNode : X3DGeometricPropertyNode {
   default-container-field: normal
+}
+
+X3DTangentNode : X3DGeometricPropertyNode {
+  default-container-field: tangent
 }
 
 ClipPlane : X3DChildNode {
@@ -289,8 +293,7 @@ Normal : X3DNormalNode {
     change: chNormal
 }
 
-Tangent : X3DGeometricPropertyNode {
-  default-container-field: tangent
+Tangent : X3DTangentNode {
   MFVec4f [in,out] vector   []
     range: [-1,1]
     change: chTangent

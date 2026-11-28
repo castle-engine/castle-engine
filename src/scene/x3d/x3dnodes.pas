@@ -618,6 +618,7 @@ uses Math, StrUtils, URIParser, TypInfo,
 {$I auto_generated_node_helpers/x3dnodes_x3dsingletexturetransformnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dsoundnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dsoundsourcenode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dtangentnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dtexture2dnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dtexture3dnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dtexturecoordinatenode.inc}

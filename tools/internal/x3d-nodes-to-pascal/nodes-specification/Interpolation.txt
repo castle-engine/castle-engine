@@ -165,7 +165,7 @@ MorphTarget : X3DNode {
   SFString [in,out] description ""
     doc: Additional information about the morph target. Just a documentation, does not affect any functionality.
   MFNode   [in,out] displacements []
-    range: X3DColorNode, X3DTextureCoordinateNode, Tangent, X3DNormalNode, X3DCoordinateNode
+    range: X3DColorNode, X3DTextureCoordinateNode, X3DTangentNode, X3DNormalNode, X3DCoordinateNode
     doc: How does this morph target affect the geometry. Each node type may be present on this list at most once.
 }
 

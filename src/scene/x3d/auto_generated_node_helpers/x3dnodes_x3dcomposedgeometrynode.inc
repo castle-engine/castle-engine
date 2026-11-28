@@ -34,8 +34,8 @@
 {$endif not CASTLE_SLIM_NODES}
     function GetNormal: TAbstractNormalNode;
     procedure SetNormal(const Value: TAbstractNormalNode);
-    function GetTangent: TTangentNode;
-    procedure SetTangent(const Value: TTangentNode);
+    function GetTangent: TAbstractTangentNode;
+    procedure SetTangent(const Value: TAbstractTangentNode);
     function GetTexCoord: TAbstractTextureCoordinateNode;
     procedure SetTexCoord(const Value: TAbstractTextureCoordinateNode);
     function GetCcw: Boolean;
@@ -101,7 +101,7 @@
     The XYZ component of each tangent vector should be a normalized tangent direction.
 
     The W component is a sign value (-1 or +1) indicating handedness of the tangent basis. See the X3D 4.1 and glTF specifications for details. }
-    property Tangent: TTangentNode read GetTangent write SetTangent;
+    property Tangent: TAbstractTangentNode read GetTangent write SetTangent;
 
     strict private FFdTexCoord: TSFNode;
     { Internal wrapper for property @code(TexCoord). This wrapper API may change, we advise to access simpler @code(TexCoord) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -294,15 +294,15 @@ begin
   FdNormal.Send(Value);
 end;
 
-function TAbstractComposedGeometryNode.GetTangent: TTangentNode;
+function TAbstractComposedGeometryNode.GetTangent: TAbstractTangentNode;
 begin
-  if FdTangent.Value is TTangentNode then
-    Result := TTangentNode(FdTangent.Value)
+  if FdTangent.Value is TAbstractTangentNode then
+    Result := TAbstractTangentNode(FdTangent.Value)
   else
     Result := nil;
 end;
 
-procedure TAbstractComposedGeometryNode.SetTangent(const Value: TTangentNode);
+procedure TAbstractComposedGeometryNode.SetTangent(const Value: TAbstractTangentNode);
 begin
   FdTangent.Send(Value);
 end;
@@ -433,7 +433,7 @@ begin
    FdNormal.OnBeforeValueChange := {$ifdef FPC}@{$endif}MoveShapeAssociations;
   AddField(FFdNormal);
 
-  FFdTangent := TSFNode.Create(Self, True, 'tangent', [TTangentNode]);
+  FFdTangent := TSFNode.Create(Self, True, 'tangent', [TAbstractTangentNode]);
    FdTangent.ChangeAlways := chGeometry;
    FdTangent.OnBeforeValueChange := {$ifdef FPC}@{$endif}MoveShapeAssociations;
   AddField(FFdTangent);

@@ -84,7 +84,7 @@ begin
    FdDescription.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdDescription);
 
-  FFdDisplacements := TMFNode.Create(Self, True, 'displacements', [TAbstractColorNode, TAbstractTextureCoordinateNode, TTangentNode, TAbstractNormalNode, TAbstractCoordinateNode]);
+  FFdDisplacements := TMFNode.Create(Self, True, 'displacements', [TAbstractColorNode, TAbstractTextureCoordinateNode, TAbstractTangentNode, TAbstractNormalNode, TAbstractCoordinateNode]);
    FdDisplacements.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdDisplacements);
 

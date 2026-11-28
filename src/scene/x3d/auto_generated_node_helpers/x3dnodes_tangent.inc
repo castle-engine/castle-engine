@@ -64,8 +64,6 @@ begin
   FFdVector := TMFVec4f.Create(Self, True, 'vector', []);
    FdVector.ChangeAlways := chTangent;
   AddField(FFdVector);
-
-  DefaultContainerField := 'tangent';
 end;
 
 {$endif read_implementation}

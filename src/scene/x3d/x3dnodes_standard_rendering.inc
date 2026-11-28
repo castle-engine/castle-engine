@@ -576,6 +576,11 @@
   {$I auto_generated_node_helpers/x3dnodes_x3dnormalnode.inc}
   end;
 
+  { Base node type for all tangent node types. }
+  TAbstractTangentNode = class(TAbstractGeometricPropertyNode)
+  {$I auto_generated_node_helpers/x3dnodes_x3dtangentnode.inc}
+  end;
+
   { Clip the geometry with a plane. }
   TClipPlaneNode = class(TAbstractChildNode)
   protected
@@ -758,7 +763,7 @@
     See @url(https://github.com/michaliskambi/x3d-tests/wiki/Tangent-node-in-X3D
     Tangent node in X3D) for more details what this node specifies and why
     is it useful. }
-  TTangentNode = class(TAbstractGeometricPropertyNode)
+  TTangentNode = class(TAbstractTangentNode)
   {$I auto_generated_node_helpers/x3dnodes_tangent.inc}
   end;
 
