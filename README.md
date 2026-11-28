@@ -56,6 +56,8 @@ Usage in short:
 
     We recommend to install [our Delphi packages](https://castle-engine.io/delphi_packages) in Delphi. This will give you a comfortable menu in Delphi IDE _"Tools → Castle Game Engine"_, with useful commands like _"Set Engine Path..."_ and _"Configure Delphi to Use Engine"_.
 
+- You can also use [C++ Builder](https://www.embarcadero.com/products/cbuilder). The complete engine API is available as C++ classes. See [C++ Builder documentation](https://castle-engine.io/cpp_builder).
+
 Documentation
 -------
 
