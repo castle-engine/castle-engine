@@ -22,16 +22,15 @@ type
   TVector4List = class;
 
   { List of @link(TVector2).
-    Note that the notification mechanism (OnNotify) is broken here by routines like AddRange
-    and AddSubRange (for maximum speed). }
-  TVector2List = class({$ifdef FPC}specialize{$endif} TStructList<TVector2>)
+    A @link(TCastleFastList): fast, without notifications. }
+  TVector2List = class({$ifdef FPC}specialize{$endif} TCastleFastList<TVector2>)
   public
     { Calculate minimum and maximum values for both dimensions of
       this set of points. Returns @false when Count = 0. }
     function MinMax(out Min, Max: TVector2): boolean;
 
     procedure AssignLerpRange(const Fraction: Single;
-      const V1, V2: {$ifdef FPC}specialize{$endif} TStructList<TVector2>;
+      const V1, V2: {$ifdef FPC}specialize{$endif} TCastleFastList<TVector2>;
       const Index1, Index2, ACount: TListSize); override;
 
     procedure AddRange(const Source: TVector2List); overload;
@@ -45,9 +44,8 @@ type
   end;
 
   { List of @link(TVector3).
-    Note that the notification mechanism (OnNotify) is broken here by routines like AddRange
-    and AddSubRange (for maximum speed). }
-  TVector3List = class({$ifdef FPC}specialize{$endif} TStructList<TVector3>)
+    A @link(TCastleFastList): fast, without notifications. }
+  TVector3List = class({$ifdef FPC}specialize{$endif} TCastleFastList<TVector3>)
   public
     procedure AssignNegated(const Source: TVector3List); deprecated 'use Assign and Negate separately';
 
@@ -61,7 +59,7 @@ type
     procedure MultiplyComponents(const V: TVector3);
 
     procedure AssignLerpRange(const Fraction: Single;
-      const V1, V2: {$ifdef FPC}specialize{$endif} TStructList<TVector3>;
+      const V1, V2: {$ifdef FPC}specialize{$endif} TCastleFastList<TVector3>;
       const Index1, Index2, ACount: TListSize); override;
 
     { Assign linear interpolation between two other vector arrays,
@@ -100,11 +98,10 @@ type
   end;
 
   { List of @link(TVector3Integer).
-    Note that the notification mechanism (OnNotify) is broken here by routines like AddRange
-    and AddSubRange (for maximum speed). }
-  TVector3IntegerList = class({$ifdef FPC}specialize{$endif} TStructList<TVector3Integer>)
+    A @link(TCastleFastList): fast, without notifications. }
+  TVector3IntegerList = class({$ifdef FPC}specialize{$endif} TCastleFastList<TVector3Integer>)
   public
-    procedure AddRange(const Source: TVector3IntegerList);
+    procedure AddRange(const Source: TVector3IntegerList); overload;
     procedure AddSubRange(const Source: TVector3IntegerList; const Index, AddCount: Integer);
     procedure AddListRange(const Source: TVector3IntegerList; const Index, AddCount: Integer); deprecated 'use AddSubRange';
 
@@ -113,16 +110,15 @@ type
   end;
 
   { List of @link(TVector4).
-    Note that the notification mechanism (OnNotify) is broken here by routines like AddRange
-    and AddSubRange (for maximum speed). }
-  TVector4List = class({$ifdef FPC}specialize{$endif} TStructList<TVector4>)
+    A @link(TCastleFastList): fast, without notifications. }
+  TVector4List = class({$ifdef FPC}specialize{$endif} TCastleFastList<TVector4>)
   public
     procedure AddRange(const Source: TVector4List); overload;
     procedure AddSubRange(const Source: TVector4List; const Index, AddCount: Integer);
     procedure AddListRange(const Source: TVector4List; const Index, AddCount: Integer); deprecated 'use AddSubRange';
 
     procedure AssignLerpRange(const Fraction: Single;
-      const V1, V2: {$ifdef FPC}specialize{$endif} TStructList<TVector4>;
+      const V1, V2: {$ifdef FPC}specialize{$endif} TCastleFastList<TVector4>;
       const Index1, Index2, ACount: TListSize); override;
 
     { Does the SecondValue have equal length and content.
@@ -132,11 +128,10 @@ type
   end;
 
   { List of @link(TVector4Integer).
-    Note that the notification mechanism (OnNotify) is broken here by routines like AddRange
-    and AddSubRange (for maximum speed). }
-  TVector4IntegerList = class({$ifdef FPC}specialize{$endif} TStructList<TVector4Integer>)
+    A @link(TCastleFastList): fast, without notifications. }
+  TVector4IntegerList = class({$ifdef FPC}specialize{$endif} TCastleFastList<TVector4Integer>)
   public
-    procedure AddRange(const Source: TVector4IntegerList);
+    procedure AddRange(const Source: TVector4IntegerList); overload;
     procedure AddSubRange(const Source: TVector4IntegerList; const Index, AddCount: Integer);
     procedure AddListRange(const Source: TVector4IntegerList; const Index, AddCount: Integer); deprecated 'use AddSubRange';
 
@@ -145,15 +140,14 @@ type
   end;
 
   { List of @link(TMatrix3).
-    Note that the notification mechanism (OnNotify) is broken here by routines like AddRange
-    and AddSubRange (for maximum speed). }
-  TMatrix3List = class({$ifdef FPC}specialize{$endif} TStructList<TMatrix3>)
+    A @link(TCastleFastList): fast, without notifications. }
+  TMatrix3List = class({$ifdef FPC}specialize{$endif} TCastleFastList<TMatrix3>)
   public
-    procedure AddRange(const Source: TMatrix3List);
+    procedure AddRange(const Source: TMatrix3List); overload;
     procedure AddSubRange(const Source: TMatrix3List; const Index, AddCount: Integer);
 
     procedure AssignLerpRange(const Fraction: Single;
-      const V1, V2: {$ifdef FPC}specialize{$endif} TStructList<TMatrix3>;
+      const V1, V2: {$ifdef FPC}specialize{$endif} TCastleFastList<TMatrix3>;
       const Index1, Index2, ACount: TListSize); override;
 
     { Does the SecondValue have equal length and content.
@@ -163,15 +157,14 @@ type
   end;
 
   { List of @link(TMatrix4).
-    Note that the notification mechanism (OnNotify) is broken here by routines like AddRange
-    and AddSubRange (for maximum speed). }
-  TMatrix4List = class({$ifdef FPC}specialize{$endif} TStructList<TMatrix4>)
+    A @link(TCastleFastList): fast, without notifications. }
+  TMatrix4List = class({$ifdef FPC}specialize{$endif} TCastleFastList<TMatrix4>)
   public
-    procedure AddRange(const Source: TMatrix4List);
+    procedure AddRange(const Source: TMatrix4List); overload;
     procedure AddSubRange(const Source: TMatrix4List; const Index, AddCount: Integer);
 
     procedure AssignLerpRange(const Fraction: Single;
-      const V1, V2: {$ifdef FPC}specialize{$endif} TStructList<TMatrix4>;
+      const V1, V2: {$ifdef FPC}specialize{$endif} TCastleFastList<TMatrix4>;
       const Index1, Index2, ACount: TListSize); override;
 
     { Does the SecondValue have equal length and content.
@@ -181,10 +174,10 @@ type
   end;
 
   { List of @link(TVector2SmallInt). }
-  TVector2SmallIntList = {$ifdef FPC}specialize{$endif} TStructList<TVector2SmallInt>;
+  TVector2SmallIntList = {$ifdef FPC}specialize{$endif} TCastleFastList<TVector2SmallInt>;
 
   { List of @link(TVector2Cardinal). }
-  TVector3CardinalList = {$ifdef FPC}specialize{$endif} TStructList<TVector3Cardinal>;
+  TVector3CardinalList = {$ifdef FPC}specialize{$endif} TCastleFastList<TVector3Cardinal>;
 
 {$endif read_interface}
 
@@ -213,7 +206,7 @@ begin
 end;
 
 procedure TVector2List.AssignLerpRange(const Fraction: Single;
-  const V1, V2: {$ifdef FPC}specialize{$endif} TStructList<TVector2>;
+  const V1, V2: {$ifdef FPC}specialize{$endif} TCastleFastList<TVector2>;
   const Index1, Index2, ACount: TListSize);
 var
   I: TListSize;
@@ -303,7 +296,7 @@ begin
 end;
 
 procedure TVector3List.AssignLerpRange(const Fraction: Single;
-  const V1, V2: {$ifdef FPC}specialize{$endif} TStructList<TVector3>;
+  const V1, V2: {$ifdef FPC}specialize{$endif} TCastleFastList<TVector3>;
   const Index1, Index2, ACount: TListSize);
 var
   I: TListSize;
@@ -503,7 +496,7 @@ begin
 end;
 
 procedure TVector4List.AssignLerpRange(const Fraction: Single;
-  const V1, V2: {$ifdef FPC}specialize{$endif} TStructList<TVector4>;
+  const V1, V2: {$ifdef FPC}specialize{$endif} TCastleFastList<TVector4>;
   const Index1, Index2, ACount: TListSize);
 var
   I: TListSize;
@@ -583,7 +576,7 @@ end;
 { TMatrix3List --------------------------------------------------------------- }
 
 procedure TMatrix3List.AssignLerpRange(const Fraction: Single;
-  const V1, V2: {$ifdef FPC}specialize{$endif} TStructList<TMatrix3>;
+  const V1, V2: {$ifdef FPC}specialize{$endif} TCastleFastList<TMatrix3>;
   const Index1, Index2, ACount: TListSize);
 var
   I: TListSize;
@@ -638,7 +631,7 @@ end;
 { TMatrix4List --------------------------------------------------------------- }
 
 procedure TMatrix4List.AssignLerpRange(const Fraction: Single;
-  const V1, V2: {$ifdef FPC}specialize{$endif} TStructList<TMatrix4>;
+  const V1, V2: {$ifdef FPC}specialize{$endif} TCastleFastList<TMatrix4>;
   const Index1, Index2, ACount: TListSize);
 var
   I: TListSize;
